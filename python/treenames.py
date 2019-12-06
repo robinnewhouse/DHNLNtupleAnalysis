@@ -7,6 +7,7 @@ class Tree():
 		self.tree = self.file[treeName]
 		
 		#define variables
+		self.passedtriggers = self.tree["passedTriggers"].array()
 		self.muonindex = self.tree["secVtx_trk_muonIndex"].array()
 		self.elindex = self.tree["secVtx_trk_electronIndex"].array()
 		self.dvmass = self.tree["secVtx_mass"].array() 

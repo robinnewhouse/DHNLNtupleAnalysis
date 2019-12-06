@@ -6,19 +6,28 @@ import helpers
 
 
 class Trigger():
-	def __init__(self, plepton, trigger = None):
+	def __init__(self, plepton, trigger):
 		self.plepton = plepton 
 		self.trigger = trigger
 
-	def passes(self, tree):
+	def passes(self, tree, ievt):
 		if self.plepton == "muon":
-			if self.trigger == "triggerpassmu26":
-				if tree.triggerpassmu26 == True:
-					return True 
-		elif self.plepton == "el":
-			return False
-		else:
-			return False
+			ntriggers = len(tree.passedtriggers[ievt])
+
+			self.passtrig = False
+			# print ntriggers
+			for itrig in range(ntriggers): 
+				# print "trigger ", tree.passedtriggers[ievt][itrig]
+				# print self.trigger
+				if tree.passedtriggers[ievt][itrig] == self.trigger:
+					self.passtrig = True
+		
+			if self.passtrig == True: 
+				return True
+			else:
+				return False
+
+
 
 
 class Filter():

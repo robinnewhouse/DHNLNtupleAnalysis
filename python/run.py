@@ -21,7 +21,8 @@ if __name__ == '__main__':
 
 
 	for ievt in xrange(entries):
-
+		passTrigger = selections.Trigger(plepton="muon",trigger = "HLT_mu26_ivarmedium").passes(tree, ievt)
+		# print "trigger? ", passTrigger
 		pMuon = selections.Plepton(lepton="muon")
 		pMuonpass = pMuon.passes(tree, ievt)
 
@@ -52,9 +53,8 @@ if __name__ == '__main__':
 	
 			passTrackqual = selections.Trackqual(quality="2-tight").passes(tree,ievt,idv)
 		
-			if pMuonpass and passDV and passfid and passDVntracks and passOSDV and passDVtype: 
-				print "-------"
-				print ievt
+			if passTrigger and pMuonpass and passDV and passfid and passDVntracks and passOSDV and passDVtype: 
+		
 				pMuonvec = pMuon.plepVec
 				# print pMuonvec.Pt()
 				# print pMuonvec.Eta()
@@ -78,7 +78,9 @@ if __name__ == '__main__':
 				print passCosmicVeto
 
 				if passMllcut and passCosmicVeto and passDVmasscut: 
-
+					print "-------"
+					print ievt
+					print "trigger pass: ", passTrigger
 					print "muon ", muVec[0].Pt(), muVec[0].Eta(), muVec[0].Phi()
 					# print muVec[1].Pt(), muVec[1].Eta(), muVec[1].Phi()
 					
