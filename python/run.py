@@ -17,7 +17,7 @@ if __name__ == '__main__':
 	tree = treenames.Tree(file, treename)
 
 	entries = len(tree.dvmass)
-	entries = 200
+	entries = 300
 
 
 	for ievt in xrange(entries):
@@ -56,9 +56,9 @@ if __name__ == '__main__':
 				print "-------"
 				print ievt
 				pMuonvec = pMuon.plepVec
-				print pMuonvec.Pt()
-				print pMuonvec.Eta()
-				print pMuonvec.Phi()
+				# print pMuonvec.Pt()
+				# print pMuonvec.Eta()
+				# print pMuonvec.Phi()
 
 				muons = helpers.Leptons()
 				muons.getMuons(tree, ievt, idv)
@@ -69,12 +69,21 @@ if __name__ == '__main__':
 				electrons.getElectrons(tree, ievt, idv)
 				elVec = electrons.lepVec
 		
-				print "muon ", muVec[0].Pt(), muVec[0].Eta(), muVec[0].Phi()
-				# print muVec[1].Pt(), muVec[1].Eta(), muVec[1].Phi()
-				
-				print "electron ",elVec[0].Pt(), elVec[0].Eta(), elVec[0].Phi()
 				passMllcut = selections.Mlllcut(decayprod="emu",plep=pMuonvec,dMu=muVec,dEl=elVec).passes()
-				print passMllcut
+				# print passMllcut
+				passDVmasscut = selections.DVmasscut().passes(tree, ievt, idv)
+				# print passDVmasscut
+
+				passCosmicVeto = selections.Cosmicveto().passes(tree, ievt, idv)
+				print passCosmicVeto
+
+				if passMllcut and passCosmicVeto and passDVmasscut: 
+
+					print "muon ", muVec[0].Pt(), muVec[0].Eta(), muVec[0].Phi()
+					# print muVec[1].Pt(), muVec[1].Eta(), muVec[1].Phi()
+					
+					print "electron ",elVec[0].Pt(), elVec[0].Eta(), elVec[0].Phi()
+
 				# print elVec[1].Pt(), elVec[1].Eta(), elVec[1].Phi()
 
 

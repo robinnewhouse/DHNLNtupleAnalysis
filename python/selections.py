@@ -3,9 +3,6 @@ import ROOT
 import numpy as np
 import helpers
 
-muIDdict =	{
-  2: "tight"
-}
 
 
 class Trigger():
@@ -172,30 +169,25 @@ class DVtype():
 			electrons = helpers.Leptons()
 			electrons.getElectrons(tree, ievt, idv)
 			self.nel = len(electrons.lepVec)
-			
-
-
-			# for itr in xrange(self.ntracks): #loop over tracks
-
-			# 	if (tree.muonindex[ievt][idv][itr] >= 0): # count muons 
-			# 		imu = tree.muonindex[ievt][idv][itr]
-			# 		if tree.muontype[ievt][imu]==0: # only combined muons!! (want to check this cut I think)
-			# 			self.nmu = self.nmu + 1
-
-			# 	if (tree.elindex[ievt][idv][itr] >= 0): # count electrons 
-			# 		self.nel = self.nel + 1		
-			# end track loop
-
 
 			if self.decayprod == "emu": 
 				if self.nel == 1 and self.nmu == 1: 
-					return True
+					index0 = muons.lepIndex[0]
+					if tree.muontype[ievt][index0] == 0:  # Only count combined muons 
+						return True
+					else:
+						return False
 				else:
 					return False
 
 			elif self.decayprod == "mumu":
 				if self.nmu == 2: 
-					return True
+					index0 = muons.lepIndex[0]
+					index1 = muons.lepIndex[1]
+					if (tree.muontype[ievt][index0] == 0 and tree.muontype[ievt][index1] == 0) :  # Only count combined muons 
+						return True
+					else:
+						return False
 				else:
 					return False
 
@@ -219,16 +211,6 @@ class Trackqual():
 			self.DVmuons = []
 			self.DVelectrons = []
 
-			# muVec = helpers.Leptons().getMuons(tree, ievt, idv)
-			# elVec = helpers.Leptons().getElectrons(tree, ievt, idv)
-
-			# for itr in xrange(self.ntracks):
-			# 	if (tree.muonindex[ievt][idv][itr] >= 0):
-			# 		self.DVmuons.append(tree.muonindex[ievt][idv][itr])
-
-			# 	if (tree.elindex[ievt][idv][itr] >= 0):
-			# 		self.DVelectrons.append(tree.muonindex[ievt][idv][itr])
-
 			muons = helpers.Leptons()
 			muons.getMuons(tree, ievt, idv)
 			self.nmu = len(muons.lepVec)
@@ -244,19 +226,9 @@ class Trackqual():
 			ndvelectrons = len(electrons.lepVec)
 		
 			for imu in range(ndvmuons):
-				# index = self.DVmuons[imu]
 				index = muons.lepIndex[imu]
-				# print index
-				# print tree.tightmu[ievt][index]
-				# if tree.tightmu[ievt][index] == True: 
 				if tree.tightmu[ievt][index] : 
 					self.nmu_tight = self.nmu_tight + 1
-
-			# for iel in range(ndvelectrons): 
-			# 	index = electrons.lepIndex[imu]
-
-			# 	if tree.eltight[ievt][index] == True: 
-			# 		self.nel_tight = self.nel_tight + 1
 
 			if self.quality == "2-tight": 
 				if (self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1) ):
@@ -270,15 +242,13 @@ class Trackqual():
 				else: 
 					return False
 
-class Masscut():
-	def __init__(self, decaymode="leptonic"):
+class DVmasscut():
+	def __init__(self, decaymode="leptonic",dvmasscut=4):
 		self.decaymode = decaymode
+		self.dvmasscut = dvmasscut
 
-	# def mlllpassses(self, plepton, dlepton1, dlepton2):
-
-
-	def passes(self, tree, ievt, idv, masscut=4):
-		if (tree.dvmass[ievt][idv] > masscut):
+	def passes(self, tree, ievt, idv):
+		if (tree.dvmass[ievt][idv] > self.dvmasscut):
 			return True
 		else: 
 			return False
@@ -324,22 +294,29 @@ class Mlllcut():
 				else: 
 					return False
 
-# class Cosmicveto():
-# 	def __init__(self, decayprod, decaymode="leptonic"):
-# 		self.decaymode = decaymode
-# 		self.decayprod = decayprod
-# 		self.mlll = -1
+class Cosmicveto():
+	def __init__(self, decaymode="leptonic",cosmicvetocut=0.05 ):
+		self.decaymode = decaymode
+		self.cosmicvetocut = cosmicvetocut
 
-# 	def passes(self, tree, ievt, idv):	
-	
+		self.seperation = -1 
+
+	def passes(self, tree, ievt, idv):	
+
+		if self.decaymode == "leptonic": 
+			ntracks = len(tree.trackpt[ievt][idv])
+			if ntracks == 2: 
+
+				sumeta = tree.tracketa[ievt][idv][0]+tree.tracketa[ievt][idv][1]
+				dphi = abs(tree.trackphi[ievt][idv][0]-tree.trackphi[ievt][idv][1])
+				self.separation = np.sqrt( sumeta**2 + (np.pi -dphi)**2 )
 		
-
-
-
-
-# 			sumeta = tracketa[ievt][idv][0]+tracketa[ievt][idv][1]
-# 					dphi = abs(trackphi[ievt][idv][0]-trackphi[ievt][idv][1])
-# 					separation = np.sqrt( sumeta**2 + (np.pi -dphi)**2 )
+				if (self.separation > self.cosmicvetocut):
+					return True
+				else:
+					return False
+			else: 
+				return False
 
 
 
