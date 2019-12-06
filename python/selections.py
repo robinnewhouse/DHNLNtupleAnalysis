@@ -34,19 +34,30 @@ class Filter():
 	def __init__(self, _filter):
 		self.filter = _filter 
 		
-	def passes(self,tree):
+	def passes(self,tree,ievt):
 		if self.filter == "mu-mu":
-			if tree.mumufilter == True:
+			if tree.mumufilter[ievt] == True:
 				return True
+			else:
+				return False
+
 		if self.filter == "mu-el":
-			if tree.mumufilter == True:
+			if tree.mumufilter[ievt] == True:
 				return True
+			else:
+				return False
+
 		if self.filter == "el-mu":
-			if tree.mumufilter == True:
+			if tree.mumufilter[ievt] == True:
 				return True
+			else:
+				return False
+
 		if self.filter == "el-el":
-			if tree.mumufilter == True:
+			if tree.mumufilter[ievt] == True:
 				return True
+			else:
+				return False
 
 class Plepton():
 	def __init__(self, lepton, quality="tight", _mindR=0.05):

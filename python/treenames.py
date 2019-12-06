@@ -8,6 +8,10 @@ class Tree():
 		
 		#define variables
 		self.passedtriggers = self.tree["passedTriggers"].array()
+		self.mumufilter = self.tree["passesHnlMuMuFilter"].array()
+		self.muelfilter = self.tree["passesHnlMuElFilter"].array()
+		self.elelfilter = self.tree["passesHnlElElFilter"].array()
+		self.elmufilter = self.tree["passesHnlElMuFilter"].array()
 		self.muonindex = self.tree["secVtx_trk_muonIndex"].array()
 		self.elindex = self.tree["secVtx_trk_electronIndex"].array()
 		self.dvmass = self.tree["secVtx_mass"].array() 
