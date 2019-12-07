@@ -6,7 +6,7 @@ gROOT.LoadMacro("AtlasLabels.C")
 
 
 #get note
-def getNote(size=15):
+def getNote(size=14):
 	n = ROOT.TLatex()
 	n.SetNDC()
 	n.SetTextFont(43)

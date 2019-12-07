@@ -16,9 +16,11 @@ def dump(obj):
 
 if __name__ == '__main__':
 	
-	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/mc16_13TeV.311633.Pythia8EvtGen_A14NNPDF23LO_WmuHNL50_10G_lt10dd.merge.DAOD_RPVLL.e7422_e5984_a875_r10790_r10726_newVariables.root"
-	file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/fixElmatching_mc16_13TeV.311660.Pythia8EvtGen_A14NNPDF23LO_WmuHNL50_20G_lt10dd_el.merge.DAOD_RPVLL.e7422_e5984_a875_r10739_r10706.root"
-	
+	# emu file: 
+	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/fixElmatching_mc16_13TeV.311660.Pythia8EvtGen_A14NNPDF23LO_WmuHNL50_20G_lt10dd_el.merge.DAOD_RPVLL.e7422_e5984_a875_r10739_r10706.root"
+	# mumu file:
+	file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu.root"
+
 	treename = "outTree"
 	tree = treenames.Tree(file, treename)
 
@@ -37,7 +39,7 @@ if __name__ == '__main__':
   	# if DV_type == '1':
   		# hcutflow.GetXaxis().SetBinLabel(9, "2-muon DV")  
   	# if DV_type == '0':
-  	hcutflow.GetXaxis().SetBinLabel(9, "mu-el DV")  
+  	hcutflow.GetXaxis().SetBinLabel(9, "2-muon DV")  
   	hcutflow.GetXaxis().SetBinLabel(10, "2-tight-lepton DV")  
   	hcutflow.GetXaxis().SetBinLabel(11, "cosmic veto")    
   	hcutflow.GetXaxis().SetBinLabel(12, "m_{lll}")      
@@ -82,6 +84,8 @@ if __name__ == '__main__':
 
 		if passPmuon: 
 			hcutflow.Fill(3)
+			# print "-------"
+			# print ievt
 		else:
 			continue 	
 
@@ -96,6 +100,8 @@ if __name__ == '__main__':
 
 		passDV = selections.DV().passes(tree, ievt)
 		if passDV: 
+			# print "-------"
+			# print ievt
 			hcutflow.Fill(4)
 		else:
 			continue 
@@ -143,6 +149,9 @@ if __name__ == '__main__':
 				if OSDV:
 					if passOSDV == False:  #only fill cut flow once per DV!!
 						hcutflow.Fill(7)
+						if ievt == 2110:
+							print "-------"
+							print ievt
 					passOSDV = selections.OSDV().passes(tree, ievt, idv)
 					
 				else:
@@ -151,11 +160,15 @@ if __name__ == '__main__':
 				# 	hcutflow.Fill(7)
 				# else:
 				# 	continue 
-				DVtype = selections.DVtype(decayprod="emu").passes(tree,ievt,idv)
+				# DVtype = selections.DVtype(decayprod="emu").passes(tree,ievt,idv)
+
+				DVtype = selections.DVtype(decayprod="mumu").passes(tree,ievt,idv)
 				if DVtype:
 					if passDVtype == False:  #only fill cut flow once per DV!!
 						hcutflow.Fill(8)
-					passDVtype = selections.DVtype(decayprod="emu").passes(tree,ievt,idv)
+						
+					# passDVtype = selections.DVtype(decayprod="emu").passes(tree,ievt,idv)
+					passDVtype = selections.DVtype(decayprod="mumu").passes(tree,ievt,idv)
 				else:
 					continue
 				# if passDVtype: 
@@ -202,7 +215,8 @@ if __name__ == '__main__':
 					# else:
 					# 	continue 
 			
-					Mlllcut = selections.Mlllcut(decayprod="emu",plep=pMuonvec,dMu=muVec,dEl=elVec).passes()
+					# Mlllcut = selections.Mlllcut(decayprod="emu",plep=pMuonvec,dMu=muVec,dEl=elVec).passes()
+					Mlllcut = selections.Mlllcut(decayprod="mumu",plep=pMuonvec,dMu=muVec,dEl=elVec).passes()
 				
 					if Mlllcut: 
 						# print Mlllcut
@@ -223,7 +237,7 @@ if __name__ == '__main__':
 						if passDVmasscut == False: #only fill cut flow once per DV!!
 							hcutflow.Fill(12)
 						passDVmasscut = DVmasscut
-						hcutflow.Fill(12)
+						# hcutflow.Fill(12)
 					else:
 						continue
 					# if passDVmasscut: 
@@ -275,6 +289,10 @@ if __name__ == '__main__':
 		# 									if passDVmasscut: 
 		# 										hcutflow.Fill(12)
 
+	ROOT.gStyle.SetOptStat(0)
+	ROOT.gROOT.SetBatch(True)
+	SetAtlasStyle()
+
 	MyC01= ROOT.TCanvas("MyC01","cutflow",600,400)
   	MyC01.Divide(1,1)
  	MyC01.cd(1)
@@ -284,8 +302,11 @@ if __name__ == '__main__':
  	hcutflow.SetFillColor(kAzure-4)
  	hcutflow.SetLineWidth(0)
   	hcutflow.Draw("HIST TEXT0 SAME")
-  	# drawNotes("Test without filter or mu/track ID","0","20","10")	
-  	MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/hcutflow_newEvtSel'+'.pdf')
+  	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/fixElmatching_mc16_13TeV.311660.Pythia8EvtGen_A14NNPDF23LO_WmuHNL50_20G_lt10dd_el.merge.DAOD_RPVLL.e7422_e5984_a875_r10739_r10706.root":
+  		helpers.drawNotes("Test without filter or mu & track quality cuts","0","20","10")	
+  	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu.root":
+  		helpers.drawNotes("Test without filter or mu & track quality cuts","1","10","10")
+  	MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_10G_10mm_mumu'+'.pdf')
 
 				# print elVec[1].Pt(), elVec[1].Eta(), elVec[1].Phi()
 

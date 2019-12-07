@@ -89,25 +89,30 @@ class Plepton():
 				pmuVec_i.SetPtEtaPhiM(tree.muonpt[ievt][imu],tree.muoneta[ievt][imu],tree.muonphi[ievt][imu],tree.muonmass[ievt][imu])
 
 				if tree.muonpassPfilter[ievt][imu]:
-				
-						# print pmuVec_i.Eta()
-						# print pmuVec_i.Phi()
+					if ievt == 4853:
+						print ievt
+						print  pmuVec_i.Pt(),pmuVec_i.Eta(), pmuVec_i.Phi()
 						# if len(dmupx) == 2:
 						# 	print "track 1 ", np.sqrt(dmupx[0]**2 + dmupy[0]**2) , dmueta[0],dmuphi[0]
 						# 	print "track 2 ", np.sqrt(dmupx[1]**2 + dmupy[1]**2) , dmueta[1],dmuphi[1]
-						# print "ndv:", ndv
+						print "ndv:", ndv
 					for idv in xrange(ndv):
 						leptracks = helpers.Leptons()
 						leptracks.getTracks(tree, ievt, idv)
 						dlepVec = leptracks.lepVec
 						# dlepVec = helpers.Leptons().getTracks(tree, ievt, idv)
 						ndtracks = len(dlepVec)
+						# if ievt == 456:
+							
 						for idvmu in xrange(ndtracks): 
 							dR = np.sqrt((dlepVec[idvmu].Eta() - pmuVec_i.Eta())**2 + (dlepVec[idvmu].Phi() - pmuVec_i.Phi())**2)
-							if ievt == 1488:
-								print ievt
-								print dR
-								print pmuVec_i.Pt(),pmuVec_i.Eta(),pmuVec_i.Phi()
+							# if ievt == 1021 or ievt == 4754 or ievt == 4853 :
+							# 	print "num d tracks: ", ndtracks
+							# 	print "num DV:", ndv
+							# 	print ievt
+							# 	print dR
+							# 	print "p track; ", pmuVec_i.Pt(),pmuVec_i.Eta(),pmuVec_i.Phi()
+							# 	print "d track:", dlepVec[idvmu].Pt(), dlepVec[idvmu].Eta(), dlepVec[idvmu].Phi()
 							if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
 								overlap = True
 			
@@ -211,6 +216,18 @@ class DVtype():
 			electrons = helpers.Leptons()
 			electrons.getElectrons(tree, ievt, idv)
 			self.nel = len(electrons.lepVec)
+
+			if ievt == 2110:
+				print "-------"
+				print ievt
+				print self.nmu
+				for i in range (self.nmu): 
+					print muons.lepVec[i].Pt(), muons.lepVec[i].Eta(), muons.lepVec[i].Phi()
+				print self.nel
+				for i in range (self.nmu): 
+					print electrons.lepVec[i].Pt(), electrons.lepVec[i].Eta(), electrons.lepVec[i].Phi()
+
+
 
 			if self.decayprod == "emu": 
 				if self.nel == 1 and self.nmu == 1: 
