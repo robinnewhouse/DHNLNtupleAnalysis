@@ -1,4 +1,46 @@
 import ROOT
+from ROOT import * 
+gROOT.LoadMacro("AtlasStyle.C")
+gROOT.LoadMacro("AtlasUtils.C")
+gROOT.LoadMacro("AtlasLabels.C")
+
+
+#get note
+def getNote(size=15):
+	n = ROOT.TLatex()
+	n.SetNDC()
+	n.SetTextFont(43)
+	n.SetTextColor(1)
+	n.SetTextSize(size)
+	return n
+
+	
+def drawNotes(MC_campaign,DV_type,mass,lifetime):
+	a = getNote()
+	b = getNote()
+	c = getNote()
+	d = getNote()
+	e = getNote()
+	ax = 0.50
+	ay = 0.87
+	if MC_campaign == "merged": 
+		a.DrawLatex(ax,ay,'all MC campaigns')
+	else:
+		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
+	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
+	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
+	if DV_type == "0":
+		d.DrawLatex(ax,ay-0.15,'DV type: e\mu')
+	else:
+		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
+	# if DV_Default == True:
+	e.DrawLatex(ax,ay-0.20,'VSI')
+	# else:
+	# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
+	ATLASLabel(0.25,0.87,"Internal")
+
+
+
 
 class Leptons(): 
 	def __init__(self, decaymode="leptonic"):

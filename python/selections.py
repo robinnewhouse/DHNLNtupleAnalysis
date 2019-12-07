@@ -87,8 +87,15 @@ class Plepton():
 				overlap = False
 				pmuVec_i = ROOT.TLorentzVector()
 				pmuVec_i.SetPtEtaPhiM(tree.muonpt[ievt][imu],tree.muoneta[ievt][imu],tree.muonphi[ievt][imu],tree.muonmass[ievt][imu])
-			
+
 				if tree.muonpassPfilter[ievt][imu]:
+				
+						# print pmuVec_i.Eta()
+						# print pmuVec_i.Phi()
+						# if len(dmupx) == 2:
+						# 	print "track 1 ", np.sqrt(dmupx[0]**2 + dmupy[0]**2) , dmueta[0],dmuphi[0]
+						# 	print "track 2 ", np.sqrt(dmupx[1]**2 + dmupy[1]**2) , dmueta[1],dmuphi[1]
+						# print "ndv:", ndv
 					for idv in xrange(ndv):
 						leptracks = helpers.Leptons()
 						leptracks.getTracks(tree, ievt, idv)
@@ -97,11 +104,18 @@ class Plepton():
 						ndtracks = len(dlepVec)
 						for idvmu in xrange(ndtracks): 
 							dR = np.sqrt((dlepVec[idvmu].Eta() - pmuVec_i.Eta())**2 + (dlepVec[idvmu].Phi() - pmuVec_i.Phi())**2)
+							if ievt == 1488:
+								print ievt
+								print dR
+								print pmuVec_i.Pt(),pmuVec_i.Eta(),pmuVec_i.Phi()
 							if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
 								overlap = True
 			
 
 					if overlap == False:
+						if ievt == 424:
+							print ievt
+							print pmuVec_i.Pt(),pmuVec_i.Eta(),pmuVec_i.Phi()
 						# if muonquality[ievt][imu] == True or self.quality =="None": # if muon qulaity requirement is met or no muon quality is required # WANT THIS LINE NOT THE ONE BELOW
 						if muonquality == True or self.quality =="None": # if muon qulaity requirement is met or no muon quality is required
 							if (pmuVec_i.Pt() > highestpt_pmuon.Pt()): # update highestpt_pmuon vector to find the largest pt prompt muon
@@ -161,6 +175,14 @@ class OSDV():
 
 		if self.decaymode == "leptonic":
 			self.ntracks = len(tree.trackpt[ievt][idv])
+			# if ievt == 217: 
+			# 	print "-----"
+			# 	print ievt
+			# 	print tree.trackcharge[ievt][idv][0]
+			# 	print tree.trackcharge[ievt][idv][1]
+			# 	print tree.trackpt[ievt][idv][0], tree.tracketa[ievt][idv][0],tree.trackphi[ievt][idv][0]
+			# 	print tree.trackpt[ievt][idv][1], tree.tracketa[ievt][idv][1],tree.trackphi[ievt][idv][1]
+
 			if self.ntracks == 2: 
 				if tree.trackcharge[ievt][idv][0] != tree.trackcharge[ievt][idv][1]: 
 					return True
