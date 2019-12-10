@@ -344,6 +344,14 @@ class Trackqual():
 				if muisTight: 
 					self.nmu_tight = self.nmu_tight + 1
 
+			for iel in range(self.ndvel):
+				elindex = electrons.lepIndex[iel]
+				# print elindex
+				# print len(self.evt.tree.tightel[self.evt.ievt])
+				elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
+				if elisTight: 
+					self.nel_tight = self.nel_tight + 1
+
 			if (self.evt.ievt == 875) or (self.evt.ievt == 2115) or (self.evt.ievt == 2995) or (self.evt.ievt == 44464) or (self.evt.ievt == 339):
 				print "----------"
 				print self.evt.ievt
@@ -405,8 +413,8 @@ class Cosmicveto():
 
 
 class Mlll():
-	def __init__(self, decayprod, plep, dMu, dEl, decaymode="leptonic",
-				  _minmlll= 50 , _maxmlll = 84):
+	def __init__(self, decayprod, plep, dMu, dEl, decaymode="leptonic", 
+				_minmlll= 50 , _maxmlll = 84):
 		self.decaymode = decaymode
 		self.decayprod = decayprod
 		self.plep = plep

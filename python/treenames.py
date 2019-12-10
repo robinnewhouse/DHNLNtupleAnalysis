@@ -14,7 +14,8 @@ class Tree():
 		self.elmufilter = self.tree["passesHnlElMuFilter"].array()
 		self.trk_muonindex = self.tree["secVtx_trk_muonIndex"].array()
 		self.muonindex = self.tree["muon_index"].array()
-		self.elindex = self.tree["secVtx_trk_electronIndex"].array()
+		self.trk_elindex = self.tree["secVtx_trk_electronIndex"].array()
+		self.elindex = self.tree["el_index"].array()
 		self.dvmass = self.tree["secVtx_mass"].array() 
 		self.trackpt = self.tree["secVtx_trk_pt"].array() 
 		self.tracketa = self.tree["secVtx_trk_eta"].array() 
@@ -31,13 +32,17 @@ class Tree():
  		self.muonphi = self.tree["muon_phi"].array() 
 		self.muond0 = self.tree["muon_trkd0"].array() 
 		self.muonz0 = self.tree["muon_trkz0"].array()
+		self.muonpx = self.tree["muon_px"].array() 
+		self.muonpy = self.tree["muon_py"].array() 
+		self.muonpz = self.tree["muon_pz"].array() 
+		self.muonmass = self.tree["muon_m"].array() 
 		self.muonmass = self.tree["muon_m"].array()   
 		self.tightmu = self.tree["muon_isTight"].array()
 		self.mediummu = self.tree["muon_isMedium"].array()
 		self.loosemu = self.tree["muon_isLoose"].array()
 		self.muontype = self.tree["muon_type"].array()
 		self.muonpassPfilter = self.tree["muon_passesPromptCuts"].array() 
-		# self.tightel = self.tree["el_LHTight"].array()
+		self.tightel = self.tree["el_LHTight"].array()
 
 
 

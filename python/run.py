@@ -13,6 +13,7 @@ if __name__ == '__main__':
 	
 	# emu file: 
 	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/fixElmatching_mc16_13TeV.311660.Pythia8EvtGen_A14NNPDF23LO_WmuHNL50_20G_lt10dd_el.merge.DAOD_RPVLL.e7422_e5984_a875_r10739_r10706.root"
+	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTightmuel.root"
 	# mumu file:
 	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu.root"
 	file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu_wTightmuel.root"
@@ -36,6 +37,7 @@ if __name__ == '__main__':
   		# hcutflow.GetXaxis().SetBinLabel(9, "2-muon DV")  
   	# if DV_type == '0':
   	hcutflow.GetXaxis().SetBinLabel(9, "2-muon DV")  
+  	# hcutflow.GetXaxis().SetBinLabel(9, "mu-el DV")  
   	hcutflow.GetXaxis().SetBinLabel(10, "2-tight-lepton DV")  
   	hcutflow.GetXaxis().SetBinLabel(11, "cosmic veto")    
   	hcutflow.GetXaxis().SetBinLabel(12, "m_{lll}")      
@@ -198,8 +200,6 @@ if __name__ == '__main__':
 				Trackqualcut = Trackqual.passes()
 				if Trackqualcut: 
 					if passTrackqual == False:
-						# print "----------"
-						# print ievt
 						hcutflow.Fill(9)
 					passTrackqual = Trackqualcut
 				else: 
@@ -291,12 +291,13 @@ if __name__ == '__main__':
  	hcutflow.SetFillColor(kAzure-4)
  	hcutflow.SetLineWidth(0)
   	hcutflow.Draw("HIST TEXT0 SAME")
-  	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/fixElmatching_mc16_13TeV.311660.Pythia8EvtGen_A14NNPDF23LO_WmuHNL50_20G_lt10dd_el.merge.DAOD_RPVLL.e7422_e5984_a875_r10739_r10706.root":
+  	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTightmuel.root":
   		helpers.drawNotes("Test without filter or mu & track quality cuts","0","20","10")	
+  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_20G_10mm_emu_wTightmuel'+'.pdf')
   	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu_wTightmuel.root":
   		helpers.drawNotes("Test without filter","1","10","10")
-
-  	MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_10G_10mm_mumu_wTightmuel'+'.pdf')
+  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_10G_10mm_mumu_wTightmuel'+'.pdf')
+  	
 
 
   	print "number of muons: ", nmuons 
