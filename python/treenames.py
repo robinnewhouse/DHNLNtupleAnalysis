@@ -35,15 +35,14 @@ class Tree():
 		self.muonpx = self.tree["muon_px"].array() 
 		self.muonpy = self.tree["muon_py"].array() 
 		self.muonpz = self.tree["muon_pz"].array() 
-		self.muonmass = self.tree["muon_m"].array() 
-		self.muonmass = self.tree["muon_m"].array()   
+		self.muonmass = self.tree["muon_m"].array()  
 		self.tightmu = self.tree["muon_isTight"].array()
 		self.mediummu = self.tree["muon_isMedium"].array()
 		self.loosemu = self.tree["muon_isLoose"].array()
 		self.muontype = self.tree["muon_type"].array()
 		self.muonpassPfilter = self.tree["muon_passesPromptCuts"].array() 
 		self.tightel = self.tree["el_LHTight"].array()
-
-
-
 		self.elpt = self.tree["el_pt"].array()  
+		self.eleta = self.tree["el_eta"].array()  
+		self.elphi = self.tree["el_phi"].array()  
+		self.elmass = self.tree["el_m"].array()  

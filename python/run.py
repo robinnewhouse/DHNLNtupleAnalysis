@@ -90,14 +90,14 @@ if __name__ == '__main__':
 		#------------------------------------------------------------------------------------------
 		# Check if event passes HNL filter 
 		#------------------------------------------------------------------------------------------
-		# HNLfilter = selections.Filter(evt= evt, _filter="mu-mu")
-		# HNLfiltercut = HNLfilter.passes()
-		# if HNLfiltercut: 
-		# 	# hcutflow.Fill(2)
-		# 	passHNLfilter = HNLfiltercut
-		# else:
-		# 	continue 	
-		#------------------------------------------------------------------------------------------
+		HNLfilter = selections.Filter(evt= evt, _filter="mu-mu")
+		HNLfiltercut = HNLfilter.passes()
+		if HNLfiltercut: 
+			hcutflow.Fill(2)
+			passHNLfilter = HNLfiltercut
+		else:
+			continue 	
+		# #------------------------------------------------------------------------------------------
 
 
 		#------------------------------------------------------------------------------------------
@@ -292,11 +292,12 @@ if __name__ == '__main__':
  	hcutflow.SetLineWidth(0)
   	hcutflow.Draw("HIST TEXT0 SAME")
   	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTightmuel.root":
-  		helpers.drawNotes("Test without filter or mu & track quality cuts","0","20","10")	
-  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_20G_10mm_emu_wTightmuel'+'.pdf')
+  		helpers.drawNotes("Test without filter","0","20","10")	
+  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_20G_10mm_emu_allcuts'+'.pdf')
+
   	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu_wTightmuel.root":
   		helpers.drawNotes("Test without filter","1","10","10")
-  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_10G_10mm_mumu_wTightmuel'+'.pdf')
+  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_10G_10mm_mumu_allcuts'+'.pdf')
   	
 
 

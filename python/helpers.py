@@ -64,18 +64,18 @@ class Tracks():
 				muon_index = np.where(self.evt.tree.muonindex[self.evt.ievt] == self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr])[0][0]
 
 				# use track quantities
-				pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-				eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-				phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
-				E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
-				lepVec.SetPtEtaPhiE(pt,eta, phi, E)
+				# pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+				# eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+				# phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+				# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
+				# lepVec.SetPtEtaPhiE(pt,eta, phi, E)
 
 				# use calibrated muon quantities
-				# pt = self.evt.tree.muonpt[self.evt.ievt][muon_index]
-				# eta = self.evt.tree.muoneta[self.evt.ievt][muon_index]
-				# phi = self.evt.tree.muonphi[self.evt.ievt][muon_index]
-				# M = self.evt.tree.muonmass[self.evt.ievt][muon_index]
-				# lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+				pt = self.evt.tree.muonpt[self.evt.ievt][muon_index]
+				eta = self.evt.tree.muoneta[self.evt.ievt][muon_index]
+				phi = self.evt.tree.muonphi[self.evt.ievt][muon_index]
+				M = self.evt.tree.muonmass[self.evt.ievt][muon_index]
+				lepVec.SetPtEtaPhiM(pt,eta, phi, M)
 			
 
 				
@@ -95,14 +95,23 @@ class Tracks():
 			lepVec = ROOT.TLorentzVector()
 
 			if (self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched electron!
-				pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-				eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-				phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
-				E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
-				lepVec.SetPtEtaPhiE(pt, eta, phi, E)
-
 				# find position of electron in the electron container that is matched to the sec vtx track (works for calibrated and uncalibrated containers)
 				el_index = np.where(self.evt.tree.elindex[self.evt.ievt] == self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr])[0][0]
+
+				# use track quantities
+				# pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+				# eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+				# phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+				# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
+				# lepVec.SetPtEtaPhiE(pt, eta, phi, E)
+
+				# use calibrated muon quantities
+				pt = self.evt.tree.elpt[self.evt.ievt][el_index]
+				eta = self.evt.tree.eleta[self.evt.ievt][el_index]
+				phi = self.evt.tree.elphi[self.evt.ievt][el_index]
+				M = self.evt.tree.elmass[self.evt.ievt][el_index]
+				lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+
 
 				self.lepVec.append(lepVec)
 				self.lepIndex.append(el_index)
