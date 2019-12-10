@@ -12,7 +12,8 @@ class Tree():
 		self.muelfilter = self.tree["passesHnlMuElFilter"].array()
 		self.elelfilter = self.tree["passesHnlElElFilter"].array()
 		self.elmufilter = self.tree["passesHnlElMuFilter"].array()
-		self.muonindex = self.tree["secVtx_trk_muonIndex"].array()
+		self.trk_muonindex = self.tree["secVtx_trk_muonIndex"].array()
+		self.muonindex = self.tree["muon_index"].array()
 		self.elindex = self.tree["secVtx_trk_electronIndex"].array()
 		self.dvmass = self.tree["secVtx_mass"].array() 
 		self.trackpt = self.tree["secVtx_trk_pt"].array() 
@@ -35,7 +36,9 @@ class Tree():
 		self.mediummu = self.tree["muon_isMedium"].array()
 		self.loosemu = self.tree["muon_isLoose"].array()
 		self.muontype = self.tree["muon_type"].array()
-		self.muonpassPfilter = self.tree["muon_passesPromptCuts"].array()  #need this!! 1 per event :) 
+		self.muonpassPfilter = self.tree["muon_passesPromptCuts"].array() 
+		# self.tightel = self.tree["el_LHTight"].array()
+
 
 
 		self.elpt = self.tree["el_pt"].array()  

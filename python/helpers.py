@@ -1,5 +1,6 @@
 import ROOT
 from ROOT import * 
+import numpy as np
 gROOT.LoadMacro("AtlasStyle.C")
 gROOT.LoadMacro("AtlasUtils.C")
 gROOT.LoadMacro("AtlasLabels.C")
@@ -39,69 +40,90 @@ def drawNotes(MC_campaign,DV_type,mass,lifetime):
 	# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
 	ATLASLabel(0.25,0.87,"Internal")
 
+class Event(): 
+	def __init__(self, tree, ievt, idv):
+		self.tree = tree
+		self.ievt = ievt
+		self.idv = idv 
 
 
 
-class Leptons(): 
-	def __init__(self, decaymode="leptonic"):
-		self.decaymode = decaymode
+class Tracks(): 
+	def __init__(self):
 		self.lepVec = []
 		self.lepIndex = []
 
-	def getMuons(self, tree, ievt, idv):
-		
-		if self.decaymode == "leptonic": 
-			self.ntracks = len(tree.trackpt[ievt][idv])
-			# self.muVec = []
-			# self.muIndex = []
+	def getMuons(self, evt):
+		self.evt = evt 
+		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
-			for itr in xrange(self.ntracks):
-				lepVec = ROOT.TLorentzVector()
-				if (tree.muonindex[ievt][idv][itr] >= 0):
-					lepVec.SetPtEtaPhiE(tree.trackpt[ievt][idv][itr],tree.tracketa[ievt][idv][itr],tree.trackphi[ievt][idv][itr],tree.tracke[ievt][idv][itr])
-					self.lepVec.append(lepVec)
-					self.lepIndex.append(tree.muonindex[ievt][idv][itr])
-			# 	else: 
-			# 		lepVec.SetPtEtaPhiE(0,0,0,0)
-			# 		self.muVec.append(lepVec)
+		for itr in xrange(self.ntracks):
+			lepVec = ROOT.TLorentzVector()
+			if (self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched muon!
+				pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+				eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+				phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+				E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
 
-			# if self.ntracks == 0: 
-			# 	self.muVec.append(ROOT.TLorentzVector(0,0,0,0))
+				# find position of muon that is matched to the sec vtx track in the muon container 
+				muon_index = np.where(self.evt.tree.muonindex[self.evt.ievt] == self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr])[0][0]
+				# if len(muon_index) >1: 
+					
 
-			# return self.muVec
+
+				lepVec.SetPtEtaPhiE(pt,eta, phi, E)
+				self.lepVec.append(lepVec)
+				self.lepIndex.append(muon_index)
+
+
+
 	
-	def getElectrons(self, tree, ievt, idv):
-		
-		if self.decaymode == "leptonic": 
-			self.ntracks = len(tree.trackpt[ievt][idv])
-			# self.elVec = []
-			# self.elIndex = []
+	def getElectrons(self, evt):
+		self.evt = evt 
+		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
-			for itr in xrange(self.ntracks):
-				lepVec = ROOT.TLorentzVector()
+		for itr in xrange(self.ntracks):
+			lepVec = ROOT.TLorentzVector()
 
-				if (tree.elindex[ievt][idv][itr] >= 0):
-					lepVec.SetPtEtaPhiE(tree.trackpt[ievt][idv][itr],tree.tracketa[ievt][idv][itr],tree.trackphi[ievt][idv][itr],tree.tracke[ievt][idv][itr])
-					self.lepVec.append(lepVec)
-					self.lepIndex.append(tree.elindex[ievt][idv][itr])
-				# else: 
-				# 	lepVec.SetPtEtaPhiE(0,0,0,0)
-				# 	self.elVec.append(lepVec)
+			if (self.evt.tree.elindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched electron!
+				pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+				eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+				phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+				E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
+				lepVec.SetPtEtaPhiE(pt, eta, phi, E)
 
-			# return self.elVec
+				self.lepVec.append(lepVec)
+				self.lepIndex.append(self.evt.tree.elindex[self.evt.ievt][self.evt.idv][itr])
+	
 
-	def getTracks(self, tree, ievt, idv):
-		
-		if self.decaymode == "leptonic": 
-			self.ntracks = len(tree.trackpt[ievt][idv])
-			# self.lepVec = []
 
-			for itr in xrange(self.ntracks):
-				vec = ROOT.TLorentzVector()
-				vec.SetPtEtaPhiE(tree.trackpt[ievt][idv][itr],tree.tracketa[ievt][idv][itr],tree.trackphi[ievt][idv][itr],tree.tracke[ievt][idv][itr])
-				self.lepVec.append(vec)
-				# else: 
-				# 	lepVec.SetPtEtaPhiE(0,0,0,0)
-				# 	self.elVec.append(lepVec)
 
-			# return self.lepVec
+	def getTracks(self, evt):
+		self.evt = evt
+		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
+
+		for itr in xrange(self.ntracks):
+			trkvec = ROOT.TLorentzVector()
+			pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+			eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+			phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+			E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
+			trkvec.SetPtEtaPhiE(pt, eta, phi, E)
+
+			self.lepVec.append(trkvec)
+			
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
