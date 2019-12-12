@@ -14,15 +14,19 @@ if __name__ == '__main__':
 	# emu file: 
 	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/fixElmatching_mc16_13TeV.311660.Pythia8EvtGen_A14NNPDF23LO_WmuHNL50_20G_lt10dd_el.merge.DAOD_RPVLL.e7422_e5984_a875_r10739_r10706.root"
 	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTightmuel.root"
+	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_VSILep.root"
+
+
 	# mumu file:
 	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu.root"
-	file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu_wTightmuel.root"
+	# file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu_wTightmuel.root"
+	file ="/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu_VSILep.root"
 
 	treename = "outTree"
 	tree = treenames.Tree(file, treename)
 
 	entries = len(tree.dvmass)
-	# entries = 300
+	# entries = 200
 
 	hcutflow= ROOT.TH1D("hcutflow","cutflow",13,-0.5,12.5)
   	hcutflow.GetXaxis().SetBinLabel(1, "all")
@@ -80,6 +84,8 @@ if __name__ == '__main__':
 		Trigger = selections.Trigger(evt = evt, plepton="muon",trigger = "HLT_mu26_ivarmedium")
 		Triggercut = Trigger.passes()
 		if Triggercut: 
+			# print "----"
+			# print ievt
 			hcutflow.Fill(1)
 			passesTrigger = Triggercut
 		else:
@@ -93,6 +99,8 @@ if __name__ == '__main__':
 		HNLfilter = selections.Filter(evt= evt, _filter="mu-mu")
 		HNLfiltercut = HNLfilter.passes()
 		if HNLfiltercut: 
+			# print "----"
+			# print ievt
 			hcutflow.Fill(2)
 			passHNLfilter = HNLfiltercut
 		else:
@@ -103,6 +111,8 @@ if __name__ == '__main__':
 		#------------------------------------------------------------------------------------------
 		# Find prompt muon for event 
 		#------------------------------------------------------------------------------------------
+		
+
 		Pmuon = selections.Plepton(evt = evt, lepton="muon")
 		Pmuoncut = Pmuon.passes()
 
@@ -110,7 +120,8 @@ if __name__ == '__main__':
 			hcutflow.Fill(3)
 			passPmuon = Pmuoncut
 		else:
-			continue 	
+			continue 
+
 		#------------------------------------------------------------------------------------------
 
 		#------------------------------------------------------------------------------------------
@@ -131,7 +142,9 @@ if __name__ == '__main__':
 		# preSel = passTrigger and passHNLfilter and  passPmuon and passDV
 		#------------------------------------------------------------------------------------------
 
-	
+			# print "n el: ", self.nel 
+			# print "n mu: ", self.nmu
+
 
 		if preSel: #only continue if pre-selection is True
 			for idv in xrange(ndv):
@@ -188,6 +201,8 @@ if __name__ == '__main__':
 				DVtype = selections.DVtype(evt= DVevt,decayprod="mumu")
 				DVtypecut = DVtype.passes()
 				if DVtypecut:
+					# print "----"
+					# print ievt
 					if passDVtype == False:  #only fill cut flow once per DV!!
 						hcutflow.Fill(8)
 					passDVtype = DVtypecut
@@ -291,13 +306,13 @@ if __name__ == '__main__':
  	hcutflow.SetFillColor(kAzure-4)
  	hcutflow.SetLineWidth(0)
   	hcutflow.Draw("HIST TEXT0 SAME")
-  	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTightmuel.root":
-  		helpers.drawNotes("Test without filter","0","20","10")	
-  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_20G_10mm_emu_allcuts'+'.pdf')
+  	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_VSILep.root":
+  		helpers.drawNotes("Previous Analysis Cuts","0","20","10")	
+  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_20G_10mm_emu_VSILep_allcuts'+'.pdf')
 
-  	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu_wTightmuel.root":
-  		helpers.drawNotes("Test without filter","1","10","10")
-  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_10G_10mm_mumu_allcuts'+'.pdf')
+  	if file == "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_10G_lt10dd_mumu_VSILep.root":
+  		helpers.drawNotes("Previous Analysis Cuts","1","10","10")
+  		MyC01.SaveAs("/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis" +'/plots/hcutflow_newEvtSel_10G_10mm_mumu_VSILep_allcuts'+'.pdf')
   	
 
 

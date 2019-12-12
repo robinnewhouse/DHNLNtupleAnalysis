@@ -35,7 +35,7 @@ def drawNotes(MC_campaign,DV_type,mass,lifetime):
 	else:
 		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
 	# if DV_Default == True:
-	e.DrawLatex(ax,ay-0.20,'VSI')
+	e.DrawLatex(ax,ay-0.20,'VSI Lep')
 	# else:
 	# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
 	ATLASLabel(0.25,0.87,"Internal")
@@ -60,8 +60,10 @@ class Tracks():
 		for itr in xrange(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
 			if (self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched muon!
+				
 				# find position of muon in the muon container that is matched to the sec vtx track (works for calibrated and uncalibrated containers) 
 				muon_index = np.where(self.evt.tree.muonindex[self.evt.ievt] == self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr])[0][0]
+				
 
 				# use track quantities
 				# pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
@@ -78,11 +80,10 @@ class Tracks():
 				lepVec.SetPtEtaPhiM(pt,eta, phi, M)
 			
 
-				
-				# if len(muon_index) >1: 
 					
 				self.lepVec.append(lepVec)
 				self.lepIndex.append(muon_index)
+	
 
 
 
@@ -93,7 +94,7 @@ class Tracks():
 
 		for itr in xrange(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
-
+			
 			if (self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched electron!
 				# find position of electron in the electron container that is matched to the sec vtx track (works for calibrated and uncalibrated containers)
 				el_index = np.where(self.evt.tree.elindex[self.evt.ievt] == self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr])[0][0]
@@ -105,7 +106,7 @@ class Tracks():
 				# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
 				# lepVec.SetPtEtaPhiE(pt, eta, phi, E)
 
-				# use calibrated muon quantities
+				# use calibrated electron quantities
 				pt = self.evt.tree.elpt[self.evt.ievt][el_index]
 				eta = self.evt.tree.eleta[self.evt.ievt][el_index]
 				phi = self.evt.tree.elphi[self.evt.ievt][el_index]
