@@ -46,3 +46,5 @@ class Tree():
 		self.eleta = self.tree["el_eta"].array()  
 		self.elphi = self.tree["el_phi"].array()  
 		self.elmass = self.tree["el_m"].array()  
+		self.elpassPfilter = self.tree["el_passesPromptCuts"].array() 
+

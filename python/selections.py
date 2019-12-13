@@ -69,75 +69,71 @@ class Plepton():
 		self._mindR = _mindR
 		
 		self.plepVec = ROOT.TLorentzVector(0,0,0,0)
-
-
-	def passes(self):
 		ndv = len(self.evt.tree.dvx[self.evt.ievt])	
 
 		if self.lepton == "muon":
-
 			if self.quality == "tight": #tight muon is requested
-				muonquality = self.evt.tree.tightmu
-				# muonquality = True  # NEED TO FIX THIS TO BE TIGHT MUON
+				lepquality = self.evt.tree.tightmu
 			if self.quality == "medium":
-				muonquality = self.evt.tree.mediummu
+				lepquality = self.evt.tree.mediummu
 			if self.quality == "loose":
-				muonquality = self.evt.tree.loosemu
+				lepquality = self.evt.tree.loosemu
 
-			nmuons = len(self.evt.tree.muonpt[self.evt.ievt])			
-			highestpt_pmuon = ROOT.TLorentzVector(0,0,0,0)
+			nleps = len(self.evt.tree.muonpt[self.evt.ievt])
+			passPfilter = self.evt.tree.muonpassPfilter
 
-			for imu in xrange(nmuons): 
-				overlap = False
-				pmuVec_i = ROOT.TLorentzVector()
-				pmuVec_i.SetPtEtaPhiM(self.evt.tree.muonpt[self.evt.ievt][imu],self.evt.tree.muoneta[self.evt.ievt][imu],self.evt.tree.muonphi[self.evt.ievt][imu],self.evt.tree.muonmass[self.evt.ievt][imu])
+		if self.lepton == "electron":
+			if self.quality == "tight": #tight muon is requested
+				lepquality = self.evt.tree.tightel
+			# if self.quality == "medium":
+			# 	lepquality = self.evt.tree.mediumel
+			# if self.quality == "loose":
+			# 	lepquality = self.evt.tree.looseel
 
-				if self.evt.tree.muonpassPfilter[self.evt.ievt][imu]:
-					# if self.evt.ievt == 4853:
-					# 	print self.evt.ievt
-					# 	print  pmuVec_i.Pt(),pmuVec_i.Eta(), pmuVec_i.Phi()
-						# if len(dmupx) == 2:
-						# 	print "track 1 ", np.sqrt(dmupx[0]**2 + dmupy[0]**2) , dmueta[0],dmuphi[0]
-						# 	print "track 2 ", np.sqrt(dmupx[1]**2 + dmupy[1]**2) , dmueta[1],dmuphi[1]
-						# print "ndv:", ndv
-					for idv in xrange(ndv):
-						leptracks = helpers.Tracks()
-						trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
-						leptracks.getTracks(trackevt)
-						dlepVec = leptracks.lepVec
-						# dlepVec = helpers.Tracks().getTracks(self.evt.tree, self.evt.ievt, idv)
-						ndtracks = len(dlepVec)
-						# if self.evt.ievt == 456:
-							
-						for idvmu in xrange(ndtracks): 
-							dR = np.sqrt((dlepVec[idvmu].Eta() - pmuVec_i.Eta())**2 + (dlepVec[idvmu].Phi() - pmuVec_i.Phi())**2)
-							# if self.evt.ievt == 1021 or self.evt.ievt == 4754 or self.evt.ievt == 4853 :
-							# 	print "num d tracks: ", ndtracks
-							# 	print "num DV:", ndv
-							# 	print self.evt.ievt
-							# 	print dR
-							# 	print "p track; ", pmuVec_i.Pt(),pmuVec_i.Eta(),pmuVec_i.Phi()
-							# 	print "d track:", dlepVec[idvmu].Pt(), dlepVec[idvmu].Eta(), dlepVec[idvmu].Phi()
-							if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
-								overlap = True
+			nleps = len(self.evt.tree.elpt[self.evt.ievt])
+			passPfilter = self.evt.tree.electronpassPfilter
+
+						
+		self.highestpt_plep = ROOT.TLorentzVector(0,0,0,0)
+
+		for ilep in xrange(nleps): 
+			overlap = False
+			plepVec_i = ROOT.TLorentzVector()
+			if self.lepton == "muon": 
+				plepVec_i.SetPtEtaPhiM(self.evt.tree.muonpt[self.evt.ievt][ilep],self.evt.tree.muoneta[self.evt.ievt][ilep],self.evt.tree.muonphi[self.evt.ievt][ilep],self.evt.tree.muonmass[self.evt.ievt][ilep])
+			if self.lepton == "electron":
+				plepVec_i.SetPtEtaPhiM(self.evt.tree.elpt[self.evt.ievt][ilep],self.evt.tree.eleta[self.evt.ievt][ilep],self.evt.tree.elphi[self.evt.ievt][ilep],self.evt.tree.elmass[self.evt.ievt][ilep])
+
+			if passPfilter[self.evt.ievt][ilep]:
+				for idv in xrange(ndv):
+					leptracks = helpers.Tracks()
+					trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
+					leptracks.getTracks(trackevt)
+					dlepVec = leptracks.lepVec
+					ndtracks = len(dlepVec)
+						
+					for itr in xrange(ndtracks): 
+						dR = np.sqrt((dlepVec[itr].Eta() - plepVec_i.Eta())**2 + (dlepVec[itr].Phi() - plepVec_i.Phi())**2)
+
+						if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
+							overlap = True
 			
 
-					if overlap == False:
-						# if self.evt.ievt == 424:
-						# 	print self.evt.ievt
-						# 	print pmuVec_i.Pt(),pmuVec_i.Eta(),pmuVec_i.Phi()
-						if muonquality[self.evt.ievt][imu] == True or self.quality =="None": # if muon qulaity requirement is met or no muon quality is required # WANT THIS LINE NOT THE ONE BELOW
-						# if muonquality == True or self.quality =="None": # if muon qulaity requirement is met or no muon quality is required
-							if (pmuVec_i.Pt() > highestpt_pmuon.Pt()): # update highestpt_pmuon vector to find the largest pt prompt muon
-								highestpt_pmuon = pmuVec_i 
+				if overlap == False:
+					# if self.evt.ievt == 424:
+					# 	print self.evt.ievt
+					# 	print plepVec_i.Pt(),plepVec_i.Eta(),plepVec_i.Phi()
+					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required 
+						if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
+							self.highestpt_plep= plepVec_i 
 						
 
-
-			if highestpt_pmuon.Pt() != 0: 
-				self.plepVec = highestpt_pmuon
-				return True
-			else: 
-				return False
+	def passes(self):
+		if self.highestpt_plep.Pt() != 0: 
+			self.plepVec = self.highestpt_plep
+			return True
+		else: 
+			return False
 
 
 class nDV():
@@ -217,10 +213,10 @@ class OSDV():
 			# 	print tree.trackcharge[self.evt.ievt][self.evt.idv][1]
 			# 	print tree.trackpt[self.evt.ievt][self.evt.idv][0], tree.tracketa[self.evt.ievt][self.evt.idv][0],tree.trackphi[self.evt.ievt][self.evt.idv][0]
 			# 	print tree.trackpt[self.evt.ievt][self.evt.idv][1], tree.tracketa[self.evt.ievt][self.evt.idv][1],tree.trackphi[self.evt.ievt][self.evt.idv][1]
-			if self.evt.ievt ==289 or self.evt.ievt ==708 or self.evt.ievt ==805 or self.evt.ievt ==2038 or self.evt.ievt ==2300:
+			# if self.evt.ievt ==289 or self.evt.ievt ==708 or self.evt.ievt ==805 or self.evt.ievt ==2038 or self.evt.ievt ==2300:
 
-				print "----------"
-				print self.evt.ievt
+			# 	print "----------"
+			# 	print self.evt.ievt
 
 			if self.ntracks == 2: 
 				self.charge_trk1 = self.evt.tree.trackcharge[self.evt.ievt][self.evt.idv][0]
@@ -285,24 +281,24 @@ class DVtype():
 			# if self.nel ==1 and self.nmu == 1:
 
 			# if self.evt.ievt ==289 or self.evt.ievt ==708 or self.evt.ievt ==805 or self.evt.ievt ==2038 or self.evt.ievt ==2300:
-			if (self.evt.ievt == 8) or (self.evt.ievt == 58) or (self.evt.ievt == 60) or (self.evt.ievt == 82) or (self.evt.ievt == 96):
-				print "----------"
-				print self.evt.ievt
+			# if (self.evt.ievt == 8) or (self.evt.ievt == 58) or (self.evt.ievt == 60) or (self.evt.ievt == 82) or (self.evt.ievt == 96):
+			# 	print "----------"
+			# 	print self.evt.ievt
 				# print "n el: ", self.nel 
 				# print "n mu: ", self.nmu
 				# print "DV: ", self.evt.tree.dvx[self.evt.ievt][self.evt.idv], self.evt.tree.dvy[self.evt.ievt][self.evt.idv], self.evt.tree.dvz[self.evt.ievt][self.evt.idv]
 				# print "track 1: ", self.electrons.lepVec[0].Pt(), self.electrons.lepVec[0].Eta(), self.electrons.lepVec[0].Phi()
 				# print "el: ", self.evt.tree.elpt[self.evt.ievt][self.electrons.lepIndex[0]], self.evt.tree.eleta[self.evt.ievt][self.electrons.lepIndex[0]], self.evt.tree.elphi[self.evt.ievt][self.electrons.lepIndex[0]]
 				# print "el quality: ", self.evt.tree.tightmu[self.evt.ievt][self.electrons.lepIndex[0]]
-				print ""
-				print "DV: ", self.evt.tree.dvx[self.evt.ievt][self.evt.idv], self.evt.tree.dvy[self.evt.ievt][self.evt.idv], self.evt.tree.dvz[self.evt.ievt][self.evt.idv]
-				print "track 1: ", self.muons.lepVec[0].Pt(), self.muons.lepVec[0].Eta(), self.muons.lepVec[0].Phi()
-				print "mu: ", self.evt.tree.muonpt[self.evt.ievt][self.muons.lepIndex[0]], self.evt.tree.muoneta[self.evt.ievt][self.muons.lepIndex[0]], self.evt.tree.muonphi[self.evt.ievt][self.muons.lepIndex[0]]
-				print "mu quality: ", self.evt.tree.tightmu[self.evt.ievt][self.muons.lepIndex[0]]
-				print ""
-				print "track 2: ", self.muons.lepVec[1].Pt(), self.muons.lepVec[1].Eta(), self.muons.lepVec[1].Phi()
-				print "mu: ", self.evt.tree.muonpt[self.evt.ievt][self.muons.lepIndex[1]], self.evt.tree.muoneta[self.evt.ievt][self.muons.lepIndex[1]], self.evt.tree.muonphi[self.evt.ievt][self.muons.lepIndex[1]]
-				print "mu  quality: ", self.evt.tree.tightmu[self.evt.ievt][self.muons.lepIndex[1]]
+				# print ""
+				# print "DV: ", self.evt.tree.dvx[self.evt.ievt][self.evt.idv], self.evt.tree.dvy[self.evt.ievt][self.evt.idv], self.evt.tree.dvz[self.evt.ievt][self.evt.idv]
+				# print "track 1: ", self.muons.lepVec[0].Pt(), self.muons.lepVec[0].Eta(), self.muons.lepVec[0].Phi()
+				# print "mu: ", self.evt.tree.muonpt[self.evt.ievt][self.muons.lepIndex[0]], self.evt.tree.muoneta[self.evt.ievt][self.muons.lepIndex[0]], self.evt.tree.muonphi[self.evt.ievt][self.muons.lepIndex[0]]
+				# print "mu quality: ", self.evt.tree.tightmu[self.evt.ievt][self.muons.lepIndex[0]]
+				# print ""
+				# print "track 2: ", self.muons.lepVec[1].Pt(), self.muons.lepVec[1].Eta(), self.muons.lepVec[1].Phi()
+				# print "mu: ", self.evt.tree.muonpt[self.evt.ievt][self.muons.lepIndex[1]], self.evt.tree.muoneta[self.evt.ievt][self.muons.lepIndex[1]], self.evt.tree.muonphi[self.evt.ievt][self.muons.lepIndex[1]]
+				# print "mu  quality: ", self.evt.tree.tightmu[self.evt.ievt][self.muons.lepIndex[1]]
 
 		
 

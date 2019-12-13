@@ -16,26 +16,30 @@ def getNote(size=14):
 	return n
 
 	
-def drawNotes(MC_campaign,DV_type,mass,lifetime):
+def drawNotes(MC_campaign,DV_type,mass,lifetime,plepton,VtxConfig):
 	a = getNote()
 	b = getNote()
 	c = getNote()
 	d = getNote()
 	e = getNote()
+	f = getNote()
 	ax = 0.50
 	ay = 0.87
-	if MC_campaign == "merged": 
-		a.DrawLatex(ax,ay,'all MC campaigns')
-	else:
-		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
+
+	a.DrawLatex(ax,ay,'%s'%MC_campaign) 
 	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
 	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-	if DV_type == "0":
-		d.DrawLatex(ax,ay-0.15,'DV type: e\mu')
-	else:
-		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
-	# if DV_Default == True:
-	e.DrawLatex(ax,ay-0.20,'VSI Lep')
+	if plepton == "muon":
+		d.DrawLatex(ax,ay-0.15,'Prompt muon')
+	if plepton == "muon":
+		d.DrawLatex(ax,ay-0.15,'Prompt muon')
+	if DV_type == "mumu":
+		e.DrawLatex(ax,ay-0.20,'DV type: \mu\mu\\nu')
+	if DV_type == "emu":
+		e.DrawLatex(ax,ay-0.20,'DV type: e\mu\\nu')
+	if DV_type == "ee":
+		e.DrawLatex(ax,ay-0.20,'DV type: ee\\nu')
+	f.DrawLatex(ax,ay-0.25,'%s'%(VtxConfig))
 	# else:
 	# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
 	ATLASLabel(0.25,0.87,"Internal")
