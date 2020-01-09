@@ -31,12 +31,15 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
 	tree = treenames.Tree(file, treename)
 
 	nentries = len(tree.dvmass)
-	# entries = 200
+	# nentries = 50
 
 	hcutflow= ROOT.TH1D("hcutflow","cutflow",13,-0.5,12.5)
+	
+
 	hcutflow.GetXaxis().SetBinLabel(1, "all")
-	hcutflow.GetXaxis().SetBinLabel(2, "trigger")
-	hcutflow.GetXaxis().SetBinLabel(3, "filter")
+	# hcutflow.GetXaxis().SetBinLabel(2, "HNL mu26")
+	hcutflow.GetXaxis().SetBinLabel(2, "all single lep triggers")
+	hcutflow.GetXaxis().SetBinLabel(3, "4-filters")
 	if plepton == "muon":
 		hcutflow.GetXaxis().SetBinLabel(4, "tight pmu")
 	if plepton == "electron":
@@ -44,15 +47,23 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
 	hcutflow.GetXaxis().SetBinLabel(5, "DV")  
 	hcutflow.GetXaxis().SetBinLabel(6, "fiducial")  
 	hcutflow.GetXaxis().SetBinLabel(7, "2-track DV")  
-	hcutflow.GetXaxis().SetBinLabel(8, "OS DV")  
-	if DV_type == 'mumu':
-		hcutflow.GetXaxis().SetBinLabel(9, "2-muon DV")  
-	if DV_type == 'emu':
-		hcutflow.GetXaxis().SetBinLabel(9, "mu-el DV")  
-	hcutflow.GetXaxis().SetBinLabel(10, "2-tight-lepton DV")  
-	hcutflow.GetXaxis().SetBinLabel(11, "cosmic veto")    
-	hcutflow.GetXaxis().SetBinLabel(12, "m_{lll}")      
-	hcutflow.GetXaxis().SetBinLabel(13, "mDV") 
+	hcutflow.GetXaxis().SetBinLabel(8, "2 mu DV") 
+	hcutflow.GetXaxis().SetBinLabel(9, "1-tight")  
+	hcutflow.GetXaxis().SetBinLabel(10, "2-tight")  
+
+	# hcutflow.GetXaxis().SetBinLabel(8, "OS DV")  
+	# if DV_type == 'mumu':
+	# 	hcutflow.GetXaxis().SetBinLabel(9, "2-muon DV")  
+	# if DV_type == 'emu':
+	# 	hcutflow.GetXaxis().SetBinLabel(9, "mu-el DV")  
+	# hcutflow.GetXaxis().SetBinLabel(10, "2-tight-lepton DV")  
+	# hcutflow.GetXaxis().SetBinLabel(11, "cosmic veto")    
+	# hcutflow.GetXaxis().SetBinLabel(12, "m_{lll}")      
+	# hcutflow.GetXaxis().SetBinLabel(13, "mDV") 
+
+	hd0= ROOT.TH1D("hd0_%s_%sG_%smm"%(dsid,mass,lifetime),"hd0_%s_%sG_%smm"%(dsid,mass,lifetime),200,-10,10)
+	hd0.GetXaxis().SetTitle("d0 [mm]")
+	hd0.GetYaxis().SetTitle("selected events")
 
 
 
@@ -73,6 +84,7 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
 		passOSDV = False
 		passDVtype = False
 		passTrackqual = False
+		passTrackqual_2 = False
 		passCosmicveto = False
 		passMlll = False
 		passDVmasscut = False
@@ -88,24 +100,27 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
 		if plepton == "muon":
 			Trigger = selections.Trigger(evt = evt, plepton="muon",trigger = "HLT_mu26_ivarmedium")
 		if plepton == "electron": 
-			Trigger = selections.Trigger(evt = evt, plepton="electron",trigger = "")
+			Trigger = selections.Trigger(evt = evt, plepton="electron",trigger = "HLT_e26_lhtight_nod0_ivarloose")
 		Triggercut = Trigger.passes()
+
 		if Triggercut: 
 			hcutflow.Fill(1)
 			npasstrig = npasstrig + 1
 			passesTrigger = Triggercut
 		else:
 			continue 	
-		#------------------------------------------------------------------------------------------
+		# #------------------------------------------------------------------------------------------
 
 
 		#------------------------------------------------------------------------------------------
 		# Check if event passes HNL filter 
 		#------------------------------------------------------------------------------------------
-		if plepton == "muon": 
-			HNLfilter = selections.Filter(evt= evt, _filter="mu-mu")
-		if plepton == "electron": 
-			HNLfilter = selections.Filter(evt= evt, _filter="el-mu")
+		# if plepton == "muon": 
+		# 	HNLfilter = selections.Filter(evt= evt, _filter="mu-el")
+		# if plepton == "electron": 
+		# 	HNLfilter = selections.Filter(evt= evt, _filter="el-mu")
+
+		HNLfilter = selections.Filter(evt= evt, _filter="4-filter")
 
 		HNLfiltercut = HNLfilter.passes()
 		if HNLfiltercut: 
@@ -149,7 +164,9 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
 
 		#------------------------------------------------------------------------------------------
 		# Pre-selection 
-		preSel = Triggercut and Pmuoncut and nDVcut
+		# preSel = Triggercut and Pmuoncut and nDVcut
+		# preSel = Triggercut and nDVcut
+		preSel = nDVcut
 		# preSel = passTrigger and passHNLfilter and  passPmuon and passDV
 		#------------------------------------------------------------------------------------------
 
@@ -158,6 +175,9 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
 			for idv in xrange(ndv):
 
 				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
+				for itr in range(len(tree.trackpt[ievt][idv])): 
+					hd0.Fill(tree.trackd0[ievt][idv][itr])
+
 
 				#------------------------------------------------------------------------------------------
 				# Calcuate the radius of DV  
@@ -186,129 +206,157 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
 					continue
 				#------------------------------------------------------------------------------------------
 
-				
 				#------------------------------------------------------------------------------------------
-				# Check charge of the tracks in DV 
-				#------------------------------------------------------------------------------------------
-				OSDV = selections.OSDV(evt= DVevt)
-				OSDVcut = OSDV.passes()
-				if OSDVcut:
-					if passOSDV == False:  #only fill cut flow once per DV!!
-						hcutflow.Fill(7)		
-					passOSDV = OSDVcut	
-				else:
-					continue
-				#------------------------------------------------------------------------------------------		
 				# Count if DV has the correct number of leptons 
 				#------------------------------------------------------------------------------------------
-				if DV_type == "mumu": 
-					DVtype = selections.DVtype(evt= DVevt,decayprod="mumu")
-				if DV_type == "emu": 
-					DVtype = selections.DVtype(evt= DVevt,decayprod="emu")
-				if DV_type == "ee":
-					DVtype = selections.DVtype(evt= DVevt,decayprod="ee")
+				# print "##############################################"
+				# print "##############################################"
+				# print "##############################################"
+				# print "##############################################"
+				DVtype = selections.DVtype(evt= DVevt,decayprod="mumu")
 
 				DVtypecut = DVtype.passes()
 				if DVtypecut:
 					if passDVtype == False:  #only fill cut flow once per DV!!
-						hcutflow.Fill(8)
+						hcutflow.Fill(7)
 					passDVtype = DVtypecut
 				else:
 					continue
 				#------------------------------------------------------------------------------------------
-				# count the number of lepton tracks with a given quality 
-				#------------------------------------------------------------------------------------------
-				Trackqual = selections.Trackqual(evt=DVevt, quality="2-tight")
+
+			
+				# #------------------------------------------------------------------------------------------
+				# # Check charge of the tracks in DV 
+				# #------------------------------------------------------------------------------------------
+				# OSDV = selections.OSDV(evt= DVevt)
+				# OSDVcut = OSDV.passes()
+				# if OSDVcut:
+				# 	if passOSDV == False:  #only fill cut flow once per DV!!
+				# 		hcutflow.Fill(7)		
+				# 	passOSDV = OSDVcut	
+				# else:
+				# 	continue
+				# #------------------------------------------------------------------------------------------		
+				# # Count if DV has the correct number of leptons 
+				# #------------------------------------------------------------------------------------------
+				# if DV_type == "mumu": 
+				# 	DVtype = selections.DVtype(evt= DVevt,decayprod="mumu")
+				# if DV_type == "emu": 
+				# 	DVtype = selections.DVtype(evt= DVevt,decayprod="emu")
+				# if DV_type == "ee":
+				# 	DVtype = selections.DVtype(evt= DVevt,decayprod="ee")
+
+				# DVtypecut = DVtype.passes()
+				# if DVtypecut:
+				# 	if passDVtype == False:  #only fill cut flow once per DV!!
+				# 		hcutflow.Fill(8)
+				# 	passDVtype = DVtypecut
+				# else:
+				# 	continue
+				# #------------------------------------------------------------------------------------------
+				# # count the number of lepton tracks with a given quality 
+				# #------------------------------------------------------------------------------------------
+				Trackqual = selections.Trackqual(evt=DVevt, quality="1-tight")
 				Trackqualcut = Trackqual.passes()
 				if Trackqualcut: 
 					if passTrackqual == False:
-						hcutflow.Fill(9)
+						hcutflow.Fill(8)
 					passTrackqual = Trackqualcut
-				else: 
-					continue 
+				# else: 
+				# 	continue 
+
+				Trackqual_2 = selections.Trackqual(evt=DVevt, quality="2-tight")
+				Trackqualcut_2 = Trackqual_2.passes()
+				if Trackqualcut_2: 
+					if passTrackqual_2 == False:
+						hcutflow.Fill(9)
+					passTrackqual_2 = Trackqualcut_2
+				# else: 
+				# 	continue 
 
 
 
 
-				#------------------------------------------------------------------------------------------
+				# #------------------------------------------------------------------------------------------
 
 		
-				if Fidvolcut and DVntrackscut and OSDVcut and DVtypecut and Trackqual: # only do cosmicveto & mass cuts if you have a good 2 lep DV
-					#------------------------------------------------------------------------------------------
-					# Get prompt muon
-					#------------------------------------------------------------------------------------------
-					pMuonvec = Pmuon.plepVec
-					#------------------------------------------------------------------------------------------
+				# if Fidvolcut and DVntrackscut and OSDVcut and DVtypecut and Trackqual: # only do cosmicveto & mass cuts if you have a good 2 lep DV
+				# 	#------------------------------------------------------------------------------------------
+				# 	# Get prompt muon
+				# 	#------------------------------------------------------------------------------------------
+				# 	pMuonvec = Pmuon.plepVec
+				# 	#------------------------------------------------------------------------------------------
 
-					#------------------------------------------------------------------------------------------
-					# Get DV muons 
-					#------------------------------------------------------------------------------------------
-					muons = helpers.Tracks()
-					muons.getMuons(evt= DVevt)
-					muVec = muons.lepVec
-					#------------------------------------------------------------------------------------------
+				# 	#------------------------------------------------------------------------------------------
+				# 	# Get DV muons 
+				# 	#------------------------------------------------------------------------------------------
+				# 	muons = helpers.Tracks()
+				# 	muons.getMuons(evt= DVevt)
+				# 	muVec = muons.lepVec
+				# 	#------------------------------------------------------------------------------------------
 
-					#------------------------------------------------------------------------------------------
-					# Get DV electrons 
-					#------------------------------------------------------------------------------------------
-					electrons = helpers.Tracks()
-					electrons.getElectrons(evt= DVevt)
-					elVec = electrons.lepVec
-					#------------------------------------------------------------------------------------------
+				# 	#------------------------------------------------------------------------------------------
+				# 	# Get DV electrons 
+				# 	#------------------------------------------------------------------------------------------
+				# 	electrons = helpers.Tracks()
+				# 	electrons.getElectrons(evt= DVevt)
+				# 	elVec = electrons.lepVec
+				# 	#------------------------------------------------------------------------------------------
 
-					#------------------------------------------------------------------------------------------
-					# Calculate the seperation of two tracks 
-					#------------------------------------------------------------------------------------------
-					Cosmicveto = selections.Cosmicveto(evt= DVevt)
-					Cosmicvetocut = Cosmicveto.passes()
+				# 	#------------------------------------------------------------------------------------------
+				# 	# Calculate the seperation of two tracks 
+				# 	#------------------------------------------------------------------------------------------
+				# 	Cosmicveto = selections.Cosmicveto(evt= DVevt)
+				# 	Cosmicvetocut = Cosmicveto.passes()
 
-					if Cosmicvetocut: 
-						if passCosmicveto == False: #only fill cut flow once per DV!!
-							hcutflow.Fill(10)
-						passCosmicveto = Cosmicvetocut
-					else: 
-						continue 
-					#------------------------------------------------------------------------------------------
+				# 	if Cosmicvetocut: 
+				# 		if passCosmicveto == False: #only fill cut flow once per DV!!
+				# 			hcutflow.Fill(10)
+				# 		passCosmicveto = Cosmicvetocut
+				# 	else: 
+				# 		continue 
+				# 	#------------------------------------------------------------------------------------------
 					
-					#------------------------------------------------------------------------------------------
-					# Calculate the tri-lepton mass (prompt + 2 displaced)
-					#------------------------------------------------------------------------------------------
-					if DV_type == "mumu": 
-						Mlll = selections.Mlll(decayprod="mumu",plep=pMuonvec,dMu=muVec,dEl=elVec)
-					if DV_type == "emu": 
-						Mlll = selections.Mlll(decayprod="emu",plep=pMuonvec,dMu=muVec,dEl=elVec)
-					if DV_type == "ee":
-						Mlll = selections.Mlll(decayprod="ee",plep=pMuonvec,dMu=muVec,dEl=elVec)
+				# 	#------------------------------------------------------------------------------------------
+				# 	# Calculate the tri-lepton mass (prompt + 2 displaced)
+				# 	#------------------------------------------------------------------------------------------
+				# 	if DV_type == "mumu": 
+				# 		Mlll = selections.Mlll(decayprod="mumu",plep=pMuonvec,dMu=muVec,dEl=elVec)
+				# 	if DV_type == "emu": 
+				# 		Mlll = selections.Mlll(decayprod="emu",plep=pMuonvec,dMu=muVec,dEl=elVec)
+				# 	if DV_type == "ee":
+				# 		Mlll = selections.Mlll(decayprod="ee",plep=pMuonvec,dMu=muVec,dEl=elVec)
 
-					Mlllcut = Mlll.passes()
-					if Mlllcut: 
-						if passMlll == False: #only fill cut flow once per DV!!
-							hcutflow.Fill(11)
-						passMlll = Mlllcut
-					else: 
-						continue 
-					#------------------------------------------------------------------------------------------
+				# 	Mlllcut = Mlll.passes()
+				# 	if Mlllcut: 
+				# 		if passMlll == False: #only fill cut flow once per DV!!
+				# 			hcutflow.Fill(11)
+				# 		passMlll = Mlllcut
+				# 	else: 
+				# 		continue 
+				# 	#------------------------------------------------------------------------------------------
 
-					#------------------------------------------------------------------------------------------
-					# Calculate the DV mass
-					#------------------------------------------------------------------------------------------
-					DVmass = selections.DVmasscut(evt= DVevt)
-					DVmasscut = DVmass.passes()
+				# 	#------------------------------------------------------------------------------------------
+				# 	# Calculate the DV mass
+				# 	#------------------------------------------------------------------------------------------
+				# 	DVmass = selections.DVmasscut(evt= DVevt)
+				# 	DVmasscut = DVmass.passes()
 
-					if DVmasscut:
-						if passDVmasscut == False: #only fill cut flow once per DV!!
-							npasssel = npasssel + 1
-							hcutflow.Fill(12)
-						passDVmasscut = DVmasscut
-					else:
-						continue
+				# 	if DVmasscut:
+				# 		if passDVmasscut == False: #only fill cut flow once per DV!!
+				# 			npasssel = npasssel + 1
+				# 			hcutflow.Fill(12)
+				# 		passDVmasscut = DVmasscut
+				# 	else:
+				# 		continue
 
 
-	print npasstrig, npassfilter, npasssel, nentries
+	print npasstrig, npassfilter, nentries
 
 	MyC01= ROOT.TCanvas("MyC01","cutflow",600,400)
   	MyC01.Divide(1,1)
  	MyC01.cd(1)
+ 	# ROOT.gPad.SetLogy()
  	ymax_cutflow = hcutflow.GetMaximum()
  	hcutflow.GetYaxis().SetRangeUser(0,ymax_cutflow*1.05)
  	hcutflow.SetStats(0)
@@ -317,10 +365,37 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
   	hcutflow.Draw("HIST TEXT0 SAME")
   	helpers.drawNotes(MC_campaign,DV_type,mass,lifetime,plepton,VtxConfig)
 
-  	if plepton == "muon": 
-  		MyC01.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/TEST_hcutflow_WmuN_%sG_%smm_%s_%s_allcuts'%(mass, lifetime, DV_type,VtxConfig)+'.pdf')
-  	if plepton == "electron":
-  		MyC01.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/TEST_hcutflow_WelN_%sG_%smm_%s_%s_allcuts'%(mass, lifetime, DV_type,VtxConfig)+'.pdf')
+  	if mass == "-1": 
+  		if plepton == "muon": 
+	  		# MyC01.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/hcutflow_WmuN_1-filter_%s_%s_%s'%(MC_campaign, DV_type,VtxConfig)+'.pdf')
+	  		MyC01.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/hcutflow_WmuN_2muon_%s_%s_%s'%(MC_campaign, DV_type,VtxConfig)+'.pdf')
+
+	  	if plepton == "electron":
+	  		MyC01.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/hcutflow_WelN_1-filter_%s_%s_%s'%(MC_campaign, DV_type,VtxConfig)+'.pdf')
+  	else: 
+	  	if plepton == "muon": 
+	  		MyC01.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/hcutflow_WmuN_%sG_%smm_%s_%s_allcuts'%(mass, lifetime, DV_type,VtxConfig)+'.pdf')
+	  	if plepton == "electron":
+	  		MyC01.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/hcutflow_WelN_%sG_%smm_%s_%s_allcuts'%(mass, lifetime, DV_type,VtxConfig)+'.pdf')
+
+
+  	MyC02= ROOT.TCanvas("MyC02","cutflow",600,400)
+  	MyC02.Divide(1,1)
+ 	MyC02.cd(1)
+ 	ymax_cutflow = hd0.GetMaximum()
+ 	hd0.GetYaxis().SetRangeUser(0,ymax_cutflow*1.05)
+ 	hd0.SetStats(0)
+ 	# hd0.SetFillColor(kAzure-4)
+ 	# hd0.SetLineWidth(0)
+  	hd0.Draw()
+  	helpers.drawNotes(MC_campaign,DV_type,mass,lifetime,plepton,VtxConfig)
+
+  	if mass != "-1": 
+	  	if plepton == "muon": 
+	  		MyC02.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/d0_WmuN_%sG_%smm_%s_%s_alltracks'%(mass, lifetime, DV_type,VtxConfig)+'.pdf')
+	  	if plepton == "electron":
+	  		MyC02.SaveAs('/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis' +'/plots/hd0_WelN_%sG_%smm_%s_%s_alltracks'%(mass, lifetime, DV_type,VtxConfig)+'.pdf')
+
 
 
 

@@ -27,6 +27,8 @@ class Tree():
 		self.dvx = self.tree["secVtx_x"].array()  
 		self.dvy = self.tree["secVtx_y"].array()  
 		self.dvz = self.tree["secVtx_z"].array() 
+		
+		# muon variables 
 		self.muonpt = self.tree["muon_pt"].array() 
 		self.muoneta = self.tree["muon_eta"].array()  
  		self.muonphi = self.tree["muon_phi"].array() 
@@ -41,6 +43,9 @@ class Tree():
 		self.loosemu = self.tree["muon_isLoose"].array()
 		self.muontype = self.tree["muon_type"].array()
 		self.muonpassPfilter = self.tree["muon_passesPromptCuts"].array() 
+		self.muontrigmatched = self.tree["muon_isTrigMatched"].array()
+
+		# electron variable
 		self.tightel = self.tree["el_LHTight"].array()
 		self.elpt = self.tree["el_pt"].array()  
 		self.eleta = self.tree["el_eta"].array()  

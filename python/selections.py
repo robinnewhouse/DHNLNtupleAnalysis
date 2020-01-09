@@ -11,22 +11,38 @@ class Trigger():
 		self.plepton = plepton 
 		self.trigger = trigger
 
-	def passes(self):
-		if self.plepton == "muon":
-			ntriggers = len(self.evt.tree.passedtriggers[self.evt.ievt])
 
-			self.passtrig = False
-			# print ntriggers
-			for itrig in range(ntriggers): 
-				# print "trigger ", tree.passedtriggers[self.evt.ievt][itrig]
-				# print self.trigger
-				if self.evt.tree.passedtriggers[self.evt.ievt][itrig] == self.trigger:
-					self.passtrig = True
+		# trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
+		apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
+		apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0","HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium","HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
+		# if self.plepton == "muon": 
+		# 	self.triggerlist = apiSingleMuonTriggerlist
+		# if self.plepton == "electron":
+		# 	self.triggerlist = apiSingleElectronTriggerlist
+		# if self.plepton =="eormu": 
 		
-			if self.passtrig == True: 
-				return True
-			else:
-				return False
+		self.triggerlist = apiSingleMuonTriggerlist + apiSingleElectronTriggerlist
+
+		self.ntriggers = len(self.evt.tree.passedtriggers[self.evt.ievt])
+
+
+	def passes(self):
+		self.passtrig = False
+	
+		for itrig in range(self.ntriggers): 
+			
+			for ileptrig in range(len(self.triggerlist)): 
+				if self.triggerlist[ileptrig] ==  self.evt.tree.passedtriggers[self.evt.ievt][itrig]: 
+					self.passtrig = True
+
+
+			# if self.evt.tree.passedtriggers[self.evt.ievt][itrig] == self.trigger:
+			# 	self.passtrig = True
+	
+		if self.passtrig == True: 
+			return True
+		else:
+			return False
 
 
 
@@ -44,22 +60,50 @@ class Filter():
 				return False
 
 		if self.filter == "mu-el":
-			if self.evt.tree.mumufilter[self.evt.ievt] == True:
+			if self.evt.tree.muelfilter[self.evt.ievt] == True:
 				return True
 			else:
 				return False
 
 		if self.filter == "el-mu":
-			if self.evt.tree.mumufilter[self.evt.ievt] == True:
+			if self.evt.tree.elmufilter[self.evt.ievt] == True:
 				return True
 			else:
 				return False
 
 		if self.filter == "el-el":
-			if self.evt.tree.mumufilter[self.evt.ievt] == True:
+			if self.evt.tree.elelfilter[self.evt.ievt] == True:
 				return True
 			else:
 				return False
+
+		if self.filter == "4-filter": 
+			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] or self.evt.tree.elelfilter[self.evt.ievt] or self.evt.tree.muelfilter[self.evt.ievt] )
+			if pass4filt == True:
+				return True
+			else: 
+				return False
+
+		if self.filter == "3-filter": 
+			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] or self.evt.tree.elelfilter[self.evt.ievt] )
+			if pass4filt == True:
+				return True
+			else: 
+				return False
+		if self.filter == "2-filter": 
+			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] )
+			if pass4filt == True:
+				return True
+			else: 
+				return False
+
+		if self.filter == "1-filter": 
+			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt])
+			if pass4filt == True:
+				return True
+			else: 
+				return False
+
 
 class Plepton():
 	def __init__(self, evt, lepton, quality="tight", _mindR=0.05):
@@ -70,6 +114,7 @@ class Plepton():
 		
 		self.plepVec = ROOT.TLorentzVector(0,0,0,0)
 		ndv = len(self.evt.tree.dvx[self.evt.ievt])	
+
 
 		if self.lepton == "muon":
 			if self.quality == "tight": #tight muon is requested
@@ -91,7 +136,7 @@ class Plepton():
 			# 	lepquality = self.evt.tree.looseel
 
 			nleps = len(self.evt.tree.elpt[self.evt.ievt])
-			passPfilter = self.evt.tree.electronpassPfilter
+			passPfilter = self.evt.tree.elpassPfilter
 
 						
 		self.highestpt_plep = ROOT.TLorentzVector(0,0,0,0)
@@ -99,10 +144,20 @@ class Plepton():
 		for ilep in xrange(nleps): 
 			overlap = False
 			plepVec_i = ROOT.TLorentzVector()
+
 			if self.lepton == "muon": 
-				plepVec_i.SetPtEtaPhiM(self.evt.tree.muonpt[self.evt.ievt][ilep],self.evt.tree.muoneta[self.evt.ievt][ilep],self.evt.tree.muonphi[self.evt.ievt][ilep],self.evt.tree.muonmass[self.evt.ievt][ilep])
+				pt = self.evt.tree.muonpt[self.evt.ievt][ilep]
+				eta = self.evt.tree.muoneta[self.evt.ievt][ilep]
+				phi = self.evt.tree.muonphi[self.evt.ievt][ilep]
+				mass = self.evt.tree.muonmass[self.evt.ievt][ilep]
+				plepVec_i.SetPtEtaPhiM(pt,eta,phi,mass)
+
 			if self.lepton == "electron":
-				plepVec_i.SetPtEtaPhiM(self.evt.tree.elpt[self.evt.ievt][ilep],self.evt.tree.eleta[self.evt.ievt][ilep],self.evt.tree.elphi[self.evt.ievt][ilep],self.evt.tree.elmass[self.evt.ievt][ilep])
+				pt = self.evt.tree.elpt[self.evt.ievt][ilep]
+				eta = self.evt.tree.eleta[self.evt.ievt][ilep]
+				phi = self.evt.tree.elphi[self.evt.ievt][ilep]
+				mass = self.evt.tree.elmass[self.evt.ievt][ilep]
+				plepVec_i.SetPtEtaPhiM(pt,eta,phi,mass)
 
 			if passPfilter[self.evt.ievt][ilep]:
 				for idv in xrange(ndv):
@@ -117,7 +172,7 @@ class Plepton():
 
 						if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
 							overlap = True
-			
+
 
 				if overlap == False:
 					# if self.evt.ievt == 424:
@@ -125,12 +180,22 @@ class Plepton():
 					# 	print plepVec_i.Pt(),plepVec_i.Eta(),plepVec_i.Phi()
 					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required 
 						if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
-							self.highestpt_plep= plepVec_i 
+							self.highestpt_plep = plepVec_i 
+							#for trigger matching
+							# if self.evt.tree.muontrigmatched[self.evt.ievt][ilep] == 0:
+							# 	print "is muon trig matched?", self.evt.tree.muontrigmatched[self.evt.ievt][ilep]
+							# 	print "pt of the highest pt TIGHT muon: ", self.highestpt_plep.Pt() 
+							# 	print "muon pt: ", self.evt.tree.muonpt[self.evt.ievt]
+							# 	print "trigger matched: ", self.evt.tree.muontrigmatched[self.evt.ievt]
+							# 	print "lepton quality: ", lepquality[self.evt.ievt]
+							# 	print "muon type: ", self.evt.tree.muontype[self.evt.ievt]
+
 						
 
 	def passes(self):
 		if self.highestpt_plep.Pt() != 0: 
 			self.plepVec = self.highestpt_plep
+
 			return True
 		else: 
 			return False
@@ -184,6 +249,7 @@ class DVntracks():
 		self.ntracks = -1 
 
 		if self.decaymode == "leptonic":
+			# print "track pt:", self.evt.tree.trackpt[self.evt.ievt][self.evt.idv]
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
 	def passes(self):
@@ -251,8 +317,10 @@ class DVtype():
 			self.electrons.getElectrons(self.evt)
 			self.nel = len(self.electrons.lepVec)	
 
-
-
+			# print "-----"
+			# print self.evt.ievt	
+			# print "num el ", self.nel
+			# print "num mu ", self.nmu
 			# if self.nel == 1:
 			# 	print "----------"
 			# 	print self.evt.ievt
@@ -351,6 +419,32 @@ class DVtype():
 			else:
 				return False
 
+		elif self.decayprod =="1-lep":
+			# print self.nel, self.nmu
+			
+			# for i in range(self.nmu): 
+			# 	print self.muons.lepVec[i].Pt()
+			# for i in range(self.nel): 
+			# 	print self.electrons.lepVec[i].Pt()
+
+			if self.nel > 0 or self.nmu > 0: 
+				return True
+			else: 
+				return False
+
+		elif self.decayprod =="2-mu":
+			# print self.nel, self.nmu
+			
+			# for i in range(self.nmu): 
+			# 	print self.muons.lepVec[i].Pt()
+			# for i in range(self.nel): 
+			# 	print self.electrons.lepVec[i].Pt()
+
+			if self.nmu == 2: 
+				return True
+			else: 
+				return False
+
 
 
 class Trackqual():
@@ -394,6 +488,8 @@ class Trackqual():
 				if elisTight: 
 					self.nel_tight = self.nel_tight + 1
 
+			# print self.nmu_tight
+
 			# if (self.evt.ievt == 875) or (self.evt.ievt == 2115) or (self.evt.ievt == 2995) or (self.evt.ievt == 44464) or (self.evt.ievt == 339):
 			# print "----------"
 			# print self.evt.ievt
@@ -417,19 +513,20 @@ class Trackqual():
 
 	def passes(self):
 			if self.quality == "2-tight": 
+				# print self.nmu_tight
 				if (self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1) ):
 					return True
 				else:
 					return False
 
-			if self.quality == "1-tight": 
-				if (self.nmu_tight == 1 or self.nel_tight == 1):
+			if self.quality == "1-tight":	 
+				if (self.nmu_tight > 0 or self.nel_tight > 0):
 					return True
 				else: 
 					return False
 
 class Cosmicveto():
-	def __init__(self, evt,  decaymode="leptonic",cosmicvetocut=0.05 ):
+	def __init__(self, evt, decaymode="leptonic",cosmicvetocut=0.05 ):
 		self.evt = evt
 		self.decaymode = decaymode
 		self.cosmicvetocut = cosmicvetocut
@@ -455,8 +552,7 @@ class Cosmicveto():
 
 
 class Mlll():
-	def __init__(self, decayprod, plep, dMu, dEl, decaymode="leptonic", 
-				_minmlll= 50 , _maxmlll = 84):
+	def __init__(self, decayprod, plep, dMu, dEl, decaymode="leptonic", _minmlll= 50 , _maxmlll = 84):
 		self.decaymode = decaymode
 		self.decayprod = decayprod
 		self.plep = plep
