@@ -45,37 +45,43 @@ if __name__ == '__main__':
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
 	# with trigger matching
 
-	# file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
+	file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
 	# file = "/home/dtrischuk/HNLAnalysis/DHNL/run/testData/data-tree/data15_13TeV.00284427.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
-	# EventSel.Event_Sel(file, "311660", "muon", "emu", "20", "10", "partial MC16d", "VSI")
+	# file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch_uncalibratedLeptons.root"
+	EventSel.Event_Sel(file, "311660", "muon", "mumu", "20", "10", "partial MC16d", "VSI")
 	
+	# file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch_VSILeptons.root"
+	# file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch_VSILeptons_uncalibratedLeptons.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "1-lep", "20", "10", "partial MC16d", "VSILep")
+
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
 	# data runs
-	file = "/data/hnl/dataprep/ntuples/VSI/data15_13TeV.00284427.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
-	EventSel.Event_Sel(file, "311660", "muon", "emu", "-1", "-1", "2015 test data", "VSI")
+	# file = "/data/hnl/dataprep/ntuples/VSI/data15_13TeV.00284427.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "mumu-notcomb", "-1", "-1", "2015 test data", "VSI")
 	
-	file = "/data/hnl/dataprep/ntuples/VSI/data16_13TeV.00304178.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
-	EventSel.Event_Sel(file, "311660", "muon", "emu", "-1", "-1", "2016 test data", "VSI")
+	# file = "/data/hnl/dataprep/ntuples/VSI/data16_13TeV.00304178.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "1-lep", "-1", "-1", "2016 test data", "VSI")
 	
-	file = "/data/hnl/dataprep/ntuples/VSI/data17_13TeV.00340368.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
-	EventSel.Event_Sel(file, "311660", "muon", "emu", "-1", "-1", "2017 test data", "VSI")
+	# file = "/data/hnl/dataprep/ntuples/VSI/data17_13TeV.00340368.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "mumu-notcomb", "-1", "-1", "2017 test data", "VSI")
 
-	file = "/data/hnl/dataprep/ntuples/VSI/data18_13TeV.00358031.physics_Main.merge.DAOD_RPVLL.r11760_r11764_p4054.root"
-	EventSel.Event_Sel(file, "311660", "muon", "emu", "-1", "-1", "2018 test data", "VSI")
+	# file = "/data/hnl/dataprep/ntuples/VSI/data18_13TeV.00358031.physics_Main.merge.DAOD_RPVLL.r11760_r11764_p4054.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "mumu-notcomb", "-1", "-1", "2018 test data", "VSI")
 
 
 
-	file = "/data/hnl/dataprep/ntuples/VSILep/data15_13TeV.00284427.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
-	EventSel.Event_Sel(file, "311660", "muon", "emu", "-1", "-1", "2015 test data", "VSILep")
+	# file = "/data/hnl/dataprep/ntuples/VSILep/data15_13TeV.00284427.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "mumu-notcomb", "-1", "-1", "2015 test data", "VSILep")
 	
-	file = "/data/hnl/dataprep/ntuples/VSILep/data16_13TeV.00304178.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
-	EventSel.Event_Sel(file, "311660", "muon", "emu", "-1", "-1", "2016 test data", "VSILep")
+	# file = "/data/hnl/dataprep/ntuples/VSILep/data16_13TeV.00304178.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
+	# # file = "/data/hnl/dataprep/ntuples/VSILep/data16_13TeV.00304178.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054_uncalibratedLeptons.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "1-lep", "-1", "-1", "2016 test data", "VSILep")
 	
-	file = "/data/hnl/dataprep/ntuples/VSILep/data17_13TeV.00340368.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
-	EventSel.Event_Sel(file, "311660", "muon", "emu", "-1", "-1", "2017 test data", "VSILep")
+	# file = "/data/hnl/dataprep/ntuples/VSILep/data17_13TeV.00340368.physics_Main.merge.DAOD_RPVLL.r11761_r11764_p4054.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "mumu-notcomb", "-1", "-1", "2017 test data", "VSILep")
 
-	file = "/data/hnl/dataprep/ntuples/VSILep/data18_13TeV.00358031.physics_Main.merge.DAOD_RPVLL.r11760_r11764_p4054.root"
-	EventSel.Event_Sel(file, "311660", "muon", "emu", "-1", "-1", "2018 test data", "VSILep")
+	# file = "/data/hnl/dataprep/ntuples/VSILep/data18_13TeV.00358031.physics_Main.merge.DAOD_RPVLL.r11760_r11764_p4054.root"
+	# EventSel.Event_Sel(file, "311660", "muon", "mumu-notcomb", "-1", "-1", "2018 test data", "VSILep")
 
 
 

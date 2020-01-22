@@ -6,3 +6,4 @@
 *.pdf
 .*
 python/*.txt
+python/histograms

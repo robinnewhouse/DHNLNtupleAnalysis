@@ -1,9 +1,36 @@
 import ROOT
 from ROOT import * 
 import numpy as np
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+import math
+import sys
+import ast
+import os
+import re
+import subprocess
+import urlparse
 gROOT.LoadMacro("AtlasStyle.C")
 gROOT.LoadMacro("AtlasUtils.C")
 gROOT.LoadMacro("AtlasLabels.C")
+
+
+
+import logging
+# logging.captureWarnings(True)
+msgfmt = '%(asctime)s %(levelname)-7s %(name)-35s %(message)s'
+datefmt = '%H:%M:%S'
+
+def getLogger(name = None, level = logging.DEBUG):
+    logger = logging.getLogger(name)
+    try:
+        import coloredlogs
+        coloredlogs.install(logger = logger, level = level, fmt = msgfmt, datefmt = datefmt)
+    except ImportError:
+        logging.basicConfig(format = msgfmt, datefmt = datefmt)
+        logger.setLevel(level)
+    return logger
+logger = getLogger('dHNLAnalysis')
+
 
 
 #get note
