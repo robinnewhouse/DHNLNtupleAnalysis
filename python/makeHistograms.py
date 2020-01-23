@@ -15,7 +15,7 @@ def main():
 
 
 	channels = { 
-			   'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track', 'emu','2-tight','cosmicveto', 'mlll', 'DVmass'],   # put a map for a 1 one word key to a list of inputs for the selections
+			   'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll', 'DVmass'],   # put a map for a 1 one word key to a list of inputs for the selections
 			   'mumu'  : ['alltriggers','pmuon', '4-filter' 'mumu']}
 
 	analysisCode = {}
