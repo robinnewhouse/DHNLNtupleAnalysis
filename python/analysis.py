@@ -308,15 +308,15 @@ class WmuHNL(Analysis):
 
 	def _plepSelection(self, evt): 
 		if self.doplep: 
-			plep_sel = selections.Plepton(evt = evt, lepton=self.plep)
-			return plep_sel.passes()
+			self.plep_sel = selections.Plepton(evt = evt, lepton=self.plep)
+			return self.plep_sel.passes()
 		else: 
 			return "unused cut"
 
 	def _nDVSelection(self, evt): 
-		if ('DV' in self.sel):
-				DV_sel = selections.nDV(evt=evt)
-				return DV_sel.passes()
+		if self.donDV: 
+			DV_sel = selections.nDV(evt=evt)
+			return DV_sel.passes()
 		else: 
 			return "unused cut"
 
@@ -361,37 +361,35 @@ class WmuHNL(Analysis):
 			cosmicveto_sel = selections.Cosmicveto(evt= evt)
 			return cosmicveto_sel.passes()
 		else: 
-			return "unsed cut"
+			return "unused cut"
 
 	def _mlllSelection(self, evt): 
 
-		plep_vec = selections.Plepton(evt = evt, lepton=self.plep).plepVec
+		plep_vec = self.plep_sel.plepVec
 
 		muons = helpers.Tracks()
-		muons.getMuons(evt= DVevt)
+		muons.getMuons(evt= evt)
 		muVec = muons.lepVec
 
 		electrons = helpers.Tracks()
-		electrons.getElectrons(evt= DVevt)
+		electrons.getElectrons(evt= evt)
 		elVec = electrons.lepVec
 
-		if self.domll: 
-			if DV_type == "mumu": 
-				mlll_sel = selections.Mlll(decayprod="mumu",plep=pMuonvec,dMu=muVec,dEl=elVec)
-			if DV_type == "emu": 
-				mlll_sel = selections.Mlll(decayprod="emu",plep=pMuonvec,dMu=muVec,dEl=elVec)
-			if DV_type == "ee":
-				mlll_sel = selections.Mlll(decayprod="ee",plep=pMuonvec,dMu=muVec,dEl=elVec)
-
+		if self.domlll: 
+			mlll_sel = selections.Mlll(decayprod=self.DVtype,plep=plep_vec,dMu=muVec,dEl=elVec)
 			return mlll_sel.passes()
 		else:
-			return "unsed cut"
+			return "unused cut"
 
+	def _DVmassSelection(self, evt): 
+		if self.doDVmass: 
+			DVmass_sel = selections.DVmasscut(evt= evt)
+			return DVmass_sel.passes()
+		else: 
+			return "unused cut"
 
 
 	
-
-
 
 	def _preSelection(self, evt):
 		# if self.ch not in self.mapSel:
@@ -411,42 +409,51 @@ class WmuHNL(Analysis):
 		self.passTrackqual_2 = False
 		self.passCosmicveto = False
 		self.passMlll = False
-		self.passDVmasscut = False
+		self.passDVmass = False
 
 		self.h['CutFlow'].Fill(0)
 		
-		if self._trigSelection(evt):  # select events that pass the trigger 
+		if self._trigSelection(evt) == True:  # select events that pass the trigger 
 			if self.passTrigger == False: 
 				self.h['CutFlow'].Fill(1)
 			self.passTrigger = True
-		elif self._trigSelection(evt) == "unsed cut": 
+		elif self._trigSelection(evt) == False:
+			return 
+		elif self._trigSelection(evt) == "unused cut": 
 			self.passTrigger = True
 
-		if self._filterSelection(evt): 
+		if self._filterSelection(evt) == True: 
 			cutflow_pass = self.passTrigger
 			if self.passHNLfilter ==False and cutflow_pass: 
 				self.h['CutFlow'].Fill(2)
 			self.passHNLfilter = True
-		elif self._trigSelection(evt) == "unsed cut": 
+		elif self._filterSelection(evt) == False:
+			return 
+		elif self._trigSelection(evt) == "unused cut": 
 			self.passHNLfilter = True
 
-		if self._plepSelection(evt): 
+		# print self._plepSelection(evt)
+
+		if self._plepSelection(evt) == True: 
 			cutflow_pass = self.passTrigger and self.passHNLfilter
 			if self.passPlep ==False and cutflow_pass: 
 				self.h['CutFlow'].Fill(3)
 			self.passPlep = True
-		elif self._trigSelection(evt) == "unsed cut": 
+		elif self._plepSelection(evt) == False:
+			return 
+		elif self._trigSelection(evt) == "unused cut": 
 			self.passPlep = True
 
-		if self._nDVSelection(evt): 
+		if self._nDVSelection(evt) == True: 
 			cutflow_pass = self.passTrigger and self.passHNLfilter and self.passPlep
 			if self.passDV == False and cutflow_pass: 
 				self.h['CutFlow'].Fill(4)
 			self.passDV = True
-		elif self._trigSelection(evt) == "unsed cut": 
+		elif self._nDVSelection(evt) == False:
+			return 
+		elif self._trigSelection(evt) == "unused cut": 
 			self.passDV = True
 
-		# pass pre selection if all conditions are met for the event or the cuts are unsed
 		if self.passTrigger and self.passHNLfilter and self.passPlep and self.passDV: 
 			return True
 		else: 
@@ -459,6 +466,8 @@ class WmuHNL(Analysis):
 			if self.passFid == False: 
 				self.h['CutFlow'].Fill(5)
 			self.passFid = True
+		elif self._fidvolSelection(evt) == False:
+			return 
 		elif self._fidvolSelection(evt) == "unused cut": 
 			self.passFid = True 
 
@@ -467,6 +476,8 @@ class WmuHNL(Analysis):
 			if self.passntracks == False and cutflow_pass: 
 				self.h['CutFlow'].Fill(6)
 			self.passntracks = True
+		elif self._ntrackSelection(evt) == False:
+			return 
 		elif self._ntrackSelection(evt) == "unused cut": 
 			self.passntracks = True 
 
@@ -476,6 +487,8 @@ class WmuHNL(Analysis):
 			if self.passOSDV == False and cutflow_pass: 
 				self.h['CutFlow'].Fill(7)
 			self.passOSDV = True
+		elif self._OSSelection(evt) == False:
+			return 
 		elif self._OSSelection(evt) == "unused cut": 
 			self.passOSDV = True 
 
@@ -485,6 +498,8 @@ class WmuHNL(Analysis):
 			if self.passDVtype == False and cutflow_pass: 
 				self.h['CutFlow'].Fill(8)
 			self.passDVtype = True
+		elif self._DVtypeSelection(evt) == False:
+			return 
 		elif self._DVtypeSelection(evt) == "unused cut": 
 			self.passDVtype = True 
 		
@@ -493,6 +508,8 @@ class WmuHNL(Analysis):
 			if self.passTrackqual == False and cutflow_pass: 
 				self.h['CutFlow'].Fill(9)
 			self.passTrackqual = True
+		elif self._trackqualSelection(evt) == False:
+			return 
 		elif self._trackqualSelection(evt) == "unused cut": 
 			self.passTrackqual = True 
 
@@ -501,40 +518,31 @@ class WmuHNL(Analysis):
 			if self.passCosmicveto == False and cutflow_pass: 
 				self.h['CutFlow'].Fill(10)
 			self.passCosmicveto = True
+		elif self._cosmicvetoSelection(evt) == False:
+			return 
 		elif self._cosmicvetoSelection(evt) == "unused cut": 
 			self.passCosmicveto = True 
 
 
-		if self._cosmicvetoSelection(evt) == True: 
-			cutflow_pass = self.passFid and self.passntracks and self.passOSDV and self.passDVtype and self.passTrackqual
-			if self.passCosmicveto == False and cutflow_pass: 
+		if self._mlllSelection(evt) == True: 
+			cutflow_pass = self.passFid and self.passntracks and self.passOSDV and self.passDVtype and self.passTrackqual and self.passCosmicveto
+			if self.passMlll == False and cutflow_pass: 
 				self.h['CutFlow'].Fill(11)
-			self.passCosmicveto = True
-		elif self._cosmicvetoSelection(evt) == "unused cut": 
-			self.passCosmicveto = True 
+			self.passMlll = True
+		elif self._mlllSelection(evt) == False:
+			return 
+		elif self._mlllSelection(evt) == "unused cut": 
+			self.passMlll = True 
 
-
-				#------------------------------------------------------------------------------------------
-
-				#------------------------------------------------------------------------------------------
-				# Calculate the DV mass
-				#------------------------------------------------------------------------------------------
-				DVmass = selections.DVmasscut(evt= DVevt)
-				DVmasscut = DVmass.passes()
-
-				if DVmasscut:
-					if passDVmasscut == False: #only fill cut flow once per DV!!
-						npasssel = npasssel + 1
-						hcutflow.Fill(12)
-					passDVmasscut = DVmasscut
-				else:
-					continue
-
-
-
-
-
-
+		if self._DVmassSelection(evt) == True: 
+			cutflow_pass = self.passFid and self.passntracks and self.passOSDV and self.passDVtype and self.passTrackqual and self.passCosmicveto and self.passMlll
+			if self.passDVmass == False and cutflow_pass: 
+				self.h['CutFlow'].Fill(12)
+			self.passDVmass = True
+		elif self._DVmassSelection(evt) == False:
+			return 
+		elif self._DVmassSelection(evt) == "unused cut": 
+			self.passDVmass = True 
 
 
 
