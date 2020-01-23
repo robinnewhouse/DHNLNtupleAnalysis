@@ -4,6 +4,8 @@ import numpy as np
 import os
 import helpers
 import selections
+import treenames
+import observables
 logger = helpers.getLogger('dHNLAnalysis.analysis')
 
 
@@ -33,7 +35,20 @@ class Analysis(object):
 		self.h = {}
 		# make histograms (common for all channels)
 		self.add('CutFlow', 13, -0.5, 12.5)
-		self.add('trackd0', 200, -10, 10)
+		# self.add('trackd0', 200, -10, 10)
+
+		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
+		# self.observables = [observable.registered(self) for observable in observables.ObservableList ]
+		for observable in self.observables:
+			if 'hist' in observable.do:
+				if type(observable.binning) == tuple:
+					self.add(observable.name, *observable.binning)
+				else:
+					self.addVar(observable.name, observable.binning)
+
+		print self.h
+
+
 
 		# trigger cut
 		if ('alltriggers' in self.sel): 
@@ -163,6 +178,18 @@ class Analysis(object):
 			# self.h[hName][s].Sumw2()
 			# self.h[hName][s].SetDirectory(0)
 
+	def addVar(self, hName, nBinsList):
+		ar = array("d", nBinsList)
+		#self.fi.cd()
+		self.h[hName] = {}
+		self.h[hName] = ROOT.TH1D(hName+self.ch, "", len(nBinsList) - 1, ar)
+		self.h[hName].Sumw2()
+		self.h[hName].SetDirectory(0)
+		# for s in self.histSuffixes:
+			# self.h[hName][s] = ROOT.TH1D(hName+self.ch+s, "", len(nBinsList) - 1, ar)
+			# self.h[hName][s].Sumw2()
+			# self.h[hName][s].SetDirectory(0)
+
 
 	def add2D(self, hName, nBins, xLow, xHigh, nBinsY, yLow, yHigh):
 		self.h[hName] = {}
@@ -210,26 +237,6 @@ class Analysis(object):
 			logger.error(e, exc_info=True)
 
 
-	# def _selectChannel(self, sel, syst):
-	# 	raise NotImplementedError
-
-	# def selectChannel(self, sel, syst):
-	# 	if self._locked != UNLOCKED: # this locks the selectors to avoid rerun all the selections for the same events with different systematics
-	# 		# logger.info('<{}, {}> cached'.format(sel, syst))
-	# 		return self._passed
-	# 	# logger.info('<{}, {}> new one'.format(sel, syst))
-	# 	self._passed = self._selectChannel(sel, syst)
-	# 	self._locked = SELECTION_LOCKED
-	# 	return self._passed
-
-	# def _run(self, sel, syst, wo, wTruth):
-	# 	raise NotImplementedError
-
-	# def run(self, sel, syst, wo, wTruth):
-	# 	assert self._locked != UNLOCKED, '`run` can be only executed after `selectChannel`'
-	# 	self._run(sel, syst, wo, wTruth)
-	# 	self._locked = FILL_LOCKED
-
 	def triggerSel(self, evt): 
 		self.trigger = selections.Trigger(evt = evt, plepton='muon',trigger = 'HLT_mu26_ivarmedium')
 		# print self.trigger
@@ -238,30 +245,19 @@ class Analysis(object):
 		else: 
 			return False
 
-	# def passSel(self, sel): 
-	# 	# self.trigger = selections.Trigger(evt = evt, plepton='muon',trigger = 'HLT_mu26_ivarmedium')
-	# 	# print self.trigger
-	# 	if sel.passes(): 
-	# 		return True
-	# 	else: 
-	# 		return False
-
 	def _preSelection(self, evt):
 		raise NotImplementedError
 
 	def preSelection(self, evt): 
-		# assert self._locked != UNLOCKED, '`run` can be only executed after `selectChannel`'
 		presel = self._preSelection(evt)
 		return presel
-		# self._locked = FILL_LOCKED
 
 	def _DVSelection(self, evt):
 		raise NotImplementedError
 
 	def DVSelection(self, evt): 
-		# assert self._locked != UNLOCKED, '`run` can be only executed after `selectChannel`'
 		self._DVSelection(evt)
-		# self._locked = FILL_LOCKED
+
 
 
 
@@ -273,7 +269,7 @@ class WmuHNL(Analysis):
 
 	def _init__(self, channel, selections, outputFile):
 		Analysis.__init__(self, channel, outputFile)
-		#make histograms (specfic to this channel)
+		#make histograms specfic to this channel
 		self.add('mupt', 100, 0, 100)
 
 	def _trigCut(self, evt): 
@@ -433,51 +429,6 @@ class WmuHNL(Analysis):
 		else: 
 			return
 
-
-		# self._doCut(self._nDVCut(evt), self.passDV, 4)
-
-
-		# if self._trigCut(evt) == True: 
-		# 	if self.passTrigger ==False: 	
-		# 		self.h['CutFlow'].Fill(1)
-		# 	self.passTrigger = True
-		# elif self._trigCut(evt) == False:
-		# 	return 
-		# elif self._trigCut(evt) == "unused cut": 
-		# 	self.passTrigger = True
-
-
-		# if self._filterCut(evt) == True: 
-		# 	if self.passHNLfilter ==False: 	
-		# 		self.h['CutFlow'].Fill(2)
-		# 	self.passHNLfilter = True
-		# elif self._filterCut(evt) == False:
-		# 	return 
-		# elif self._trigCut(evt) == "unused cut": 
-		# 	self.passHNLfilter = True
-
-
-
-		# print self._plepCut(evt)
-
-		# if self._plepCut(evt) == True: 
-		# 	if self.passPlep ==False: 
-		# 		self.h['CutFlow'].Fill(3)
-		# 	self.passPlep = True
-		# elif self._plepCut(evt) == False:
-		# 	return 
-		# elif self._trigCut(evt) == "unused cut": 
-		# 	self.passPlep = True
-
-		# if self._nDVCut(evt) == True: 
-		# 	if self.passDV == False:	
-		# 		self.h['CutFlow'].Fill(4)
-		# 	self.passDV = True
-		# elif self._nDVCut(evt) == False:
-		# 	return 
-		# elif self._trigCut(evt) == "unused cut": 
-		# 	self.passDV = True
-
 		if self.passTrigger and self.passHNLfilter and self.passPlep and self.passnDV: 
 			return True
 		else: 
@@ -489,6 +440,13 @@ class WmuHNL(Analysis):
 		fidvolCut = self._doCut(self._fidvolCut(evt), self.passFid, 5)
 		if fidvolCut == True: 
 			self.passFid = True
+			# print evt.tree.trackd0[evt.ievt][evt.idv]
+			ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
+			for itrk in range(ntracks):
+				self.h["track_d0"].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
+				self.h["track_pt"].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
+				self.h["track_eta"].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
+				self.h["track_phi"].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
 		else: 
 			return
 
@@ -551,84 +509,6 @@ class WmuHNL(Analysis):
 		
 
 		
-
-
-
-
-		# if self._fidvolCut(evt) == True: 
-		# 	if self.passFid == False: 
-		# 		self.h['CutFlow'].Fill(5)
-		# 	self.passFid = True
-		# elif self._fidvolCut(evt) == False:
-		# 	return 
-		# elif self._fidvolCut(evt) == "unused cut": 
-		# 	self.passFid = True 
-
-		# if self._ntrackCut(evt) == True: 
-		# 	if self.passntracks == False: 
-		# 		self.h['CutFlow'].Fill(6)
-		# 	self.passntracks = True
-		# elif self._ntrackCut(evt) == False:
-		# 	return 
-		# elif self._ntrackCut(evt) == "unused cut": 
-		# 	self.passntracks = True 
-
-
-		# if self._OSCut(evt) == True:
-		# 	if self.passOSDV == False: 
-		# 		self.h['CutFlow'].Fill(7)
-		# 	self.passOSDV = True
-		# elif self._OSCut(evt) == False:
-		# 	return 
-		# elif self._OSCut(evt) == "unused cut": 
-		# 	self.passOSDV = True 
-
-		# if self._DVtypeCut(evt) == True:
-		# 	if self.passDVtype == False: 
-		# 		self.h['CutFlow'].Fill(8)
-		# 	self.passDVtype = True
-		# elif self._DVtypeCut(evt) == False:
-		# 	return 
-		# elif self._DVtypeCut(evt) == "unused cut": 
-		# 	self.passDVtype = True 
-		
-		# if self._trackqualCut(evt) == True:
-		# 	if self.passTrackqual == False: 
-		# 		self.h['CutFlow'].Fill(9)
-		# 	self.passTrackqual = True
-		# elif self._trackqualCut(evt) == False:
-		# 	return 
-		# elif self._trackqualCut(evt) == "unused cut": 
-		# 	self.passTrackqual = True 
-
-		# if self._cosmicvetoCut(evt) == True: 
-		# 	if self.passCosmicveto == False: 
-		# 		self.h['CutFlow'].Fill(10)
-		# 	self.passCosmicveto = True
-		# elif self._cosmicvetoCut(evt) == False:
-		# 	return 
-		# elif self._cosmicvetoCut(evt) == "unused cut": 
-		# 	self.passCosmicveto = True 
-
-
-		# if self._mlllCut(evt) == True: 
-		# 	if self.passMlll == False: 
-		# 		self.h['CutFlow'].Fill(11)
-		# 	self.passMlll = True
-		# elif self._mlllCut(evt) == False:
-		# 	return 
-		# elif self._mlllCut(evt) == "unused cut": 
-		# 	self.passMlll = True 
-
-		# if self._DVmassCut(evt) == True: 
-		# 	if self.passDVmass == False: 
-		# 		self.h['CutFlow'].Fill(12)
-		# 	self.passDVmass = True
-		# elif self._DVmassCut(evt) == False:
-		# 	return 
-		# elif self._DVmassCut(evt) == "unused cut": 
-		# 	self.passDVmass = True 
-
 
 
 
