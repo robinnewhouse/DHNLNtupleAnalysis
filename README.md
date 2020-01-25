@@ -31,3 +31,5 @@ To run the code:
 cd python 
 python makeHistograms.py 
 ```
+
+Histograms will be saved in histograms.root

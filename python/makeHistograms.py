@@ -35,7 +35,7 @@ def main():
 	# 	ch = k
 	# 	analysisCode[k] = anaClass(ch, channels[k])
 
-	analysisCode["emu"] = anaClass("emu", channels["emu"],"histograms")
+	analysisCode["emu"] = anaClass("emu", channels["emu"],"histograms.root")
 
 	for ievt in xrange(nentries):
 		evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
