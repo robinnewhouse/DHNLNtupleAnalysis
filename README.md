@@ -22,9 +22,12 @@ git commit -m "description of my change"
 git push -u origin master
 ```
 
+To configure your event selection open makeHistograms.py and update the channels list to include the cuts you want to apply.
+
+
 To run the code: 
 
 ```
 cd python 
-python run.py 
+python makeHistograms.py 
 ```
