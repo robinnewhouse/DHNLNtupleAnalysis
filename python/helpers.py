@@ -180,9 +180,9 @@ class Tracks():
 			pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
 			eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
 			phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
-			E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
+			M = self.evt.tree.trackmass[self.evt.ievt][self.evt.idv][itr]
 			
-			trkvec.SetPtEtaPhiE(pt, eta, phi, E)
+			trkvec.SetPtEtaPhiM(pt, eta, phi, M)
 
 			self.lepVec.append(trkvec)
 

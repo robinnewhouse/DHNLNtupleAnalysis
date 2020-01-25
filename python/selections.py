@@ -121,6 +121,8 @@ class Plepton():
 		self._mindR = _mindR
 		
 		self.plepVec = ROOT.TLorentzVector(0,0,0,0)
+		self.plepd0 = -2000
+		self.plepz0 = -2000
 		ndv = len(self.evt.tree.dvx[self.evt.ievt])	
 
 
@@ -148,6 +150,8 @@ class Plepton():
 
 						
 		self.highestpt_plep = ROOT.TLorentzVector(0,0,0,0)
+		self.highestpt_plep_d0 = -2000
+		self.highestpt_plep_z0 = -2000
 
 		for ilep in xrange(nleps): 
 			overlap = False
@@ -160,12 +164,18 @@ class Plepton():
 				mass = self.evt.tree.muonmass[self.evt.ievt][ilep]
 				plepVec_i.SetPtEtaPhiM(pt,eta,phi,mass)
 
+				lepd0 = self.evt.tree.muond0[self.evt.ievt][ilep]
+				lepz0 = self.evt.tree.muonz0[self.evt.ievt][ilep]
+
 			if self.lepton == "electron":
 				pt = self.evt.tree.elpt[self.evt.ievt][ilep]
 				eta = self.evt.tree.eleta[self.evt.ievt][ilep]
 				phi = self.evt.tree.elphi[self.evt.ievt][ilep]
 				mass = self.evt.tree.elmass[self.evt.ievt][ilep]
 				plepVec_i.SetPtEtaPhiM(pt,eta,phi,mass)
+
+				lepd0 = self.evt.tree.eld0[self.evt.ievt][ilep]
+				lepz0 = self.evt.tree.elz0[self.evt.ievt][ilep]
 
 			if passPfilter[self.evt.ievt][ilep]:
 				for idv in xrange(ndv):
@@ -189,6 +199,9 @@ class Plepton():
 					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required 
 						if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
 							self.highestpt_plep = plepVec_i 
+							self.highestpt_plep_d0 = lepd0
+							self.highestpt_plep_z0 = lepz0
+
 							#for trigger matching
 							# if self.evt.tree.muontrigmatched[self.evt.ievt][ilep] == 0:
 							# 	print "is muon trig matched?", self.evt.tree.muontrigmatched[self.evt.ievt][ilep]
@@ -203,6 +216,9 @@ class Plepton():
 	def passes(self):
 		if self.highestpt_plep.Pt() != 0: 
 			self.plepVec = self.highestpt_plep
+			self.plepd0 = self.highestpt_plep_d0
+			self.plepz0 = self.highestpt_plep_z0
+ 
 
 			return True
 		else: 

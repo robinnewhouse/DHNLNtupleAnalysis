@@ -16,7 +16,10 @@ def main():
 
 	channels = { 
 			   'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll', 'DVmass'],   # put a map for a 1 one word key to a list of inputs for the selections
+			   # 'emu' : [],   # put a map for a 1 one word key to a list of inputs for the selections
+
 			   'mumu'  : ['alltriggers','pmuon', '4-filter' 'mumu']}
+
 
 	analysisCode = {}
 	anaClass = getattr(analysis, "WmuHNL")
@@ -44,10 +47,10 @@ def main():
 
 			for idv in xrange(ndv): 
 				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-				if presel: # current analysis will only look at the DV if the presel is met (will help code run faster, but we can turn this off)
-					ana.DVSelection(DVevt)
+				# if presel: # current analysis will only look at the DV if the presel is met (will help code run faster, but we can turn this off)
+				ana.DVSelection(DVevt)
 
-
+		ana.unlock()
 	analysisCode["emu"].end()
 
 

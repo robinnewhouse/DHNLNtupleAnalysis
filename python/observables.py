@@ -5,7 +5,7 @@ ObservableList = []
 
 
 class Observable(object):
-	def __init__(self, name, binning = (20, -1000, 1000), script = None, style = 'single', do = ['hist'], only = None, title = '{self.name}', dtype = float, default = -1, need_truth = False):
+	def __init__(self, name, binning = (2000, -1000, 1000), script = None, style = 'single', do = ['hist'], only = None, title = '{self.name}', dtype = float, default = -1, need_truth = False):
 		"""Observable for filling histograms or trees
 			
 			Parameters
@@ -70,8 +70,103 @@ class _Observable(object):
     #         else:
     #             return ret
 
-Observable("track_d0", binning = (500,-500,500), do = ['hist'], only = ['nDV']).queue()
-Observable("track_pt", binning = (150,0,200), do = ['hist'], only = ['nDV']).queue()
-Observable("track_eta", binning = (16,-4,4), do = ['hist'], only = ['nDV']).queue()
-Observable("track_phi", binning = (50,-3.5,3.5), do = ['hist'], only = ['nDV']).queue()
+# all DV
+Observable("DV_trk_pt",binning = (1000,0,1000), do = ['hist']).queue()
+Observable("DV_trk_eta",binning = (40,-10,10),do = ['hist']).queue()
+Observable("DV_trk_phi", binning =(16,-4,4), do = ['hist']).queue()
+Observable("DV_trk_d0", do = ['hist']).queue()
+Observable("DV_trk_z0", do = ['hist']).queue()
+Observable("DV_trk_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+Observable("DV_trk_chi2",binning = (40,0,20), do = ['hist']).queue()
+
+Observable("DV_x",binning = (2000,-500,500), do = ['hist']).queue()
+Observable("DV_y",binning = (2000,-500,500), do = ['hist']).queue()
+Observable("DV_z",binning = (2000,-500,500), do = ['hist']).queue()
+Observable("DV_r",binning = (500,0,500), do = ['hist']).queue()
+Observable("DV_num_trks",binning = (6,-0.5,5.5), do = ['hist']).queue()
+Observable("DV_distFromPV",binning = (1000,0,1000), do = ['hist']).queue()
+Observable("DV_mass",binning = (100,0,50), do = ['hist']).queue()
+Observable("DV_pt",binning = (1000,0,1000), do = ['hist']).queue()
+Observable("DV_eta",binning = (40,-10,10),do = ['hist']).queue()
+Observable("DV_phi", binning = (16,-4,4), do = ['hist']).queue()
+Observable("DV_minOpAng",binning = (100,0,1), do = ['hist']).queue()
+Observable("DV_maxOpAng",binning = (100,0,1), do = ['hist']).queue()
+Observable("DV_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+Observable("DV_chi2",binning = (40,0,20), do = ['hist']).queue()
+Observable("DV_trk_sep", binning = (30,0,6), do = ['hist']).queue()
+
+# selected DV
+Observable("selDV_trk_pt",binning = (1000,0,1000), do = ['hist']).queue()
+Observable("selDV_trk_eta",binning = (40,-10,10),do = ['hist']).queue()
+Observable("selDV_trk_phi", binning =(16,-4,4), do = ['hist']).queue()
+Observable("selDV_trk_d0", do = ['hist']).queue()
+Observable("selDV_trk_z0", do = ['hist']).queue()
+Observable("selDV_trk_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+Observable("selDV_trk_chi2",binning = (40,0,20), do = ['hist']).queue()
+
+Observable("selDV_x",binning = (2000,-500,500), do = ['hist']).queue()
+Observable("selDV_y",binning = (2000,-500,500), do = ['hist']).queue()
+Observable("selDV_z",binning = (2000,-500,500), do = ['hist']).queue()
+Observable("selDV_r",binning = (500,0,500), do = ['hist']).queue()
+Observable("selDV_num_trks",binning = (6,-0.5,5.5), do = ['hist']).queue()
+Observable("selDV_distFromPV",binning = (500,0,500), do = ['hist']).queue()
+Observable("selDV_mass",binning = (100,0,50), do = ['hist']).queue()
+Observable("selDV_pt",binning = (1000,0,1000), do = ['hist']).queue()
+Observable("selDV_eta",binning = (40,-10,10),do = ['hist']).queue()
+Observable("selDV_phi", binning = (16,-4,4), do = ['hist']).queue()
+Observable("selDV_minOpAng",binning = (100,0,1), do = ['hist']).queue()
+Observable("selDV_maxOpAng",binning = (100,0,1), do = ['hist']).queue()
+Observable("selDV_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+Observable("selDV_chi2",binning = (40,0,20), do = ['hist']).queue()
+Observable("selDV_trk_sep", binning = (30,0,6), do = ['hist']).queue()
+
+
+
+
+Observable("plep_pt",binning = (1000,0,1000), do = ['hist']).queue()
+Observable("plep_eta",binning = (40,-10,10),do = ['hist']).queue()
+Observable("plep_phi", binning = (16,-4,4), do = ['hist']).queue()
+Observable("plep_d0", do = ['hist']).queue()
+Observable("plep_z0", do = ['hist']).queue()
+
+Observable("selplep_pt",binning = (1000,0,1000), do = ['hist']).queue()
+Observable("selplep_eta",binning = (40,-10,10),do = ['hist']).queue()
+Observable("selplep_phi", binning = (16,-4,4), do = ['hist']).queue()
+Observable("selplep_d0", do = ['hist']).queue()
+Observable("selplep_z0", do = ['hist']).queue()
+
+
+Observable("muon_type", binning = (6 ,-0.5,5.5), do = ['hist']).queue()
+Observable("muon_pt", binning = (1000 ,0,1000), do = ['hist']).queue()
+Observable("muon_eta", binning = (40 ,-10,10), do = ['hist']).queue()
+Observable("muon_phi", binning = (16 ,-4,4), do = ['hist']).queue()
+Observable("el_pt", binning = (1000 ,0,1000), do = ['hist']).queue()
+Observable("el_eta", binning = (40 ,-10,10), do = ['hist']).queue()
+Observable("el_phi", binning = (16 ,-4,4), do = ['hist']).queue()
+
+
+
+
+# Observable("truth_DV_trk_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_trk_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_trk_phi", binning = (16,-3,3), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_trk_d0", do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_trk_z0", do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_trk_charge",binning = (12,-5.5,5.5), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_num_trks",binning = (6,-0.5,5.5), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_trk_chi2_toSV",binning = (40,0,20), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_x",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_y",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_z",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_r",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_distFromPV",binning = (500,0,500), do = ['hist']).queue()
+Observable("truth_DV_mass",binning = (100,0,50), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_phi", binning = (16,-4,4), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_minOpAng",binning = (100,0,1), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_maxOpAng",binning = (100,0,1), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+
+
 

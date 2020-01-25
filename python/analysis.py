@@ -35,19 +35,16 @@ class Analysis(object):
 		self.h = {}
 		# make histograms (common for all channels)
 		self.add('CutFlow', 13, -0.5, 12.5)
-		# self.add('trackd0', 200, -10, 10)
+		self.add2D('charge_ntrk', 11, -5.5, 5.5,9,-0.5,8.5)
+		self._locked = UNLOCKED 
 
 		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
-		# self.observables = [observable.registered(self) for observable in observables.ObservableList ]
 		for observable in self.observables:
 			if 'hist' in observable.do:
 				if type(observable.binning) == tuple:
 					self.add(observable.name, *observable.binning)
 				else:
 					self.addVar(observable.name, observable.binning)
-
-		print self.h
-
 
 
 		# trigger cut
@@ -71,16 +68,16 @@ class Analysis(object):
 		elif('1-filter'in self.sel): 
 			self.filter_type = '1-fitler'
 			self.dofilter = True
-		elif('mumu' in self.sel):
+		elif('mumu-filter' in self.sel):
 			self.filter_type = 'mu-mu'
 			self.dofilter = True
-		elif('elmu' in self.sel):
+		elif('elmu-filter' in self.sel):
 			self.filter_type = 'el-mu'
 			self.dofilter = True
-		elif('elel' in self.sel):
+		elif('elel-filter' in self.sel):
 			self.filter_type = 'el-el'
 			self.dofilter = True
-		elif('muel' in self.sel):
+		elif('muel-filter' in self.sel):
 			self.filter_type = 'mu-el'
 			self.dofilter = True
 		else: 
@@ -160,6 +157,10 @@ class Analysis(object):
 		else: 
 			self.doDVmass = False
 
+		if self.domlll == True and self.doplep == False: 
+			logger.error("You cannot calculate mlll without selecting a prompt lepton!")
+			quit()
+
 
 
 
@@ -169,7 +170,7 @@ class Analysis(object):
 	def add(self, hName, nBins, xLow, xHigh):
 		self.h[hName] = {}
 		#self.fi.cd()
-		self.h[hName] = ROOT.TH1D(hName+self.ch, "", nBins, xLow, xHigh)
+		self.h[hName] = ROOT.TH1D(hName+'_'+self.ch, "", nBins, xLow, xHigh)
 		self.h[hName].Sumw2()
 		self.h[hName].SetDirectory(0)
 		# for s in self.histSuffixes:
@@ -182,7 +183,7 @@ class Analysis(object):
 		ar = array("d", nBinsList)
 		#self.fi.cd()
 		self.h[hName] = {}
-		self.h[hName] = ROOT.TH1D(hName+self.ch, "", len(nBinsList) - 1, ar)
+		self.h[hName] = ROOT.TH1D(hName+'_'+self.ch, "", len(nBinsList) - 1, ar)
 		self.h[hName].Sumw2()
 		self.h[hName].SetDirectory(0)
 		# for s in self.histSuffixes:
@@ -193,12 +194,16 @@ class Analysis(object):
 
 	def add2D(self, hName, nBins, xLow, xHigh, nBinsY, yLow, yHigh):
 		self.h[hName] = {}
+		self.h[hName] = ROOT.TH2D(hName+'_'+self.ch, "", nBins, xLow, xHigh, nBinsY, yLow, yHigh)
+		self.h[hName].Sumw2()
+		self.h[hName].SetDirectory(0)
 		#self.fi.cd()
-		for s in self.histSuffixes:
+		# for s in self.histSuffixes:
 			#print 'adding histogram with name ', hName+self.ch+s
-			self.h[hName][s] = ROOT.TH2D(hName+self.ch+s, "", nBins, xLow, xHigh, nBinsY, yLow, yHigh)
-			self.h[hName][s].Sumw2()
-			self.h[hName][s].SetDirectory(0)
+			# self.h[hName][s] = ROOT.TH2D(hName+self.ch+s, "", nBins, xLow, xHigh, nBinsY, yLow, yHigh)
+			# self.h[hName][s].Sumw2()
+			# self.h[hName][s].SetDirectory(0)
+
 
 	def write(self):
 		self.fi.cd()
@@ -263,14 +268,17 @@ class Analysis(object):
 
 
 class WmuHNL(Analysis):
+
 	mapSel = { 
 			   'mumu' : ['alltriggers','pmuon', '4-filter','DV' 'mumu'],   # put a map for a 1 one word key to a list of inputs for the selections
 			   'emu'  : ['alltriggers','pmuon', '4-filter' 'emu']}
 
+	isdata = False
+
 	def _init__(self, channel, selections, outputFile):
 		Analysis.__init__(self, channel, outputFile)
 		#make histograms specfic to this channel
-		self.add('mupt', 100, 0, 100)
+		# self.add2D('charge_ntrk', 11, -5.5, 5.5,9,-0.5,8.5)
 
 	def _trigCut(self, evt): 
 
@@ -290,6 +298,15 @@ class WmuHNL(Analysis):
 	def _plepCut(self, evt): 
 		if self.doplep: 
 			self.plep_sel = selections.Plepton(evt = evt, lepton=self.plep)
+			plep_vec = self.plep_sel.plepVec
+			plepd0 = self.plep_sel.plepd0
+			plepz0 = self.plep_sel.plepz0
+
+			self.h["plep_pt"].Fill(plep_vec.Pt())
+			self.h["plep_eta"].Fill(plep_vec.Eta())
+			self.h["plep_phi"].Fill(plep_vec.Phi())
+			self.h["plep_d0"].Fill(plepd0)
+			self.h["plep_z0"].Fill(plepz0)
 			return self.plep_sel.passes()
 		else: 
 			return "unused cut"
@@ -304,7 +321,7 @@ class WmuHNL(Analysis):
 	def _fidvolCut(self, evt): 
 		if ('fidvol' in self.sel): 
 			fidvol_sel = selections.DVradius(evt= evt)
-			return fidvol_sel.passes()
+			return fidvol_sel.passes() 
 		else: 
 			return "unused cut"
 
@@ -340,23 +357,23 @@ class WmuHNL(Analysis):
 	def _cosmicvetoCut(self, evt): 
 		if self.docosmicveto: 
 			cosmicveto_sel = selections.Cosmicveto(evt= evt)
+			self.h["DV_trk_sep"].Fill(cosmicveto_sel.separation)
 			return cosmicveto_sel.passes()
 		else: 
 			return "unused cut"
 
 	def _mlllCut(self, evt): 
-
-		plep_vec = self.plep_sel.plepVec
-
-		muons = helpers.Tracks()
-		muons.getMuons(evt= evt)
-		muVec = muons.lepVec
-
-		electrons = helpers.Tracks()
-		electrons.getElectrons(evt= evt)
-		elVec = electrons.lepVec
-
 		if self.domlll: 
+			plep_vec = self.plep_sel.plepVec
+
+			muons = helpers.Tracks()
+			muons.getMuons(evt= evt)
+			muVec = muons.lepVec
+
+			electrons = helpers.Tracks()
+			electrons.getElectrons(evt= evt)
+			elVec = electrons.lepVec
+		
 			mlll_sel = selections.Mlll(decayprod=self.DVtype,plep=plep_vec,dMu=muVec,dEl=elVec)
 			return mlll_sel.passes()
 		else:
@@ -379,6 +396,114 @@ class WmuHNL(Analysis):
 		elif cut == "unused cut": 
 			return True
 
+	def _fillHistos(self, evt):
+		for imu in range(len(evt.tree.muontype[evt.ievt])): 
+			self.h["muon_type"].Fill(evt.tree.muontype[evt.ievt][imu])
+			self.h["muon_pt"].Fill(evt.tree.muonpt[evt.ievt][imu])
+			self.h["muon_eta"].Fill(evt.tree.muoneta[evt.ievt][imu])
+			self.h["muon_phi"].Fill(evt.tree.muonphi[evt.ievt][imu])
+
+		for iel in range(len(evt.tree.elpt[evt.ievt])): 
+			self.h["el_pt"].Fill(evt.tree.elpt[evt.ievt][iel])
+			self.h["el_eta"].Fill(evt.tree.eleta[evt.ievt][iel])
+			self.h["el_phi"].Fill(evt.tree.elphi[evt.ievt][iel])
+		
+
+		# fill truth 
+# should add a flag like this to prevent filling 
+		# if isdata and observable.need_truth: # need to get the "needs truth variable"
+       		# return
+ 	 	#else:
+
+ 		# BUG with the truth values in ntuple need to investigate this -DT
+
+		# self.h["truth_DV_x"].Fill(evt.tree.truth_dvx[evt.ievt])
+		# self.h["truth_DV_y"].Fill(evt.tree.truth_dvy[evt.ievt])
+		# self.h["truth_DV_z"].Fill(evt.tree.truth_dvz[evt.ievt])
+		# self.h["truth_DV_r"].Fill(evt.tree.truth_dvr[evt.ievt])
+		# self.h["truth_DV_mass"].Fill(evt.tree.truth_dvmass[evt.ievt])
+		# self.h["truth_DV_pt"].Fill(evt.tree.truth_dvpt[evt.ievt])
+		# self.h["truth_DV_eta"].Fill(evt.tree.truth_dveta[evt.ievt])	
+		# self.h["truth_DV_phi"].Fill(evt.tree.truth_dvphi[evt.ievt])
+
+	def _fillallDVHistos(self, evt): 
+
+		self.h["charge_ntrk"].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], evt.tree.dvntrk[evt.ievt][evt.idv])
+		ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
+		for itrk in range(ntracks):
+			self.h["DV_trk_pt"].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
+			self.h["DV_trk_eta"].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
+			self.h["DV_trk_phi"].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
+			self.h["DV_trk_d0"].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
+			self.h["DV_trk_z0"].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk])
+			self.h["DV_trk_charge"].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk])
+			self.h["DV_trk_chi2"].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
+
+		self.h["DV_num_trks"].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
+		self.h["DV_x"].Fill(evt.tree.dvx[evt.ievt][evt.idv]) 
+		self.h["DV_y"].Fill(evt.tree.dvy[evt.ievt][evt.idv]) 
+		self.h["DV_z"].Fill(evt.tree.dvz[evt.ievt][evt.idv]) 
+		self.h["DV_r"].Fill(evt.tree.dvr[evt.ievt][evt.idv]) 
+		self.h["DV_distFromPV"].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv]) 
+		self.h["DV_mass"].Fill(evt.tree.dvmass[evt.ievt][evt.idv]) 
+		self.h["DV_pt"].Fill(evt.tree.dvpt[evt.ievt][evt.idv]) 
+		self.h["DV_eta"].Fill(evt.tree.dveta[evt.ievt][evt.idv]) 
+		self.h["DV_phi"].Fill(evt.tree.dvphi[evt.ievt][evt.idv]) 
+		self.h["DV_minOpAng"].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv]) 
+		self.h["DV_maxOpAng"].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv]) 
+		self.h["DV_charge"].Fill(evt.tree.dvcharge[evt.ievt][evt.idv])
+		self.h["DV_chi2"].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
+
+	def _fillselectedDVHistos(self, evt): 
+		if self._locked < FILL_LOCKED:
+			#these are the histograms you only want to fill ONCE per DV
+			if self.doplep:
+				plep_vec = self.plep_sel.plepVec
+				plepd0 = self.plep_sel.plepd0
+				plepz0 = self.plep_sel.plepz0
+
+				self.h["selplep_pt"].Fill(plep_vec.Pt())
+				self.h["selplep_eta"].Fill(plep_vec.Eta())
+				self.h["selplep_phi"].Fill(plep_vec.Phi())
+				self.h["selplep_d0"].Fill(plepd0)
+				self.h["selplep_z0"].Fill(plepz0)
+
+
+			ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
+			for itrk in range(ntracks):
+				self.h["selDV_trk_pt"].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
+				self.h["selDV_trk_eta"].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
+				self.h["selDV_trk_phi"].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
+				self.h["selDV_trk_d0"].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
+				self.h["selDV_trk_z0"].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk])
+				self.h["selDV_trk_charge"].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk])
+				self.h["selDV_trk_chi2"].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
+
+			self.h["selDV_num_trks"].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
+			self.h["selDV_x"].Fill(evt.tree.dvx[evt.ievt][evt.idv]) 
+			self.h["selDV_y"].Fill(evt.tree.dvy[evt.ievt][evt.idv]) 
+			self.h["selDV_z"].Fill(evt.tree.dvz[evt.ievt][evt.idv]) 
+			self.h["selDV_r"].Fill(evt.tree.dvr[evt.ievt][evt.idv]) 
+			self.h["selDV_distFromPV"].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv]) 
+			self.h["selDV_mass"].Fill(evt.tree.dvmass[evt.ievt][evt.idv]) 
+			self.h["selDV_pt"].Fill(evt.tree.dvpt[evt.ievt][evt.idv]) 
+			self.h["selDV_eta"].Fill(evt.tree.dveta[evt.ievt][evt.idv]) 
+			self.h["selDV_phi"].Fill(evt.tree.dvphi[evt.ievt][evt.idv]) 
+			self.h["selDV_minOpAng"].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv]) 
+			self.h["selDV_maxOpAng"].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv]) 
+			self.h["selDV_charge"].Fill(evt.tree.dvcharge[evt.ievt][evt.idv])
+			self.h["selDV_chi2"].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
+			
+
+			self._locked = FILL_LOCKED
+
+
+
+
+		# for observable in self.observables:
+		# 	 if isdata and observable.need_truth:
+	 #            continue
+
 
 	
 
@@ -388,6 +513,7 @@ class WmuHNL(Analysis):
 		# 	self.mapSel[self.ch] = [self.ch]
 
 		#initialize the DV cuts every event
+		self.passPresel = False
 		self.passTrigger = False
 		self.passHNLfilter = False
 		self.passPlep = False
@@ -403,6 +529,9 @@ class WmuHNL(Analysis):
 		self.passDVmass = False
 
 		self.h['CutFlow'].Fill(0)
+
+		self._fillHistos(evt)
+
 		
 		trigCut = self._doCut(self._trigCut(evt), self.passTrigger, 1)
 		if trigCut == True: 
@@ -430,69 +559,62 @@ class WmuHNL(Analysis):
 			return
 
 		if self.passTrigger and self.passHNLfilter and self.passPlep and self.passnDV: 
-			return True
-		else: 
-			return False
+			self.passPresel = True
 
 
 	def _DVSelection(self, evt):
 		
-		fidvolCut = self._doCut(self._fidvolCut(evt), self.passFid, 5)
-		if fidvolCut == True: 
-			self.passFid = True
-			# print evt.tree.trackd0[evt.ievt][evt.idv]
-			ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
-			for itrk in range(ntracks):
-				self.h["track_d0"].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
-				self.h["track_pt"].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
-				self.h["track_eta"].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
-				self.h["track_phi"].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
-		else: 
-			return
+		self._fillallDVHistos(evt)
 
-		ntrackCut = self._doCut(self._ntrackCut(evt), self.passntracks, 6)
-		if ntrackCut == True: 
-			self.passntracks = True
-		else: 
-			return
+		if self.passPresel: 
+			fidvolCut = self._doCut(self._fidvolCut(evt), self.passFid, 5)
+			if fidvolCut == True: 
+				self.passFid = True
+			else: 
+				return
 
-		OSCut = self._doCut(self._OSCut(evt), self.passOSDV, 7)
-		if OSCut == True: 
-			self.passOSDV = True
-		else: 
-			return
+			ntrackCut = self._doCut(self._ntrackCut(evt), self.passntracks, 6)
+			if ntrackCut == True: 
+				self.passntracks = True
+			else: 
+				return
 
-		DVtypeCut = self._doCut(self._DVtypeCut(evt), self.passDVtype, 8)
-		if DVtypeCut == True: 
-			self.passDVtype = True
-		else: 
-			return
+			OSCut = self._doCut(self._OSCut(evt), self.passOSDV, 7)
+			if OSCut == True: 
+				self.passOSDV = True
+			else: 
+				return
 
-		trackqualCut = self._doCut(self._trackqualCut(evt), self.passTrackqual, 9)
-		if trackqualCut == True: 
-			self.passTrackqual = True
-		else: 
-			return
+			DVtypeCut = self._doCut(self._DVtypeCut(evt), self.passDVtype, 8)
+			if DVtypeCut == True: 
+				self.passDVtype = True
+			else: 
+				return
 
-		cosmicvetoCut = self._doCut(self._cosmicvetoCut(evt), self.passCosmicveto, 10)
-		if cosmicvetoCut == True: 
-			self.passCosmicveto = True
-		else: 
-			return
+			trackqualCut = self._doCut(self._trackqualCut(evt), self.passTrackqual, 9)
+			if trackqualCut == True: 
+				self.passTrackqual = True
+			else: 
+				return
 
-		mlllCut = self._doCut(self._mlllCut(evt), self.passMlll, 11)
-		if mlllCut == True: 
-			self.passMlll = True
-		else: 
-			return
+			cosmicvetoCut = self._doCut(self._cosmicvetoCut(evt), self.passCosmicveto, 10)
+			if cosmicvetoCut == True: 
+				self.passCosmicveto = True
+			else: 
+				return
 
-		DVmassCut = self._doCut(self._DVmassCut(evt), self.passDVmass, 12)
-		if DVmassCut == True: 
-			self.passDVmass = True
-		else: 
-			return
+			mlllCut = self._doCut(self._mlllCut(evt), self.passMlll, 11)
+			if mlllCut == True: 
+				self.passMlll = True
+			else: 
+				return
 
-
+			DVmassCut = self._doCut(self._DVmassCut(evt), self.passDVmass, 12)
+			if DVmassCut == True: 
+				self.passDVmass = True
+				self._fillselectedDVHistos(evt)
+			else: 
+				return
 
 	
 
