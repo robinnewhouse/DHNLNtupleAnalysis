@@ -14,6 +14,12 @@ lsetup git
 git clone ssh://git@gitlab.cern.ch:7999/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git
 ```
 
+The analysis code uses the package `uproot` to load root files. For more details see [uproot documentation](https://pypi.org/project/uproot/). To setup python to include the `uproot` pacakge on lxplus do the following: 
+
+```
+source /cvmfs/sft.cern.ch/lcg/views/LCG_latest/x86_64-centos7-gcc9-opt/setup.sh
+```
+
 For a new commit: 
 
 ```
@@ -33,3 +39,4 @@ python makeHistograms.py
 ```
 
 Histograms will be saved in histograms.root
+

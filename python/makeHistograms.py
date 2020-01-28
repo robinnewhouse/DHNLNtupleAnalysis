@@ -23,7 +23,7 @@ def main():
 	anaClass = getattr(analysis, "WmuHNL")
 
 	# file = fileName
-	file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
+	file = "/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
 
 	treename = "outTree"
 	tree = treenames.Tree(file, treename)
