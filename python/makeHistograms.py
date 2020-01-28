@@ -13,11 +13,9 @@ logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 def main():
 	
 
-
+	# put a map for a 1 one word key to a list of inputs for the selections
 	channels = { 
-			   'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll', 'DVmass'],   # put a map for a 1 one word key to a list of inputs for the selections
-			   # 'emu' : [],   # put a map for a 1 one word key to a list of inputs for the selections
-
+			   'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll', 'DVmass'],   
 			   'mumu'  : ['alltriggers','pmuon', '4-filter' 'mumu']}
 
 
@@ -26,6 +24,7 @@ def main():
 
 	# file = fileName
 	file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
+
 	treename = "outTree"
 	tree = treenames.Tree(file, treename)
 
@@ -58,3 +57,12 @@ def main():
 if __name__ == "__main__":
 	main()
 	logger.info("The end.")
+
+
+
+
+
+
+
+
+

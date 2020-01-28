@@ -71,9 +71,9 @@ class _Observable(object):
     #             return ret
 
 # all DV
-Observable("DV_trk_pt",binning = (1000,0,1000), do = ['hist']).queue()
+Observable("DV_trk_pt",binning = (5000,0,1000), do = ['hist']).queue()
 Observable("DV_trk_eta",binning = (40,-10,10),do = ['hist']).queue()
-Observable("DV_trk_phi", binning =(16,-4,4), do = ['hist']).queue()
+Observable("DV_trk_phi", binning =(64,-4,4), do = ['hist']).queue()
 Observable("DV_trk_d0", do = ['hist']).queue()
 Observable("DV_trk_z0", do = ['hist']).queue()
 Observable("DV_trk_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
