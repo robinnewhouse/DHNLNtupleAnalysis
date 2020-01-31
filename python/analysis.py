@@ -114,6 +114,11 @@ class Analysis(object):
 			logger.warn('You did not add an OS track cut. Skipping OS track selection.')
 			self.doOS = False
 
+		if ('SS' in self.sel): 
+			self.doSS = True
+		else: 
+			self.doSS = False
+
 		# DV type
 		if ('mumu' in self.sel): 
 			self.DVtype = "mumu"
@@ -314,11 +319,13 @@ class Analysis(object):
 		else: 
 			return "unused cut"
 
-	def _OSCut(self, evt): 
+	def _chargeCut(self, evt): 
 		if self.doOS: 
-			# print "OS in channel sel"
-			os_sel = selections.OSDV(evt= evt)
+			os_sel = selections.ChargeDV(evt= evt,sel='OS')
 			return os_sel.passes()
+		elif self.doSS: 
+			ss_sel = selections.ChargeDV(evt= evt,sel='SS')
+			return ss_sel.passes()
 		else: 
 			return "unused cut"
 
@@ -525,7 +532,7 @@ class WmuHNL(Analysis):
 		self.passnDV = False
 		self.passFid = False
 		self.passntracks = False
-		self.passOSDV = False
+		self.passChargeDV = False
 		self.passDVtype = False
 		self.passTrackqual = False
 		self.passTrackqual_2 = False
@@ -595,9 +602,9 @@ class WmuHNL(Analysis):
 			else: 
 				return
 
-			OSCut = self._doCut(self._OSCut(evt), self.passOSDV, 7)
-			if OSCut == True: 
-				self.passOSDV = True
+			chargeCut = self._doCut(self._chargeCut(evt), self.passChargeDV, 7)
+			if chargeCut == True: 
+				self.passChargeDV = True
 			else: 
 				return
 

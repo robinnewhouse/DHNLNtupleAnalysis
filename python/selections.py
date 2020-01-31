@@ -281,11 +281,11 @@ class DVntracks():
 
 
 
-class OSDV(): 
-	def __init__(self, evt, decaymode="leptonic"): 
+class ChargeDV(): 
+	def __init__(self, evt, sel="OS",decaymode="leptonic"): 
 		self.evt = evt
 		self.decaymode = decaymode
-
+		self.sel = sel
 		self.ntracks = -1 
 		self.charge_trk1 = -2 # dont make default -1 since that's a valid charge! :)
 		self.charge_trk2 = -2 # dont make default -1 since that's a valid charge! :)
@@ -298,8 +298,13 @@ class OSDV():
 				self.charge_trk2 = self.evt.tree.trackcharge[self.evt.ievt][self.evt.idv][1]
 
 	def passes(self): 
-		if self.charge_trk1 != self.charge_trk2: 
-			return True
+		if self.sel == 'OS':
+			if self.charge_trk1 != self.charge_trk2: 
+				return True
+				
+		elif self.sel == 'SS':
+			if self.charge_trk1 == self.charge_trk2: 
+				return True
 		else:
 			return False
 

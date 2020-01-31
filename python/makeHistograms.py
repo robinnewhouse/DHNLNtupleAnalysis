@@ -20,11 +20,12 @@ def main():
 
 	###########################################################################################################################
 	# Put a map for a 1 one word key to a list of inputs for the selections.
-	# histograms will be saved for each channel histName_ch
+	# histograms will be saved for each channel called histName_ch in histograms.root
 	###########################################################################################################################
 	channels = { 
 			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'], 
-			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS']  
+			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
+			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']  
 			   }
 
 
@@ -32,8 +33,7 @@ def main():
 	anaClass = getattr(analysis, "WmuHNL")
 
 	# file = fileName
-	file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
-	# file = "/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
+	file = "/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
 
 
 	treename = "outTree"
