@@ -163,7 +163,6 @@ class Analysis(object):
 
 
 
-
 	def unlock(self):
 		self._locked = UNLOCKED
 
@@ -242,14 +241,6 @@ class Analysis(object):
 			logger.error(e, exc_info=True)
 
 
-	def triggerSel(self, evt): 
-		self.trigger = selections.Trigger(evt = evt, plepton='muon',trigger = 'HLT_mu26_ivarmedium')
-		# print self.trigger
-		if self.trigger.passes(): 
-			return True
-		else: 
-			return False
-
 	def _preSelection(self, evt):
 		raise NotImplementedError
 
@@ -262,23 +253,6 @@ class Analysis(object):
 
 	def DVSelection(self, evt): 
 		self._DVSelection(evt)
-
-
-
-
-
-class WmuHNL(Analysis):
-
-	mapSel = { 
-			   'mumu' : ['alltriggers','pmuon', '4-filter','DV' 'mumu'],   # put a map for a 1 one word key to a list of inputs for the selections
-			   'emu'  : ['alltriggers','pmuon', '4-filter' 'emu']}
-
-	isdata = False
-
-	def _init__(self, channel, selections, outputFile):
-		Analysis.__init__(self, channel, outputFile)
-		#make histograms specfic to this channel
-		# self.add2D('charge_ntrk', 11, -5.5, 5.5,9,-0.5,8.5)
 
 	def _trigCut(self, evt): 
 
@@ -387,6 +361,11 @@ class WmuHNL(Analysis):
 			return "unused cut"
 
 	def _doCut(self, cut, passCut, nbin):
+		##################################################################################################################################
+		# DoCut is done for every cut. It needs to know the'cut' that should be applied, and if the cut was already applied ('passCut')
+		# This ensures that the cutflow is only filled the first time the cut is passed and does not double count,
+		# This should be modified eventually to decide which DV is the "best" as opposed  to just counting the first one found.
+		###################################################################################################################################
 		if cut == True:  # select events that pass the trigger 
 			if passCut == False: 
 				self.h['CutFlow'].Fill(nbin)
@@ -410,7 +389,7 @@ class WmuHNL(Analysis):
 		
 
 		# fill truth 
-# should add a flag like this to prevent filling 
+		# should add a flag like this to prevent filling 
 		# if isdata and observable.need_truth: # need to get the "needs truth variable"
        		# return
  	 	#else:
@@ -495,10 +474,19 @@ class WmuHNL(Analysis):
 			self.h["selDV_chi2"].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
 			
 
-			self._locked = FILL_LOCKED
+			self._locked = FILL_LOCKED # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event. 
 
 
 
+
+class WmuHNL(Analysis):
+
+	isdata = False
+
+	def _init__(self, channel, selections, outputFile):
+		Analysis.__init__(self, channel, outputFile)
+		#make histograms specfic to this channel
+		# self.add2D('charge_ntrk', 11, -5.5, 5.5,9,-0.5,8.5)
 
 		# for observable in self.observables:
 		# 	 if isdata and observable.need_truth:
@@ -508,11 +496,20 @@ class WmuHNL(Analysis):
 	
 
 	def _preSelection(self, evt):
+		######################################################################################################
+		# Preselection are all the cuts that are requied per event 
+		# Current cuts include: trigger, filter, plepton, DV cut
+		######################################################################################################
+
+
 		# if self.ch not in self.mapSel:
 		# 	logger.warn('The selected channel '{}' is not registered. The events will be processed anyway without any further constraint.'.format(self.ch))
 		# 	self.mapSel[self.ch] = [self.ch]
 
-		#initialize the DV cuts every event
+		###########################################################################################################################
+		#Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event. 
+		#Default is to select the first event that passes the selection
+		###########################################################################################################################
 		self.passPresel = False
 		self.passTrigger = False
 		self.passHNLfilter = False
@@ -532,12 +529,17 @@ class WmuHNL(Analysis):
 
 		self._fillHistos(evt)
 
-		
-		trigCut = self._doCut(self._trigCut(evt), self.passTrigger, 1)
-		if trigCut == True: 
+
+		######################################################################################################
+		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused 
+		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used) 
+		######################################################################################################
+
+		passTrigger = self._doCut(self._trigCut(evt), self.passTrigger, 1)
+		if passTrigger == True: 
 			self.passTrigger = True
 		else: 
-			return
+			return # leave the function and dont apply the rest of the preselection cuts. Should speed cut the process.
 
 
 		filterCut = self._doCut(self._filterCut(evt), self.passHNLfilter, 2)
@@ -563,10 +565,16 @@ class WmuHNL(Analysis):
 
 
 	def _DVSelection(self, evt):
-		
-		self._fillallDVHistos(evt)
 
-		if self.passPresel: 
+		######################################################################################################
+		# DV Selection is any cuts that are done per DV 
+		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
+		######################################################################################################
+		
+		self._fillallDVHistos(evt) # Fill all the histrograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
+
+		if self.passPresel: # only do the DV selection if the preselction was passed for the event. 
+			
 			fidvolCut = self._doCut(self._fidvolCut(evt), self.passFid, 5)
 			if fidvolCut == True: 
 				self.passFid = True
@@ -611,10 +619,11 @@ class WmuHNL(Analysis):
 
 			DVmassCut = self._doCut(self._DVmassCut(evt), self.passDVmass, 12)
 			if DVmassCut == True: 
-				self.passDVmass = True
-				self._fillselectedDVHistos(evt)
+				self.passDVmass = True	
 			else: 
 				return
+			
+			self._fillselectedDVHistos(evt) # Fill all the histrograms with only selected DVs.
 
 	
 

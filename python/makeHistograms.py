@@ -15,15 +15,18 @@ def main():
 
 	# put a map for a 1 one word key to a list of inputs for the selections
 	channels = { 
-			   'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll', 'DVmass'],   
-			   'mumu'  : ['alltriggers','pmuon', '4-filter' 'mumu']}
+			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll'], 
+			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS'], 
+			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS']  
+			   }
 
 
 	analysisCode = {}
 	anaClass = getattr(analysis, "WmuHNL")
 
 	# file = fileName
-	file = "/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
+	file = "/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/rootfiles/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
+
 
 	treename = "outTree"
 	tree = treenames.Tree(file, treename)
@@ -42,11 +45,9 @@ def main():
 
 		for ana in analysisCode.itervalues():
 			presel = ana.preSelection(evt)
-			# print presel
 
 			for idv in xrange(ndv): 
 				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-				# if presel: # current analysis will only look at the DV if the presel is met (will help code run faster, but we can turn this off)
 				ana.DVSelection(DVevt)
 
 		ana.unlock()
