@@ -93,7 +93,7 @@ Observable("DV_minOpAng",binning = (100,0,1), do = ['hist']).queue()
 Observable("DV_maxOpAng",binning = (100,0,1), do = ['hist']).queue()
 Observable("DV_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
 Observable("DV_chi2",binning = (40,0,20), do = ['hist']).queue()
-Observable("DV_trk_sep", binning = (30,0,6), do = ['hist']).queue()
+# Observable("DV_trk_sep", binning = (30,0,6), do = ['hist']).queue()
 
 # selected DV
 Observable("selDV_trk_pt",binning = (1000,0,1000), do = ['hist']).queue()
@@ -118,7 +118,7 @@ Observable("selDV_minOpAng",binning = (100,0,1), do = ['hist']).queue()
 Observable("selDV_maxOpAng",binning = (100,0,1), do = ['hist']).queue()
 Observable("selDV_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
 Observable("selDV_chi2",binning = (40,0,20), do = ['hist']).queue()
-Observable("selDV_trk_sep", binning = (30,0,6), do = ['hist']).queue()
+# Observable("selDV_trk_sep", binning = (30,0,6), do = ['hist']).queue()
 
 
 
@@ -146,6 +146,19 @@ Observable("el_phi", binning = (16 ,-4,4), do = ['hist']).queue()
 
 
 
+# Bug with the truth variables in DHNL alg. Need to fix -DT
+# Observable("truth_DV_x",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_y",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_z",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_r",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_mass",binning = (100,0,50), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
+# Observable("truth_DV_phi", binning = (16,-4,4), do = ['hist'], need_truth = True).queue()
+
+
+
+
 
 # Observable("truth_DV_trk_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
 # Observable("truth_DV_trk_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
@@ -155,15 +168,9 @@ Observable("el_phi", binning = (16 ,-4,4), do = ['hist']).queue()
 # Observable("truth_DV_trk_charge",binning = (12,-5.5,5.5), do = ['hist'], need_truth = True).queue()
 # Observable("truth_DV_num_trks",binning = (6,-0.5,5.5), do = ['hist'], need_truth = True).queue()
 # Observable("truth_DV_trk_chi2_toSV",binning = (40,0,20), do = ['hist'], need_truth = True).queue()
-Observable("truth_DV_x",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
-Observable("truth_DV_y",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
-Observable("truth_DV_z",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
-Observable("truth_DV_r",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
+
 # Observable("truth_DV_distFromPV",binning = (500,0,500), do = ['hist']).queue()
-Observable("truth_DV_mass",binning = (100,0,50), do = ['hist'], need_truth = True).queue()
-Observable("truth_DV_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
-Observable("truth_DV_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
-Observable("truth_DV_phi", binning = (16,-4,4), do = ['hist'], need_truth = True).queue()
+
 # Observable("truth_DV_minOpAng",binning = (100,0,1), do = ['hist'], need_truth = True).queue()
 # Observable("truth_DV_maxOpAng",binning = (100,0,1), do = ['hist'], need_truth = True).queue()
 # Observable("truth_DV_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
