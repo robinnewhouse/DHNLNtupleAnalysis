@@ -35,7 +35,7 @@ Histograms will be saved in output/histograms.root.
 By default the histograms.root file is recreated every time `makeHistograms.py` is run. If you wish to update the root file, instead of recreating it, run: 
 
 ```
-python makeHistograms.py --update True
+python makeHistograms.py --update True -f path_to_dHNLntuple
 ```
 
 
@@ -46,7 +46,7 @@ This plotting framework is designed to output histograms for analysis selection 
 
 The `makeHistogram.py` file is the steering code for this framework. In this file you will find a list of channels that map a 1 word key to a list of selections. To add a new channel, modify this list to include the cuts you wish to apply. When a new channel (e.g. "my_new_channel") is created and `makeHistograms.py`is run, histograms will be save in `histograms.root` with the following name format: histName_my_new_channel. 
 
-N.B If you wish to apply a new set of cuts that are not implemented you may wish to make a new analysis class. An example can be found in the comments in `analysis.py`
+N.B If you wish to apply a new set of cuts that are not implemented you may wish to make a new analysis class. An example can be found in the comments at the end of `analysis.py`
 
 For a list of the currently implemented cuts see the Analysis class definition in `analysis.py`.
 
