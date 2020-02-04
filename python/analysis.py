@@ -658,9 +658,10 @@ class WmuHNL(Analysis):
 	
 
 	
-######################################################################################################
-# An example of a new class. That you can configure to include any cuts you want.
-######################################################################################################
+######################################################################################################################
+# An example of a new class. Here you could add any new cuts you want without distubing the main analysis cuts.
+# To use your new class update the class name in analysis.py (e.g. anaClass = getattr(analysis, "new_class") )
+######################################################################################################################
 
 # class new_class(Analysis):
 
