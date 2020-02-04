@@ -50,11 +50,12 @@ class Analysis(object):
 					self.add(observable.name, *observable.binning)
 				else:
 					self.addVar(observable.name, observable.binning)
-
+		# 	 if isdata and observable.need_truth: # need to add something like this for truth variables
+	 #            continue
 
 		# trigger cut
 		if ('alltriggers' in self.sel): 
-			self.triggger = 'alltriggers'
+			self.triggger = 'all'
 			self.dotrigger = True
 		else: 
 			logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
@@ -106,6 +107,21 @@ class Analysis(object):
 		else: 
 			logger.warn('You did not add nDV cut. Skipping nDV selection.')
 			self.donDV = False
+
+		#2 track cut
+		if ('2track' in self.sel): 
+			self.donTrack = True
+			self.ntrk = 2
+		elif ('3track' in self.sel): 
+			self.donTrack = True
+			self.ntrk = 3
+		elif ('4track' in self.sel): 
+			self.donTrack = True
+			self.ntrk = 4
+		else: 
+			logger.warn('You did not add an ntrack cut. Skipping ntrack selection.')
+			self.donTrack = False
+
 
 		# OS cut
 		if ('OS' in self.sel):
@@ -268,27 +284,27 @@ class Analysis(object):
 		self._DVSelection(evt)
 
 	def _trigCut(self, evt): 
-
-		if ('alltriggers' in self.sel):	
-			trigger_sel = selections.Trigger(evt = evt,trigger = 'all') 
+		if self.dotrigger == True: 
+			trigger_sel = selections.Trigger(evt = evt,trigger = self.triggger) 
 			return trigger_sel.passes()
 		else: 
 			return "unused cut"
 		
 	def _filterCut(self, evt): 
-		if self.dofilter: 
+		if self.dofilter == True: 
 			filter_sel =  selections.Filter(evt= evt, _filter=self.filter_type)
 			return filter_sel.passes()
 		else: 
 			return "unused cut"
 
 	def _plepCut(self, evt): 
-		if self.doplep: 
+		if self.doplep== True: 
 			self.plep_sel = selections.Plepton(evt = evt, lepton=self.plep)
 			plep_vec = self.plep_sel.plepVec
 			plepd0 = self.plep_sel.plepd0
 			plepz0 = self.plep_sel.plepz0
 
+			# add to histogram all prompt leptons that pass selection. If _plepCut() is run after trigger and filter cut then those cuts will also be applied.
 			self.h["plep_pt"][self.ch].Fill(plep_vec.Pt())
 			self.h["plep_eta"][self.ch].Fill(plep_vec.Eta())
 			self.h["plep_phi"][self.ch].Fill(plep_vec.Phi())
@@ -299,7 +315,7 @@ class Analysis(object):
 			return "unused cut"
 
 	def _nDVCut(self, evt): 
-		if self.donDV: 
+		if self.donDV == True: 
 			DV_sel = selections.nDV(evt=evt)
 			return DV_sel.passes()
 		else: 
@@ -313,8 +329,8 @@ class Analysis(object):
 			return "unused cut"
 
 	def _ntrackCut(self, evt): 
-		if ('2track' in self.sel):
-			ntracks_sel = selections.DVntracks(evt= evt,ntrk=2)
+		if self.donTrack == True:
+			ntracks_sel = selections.DVntracks(evt= evt,ntrk=self.ntrk)
 			return ntracks_sel.passes()
 		else: 
 			return "unused cut"
@@ -379,7 +395,7 @@ class Analysis(object):
 		##################################################################################################################################
 		# DoCut is done for every cut. It needs to know the'cut' that should be applied, and if the cut was already applied ('passCut')
 		# This ensures that the cutflow is only filled the first time the cut is passed and does not double count,
-		# This should be modified eventually to decide which DV is the "best" as opposed  to just counting the first one found.
+		# This should be modified eventually to decide which DV is the "best" as opposed to just counting the first DV found.
 		###################################################################################################################################
 		if cut == True:  # select events that pass the trigger 
 			if passCut == False: 
@@ -424,7 +440,7 @@ class Analysis(object):
 
 		self.h["charge_ntrk"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], evt.tree.dvntrk[evt.ievt][evt.idv])
 		ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
-		for itrk in range(ntracks):
+		for itrk in range(ntracks): # loop over tracks 
 			self.h["DV_trk_pt"][self.ch].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
 			self.h["DV_trk_eta"][self.ch].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
 			self.h["DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
@@ -464,7 +480,7 @@ class Analysis(object):
 
 
 			ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
-			for itrk in range(ntracks):
+			for itrk in range(ntracks): #loop over tracks
 				self.h["selDV_trk_pt"][self.ch].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
 				self.h["selDV_trk_eta"][self.ch].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
 				self.h["selDV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
@@ -496,16 +512,15 @@ class Analysis(object):
 
 class WmuHNL(Analysis):
 
-	isdata = False
+	isdata = False # not currently used...
 
 	def _init__(self, channel, selections, outputFile):
 		Analysis.__init__(self, channel, outputFile)
 		#make histograms specfic to this channel
-		# self.add2D('charge_ntrk', 11, -5.5, 5.5,9,-0.5,8.5)
+		# self.add2D()
+		# self.add()
 
-		# for observable in self.observables:
-		# 	 if isdata and observable.need_truth:
-	 #            continue
+
 
 
 	
@@ -586,7 +601,7 @@ class WmuHNL(Analysis):
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
 		
-		self._fillallDVHistos(evt) # Fill all the histrograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
+		self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 
 		if self.passPresel: # only do the DV selection if the preselction was passed for the event. 
 			
@@ -643,8 +658,73 @@ class WmuHNL(Analysis):
 	
 
 	
+######################################################################################################################
+# An example of a new class. Here you could add any new cuts you want without distubing the main analysis cuts.
+# To use your new class update the class name in analysis.py (e.g. anaClass = getattr(analysis, "new_class") )
+######################################################################################################################
+
+# class new_class(Analysis):
+
+# 	isdata = False # not currently used...
+
+# 	def _init__(self, channel, selections, outputFile):
+# 		Analysis.__init__(self, channel, outputFile)
+# 		#make histograms specfic to this channel
+# 		# self.add2D()
+# 		# self.add()
+
+# 	def _DVtypeCut(self, evt):  
+	
+# 		DV_sel = selections.DVtype(evt= evt,decayprod="ee")
+# 		print "doing the ee DV type selection"
+# 		return DV_sel.passes()
+		
+	
+
+# 	def _preSelection(self, evt):
+# 		###########################################################################################################################\
+# 		# Preselection are all the cuts that are requied per event 
+# 		#Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event. 
+# 		#Default is to select the first event that passes the selection
+# 		###########################################################################################################################
+		
+# 		# initiazlie booleans here for each cut you apply to be False
+# 		self.passDVtype = False
+
+# 		self.h['CutFlow'][self.ch].Fill(0)
+
+# 		self._fillHistos(evt) # filling all
+
+
+# 		######################################################################################################
+# 		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused 
+# 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used) 
+# 		######################################################################################################
+
+
+# 		# add your pre-selection cuts here
+
+
+
+# 	def _DVSelection(self, evt):
+
+# 		######################################################################################################
+# 		# DV Selection is any cuts that are done per DV 
+# 		######################################################################################################
+		
+# 		self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 
 		
+# 		# add your DV cuts here
+# 		DVtypeCut = self._doCut(self._DVtypeCut(evt), self.passDVtype, 8)
+# 		if DVtypeCut == True: 
+# 			self.passDVtype = True
+# 		else: 
+# 			return
+
+		
+			
+# 		self._fillselectedDVHistos(evt) # Fill all the histrograms with only selected DVs.		
 
 		
 

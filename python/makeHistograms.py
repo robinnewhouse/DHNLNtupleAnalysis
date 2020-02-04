@@ -11,19 +11,22 @@ import treenames
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
 def main():
-
+	output_path ="../output/"
+	if os.path.exists(output_path) == False:
+		logger.info('Making output directory')
+		os.mkdir(output_path)
 
 	if options.update == "False":
-		if os.path.exists("histograms.root"): 
+		if os.path.exists(output_path +"histograms.root"): 
 			logger.info('Removing histograms.root')
-			os.remove("histograms.root") # by default remove histrogram file that if you previously created it.
+			os.remove(output_path + "histograms.root") # by default remove histrogram file that if you previously created it.
 
 	###########################################################################################################################
 	# Put a map for a 1 one word key to a list of inputs for the selections.
 	# histograms will be saved for each channel called histName_ch in histograms.root
 	###########################################################################################################################
 	channels = { 
-			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'], 
+			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
 			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
 			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']  
 			   }
@@ -32,10 +35,7 @@ def main():
 	analysisCode = {}
 	anaClass = getattr(analysis, "WmuHNL")
 
-	# file = fileName
-	file = "/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"
-
-
+	file = options.file[0]
 	treename = "outTree"
 	tree = treenames.Tree(file, treename)
 
@@ -43,7 +43,7 @@ def main():
 
 	for k in channels:
 		ch = k
-		analysisCode[k] = anaClass(ch, channels[k],"histograms.root")
+		analysisCode[k] = anaClass(ch, channels[k],output_path+"histograms.root")
 		for ievt in xrange(nentries):
 			evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
 			ndv = len(tree.dvx[ievt])
@@ -102,12 +102,13 @@ if __name__ == "__main__":
 	# 					action="store_true",
 	# 					dest="data",
 	# 					help="Is this data?")
-	# parser.add_argument("-f", "--files",
-	# 					dest="files", default=["input.txt"],
-	# 					action = AppendActionCleanDefault,
-	# 					nargs = '?',
-	# 					help="Text file with list of input files.",
-	# 					metavar="FILE")
+
+	parser.add_argument("-f", "--file",
+						dest="file", default=["/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"],
+						action = AppendActionCleanDefault,
+						type = str,
+						help="Input file",
+						metavar="FILE")
 	parser.add_argument('--nevents',
                         default = None,
                         type = int,
