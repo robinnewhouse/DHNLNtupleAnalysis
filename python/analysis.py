@@ -24,12 +24,13 @@ class Analysis(object):
 	blinded = True
 	mapSel = {}
 
-	def __init__(self, channel, selections, outputFile):
+	def __init__(self, channel, selections, outputFile, tree):
 		# print channel
 		# print outputFile
 
 		self.sel = selections
 		self._outputFile = outputFile
+		self.tree = tree
 		# self.fi = ROOT.TFile.Open(outputFile + '.part', 'recreate')
 		self.fi = ROOT.TFile.Open(outputFile , 'update')
 		self.ch = channel
@@ -187,7 +188,19 @@ class Analysis(object):
 			logger.error("You cannot calculate mlll without selecting a prompt lepton!")
 			quit()
 
+	def execute(self, nevents=None):
+		for ievt in xrange(nevents):
+			evt = helpers.Event(tree=self.tree, ievt=ievt, idv=None)
+			ndv = len(self.tree.dvx[ievt])
 
+			presel = self.preSelection(evt)
+
+			for idv in xrange(ndv):
+				DVevt = helpers.Event(tree=self.tree, ievt=ievt, idv=idv)
+				self.DVSelection(DVevt)
+
+			self.unlock()
+		self.end()
 
 	def unlock(self):
 		self._locked = UNLOCKED
@@ -297,7 +310,7 @@ class Analysis(object):
 		else: 
 			return "unused cut"
 
-	def _plepCut(self, evt): 
+	def _plepCut(self, evt):
 		if self.doplep== True: 
 			self.plep_sel = selections.Plepton(evt = evt, lepton=self.plep)
 			plep_vec = self.plep_sel.plepVec
@@ -522,7 +535,6 @@ class WmuHNL(Analysis):
 
 
 
-
 	
 
 	def _preSelection(self, evt):
@@ -648,7 +660,7 @@ class WmuHNL(Analysis):
 				return
 
 			DVmassCut = self._doCut(self._DVmassCut(evt), self.passDVmass, 12)
-			if DVmassCut == True: 
+			if DVmassCut == True:
 				self.passDVmass = True	
 			else: 
 				return
