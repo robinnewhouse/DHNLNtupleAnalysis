@@ -25,7 +25,6 @@ class Analysis(object):
         # print outputFile
 
         self.sel = selections
-        self._outputFile = outputFile
         self.tree = tree
         # self.fi = ROOT.TFile.Open(outputFile + '.part', 'recreate')
         self.fi = ROOT.TFile.Open(outputFile, 'update')
@@ -40,6 +39,7 @@ class Analysis(object):
         self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
         self._locked = UNLOCKED
 
+        # Define the observables to plot
         self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
         for observable in self.observables:
             if 'hist' in observable.do:
@@ -288,15 +288,14 @@ class Analysis(object):
         self._DVSelection(evt)
 
     def _trigCut(self, evt):
-        if self.dotrigger == True:
+        if self.dotrigger:
             return selections.trigger(evt=evt, allowed_trigger=self.trigger)
         else:
             return "unused cut"
 
     def _filterCut(self, evt):
-        if self.dofilter == True:
-            filter_sel = selections.Filter(evt=evt, _filter=self.filter_type)
-            return filter_sel.passes()
+        if self.dofilter:
+            return selections.filter_selection(evt=evt, allowed_filter=self.filter_type)
         else:
             return "unused cut"
 

@@ -42,65 +42,39 @@ def trigger(evt, allowed_trigger):
 	return pass_trig
 
 
+# Function to evaluate the passed filters
+# Returns boolean indicating success of filter combination passing
+def filter_selection(evt, allowed_filter):
+	mu_mu = evt.tree.mumufilter[evt.ievt]  # prompt muon, displaced muon
+	mu_el = evt.tree.muelfilter[evt.ievt]  # prompt muon, displaced electron
+	el_mu = evt.tree.elmufilter[evt.ievt]  # prompt electron, displaced muon
+	el_el = evt.tree.elelfilter[evt.ievt]  # prompt electron, displaced electron
 
+	if allowed_filter == "mu-mu":
+		return mu_mu
 
-class Filter():
-	def __init__(self, evt, _filter):
-		self.evt = evt
-		self.filter = _filter
+	if allowed_filter == "mu-el":
+		return mu_el
 
-	def passes(self):
-		if self.filter == "mu-mu":
-			if self.evt.tree.mumufilter[self.evt.ievt] == True:
-				return True
-			else:
-				return False
+	if allowed_filter == "el-mu":
+		return el_mu
 
-		if self.filter == "mu-el":
-			if self.evt.tree.muelfilter[self.evt.ievt] == True:
-				return True
-			else:
-				return False
+	if allowed_filter == "el-el":
+		return el_el
 
-		if self.filter == "el-mu":
-			if self.evt.tree.elmufilter[self.evt.ievt] == True:
-				return True
-			else:
-				return False
+	if allowed_filter == "4-filter":
+		return mu_mu or el_mu or el_el or mu_el
 
-		if self.filter == "el-el":
-			if self.evt.tree.elelfilter[self.evt.ievt] == True:
-				return True
-			else:
-				return False
+	if allowed_filter == "3-filter":
+		return mu_mu or el_mu or el_el
 
-		if self.filter == "4-filter":
-			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] or self.evt.tree.elelfilter[self.evt.ievt] or self.evt.tree.muelfilter[self.evt.ievt] )
+	if allowed_filter == "2-filter":
+		return mu_mu or el_mu
 
-			if pass4filt == True:
-				return True
-			else:
-				return False
+	if allowed_filter == "1-filter":
+		return mu_mu
 
-		if self.filter == "3-filter":
-			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] or self.evt.tree.elelfilter[self.evt.ievt] )
-			if pass4filt == True:
-				return True
-			else:
-				return False
-		if self.filter == "2-filter":
-			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] )
-			if pass4filt == True:
-				return True
-			else:
-				return False
-
-		if self.filter == "1-filter":
-			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt])
-			if pass4filt == True:
-				return True
-			else:
-				return False
+	raise Exception("Filter parameter not recognized")
 
 
 class Plepton():
