@@ -4,52 +4,42 @@ import numpy as np
 import helpers
 
 
+# Function to evaluate the trigger cut
+# Returns boolean indicating success of trigger passing
+def trigger(evt, allowed_trigger):
+	# trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
+	api_single_muon_trigger_list = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
+	api_single_electron_trigger_list = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium", "HLT_e60_medium",
+										"HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
 
-class Trigger():
-	def __init__(self, evt, trigger):
-		self.evt = evt
-		# self.plepton = plepton 
-		self.trigger = trigger
+	# decide which trigger list to use
+	trigger_list = []
+	if allowed_trigger == "muononly":
+		trigger_list = api_single_muon_trigger_list
 
-		# trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
-		apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
-		apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0","HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium","HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
-	
-		if self.trigger == "muononly": 
-			self.triggerlist = apiSingleMuonTriggerlist
-		
-		if self.trigger == "electrononly":
-			self.triggerlist = apiSingleElectronTriggerlist
-		
-		if self.trigger =="all": 
-			self.triggerlist = apiSingleMuonTriggerlist + apiSingleElectronTriggerlist
+	if allowed_trigger == "electrononly":
+		trigger_list = api_single_electron_trigger_list
 
-		if self.trigger == "muononly" or self.trigger == "electrononly" or self.trigger == "all":
-			self.usetriggerlist = True
-		else: 
-			self.usetriggerlist = False
+	if allowed_trigger == "all":
+		trigger_list = api_single_muon_trigger_list + api_single_electron_trigger_list
 
-		self.ntriggers = len(self.evt.tree.passedtriggers[self.evt.ievt])
+	# either compare to the trigger list, oro to a single trigger, passed as an argument
+	if allowed_trigger in ["muononly", "electrononly", "all"]:
+		use_trigger_list = True
+	else:
+		use_trigger_list = False
 
-
-	def passes(self):
-		self.passtrig = False
-
-	
-		for itrig in range(self.ntriggers): 
-			
-			if self.usetriggerlist: 
-				for ileptrig in range(len(self.triggerlist)): 
-					if self.triggerlist[ileptrig] ==  self.evt.tree.passedtriggers[self.evt.ievt][itrig]: 
-						self.passtrig = True
-			else: 
-				if self.evt.tree.passedtriggers[self.evt.ievt][itrig] == self.trigger:
-					self.passtrig = True
-	
-		if self.passtrig == True: 
-			return True
+	# evaluate whether the event passed the trigger
+	pass_trig = False
+	for evt_trig in evt.tree.passedtriggers[evt.ievt]:
+		if use_trigger_list:
+			if evt_trig in trigger_list:
+				pass_trig = True
 		else:
-			return False
+			if evt_trig == allowed_trigger:
+				pass_trig = True
+
+	return pass_trig
 
 
 
@@ -57,8 +47,8 @@ class Trigger():
 class Filter():
 	def __init__(self, evt, _filter):
 		self.evt = evt
-		self.filter = _filter 
-		
+		self.filter = _filter
+
 	def passes(self):
 		if self.filter == "mu-mu":
 			if self.evt.tree.mumufilter[self.evt.ievt] == True:
@@ -84,32 +74,32 @@ class Filter():
 			else:
 				return False
 
-		if self.filter == "4-filter": 
+		if self.filter == "4-filter":
 			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] or self.evt.tree.elelfilter[self.evt.ievt] or self.evt.tree.muelfilter[self.evt.ievt] )
-		
+
 			if pass4filt == True:
 				return True
-			else: 
+			else:
 				return False
 
-		if self.filter == "3-filter": 
+		if self.filter == "3-filter":
 			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] or self.evt.tree.elelfilter[self.evt.ievt] )
 			if pass4filt == True:
 				return True
-			else: 
+			else:
 				return False
-		if self.filter == "2-filter": 
+		if self.filter == "2-filter":
 			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] )
 			if pass4filt == True:
 				return True
-			else: 
+			else:
 				return False
 
-		if self.filter == "1-filter": 
+		if self.filter == "1-filter":
 			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt])
 			if pass4filt == True:
 				return True
-			else: 
+			else:
 				return False
 
 
@@ -117,13 +107,13 @@ class Plepton():
 	def __init__(self, evt, lepton, quality="tight", _mindR=0.05):
 		self.evt = evt
 		self.lepton = lepton
-		self.quality = quality 
+		self.quality = quality
 		self._mindR = _mindR
-		
+
 		self.plepVec = ROOT.TLorentzVector(0,0,0,0)
 		self.plepd0 = -2000
 		self.plepz0 = -2000
-		ndv = len(self.evt.tree.dvx[self.evt.ievt])	
+		ndv = len(self.evt.tree.dvx[self.evt.ievt])
 
 
 		if self.lepton == "muon":
@@ -148,16 +138,16 @@ class Plepton():
 			nleps = len(self.evt.tree.elpt[self.evt.ievt])
 			passPfilter = self.evt.tree.elpassPfilter
 
-						
+
 		self.highestpt_plep = ROOT.TLorentzVector(0,0,0,0)
 		self.highestpt_plep_d0 = -2000
 		self.highestpt_plep_z0 = -2000
 
-		for ilep in xrange(nleps): 
+		for ilep in xrange(nleps):
 			overlap = False
 			plepVec_i = ROOT.TLorentzVector()
 
-			if self.lepton == "muon": 
+			if self.lepton == "muon":
 				pt = self.evt.tree.muonpt[self.evt.ievt][ilep]
 				eta = self.evt.tree.muoneta[self.evt.ievt][ilep]
 				phi = self.evt.tree.muonphi[self.evt.ievt][ilep]
@@ -184,8 +174,8 @@ class Plepton():
 					leptracks.getTracks(trackevt)
 					dlepVec = leptracks.lepVec
 					ndtracks = len(dlepVec)
-						
-					for itr in xrange(ndtracks): 
+
+					for itr in xrange(ndtracks):
 						dR = np.sqrt((dlepVec[itr].Eta() - plepVec_i.Eta())**2 + (dlepVec[itr].Phi() - plepVec_i.Phi())**2)
 
 						if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
@@ -196,32 +186,32 @@ class Plepton():
 					# if self.evt.ievt == 424:
 					# 	print self.evt.ievt
 					# 	print plepVec_i.Pt(),plepVec_i.Eta(),plepVec_i.Phi()
-					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required 
+					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required
 						if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
-							self.highestpt_plep = plepVec_i 
+							self.highestpt_plep = plepVec_i
 							self.highestpt_plep_d0 = lepd0
 							self.highestpt_plep_z0 = lepz0
 
 							#for trigger matching
 							# if self.evt.tree.muontrigmatched[self.evt.ievt][ilep] == 0:
 							# 	print "is muon trig matched?", self.evt.tree.muontrigmatched[self.evt.ievt][ilep]
-							# 	print "pt of the highest pt TIGHT muon: ", self.highestpt_plep.Pt() 
+							# 	print "pt of the highest pt TIGHT muon: ", self.highestpt_plep.Pt()
 							# 	print "muon pt: ", self.evt.tree.muonpt[self.evt.ievt]
 							# 	print "trigger matched: ", self.evt.tree.muontrigmatched[self.evt.ievt]
 							# 	print "lepton quality: ", lepquality[self.evt.ievt]
 							# 	print "muon type: ", self.evt.tree.muontype[self.evt.ievt]
 
-						
+
 
 	def passes(self):
-		if self.highestpt_plep.Pt() != 0: 
+		if self.highestpt_plep.Pt() != 0:
 			self.plepVec = self.highestpt_plep
 			self.plepd0 = self.highestpt_plep_d0
 			self.plepz0 = self.highestpt_plep_z0
- 
+
 
 			return True
-		else: 
+		else:
 			return False
 
 
@@ -254,7 +244,7 @@ class DVradius():
 	def passes(self, _min = 4,_max = 300):
 		if (self.rdv > _min and self.rdv < _max):
 			return True
-		else: 
+		else:
 			return False
 
 
@@ -266,44 +256,44 @@ class DVntracks():
 		self.ntrk = ntrk
 		self.decaymode = decaymode
 
-		self.ntracks = -1 
+		self.ntracks = -1
 
 		if self.decaymode == "leptonic":
 			# print "track pt:", self.evt.tree.trackpt[self.evt.ievt][self.evt.idv]
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
 	def passes(self):
-		if self.ntracks == self.ntrk: 			
+		if self.ntracks == self.ntrk:
 			return True
-		else: 
-			return False 
+		else:
+			return False
 
 
 
 
-class ChargeDV(): 
-	def __init__(self, evt, sel="OS",decaymode="leptonic"): 
+class ChargeDV():
+	def __init__(self, evt, sel="OS",decaymode="leptonic"):
 		self.evt = evt
 		self.decaymode = decaymode
 		self.sel = sel
-		self.ntracks = -1 
+		self.ntracks = -1
 		self.charge_trk1 = -2 # dont make default -1 since that's a valid charge! :)
 		self.charge_trk2 = -2 # dont make default -1 since that's a valid charge! :)
 
 		if self.decaymode == "leptonic":
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
-			if self.ntracks == 2: 
+			if self.ntracks == 2:
 				self.charge_trk1 = self.evt.tree.trackcharge[self.evt.ievt][self.evt.idv][0]
 				self.charge_trk2 = self.evt.tree.trackcharge[self.evt.ievt][self.evt.idv][1]
 
-	def passes(self): 
+	def passes(self):
 		if self.sel == 'OS':
-			if self.charge_trk1 != self.charge_trk2: 
+			if self.charge_trk1 != self.charge_trk2:
 				return True
-				
+
 		elif self.sel == 'SS':
-			if self.charge_trk1 == self.charge_trk2: 
+			if self.charge_trk1 == self.charge_trk2:
 				return True
 		else:
 			return False
@@ -315,8 +305,8 @@ class DVtype():
 		self.evt = evt
 		self.decaymode = decaymode
 		self.decayprod = decayprod
-		
-		if self.decaymode == "leptonic": 
+
+		if self.decaymode == "leptonic":
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 			self.nel = -1
 			self.nmu = -1
@@ -325,24 +315,24 @@ class DVtype():
 			self.muons = helpers.Tracks()
 			self.muons.getMuons(self.evt)
 			self.nmu = len(self.muons.lepVec)
-			
+
 
 			self.electrons = helpers.Tracks()
 			self.electrons.getElectrons(self.evt)
-			self.nel = len(self.electrons.lepVec)	
+			self.nel = len(self.electrons.lepVec)
 
 
-		
 
 
-	def passes(self): 
-		combined = 0 
 
-		if self.decayprod == "emu": 
-			if self.nel == 1 and self.nmu == 1: 
+	def passes(self):
+		combined = 0
+
+		if self.decayprod == "emu":
+			if self.nel == 1 and self.nmu == 1:
 				mu1_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[0]]
 
-				if mu1_type == combined:  # Only count combined muons 
+				if mu1_type == combined:  # Only count combined muons
 					return True
 				else:
 					return False
@@ -351,11 +341,11 @@ class DVtype():
 
 
 		elif self.decayprod == "mumu":
-			if self.nmu == 2: 
+			if self.nmu == 2:
 				mu1_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[0]]
 				mu2_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[1]]
 
-				if (mu1_type == combined and mu2_type == combined) :  # Only count combined muons 
+				if (mu1_type == combined and mu2_type == combined) :  # Only count combined muons
 					return True
 				else:
 					return False
@@ -363,22 +353,22 @@ class DVtype():
 				return False
 
 		elif self.decayprod == "ee":
-			if self.nel == 2: 
+			if self.nel == 2:
 				return True
 			else:
 				return False
 
 		elif self.decayprod == "mumu-notcomb":
-			if self.nmu == 2: 
+			if self.nmu == 2:
 
 				return True
-			else: 
+			else:
 				return False
 
 		elif self.decayprod == "1-lep":
-			if self.nmu > 0 or self.nel> 0: 					
+			if self.nmu > 0 or self.nel> 0:
 				return True
-			else: 
+			else:
 				return False
 
 
@@ -389,9 +379,9 @@ class Trackqual():
 	def __init__(self,evt, decaymode="leptonic", quality="2-tight"):
 		self.evt = evt
 		self.decaymode = decaymode
-		self.quality = quality 
+		self.quality = quality
 
-		if self.decaymode == "leptonic": 
+		if self.decaymode == "leptonic":
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 			self.ntight = 0
 			self.DVmuons = []
@@ -399,8 +389,8 @@ class Trackqual():
 
 			muons = helpers.Tracks()
 			muons.getMuons(self.evt)
-		
-			
+
+
 
 			electrons = helpers.Tracks()
 			electrons.getElectrons(self.evt)
@@ -411,17 +401,17 @@ class Trackqual():
 
 			self.ndvmu = len(muons.lepVec)
 			self.ndvel = len(electrons.lepVec)
-		
+
 			for imu in range(self.ndvmu):
 				muindex = muons.lepIndex[imu]
 				muisTight = self.evt.tree.tightmu[self.evt.ievt][muindex]
-				if muisTight: 
+				if muisTight:
 					self.nmu_tight = self.nmu_tight + 1
 
 			for iel in range(self.ndvel):
 				elindex = electrons.lepIndex[iel]
 				elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
-				if elisTight: 
+				if elisTight:
 					self.nel_tight = self.nel_tight + 1
 
 			# print self.nmu_tight
@@ -433,14 +423,14 @@ class Trackqual():
 			# print "el 1: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepIndex[0]], self.evt.tree.eleta[self.evt.ievt][electrons.lepIndex[0]], self.evt.tree.elphi[self.evt.ievt][electrons.lepIndex[0]]
 			# print "el 1 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepIndex[0]]
 			# print ""
-			# print "track 2: ", electrons.lepVec[1].Pt(), electrons.lepVec[1].Eta(), electrons.lepVec[1].Phi()	
+			# print "track 2: ", electrons.lepVec[1].Pt(), electrons.lepVec[1].Eta(), electrons.lepVec[1].Phi()
 			# print "el 2: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepIndex[1]], self.evt.tree.eleta[self.evt.ievt][electrons.lepIndex[1]], self.evt.tree.elphi[self.evt.ievt][electrons.lepIndex[1]]
 			# print "el 2 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepIndex[1]]
 
 			# print "number of tight electrons",self.nel_tight
 
 
-			# for iel in range(self.ndvel): 
+			# for iel in range(self.ndvel):
 			# 	elindex = electrons.lepIndex[iel]
 			# 	elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
 			# 	if elisTight:
@@ -448,17 +438,17 @@ class Trackqual():
 
 
 	def passes(self):
-			if self.quality == "2-tight": 
+			if self.quality == "2-tight":
 				# print self.nmu_tight
 				if (self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1) ):
 					return True
 				else:
 					return False
 
-			if self.quality == "1-tight":	 
+			if self.quality == "1-tight":
 				if (self.nmu_tight > 0 or self.nel_tight > 0):
 					return True
-				else: 
+				else:
 					return False
 
 class Cosmicveto():
@@ -467,11 +457,11 @@ class Cosmicveto():
 		self.decaymode = decaymode
 		self.cosmicvetocut = cosmicvetocut
 
-		self.separation = -1 
+		self.separation = -1
 
-		if self.decaymode == "leptonic": 
+		if self.decaymode == "leptonic":
 			ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
-			if ntracks == 2: 
+			if ntracks == 2:
 
 				sumeta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][0] + self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][1]
 				dphi = abs(self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][0] - self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][1])
@@ -479,12 +469,12 @@ class Cosmicveto():
 				self.separation = np.sqrt( sumeta**2 + (np.pi -dphi)**2 )
 
 
-	def passes(self):		
+	def passes(self):
 		if (self.separation > self.cosmicvetocut):
 			return True
 		else:
 			return False
-		
+
 
 
 class Mlll():
@@ -500,25 +490,25 @@ class Mlll():
 		self.mlll = -1
 		self.plll = ROOT.TLorentzVector(0,0,0,0)
 
-		if self.decaymode == "leptonic":	
-		
-			if self.decayprod == "emu": 
+		if self.decaymode == "leptonic":
+
+			if self.decayprod == "emu":
 				self.plll = self.plep + self.dEl[0] + self.dMu[0]
 				self.mlll = self.plll.M()
 
-			if self.decayprod == "mumu": 
+			if self.decayprod == "mumu":
 				self.plll = self.plep + self.dMu[0] + self.dMu[1]
 				self.mlll = self.plll.M()
 
-			if self.decayprod == "ee": 
+			if self.decayprod == "ee":
 				self.plll = self.plep + self.dEl[0] + self.dEl[1]
 				self.mlll = self.plll.M()
 
 	def passes(self):
-		
+
 		if (self.mlll> self._minmlll and self.mlll < self._maxmlll):
 			return True
-		else: 
+		else:
 			return False
 
 
@@ -533,7 +523,7 @@ class DVmasscut():
 		dvmass = self.evt.tree.dvmass[self.evt.ievt][self.evt.idv]
 		if (dvmass > self.dvmasscut):
 			return True
-		else: 
+		else:
 			return False
 
 

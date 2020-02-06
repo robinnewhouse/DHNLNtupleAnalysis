@@ -52,11 +52,11 @@ class Analysis(object):
 
         # trigger cut
         if ('alltriggers' in self.sel):
-            self.triggger = 'all'
+            self.trigger = 'all'
             self.dotrigger = True
         else:
             logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
-            self.dotriggger = False
+            self.dotrigger = False
 
         # filter cut
         if ('4-filter' in self.sel):
@@ -289,8 +289,7 @@ class Analysis(object):
 
     def _trigCut(self, evt):
         if self.dotrigger == True:
-            trigger_sel = selections.Trigger(evt=evt, trigger=self.triggger)
-            return trigger_sel.passes()
+            return selections.trigger(evt=evt, allowed_trigger=self.trigger)
         else:
             return "unused cut"
 
