@@ -25,19 +25,22 @@ def main():
 	# Put a map for a 1 one word key to a list of inputs for the selections.
 	# histograms will be saved for each channel called histName_ch in histograms.root
 	###########################################################################################################################
-	channels = { 
-			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
-			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
-			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']  
-			   }
+	channels = {
+		# 'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
+		#  'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
+		#  'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']
+		'TN': ['alltriggers', 'TN'],
+		'FN': ['alltriggers', 'FN'],
+		'FP': ['alltriggers', 'FP'],
+		'TP': ['alltriggers', 'TP'],
+	}
 
 
 	analysisCode = {}
 	anaClass = getattr(analysis, "WmuHNL")
 
-	file = options.file[0]
-	treename = "outTree"
-	tree = treenames.Tree(file, treename)
+	tree = treenames.Tree(options.file[0], "outTree")
+	aod_tree = treenames.Tree(options.AODfile, "outTree")
 
 	nentries = options.nevents or len(tree.dvmass)
 
@@ -46,10 +49,11 @@ def main():
 		analysisCode[k] = anaClass(ch, channels[k],output_path+"histograms.root")
 		for ievt in xrange(nentries):
 			evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
+			aod_evt = helpers.Event(tree=aod_tree, ievt = ievt , idv = None) # for filter studies
 			ndv = len(tree.dvx[ievt])
 
 			for ana in analysisCode.itervalues():
-				presel = ana.preSelection(evt)
+				presel = ana.preSelection(evt, aod_evt=aod_evt)
 
 				for idv in xrange(ndv): 
 					DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
@@ -118,6 +122,10 @@ if __name__ == "__main__":
                         default="False",
                         help="Update histogram file? Default is to recreate.",
                         metavar="update")
+	parser.add_argument("--AODfile",
+						dest="AODfile",
+						default="",
+						help="AOD file to use in filter decision comparison studies.")
 
 
 	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser]) 

@@ -52,6 +52,37 @@ class Trigger():
 			return False
 
 
+class FilterMismatchCut():
+	def __init__(self, evt, aod_evt, allowed_filter, mismatch_mode):
+		self.evt = evt
+		self.aod_evt = aod_evt
+		self.mismatch_mode = mismatch_mode
+
+		# First check for trigger mismatch. This will be a good test for incorrect file.
+		if self.evt.tree.passedtriggers[self.evt.ievt] != self.aod_evt.tree.passedtriggers[self.aod_evt.ievt]:
+			print "Trigger mismatch!!!"
+			print ("lrt", self.evt.tree.passedtriggers[self.evt.ievt])
+			print ("aod", self.aod_evt.tree.passedtriggers[self.aod_evt.ievt])
+
+		# Decide which filter to load
+		if allowed_filter == 'mu-mu':
+			aod = self.aod_evt.tree.mumufilter[self.aod_evt.ievt]
+			lrt = self.evt.tree.mumufilter[self.evt.ievt]
+		if allowed_filter == 'el-mu':
+			aod = self.aod_evt.tree.elmufilter[self.aod_evt.ievt]
+			lrt = self.evt.tree.elmufilter[self.evt.ievt]
+		if allowed_filter == 'mu-el':
+			aod = self.aod_evt.tree.muelfilter[self.aod_evt.ievt]
+			lrt = self.evt.tree.muelfilter[self.evt.ievt]
+		if allowed_filter == 'el-el':
+			aod = self.aod_evt.tree.elelfilter[self.aod_evt.ievt]
+			lrt = self.evt.tree.elelfilter[self.evt.ievt]
+
+		# Depending on config string, pass only combinations
+		if mismatch_mode == 'TP': self.passes = lrt and aod
+		if mismatch_mode == 'FP': self.passes = lrt and not aod
+		if mismatch_mode == 'FN': self.passes = not lrt and aod
+		if mismatch_mode == 'TN': self.passes = not lrt and not aod
 
 
 class Filter():
@@ -111,6 +142,7 @@ class Filter():
 				return True
 			else: 
 				return False
+
 
 
 class Plepton():

@@ -183,6 +183,13 @@ class Analysis(object):
 		else: 
 			self.doDVmass = False
 
+		# Filter mismatch study
+		if is_in(['TP', 'FP','TN', 'FN'], self.sel):
+			self.doFilterMismatch = True
+			self.mismatch_mode = list({'TP', 'FP', 'TN', 'FN'} & set(self.sel))[0]  # intersection
+		else:
+			self.doFilterMismatch = False
+
 		if self.domlll == True and self.doplep == False: 
 			logger.error("You cannot calculate mlll without selecting a prompt lepton!")
 			quit()
@@ -270,11 +277,11 @@ class Analysis(object):
 		# 	logger.error(e, exc_info=True)
 
 
-	def _preSelection(self, evt):
+	def _preSelection(self, evt, **kwargs):
 		raise NotImplementedError
 
-	def preSelection(self, evt): 
-		presel = self._preSelection(evt)
+	def preSelection(self, evt, **kwargs):
+		presel = self._preSelection(evt, **kwargs)
 		return presel
 
 	def _DVSelection(self, evt):
@@ -389,6 +396,12 @@ class Analysis(object):
 			DVmass_sel = selections.DVmasscut(evt= evt)
 			return DVmass_sel.passes()
 		else: 
+			return "unused cut"
+
+	def _filterMismatchCut(self, evt, aod_evt):
+		if self.doFilterMismatch:
+			return selections.FilterMismatchCut(evt=evt, aod_evt=aod_evt, mismatch_mode=self.mismatch_mode, allowed_filter="mu-mu").passes # Filter type hardcoded for now
+		else:
 			return "unused cut"
 
 	def _doCut(self, cut, passCut, nbin):
@@ -525,7 +538,7 @@ class WmuHNL(Analysis):
 
 	
 
-	def _preSelection(self, evt):
+	def _preSelection(self, evt, **kwargs):
 		######################################################################################################
 		# Preselection are all the cuts that are requied per event 
 		# Current cuts include: trigger, filter, plepton, DV cut
@@ -542,6 +555,7 @@ class WmuHNL(Analysis):
 		###########################################################################################################################
 		self.passPresel = False
 		self.passTrigger = False
+		self.passFilterMismatchCut = False
 		self.passHNLfilter = False
 		self.passPlep = False
 		self.passnDV = False
@@ -571,6 +585,14 @@ class WmuHNL(Analysis):
 		else: 
 			return # leave the function and dont apply the rest of the preselection cuts. Should speed cut the process.
 
+		# This cut is used to produce plots studying the effect of the filter mismatch problem when using large-radius tracking
+		aod_evt = kwargs['aod_evt']
+		if aod_evt:
+			filterMismatchCut = self._doCut(self._filterMismatchCut(evt, aod_evt), self.passFilterMismatchCut, 2)
+			if filterMismatchCut == True:
+				self.passFilterMismatchCut = True
+			else:
+				return
 
 		filterCut = self._doCut(self._filterCut(evt), self.passHNLfilter, 2)
 		if filterCut == True: 
@@ -655,9 +677,7 @@ class WmuHNL(Analysis):
 			
 			self._fillselectedDVHistos(evt) # Fill all the histrograms with only selected DVs.
 
-	
 
-	
 ######################################################################################################################
 # An example of a new class. Here you could add any new cuts you want without distubing the main analysis cuts.
 # To use your new class update the class name in analysis.py (e.g. anaClass = getattr(analysis, "new_class") )
@@ -726,45 +746,9 @@ class WmuHNL(Analysis):
 			
 # 		self._fillselectedDVHistos(evt) # Fill all the histrograms with only selected DVs.		
 
-		
 
-		
+# Helper functions
 
-		
-
-		
-
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Checks if any element of list a is in list b. Useful for selection checks.
+def is_in(a, b):
+	return not set(a).isdisjoint(b)
