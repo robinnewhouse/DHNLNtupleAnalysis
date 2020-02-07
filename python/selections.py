@@ -380,6 +380,11 @@ class DVtype():
 				return True
 			else: 
 				return False
+		elif self.decayprod == "2-lep":
+			if (self.nmu == 2 or (self.nmu ==1 and self.nel ==1) or self.nel ==2 ):
+				return True
+			else:
+				return False
 
 
 

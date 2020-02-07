@@ -59,7 +59,7 @@ class Analysis(object):
 			self.dotrigger = True
 		else: 
 			logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
-			self.dotriggger = False
+			self.dotrigger = False
 
 		# filter cut
 		if ('4-filter' in self.sel):
@@ -107,6 +107,12 @@ class Analysis(object):
 		else: 
 			logger.warn('You did not add nDV cut. Skipping nDV selection.')
 			self.donDV = False
+		# fiducial volume
+		if ('fidvol' in self.sel):
+			self.dofivol = True
+		else:
+			logger.warn('You did not add DV in fiducial volume cut. Skipping DV in fiducial volume selection.')
+			self.dofivol = False
 
 		#2 track cut
 		if ('2track' in self.sel): 
@@ -148,6 +154,9 @@ class Analysis(object):
 		elif('1-lep' in self.sel):
 			self.DVtype = "1-lep"
 			self.doDVtype = True
+		elif('2-lep' in self.sel):
+			self.DVtype = "2-lep"
+			self.doDVtype = True
 		else: 
 			logger.warn('You did not specify a DV type for this channel. Skipping DV type selection.')
 			self.doDVtype = False
@@ -186,6 +195,34 @@ class Analysis(object):
 		if self.domlll == True and self.doplep == False: 
 			logger.error("You cannot calculate mlll without selecting a prompt lepton!")
 			quit()
+
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
+		if self.dotrigger == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
+		if self.dofilter == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s"%self.filter_type)
+		if self.doplep == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "tight prompt %s"%self.plep)
+		if self.donDV == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "DV")
+		if self.dofivol == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "fiducial")
+		if self.donTrack == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "%s-track DV"%self.ntrk)
+		if self.doOS == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "OS DV")
+		if self.doSS == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "SS DV")
+		if self.doDVtype == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "%s DV"%self.DVtype)
+		if self.dotrackqual == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "2-tight-lepton DV")
+		if self. docosmicveto == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "cosmic veto")
+		if self.domlll == True:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "m_{lll}")
+		if self.doDVmass == True:
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "mDV")
 
 
 
@@ -321,11 +358,11 @@ class Analysis(object):
 		else: 
 			return "unused cut"
 
-	def _fidvolCut(self, evt): 
-		if ('fidvol' in self.sel): 
+	def _fidvolCut(self, evt):
+		if self.dofivol == True:
 			fidvol_sel = selections.DVradius(evt= evt)
 			return fidvol_sel.passes() 
-		else: 
+		else:
 			return "unused cut"
 
 	def _ntrackCut(self, evt): 
@@ -653,9 +690,7 @@ class WmuHNL(Analysis):
 			else: 
 				return
 			
-			self._fillselectedDVHistos(evt) # Fill all the histrograms with only selected DVs.
-
-	
+			self._fillselectedDVHistos(evt) # Fill all the histrograms with only selected DVs.	
 
 	
 ######################################################################################################################
