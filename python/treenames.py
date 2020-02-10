@@ -60,6 +60,7 @@ class Tree():
         # muon variables
         # -----------------------------------------------------------------------
         try:
+            self.nmuon = self.tree["nmuon"].array()
             self.muonindex = self.tree["muon_index"].array()
             self.muonpt = self.tree["muon_pt"].array()
             self.muoneta = self.tree["muon_eta"].array()
@@ -84,6 +85,7 @@ class Tree():
         # electron variables
         # -----------------------------------------------------------------------
         try:
+            self.nel = self.tree["nel"].array()
             self.elindex = self.tree["el_index"].array()
             self.elpt = self.tree["el_pt"].array()
             self.eleta = self.tree["el_eta"].array()

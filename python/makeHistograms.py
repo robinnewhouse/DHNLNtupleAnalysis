@@ -11,7 +11,7 @@ import treenames
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
 def main():
-	output_path ="../output/"
+	output_path ="/eos/home-r/rnewhous/public/HNL/mc/21.0.77_full/histograms/"
 	if os.path.exists(output_path) == False:
 		logger.info('Making output directory')
 		os.mkdir(output_path)
@@ -46,21 +46,20 @@ def main():
 
 	for k in channels:
 		ch = k
-		analysisCode[k] = anaClass(ch, channels[k],output_path+"histograms.root")
+		ana = anaClass(ch, channels[k],output_path+"histograms.root")
 		for ievt in xrange(nentries):
 			evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
 			aod_evt = helpers.Event(tree=aod_tree, ievt = ievt , idv = None) # for filter studies
 			ndv = len(tree.dvx[ievt])
 
-			for ana in analysisCode.itervalues():
-				presel = ana.preSelection(evt, aod_evt=aod_evt)
+			presel = ana.preSelection(evt, aod_evt=aod_evt)
 
-				for idv in xrange(ndv): 
-					DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-					ana.DVSelection(DVevt)
+			for idv in xrange(ndv):
+				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
+				ana.DVSelection(DVevt)
 
 			ana.unlock()
-		analysisCode[k].end()
+		ana.end()
 
 	# analysisCode["emu"] = anaClass("emu", channels["emu"],"histograms.root")
 

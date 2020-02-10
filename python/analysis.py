@@ -41,7 +41,7 @@ class Analysis(object):
 		# make histograms (common for all channels)
 		self.add('CutFlow', 13, -0.5, 12.5)
 		self.add2D('charge_ntrk', 11, -5.5, 5.5,9,-0.5,8.5)
-		self._locked = UNLOCKED 
+		self._locked = UNLOCKED
 
 		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
 		for observable in self.observables:
@@ -54,10 +54,10 @@ class Analysis(object):
 	 #            continue
 
 		# trigger cut
-		if ('alltriggers' in self.sel): 
+		if ('alltriggers' in self.sel):
 			self.triggger = 'all'
 			self.dotrigger = True
-		else: 
+		else:
 			logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
 			self.dotriggger = False
 
@@ -68,10 +68,10 @@ class Analysis(object):
 		elif ('3-filter' in self.sel):
 			self.filter_type = '3-fitler'
 			self.dofilter = True
-		elif ('2-filter'in self.sel): 
+		elif ('2-filter'in self.sel):
 			self.filter_type = '2-filter'
 			self.dofilter = True
-		elif('1-filter'in self.sel): 
+		elif('1-filter'in self.sel):
 			self.filter_type = '1-fitler'
 			self.dofilter = True
 		elif('mumu-filter' in self.sel):
@@ -86,7 +86,7 @@ class Analysis(object):
 		elif('muel-filter' in self.sel):
 			self.filter_type = 'mu-el'
 			self.dofilter = True
-		else: 
+		else:
 			logger.warn('You did not specify a filter configuration for this channel. Skipping filter selection.')
 			self.dofilter = False
 
@@ -97,28 +97,28 @@ class Analysis(object):
 		elif ('pelectron' in self.sel):
 			self.plep = 'electron'
 			self.doplep = True
-		else: 
+		else:
 			logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
 			self.doplep = False
 
-		#nDV cut 
-		if ('nDV' in self.sel): 
+		#nDV cut
+		if ('nDV' in self.sel):
 			self.donDV = True
-		else: 
+		else:
 			logger.warn('You did not add nDV cut. Skipping nDV selection.')
 			self.donDV = False
 
 		#2 track cut
-		if ('2track' in self.sel): 
+		if ('2track' in self.sel):
 			self.donTrack = True
 			self.ntrk = 2
-		elif ('3track' in self.sel): 
+		elif ('3track' in self.sel):
 			self.donTrack = True
 			self.ntrk = 3
-		elif ('4track' in self.sel): 
+		elif ('4track' in self.sel):
 			self.donTrack = True
 			self.ntrk = 4
-		else: 
+		else:
 			logger.warn('You did not add an ntrack cut. Skipping ntrack selection.')
 			self.donTrack = False
 
@@ -126,17 +126,17 @@ class Analysis(object):
 		# OS cut
 		if ('OS' in self.sel):
 			self.doOS = True
-		else: 
+		else:
 			logger.warn('You did not add an OS track cut. Skipping OS track selection.')
 			self.doOS = False
 
-		if ('SS' in self.sel): 
+		if ('SS' in self.sel):
 			self.doSS = True
-		else: 
+		else:
 			self.doSS = False
 
 		# DV type
-		if ('mumu' in self.sel): 
+		if ('mumu' in self.sel):
 			self.DVtype = "mumu"
 			self.doDVtype = True
 		elif('emu' in self.sel):
@@ -148,39 +148,39 @@ class Analysis(object):
 		elif('1-lep' in self.sel):
 			self.DVtype = "1-lep"
 			self.doDVtype = True
-		else: 
+		else:
 			logger.warn('You did not specify a DV type for this channel. Skipping DV type selection.')
 			self.doDVtype = False
 
-		#track quality 
+		#track quality
 		if ('1-tight' in self.sel):
 			self.trackqul = '1-tight'
 			self.dotrackqual = True
-		elif ('2-tight' in self.sel): 
+		elif ('2-tight' in self.sel):
 			self.trackqual = '2-tight'
 			self.dotrackqual = True
-		else: 
+		else:
 			logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
 			self.dotrackqual = False
 
 		# cosmic veto cut
-		if ('cosmicveto' in self.sel): 
+		if ('cosmicveto' in self.sel):
 			self.docosmicveto = True
-		else: 
+		else:
 			logger.warn('You did not add a cosmic veto cut for this channel. Skipping cosmic veto selection.')
 			self.docosmicveto = False
 
 
 		# mlll cut
-		if ('mlll' in self.sel): 
+		if ('mlll' in self.sel):
 			self.domlll = True
-		else: 
+		else:
 			self.domlll = False
 
 		# DV mass cut
-		if ('DVmass' in self.sel): 
+		if ('DVmass' in self.sel):
 			self.doDVmass = True
-		else: 
+		else:
 			self.doDVmass = False
 
 		# Filter mismatch study
@@ -190,7 +190,7 @@ class Analysis(object):
 		else:
 			self.doFilterMismatch = False
 
-		if self.domlll == True and self.doplep == False: 
+		if self.domlll == True and self.doplep == False:
 			logger.error("You cannot calculate mlll without selecting a prompt lepton!")
 			quit()
 
@@ -287,25 +287,25 @@ class Analysis(object):
 	def _DVSelection(self, evt):
 		raise NotImplementedError
 
-	def DVSelection(self, evt): 
+	def DVSelection(self, evt):
 		self._DVSelection(evt)
 
-	def _trigCut(self, evt): 
-		if self.dotrigger == True: 
-			trigger_sel = selections.Trigger(evt = evt,trigger = self.triggger) 
+	def _trigCut(self, evt):
+		if self.dotrigger == True:
+			trigger_sel = selections.Trigger(evt = evt,trigger = self.triggger)
 			return trigger_sel.passes()
-		else: 
-			return "unused cut"
-		
-	def _filterCut(self, evt): 
-		if self.dofilter == True: 
-			filter_sel =  selections.Filter(evt= evt, _filter=self.filter_type)
-			return filter_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
-	def _plepCut(self, evt): 
-		if self.doplep== True: 
+	def _filterCut(self, evt):
+		if self.dofilter == True:
+			filter_sel =  selections.Filter(evt= evt, _filter=self.filter_type)
+			return filter_sel.passes()
+		else:
+			return "unused cut"
+
+	def _plepCut(self, evt):
+		if self.doplep== True:
 			self.plep_sel = selections.Plepton(evt = evt, lepton=self.plep)
 			plep_vec = self.plep_sel.plepVec
 			plepd0 = self.plep_sel.plepd0
@@ -318,64 +318,64 @@ class Analysis(object):
 			self.h["plep_d0"][self.ch].Fill(plepd0)
 			self.h["plep_z0"][self.ch].Fill(plepz0)
 			return self.plep_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
-	def _nDVCut(self, evt): 
-		if self.donDV == True: 
+	def _nDVCut(self, evt):
+		if self.donDV == True:
 			DV_sel = selections.nDV(evt=evt)
 			return DV_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
-	def _fidvolCut(self, evt): 
-		if ('fidvol' in self.sel): 
+	def _fidvolCut(self, evt):
+		if ('fidvol' in self.sel):
 			fidvol_sel = selections.DVradius(evt= evt)
-			return fidvol_sel.passes() 
-		else: 
+			return fidvol_sel.passes()
+		else:
 			return "unused cut"
 
-	def _ntrackCut(self, evt): 
+	def _ntrackCut(self, evt):
 		if self.donTrack == True:
 			ntracks_sel = selections.DVntracks(evt= evt,ntrk=self.ntrk)
 			return ntracks_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
-	def _chargeCut(self, evt): 
-		if self.doOS: 
+	def _chargeCut(self, evt):
+		if self.doOS:
 			os_sel = selections.ChargeDV(evt= evt,sel='OS')
 			return os_sel.passes()
-		elif self.doSS: 
+		elif self.doSS:
 			ss_sel = selections.ChargeDV(evt= evt,sel='SS')
 			return ss_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
-	def _DVtypeCut(self, evt):  
-		if self.doDVtype: 
+	def _DVtypeCut(self, evt):
+		if self.doDVtype:
 			DV_sel = selections.DVtype(evt= evt,decayprod=self.DVtype)
 			return DV_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
-	def _trackqualCut(self, evt): 
-		if self.dotrackqual: 
+	def _trackqualCut(self, evt):
+		if self.dotrackqual:
 			trackqual_sel = selections.Trackqual(evt=evt, quality=self.trackqual)
 			return trackqual_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
-	def _cosmicvetoCut(self, evt): 
-		if self.docosmicveto: 
+	def _cosmicvetoCut(self, evt):
+		if self.docosmicveto:
 			cosmicveto_sel = selections.Cosmicveto(evt= evt)
 			# self.h["DV_trk_sep"][self.ch].Fill(cosmicveto_sel.separation)
 			return cosmicveto_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
-	def _mlllCut(self, evt): 
-		if self.domlll: 
+	def _mlllCut(self, evt):
+		if self.domlll:
 			plep_vec = self.plep_sel.plepVec
 
 			muons = helpers.Tracks()
@@ -385,17 +385,17 @@ class Analysis(object):
 			electrons = helpers.Tracks()
 			electrons.getElectrons(evt= evt)
 			elVec = electrons.lepVec
-		
+
 			mlll_sel = selections.Mlll(decayprod=self.DVtype,plep=plep_vec,dMu=muVec,dEl=elVec)
 			return mlll_sel.passes()
 		else:
 			return "unused cut"
 
-	def _DVmassCut(self, evt): 
-		if self.doDVmass: 
+	def _DVmassCut(self, evt):
+		if self.doDVmass:
 			DVmass_sel = selections.DVmasscut(evt= evt)
 			return DVmass_sel.passes()
-		else: 
+		else:
 			return "unused cut"
 
 	def _filterMismatchCut(self, evt, aod_evt):
@@ -410,30 +410,32 @@ class Analysis(object):
 		# This ensures that the cutflow is only filled the first time the cut is passed and does not double count,
 		# This should be modified eventually to decide which DV is the "best" as opposed to just counting the first DV found.
 		###################################################################################################################################
-		if cut == True:  # select events that pass the trigger 
-			if passCut == False: 
+		if cut == True:  # select events that pass the trigger
+			if passCut == False:
 				self.h['CutFlow'][self.ch].Fill(nbin)
 			return True
 		elif cut == False:
 			return False
-		elif cut == "unused cut": 
+		elif cut == "unused cut":
 			return True
 
 	def _fillHistos(self, evt):
-		for imu in range(len(evt.tree.muontype[evt.ievt])): 
+		self.h["nmuon"][self.ch].Fill(evt.tree.nmuon[evt.ievt])
+		for imu in range(len(evt.tree.muontype[evt.ievt])):
 			self.h["muon_type"][self.ch].Fill(evt.tree.muontype[evt.ievt][imu])
 			self.h["muon_pt"][self.ch].Fill(evt.tree.muonpt[evt.ievt][imu])
 			self.h["muon_eta"][self.ch].Fill(evt.tree.muoneta[evt.ievt][imu])
 			self.h["muon_phi"][self.ch].Fill(evt.tree.muonphi[evt.ievt][imu])
 
-		for iel in range(len(evt.tree.elpt[evt.ievt])): 
+		self.h["nel"][self.ch].Fill(evt.tree.nel[evt.ievt])
+		for iel in range(len(evt.tree.elpt[evt.ievt])):
 			self.h["el_pt"][self.ch].Fill(evt.tree.elpt[evt.ievt][iel])
 			self.h["el_eta"][self.ch].Fill(evt.tree.eleta[evt.ievt][iel])
 			self.h["el_phi"][self.ch].Fill(evt.tree.elphi[evt.ievt][iel])
-		
 
-		# fill truth 
-		# should add a flag like this to prevent filling 
+
+		# fill truth
+		# should add a flag like this to prevent filling
 		# if isdata and observable.need_truth: # need to get the "needs truth variable"
        		# return
  	 	#else:
@@ -446,14 +448,14 @@ class Analysis(object):
 		# self.h["truth_DV_r"].Fill(evt.tree.truth_dvr[evt.ievt])
 		# self.h["truth_DV_mass"].Fill(evt.tree.truth_dvmass[evt.ievt])
 		# self.h["truth_DV_pt"].Fill(evt.tree.truth_dvpt[evt.ievt])
-		# self.h["truth_DV_eta"].Fill(evt.tree.truth_dveta[evt.ievt])	
+		# self.h["truth_DV_eta"].Fill(evt.tree.truth_dveta[evt.ievt])
 		# self.h["truth_DV_phi"].Fill(evt.tree.truth_dvphi[evt.ievt])
 
-	def _fillallDVHistos(self, evt): 
+	def _fillallDVHistos(self, evt):
 
 		self.h["charge_ntrk"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], evt.tree.dvntrk[evt.ievt][evt.idv])
 		ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
-		for itrk in range(ntracks): # loop over tracks 
+		for itrk in range(ntracks): # loop over tracks
 			self.h["DV_trk_pt"][self.ch].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
 			self.h["DV_trk_eta"][self.ch].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
 			self.h["DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
@@ -463,21 +465,21 @@ class Analysis(object):
 			self.h["DV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
 
 		self.h["DV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
-		self.h["DV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv]) 
-		self.h["DV_y"][self.ch].Fill(evt.tree.dvy[evt.ievt][evt.idv]) 
-		self.h["DV_z"][self.ch].Fill(evt.tree.dvz[evt.ievt][evt.idv]) 
-		self.h["DV_r"][self.ch].Fill(evt.tree.dvr[evt.ievt][evt.idv]) 
-		self.h["DV_distFromPV"][self.ch].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv]) 
-		self.h["DV_mass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]) 
-		self.h["DV_pt"][self.ch].Fill(evt.tree.dvpt[evt.ievt][evt.idv]) 
-		self.h["DV_eta"][self.ch].Fill(evt.tree.dveta[evt.ievt][evt.idv]) 
-		self.h["DV_phi"][self.ch].Fill(evt.tree.dvphi[evt.ievt][evt.idv]) 
-		self.h["DV_minOpAng"][self.ch].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv]) 
-		self.h["DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv]) 
+		self.h["DV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv])
+		self.h["DV_y"][self.ch].Fill(evt.tree.dvy[evt.ievt][evt.idv])
+		self.h["DV_z"][self.ch].Fill(evt.tree.dvz[evt.ievt][evt.idv])
+		self.h["DV_r"][self.ch].Fill(evt.tree.dvr[evt.ievt][evt.idv])
+		self.h["DV_distFromPV"][self.ch].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv])
+		self.h["DV_mass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv])
+		self.h["DV_pt"][self.ch].Fill(evt.tree.dvpt[evt.ievt][evt.idv])
+		self.h["DV_eta"][self.ch].Fill(evt.tree.dveta[evt.ievt][evt.idv])
+		self.h["DV_phi"][self.ch].Fill(evt.tree.dvphi[evt.ievt][evt.idv])
+		self.h["DV_minOpAng"][self.ch].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv])
+		self.h["DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv])
 		self.h["DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv])
 		self.h["DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
 
-	def _fillselectedDVHistos(self, evt): 
+	def _fillselectedDVHistos(self, evt):
 		if self._locked < FILL_LOCKED:
 			#these are the histograms you only want to fill ONCE per DV
 			if self.doplep:
@@ -503,22 +505,22 @@ class Analysis(object):
 				self.h["selDV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
 
 			self.h["selDV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
-			self.h["selDV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv]) 
-			self.h["selDV_y"][self.ch].Fill(evt.tree.dvy[evt.ievt][evt.idv]) 
-			self.h["selDV_z"][self.ch].Fill(evt.tree.dvz[evt.ievt][evt.idv]) 
-			self.h["selDV_r"][self.ch].Fill(evt.tree.dvr[evt.ievt][evt.idv]) 
-			self.h["selDV_distFromPV"][self.ch].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv]) 
-			self.h["selDV_mass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]) 
-			self.h["selDV_pt"][self.ch].Fill(evt.tree.dvpt[evt.ievt][evt.idv]) 
-			self.h["selDV_eta"][self.ch].Fill(evt.tree.dveta[evt.ievt][evt.idv]) 
-			self.h["selDV_phi"][self.ch].Fill(evt.tree.dvphi[evt.ievt][evt.idv]) 
-			self.h["selDV_minOpAng"][self.ch].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv]) 
-			self.h["selDV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv]) 
+			self.h["selDV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv])
+			self.h["selDV_y"][self.ch].Fill(evt.tree.dvy[evt.ievt][evt.idv])
+			self.h["selDV_z"][self.ch].Fill(evt.tree.dvz[evt.ievt][evt.idv])
+			self.h["selDV_r"][self.ch].Fill(evt.tree.dvr[evt.ievt][evt.idv])
+			self.h["selDV_distFromPV"][self.ch].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv])
+			self.h["selDV_mass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv])
+			self.h["selDV_pt"][self.ch].Fill(evt.tree.dvpt[evt.ievt][evt.idv])
+			self.h["selDV_eta"][self.ch].Fill(evt.tree.dveta[evt.ievt][evt.idv])
+			self.h["selDV_phi"][self.ch].Fill(evt.tree.dvphi[evt.ievt][evt.idv])
+			self.h["selDV_minOpAng"][self.ch].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv])
+			self.h["selDV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv])
 			self.h["selDV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv])
 			self.h["selDV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
-			
 
-			self._locked = FILL_LOCKED # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event. 
+
+			self._locked = FILL_LOCKED # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
 
 
 
@@ -536,11 +538,11 @@ class WmuHNL(Analysis):
 
 
 
-	
+
 
 	def _preSelection(self, evt, **kwargs):
 		######################################################################################################
-		# Preselection are all the cuts that are requied per event 
+		# Preselection are all the cuts that are requied per event
 		# Current cuts include: trigger, filter, plepton, DV cut
 		######################################################################################################
 
@@ -550,7 +552,7 @@ class WmuHNL(Analysis):
 		# 	self.mapSel[self.ch] = [self.ch]
 
 		###########################################################################################################################
-		#Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event. 
+		#Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event.
 		#Default is to select the first event that passes the selection
 		###########################################################################################################################
 		self.passPresel = False
@@ -571,18 +573,17 @@ class WmuHNL(Analysis):
 
 		self.h['CutFlow'][self.ch].Fill(0)
 
-		self._fillHistos(evt)
 
 
 		######################################################################################################
-		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused 
-		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used) 
+		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
+		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
 		######################################################################################################
 
 		passTrigger = self._doCut(self._trigCut(evt), self.passTrigger, 1)
-		if passTrigger == True: 
+		if passTrigger == True:
 			self.passTrigger = True
-		else: 
+		else:
 			return # leave the function and dont apply the rest of the preselection cuts. Should speed cut the process.
 
 		# This cut is used to produce plots studying the effect of the filter mismatch problem when using large-radius tracking
@@ -591,90 +592,93 @@ class WmuHNL(Analysis):
 			filterMismatchCut = self._doCut(self._filterMismatchCut(evt, aod_evt), self.passFilterMismatchCut, 2)
 			if filterMismatchCut == True:
 				self.passFilterMismatchCut = True
-			else:
+				self._fillHistos(evt)
+				# print(self.mismatch_mode, " mismatch, event number: ", evt.ievt)
+				self.passPresel = True
+		else:
 				return
 
 		filterCut = self._doCut(self._filterCut(evt), self.passHNLfilter, 2)
-		if filterCut == True: 
+		if filterCut == True:
 			self.passHNLfilter = True
-		else: 
+		else:
 			return
 
 		plepCut = self._doCut(self._plepCut(evt), self.passPlep, 3)
-		if plepCut == True: 
+		if plepCut == True:
 			self.passPlep = True
-		else: 
+		else:
 			return
 
 		DVCut = self._doCut(self._nDVCut(evt), self.passnDV, 4)
-		if DVCut == True: 
+		if DVCut == True:
 			self.passnDV = True
-		else: 
+		else:
 			return
 
-		if self.passTrigger and self.passHNLfilter and self.passPlep and self.passnDV: 
-			self.passPresel = True
+		# if self.passTrigger and self.passHNLfilter and self.passPlep and self.passnDV:
+		# 	self.passPresel = True
 
 
 	def _DVSelection(self, evt):
 
 		######################################################################################################
-		# DV Selection is any cuts that are done per DV 
+		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
-		
-		self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 
-		if self.passPresel: # only do the DV selection if the preselction was passed for the event. 
-			
+		if self.passPresel: # only do the DV selection if the preselction was passed for the event.
+
+			self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
+
 			fidvolCut = self._doCut(self._fidvolCut(evt), self.passFid, 5)
-			if fidvolCut == True: 
+			if fidvolCut == True:
 				self.passFid = True
-			else: 
+			else:
 				return
 
 			ntrackCut = self._doCut(self._ntrackCut(evt), self.passntracks, 6)
-			if ntrackCut == True: 
+			if ntrackCut == True:
 				self.passntracks = True
-			else: 
+			else:
 				return
 
 			chargeCut = self._doCut(self._chargeCut(evt), self.passChargeDV, 7)
-			if chargeCut == True: 
+			if chargeCut == True:
 				self.passChargeDV = True
-			else: 
+			else:
 				return
 
 			DVtypeCut = self._doCut(self._DVtypeCut(evt), self.passDVtype, 8)
-			if DVtypeCut == True: 
+			if DVtypeCut == True:
 				self.passDVtype = True
-			else: 
+			else:
 				return
 
 			trackqualCut = self._doCut(self._trackqualCut(evt), self.passTrackqual, 9)
-			if trackqualCut == True: 
+			if trackqualCut == True:
 				self.passTrackqual = True
-			else: 
+			else:
 				return
 
 			cosmicvetoCut = self._doCut(self._cosmicvetoCut(evt), self.passCosmicveto, 10)
-			if cosmicvetoCut == True: 
+			if cosmicvetoCut == True:
 				self.passCosmicveto = True
-			else: 
+			else:
 				return
 
 			mlllCut = self._doCut(self._mlllCut(evt), self.passMlll, 11)
-			if mlllCut == True: 
+			if mlllCut == True:
 				self.passMlll = True
-			else: 
+			else:
 				return
 
 			DVmassCut = self._doCut(self._DVmassCut(evt), self.passDVmass, 12)
-			if DVmassCut == True: 
-				self.passDVmass = True	
-			else: 
+			if DVmassCut == True:
+				self.passDVmass = True
+			else:
 				return
-			
+
 			self._fillselectedDVHistos(evt) # Fill all the histrograms with only selected DVs.
 
 
@@ -694,12 +698,12 @@ class WmuHNL(Analysis):
 # 		# self.add()
 
 # 	def _DVtypeCut(self, evt):  
-	
+
 # 		DV_sel = selections.DVtype(evt= evt,decayprod="ee")
 # 		print "doing the ee DV type selection"
 # 		return DV_sel.passes()
-		
-	
+
+
 
 # 	def _preSelection(self, evt):
 # 		###########################################################################################################################\
@@ -707,7 +711,7 @@ class WmuHNL(Analysis):
 # 		#Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event. 
 # 		#Default is to select the first event that passes the selection
 # 		###########################################################################################################################
-		
+
 # 		# initiazlie booleans here for each cut you apply to be False
 # 		self.passDVtype = False
 
@@ -731,10 +735,10 @@ class WmuHNL(Analysis):
 # 		######################################################################################################
 # 		# DV Selection is any cuts that are done per DV 
 # 		######################################################################################################
-		
+
 # 		self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 
-		
+
 # 		# add your DV cuts here
 # 		DVtypeCut = self._doCut(self._DVtypeCut(evt), self.passDVtype, 8)
 # 		if DVtypeCut == True: 
@@ -742,8 +746,8 @@ class WmuHNL(Analysis):
 # 		else: 
 # 			return
 
-		
-			
+
+
 # 		self._fillselectedDVHistos(evt) # Fill all the histrograms with only selected DVs.		
 
 
