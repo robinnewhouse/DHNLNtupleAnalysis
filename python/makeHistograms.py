@@ -48,31 +48,15 @@ def main():
 			evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
 			ndv = len(tree.dvx[ievt])
 
-			for ana in analysisCode.itervalues():
-				presel = ana.preSelection(evt)
+			analysisCode[k].preSelection(evt)
+		
+			for idv in xrange(ndv): 
+				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
+				analysisCode[k].DVSelection(DVevt)
 
-				for idv in xrange(ndv): 
-					DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-					ana.DVSelection(DVevt)
-
-			ana.unlock()
+			analysisCode[k].unlock()
 		analysisCode[k].end()
 
-	# analysisCode["emu"] = anaClass("emu", channels["emu"],"histograms.root")
-
-	# for ievt in xrange(nentries):
-	# 	evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
-	# 	ndv = len(tree.dvx[ievt])
-
-	# 	for ana in analysisCode.itervalues():
-	# 		presel = ana.preSelection(evt)
-
-	# 		for idv in xrange(ndv): 
-	# 			DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-	# 			ana.DVSelection(DVevt)
-
-	# 	ana.unlock()
-	# analysisCode["emu"].end()
 
 
 
