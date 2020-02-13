@@ -194,20 +194,20 @@ if __name__ == '__main__':
 	####################################################################################################################################
 	# Here's where you configure what histograms to plot
 
-	plot_cutflow(options.file[0], ch_name = "data_SS_main",
-								  vertextype = "Standard VSI",
-								  savefilename = "stdVSI")
+	plot_cutflow(options.file[0], ch_name = "run1",
+								  vertextype = "Run1",
+								  savefilename = "run1")
 
-	plot_cutflow(options.file[0], ch_name ="data_SS_deri",
-								  vertextype = "Standard VSI in Derivation",
-								  savefilename = "deriVSI")
+	plot_cutflow(options.file[0], ch_name ="run2",
+								  vertextype = "Run2",
+								  savefilename = "run2")
 
-	compare2(options.file[0], h1name="DV_r_data_SS_main", 
-							  h1label="Standard VSI", 	
-							  h2name="DV_r_data_SS_deri",
-							  h2label="Standard VSI in Derivation", 
+	compare2(options.file[0], h1name="DV_r_run1", 
+							  h1label="run1", 	
+							  h2name="DV_r_run2",
+							  h2label="run2", 
 							  xlabel='r DV [mm]',
-							  savefilename='hrDV_VSIcompare')
+							  savefilename='hrDV_compare2deri')
 
 	####################################################################################################################################
 
