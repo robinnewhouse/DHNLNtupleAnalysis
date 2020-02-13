@@ -50,12 +50,6 @@ def main():
 			ndv = len(tree.dvx[ievt])
 			analysisCode[k].preSelection(evt)
 		
-			for idv in xrange(ndv):
-				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-				analysisCode[k].DVSelection(DVevt)
-
-			analysisCode[k].preSelection(evt)
-		
 			for idv in xrange(ndv): 
 				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
 				analysisCode[k].DVSelection(DVevt)
