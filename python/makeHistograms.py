@@ -12,11 +12,12 @@ logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
 def main():
 	output_path ="../output/"
+
 	if os.path.exists(output_path) == False:
 		logger.info('Making output directory')
 		os.mkdir(output_path)
 
-	if options.update == "False":
+	if options.update == False:
 		if os.path.exists(output_path +"histograms.root"): 
 			logger.info('Removing histograms.root')
 			os.remove(output_path + "histograms.root") # by default remove histrogram file that if you previously created it.
@@ -47,32 +48,15 @@ def main():
 		for ievt in xrange(nentries):
 			evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
 			ndv = len(tree.dvx[ievt])
+			analysisCode[k].preSelection(evt)
+		
+			for idv in xrange(ndv):
+				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
+				analysisCode[k].DVSelection(DVevt)
 
-			for ana in analysisCode.itervalues():
-				presel = ana.preSelection(evt)
-
-				for idv in xrange(ndv): 
-					DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-					ana.DVSelection(DVevt)
-
-			ana.unlock()
+			analysisCode[k].unlock()
 		analysisCode[k].end()
 
-	# analysisCode["emu"] = anaClass("emu", channels["emu"],"histograms.root")
-
-	# for ievt in xrange(nentries):
-	# 	evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
-	# 	ndv = len(tree.dvx[ievt])
-
-	# 	for ana in analysisCode.itervalues():
-	# 		presel = ana.preSelection(evt)
-
-	# 		for idv in xrange(ndv): 
-	# 			DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-	# 			ana.DVSelection(DVevt)
-
-	# 	ana.unlock()
-	# analysisCode["emu"].end()
 
 
 
@@ -113,11 +97,11 @@ if __name__ == "__main__":
                         default = None,
                         type = int,
                         help='Number of events are going to be processed for test-only purpose.')
+
 	parser.add_argument("-u", "--update",
-                        dest="update",
-                        default="False",
-                        help="Update histogram file? Default is to recreate.",
-                        metavar="update")
+						action="store_true",
+						dest="update",
+						help="Update histogram file? Default is to recreate?")
 
 
 	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser]) 

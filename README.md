@@ -30,12 +30,12 @@ cd python
 python makeHistograms.py -f path_to_dHNLntuple
 ```
 
-Histograms will be saved in output/histograms.root. 
+Histograms will be saved in DHNLNtupleAnalysis/output/histograms.root. 
 
 By default the histograms.root file is recreated every time `makeHistograms.py` is run. If you wish to update the root file, instead of recreating it, run: 
 
 ```
-python makeHistograms.py --update True -f path_to_dHNLntuple
+python makeHistograms.py --update -f path_to_dHNLntuple
 ```
 
 
@@ -58,7 +58,25 @@ To add a new selection, make a new class in `selections.py`.
 
 ## Making Pretty Plots
 
-The plan is to add `plotHistograms.py` that can format plots from `histograms.root` output file. More details to come soon!
+A skeleton plotting code called `plotHistograms.py` is implemented to format plots from `histograms.root` output file. Currently you can save cutflows and compare 2 histograms contained in one histogram.root file. 
 
+For making cutflow plots: 
+
+1) open `plotHistogram.py`
+2) edit the histos_savepath to the path where you want to save the plots
+3) update the plot_cutflow() function with the channel name, vertexing configuration and the savefilename
+
+For comparing two histograms: 
+1) open `plotHistogram.py`
+2) edit the histos_savepath to the path where you want to save the plots
+3) update the compare2() function with name and legend label for each histogram, xlabel and savefilename
+
+To run: 
+
+```
+python plotHistograms.py -f ../output/histograms.root
+```
+
+More functionality (e.g. ratio plots, compare3 histograms etc.) is planned to be added!
 
 
