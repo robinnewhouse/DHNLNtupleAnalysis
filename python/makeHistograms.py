@@ -54,6 +54,12 @@ def main():
 				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
 				analysisCode[k].DVSelection(DVevt)
 
+			analysisCode[k].preSelection(evt)
+		
+			for idv in xrange(ndv): 
+				DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
+				analysisCode[k].DVSelection(DVevt)
+
 			analysisCode[k].unlock()
 		analysisCode[k].end()
 
