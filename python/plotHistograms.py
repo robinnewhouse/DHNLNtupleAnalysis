@@ -33,7 +33,7 @@ def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
 	c = getNote()
 	d = getNote()
 	e = getNote()
-	ax = 0.50
+	ax = 0.25
 	ay = 0.87
 	if MC_campaign == "merged": 
 		a.DrawLatex(ax,ay,'all MC campaigns')
@@ -45,6 +45,8 @@ def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
 		d.DrawLatex(ax,ay-0.15,'DV type: e\mu')
 	elif DV_type == "mumu":
 		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
+	elif DV_type == "ee":
+		d.DrawLatex(ax,ay-0.15,'DV type: ee')
 	# if DV_Default == True:
 	# 	e.DrawLatex(ax,ay-0.20,'VSI')
 	# else:
@@ -55,8 +57,8 @@ def drawNotesData(datarun,Vertextype):
 	a = getNote()
 	b = getNote()
 	
-	ax = 0.5
-	ay = 0.87
+	ax = 0.25
+	ay = 0.87-0.05
 
 	a.DrawLatex(ax,ay,datarun)
 	b.DrawLatex(ax,ay-0.05,Vertextype)
@@ -81,15 +83,15 @@ def plot_cutflow(histos, ch_name, vertextype,savefilename):
   	hcutflow.Draw("HIST TEXT0 SAME")
 
   	if options.data == True: 
-  		drawNotesData("data17 test",vertextype) 
+  		drawNotesData("data18 (official reprocessing)",vertextype) 
   	else: 
-  		drawNotesMC("",'VSI Leptons',"emu",'20','10') 
+  		drawNotesMC("",'privateMC produced in 21.0.107',"ee",'20','10') 
   	MyC01.SaveAs(histos_savepath +'Cutflow_'+savefilename+'.pdf')
 
 
 def compare2(histos, h1name, h1label, h2name, h2label, xlabel,savefilename):
 	############################################################################
-	nRebin = 5 # set to 1 if you dont want to rebin.
+	nRebin = 6 # set to 1 if you dont want to rebin.
 	scaleymax = 1.6 # use this to scale height of y axis for asthetics
 	############################################################################
 
@@ -151,6 +153,10 @@ def compare2(histos, h1name, h1label, h2name, h2label, xlabel,savefilename):
 
 	leg01.Draw()
 	ATLASLabel(0.25,0.87,"Internal")
+	if options.data == True: 
+  		drawNotesData("data18 (official reprocessing)","VSI") 
+  	else: 
+		drawNotesMC("",'private MC produced in 21.0.107',"ee",'20','10')
 	
 	MyC01.SaveAs(histos_savepath +savefilename+'.pdf')
 
@@ -194,20 +200,20 @@ if __name__ == '__main__':
 	####################################################################################################################################
 	# Here's where you configure what histograms to plot
 
-	plot_cutflow(options.file[0], ch_name = "run1",
-								  vertextype = "Run1",
-								  savefilename = "run1")
+	plot_cutflow(options.file[0], ch_name = "main",
+								  vertextype = "VSI",
+								  savefilename = "largeStatTest_21.0version")
 
-	plot_cutflow(options.file[0], ch_name ="run2",
-								  vertextype = "Run2",
-								  savefilename = "run2")
+	plot_cutflow(options.file[0], ch_name ="deri",
+								  vertextype = "VSI",
+								  savefilename = "largeStatTest_21.2version")
 
-	compare2(options.file[0], h1name="DV_r_run1", 
-							  h1label="run1", 	
-							  h2name="DV_r_run2",
-							  h2label="run2", 
+	compare2(options.file[0], h1name="DV_r_main", 
+							  h1label="Original VSI", 	
+							  h2name="DV_r_deri",
+							  h2label="VSI rerun in SUSY15", 
 							  xlabel='r DV [mm]',
-							  savefilename='hrDV_compare2deri')
+							  savefilename='largeStatTest_hrDV')
 
 	####################################################################################################################################
 

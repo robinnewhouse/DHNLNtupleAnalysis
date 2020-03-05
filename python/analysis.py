@@ -596,6 +596,12 @@ class WmuHNL(Analysis):
 		self.h['CutFlow'][self.ch].Fill(0)
 
 		self._fillHistos(evt)
+		# if evt.tree.eventNum[evt.ievt] == 148198602: 
+		print "######################"
+		print "ievent:", evt.ievt
+		print "event number: ", evt.tree.eventNum[evt.ievt]
+		# print "total DVs in all events", len(evt.tree.dvx)
+		print "number of DVs:", len(evt.tree.dvx[evt.ievt])
 
 
 		######################################################################################################
@@ -640,6 +646,43 @@ class WmuHNL(Analysis):
 		######################################################################################################
 		
 		self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
+
+		# ntrk = len(evt.tree.trackpt[evt.ievt][evt.idv])
+		# rdv = len(evt.tree.trackpt[evt.ievt][evt.idv])
+		# for itr in xrange(ntrk): 
+		# 	print evt.tree.trackpt[evt.ievt][evt.idv][itr]
+
+		# if evt.tree.eventNum[evt.ievt] == 148198602: 	
+		print "---"
+		print evt.idv
+		dx = evt.tree.dvx[evt.ievt][evt.idv]
+		dy = evt.tree.dvy[evt.ievt][evt.idv]
+		rdv = np.sqrt(dx**2 + dy**2)
+		print "DV radius: ",rdv
+		ntrk = len(evt.tree.trackpt[evt.ievt][evt.idv])
+		print "number of tracks: ", ntrk
+		for itr in xrange(ntrk): 
+			print "########"
+			print itr
+			print "trk pt: ", evt.tree.trackpt[evt.ievt][evt.idv][itr]
+			print "trk eta: ", evt.tree.tracketa[evt.ievt][evt.idv][itr]
+			print "trk phi: ", evt.tree.trackphi[evt.ievt][evt.idv][itr]
+			print "trk charge: ", evt.tree.trackcharge[evt.ievt][evt.idv][itr]
+			# print "trk d0: ", evt.tree.trackd0[evt.ievt][evt.idv][itr]
+			# print "trk z0: ", evt.tree.trackz0[evt.ievt][evt.idv][itr]
+			# print "trk hit pattern: ", evt.tree.trackhitpattern[evt.ievt][evt.idv][itr]
+			# print "trk is associated: ", evt.tree.trackisassoc[evt.ievt][evt.idv][itr]
+			# print "trk is Final: ", evt.tree.trackisFinal[evt.ievt][evt.idv][itr]
+			# print "trk is LRT: ", evt.tree.trackisLRT[evt.ievt][evt.idv][itr]
+			# print "trk is Selected: ", evt.tree.trackissel[evt.ievt][evt.idv][itr]
+			# print "trk nPixelBarrelLayers: ", evt.tree.tracknPixelBarrelLayers[evt.ievt][evt.idv][itr]
+			# print "trk nPixelEndCapLayers: ", evt.tree.tracknPixelEndCapLayers[evt.ievt][evt.idv][itr]
+			# print "trk nSCTBarrelLayers: ", evt.tree.tracknSCTBarrelLayers[evt.ievt][evt.idv][itr]
+			# print "trk nSCTEndCapLayers: ", evt.tree.tracknSCTEndCapLayers[evt.ievt][evt.idv][itr]
+			# print "trk Radius of first hit: ", evt.tree.trackRadiusOfFirstHit[evt.ievt][evt.idv][itr]
+
+
+	
 
 		if self.passPresel: # only do the DV selection if the preselction was passed for the event. 
 			

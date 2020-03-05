@@ -17,7 +17,7 @@ import logging
 msgfmt = '%(asctime)s %(levelname)-7s %(name)-35s %(message)s'
 datefmt = '%H:%M:%S'
 
-def getLogger(name = None, level = logging.DEBUG):
+def getLogger(name = None, level = logging.INFO):
     logger = logging.getLogger(name)
     try:
         import coloredlogs

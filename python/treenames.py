@@ -6,6 +6,7 @@ class Tree():
 		self.file = uproot.open(fileName)
 		self.tree = self.file[treeName]
 		
+		self.eventNum = self.tree["eventNumber"].array()
 		# -----------------------------------------------------------------------
 		self.passedtriggers = self.tree["passedTriggers"].array()
 		self.mumufilter = self.tree["passesHnlMuMuFilter"].array()
@@ -18,12 +19,30 @@ class Tree():
 		# -----------------------------------------------------------------------
 		self.trk_muonindex = self.tree["secVtx_trk_muonIndex"].array()
 		self.trk_elindex = self.tree["secVtx_trk_electronIndex"].array()
-		self.trackpt = self.tree["secVtx_trk_pt_wrtSV"].array() 
-		self.tracketa = self.tree["secVtx_trk_eta_wrtSV"].array() 
-		self.trackphi = self.tree["secVtx_trk_phi_wrtSV"].array()
+
+
+		self.trackpt = self.tree["secVtx_trk_pt"].array() 
+		self.tracketa = self.tree["secVtx_trk_eta"].array() 
+		self.trackphi = self.tree["secVtx_trk_phi"].array()
+		self.trackd0 = self.tree["secVtx_trk_d0"].array() 
+		self.trackz0 = self.tree["secVtx_trk_z0"].array() 
+		self.trackhitpattern = self.tree["secVtx_trk_hitPattern"].array() 
+		self.trackisassoc = self.tree["secVtx_trk_isAssociated"].array() 
+		self.trackisFinal = self.tree["secVtx_trk_isFinal"].array() 
+		self.trackisLRT = self.tree["secVtx_trk_isLRT"].array() 
+		self.trackissel = self.tree["secVtx_trk_isSelected"].array() 
+		self.tracknPixelBarrelLayers = self.tree["secVtx_trk_nPixelBarrelLayers"].array() 
+		self.tracknPixelEndCapLayers = self.tree["secVtx_trk_nPixelEndCapLayers"].array() 
+		self.tracknSCTBarrelLayers = self.tree["secVtx_trk_nSCTBarrelLayers"].array() 
+		self.tracknSCTEndCapLayers = self.tree["secVtx_trk_nSCTEndCapLayers"].array() 
+		self.trackRadiusOfFirstHit = self.tree["secVtx_trk_radiusOfFirstHit"].array() 
+		# self.trackpt = self.tree["secVtx_trk_pt_wrtSV"].array() 
+		# self.tracketa = self.tree["secVtx_trk_eta_wrtSV"].array() 
+		# self.trackphi = self.tree["secVtx_trk_phi_wrtSV"].array()
+		# self.trackd0 = self.tree["secVtx_trk_d0_wrtSV"].array() 
+		# self.trackz0 = self.tree["secVtx_trk_z0_wrtSV"].array() 
+
 		self.trackmass = self.tree["secVtx_trk_M"].array()
-		self.trackd0 = self.tree["secVtx_trk_d0_wrtSV"].array() 
-		self.trackz0 = self.tree["secVtx_trk_z0_wrtSV"].array() 
 		self.trackcharge = self.tree["secVtx_trk_charge"].array()
 		self.trackchi2 = self.tree["secVtx_trk_chi2_toSV"].array()
 

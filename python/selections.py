@@ -249,8 +249,6 @@ class DVradius():
 			dy = self.evt.tree.dvy[self.evt.ievt][self.evt.idv]
 			self.rdv = np.sqrt(dx**2 + dy**2)
 
-
-
 	def passes(self, _min = 4,_max = 300):
 		if (self.rdv > _min and self.rdv < _max):
 			return True
