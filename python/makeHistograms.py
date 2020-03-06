@@ -17,7 +17,7 @@ def main():
 		os.mkdir(output_path)
 
 	if options.update == "False":
-		if os.path.exists(output_path +"histograms.root"): 
+		if os.path.exists(output_path +"histograms.root"):
 			logger.info('Removing histograms.root')
 			os.remove(output_path + "histograms.root") # by default remove histrogram file that if you previously created it.
 
@@ -25,14 +25,15 @@ def main():
 	# Put a map for a 1 one word key to a list of inputs for the selections.
 	# histograms will be saved for each channel called histName_ch in histograms.root
 	###########################################################################################################################
-	channels = { 
+	channels = {
 			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
 			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
-			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']  
+			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']
 			   }
 
 
 	analysisCode = {}
+	# Define that we're using a specific type of anaysis
 	anaClass = getattr(analysis, "WmuHNL")
 
 	file = options.file[0]
@@ -43,37 +44,25 @@ def main():
 
 	for k in channels:
 		ch = k
-		analysisCode[k] = anaClass(ch, channels[k],output_path+"histograms.root")
+		# Make instance of the analysis class
+		ana = anaClass(ch, channels[k], output_path + "histograms.root")
+		analysisCode[k] = ana
+		# Loop over each event
 		for ievt in xrange(nentries):
-			evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
+			# Create an event instance to keep track of basic event properties
+			evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
 			ndv = len(tree.dvx[ievt])
 
-			for ana in analysisCode.itervalues():
-				presel = ana.preSelection(evt)
+			# Run preselection cuts to avoid processing unnecessary events
+			presel = ana.preSelection(evt)
 
-				for idv in xrange(ndv): 
-					DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-					ana.DVSelection(DVevt)
+			# Loop over each vertex in the event
+			for idv in xrange(ndv):
+				DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv)
+				ana.DVSelection(DVevt)
 
-			ana.unlock()
-		analysisCode[k].end()
-
-	# analysisCode["emu"] = anaClass("emu", channels["emu"],"histograms.root")
-
-	# for ievt in xrange(nentries):
-	# 	evt = helpers.Event(tree=tree, ievt = ievt , idv = None)
-	# 	ndv = len(tree.dvx[ievt])
-
-	# 	for ana in analysisCode.itervalues():
-	# 		presel = ana.preSelection(evt)
-
-	# 		for idv in xrange(ndv): 
-	# 			DVevt = helpers.Event(tree=tree, ievt = ievt , idv = idv)
-	# 			ana.DVSelection(DVevt)
-
-	# 	ana.unlock()
-	# analysisCode["emu"].end()
-
+			ana.unlock()  # !!! Does this do anything now? RN
+		ana.end()
 
 
 if __name__ == "__main__":
@@ -120,7 +109,7 @@ if __name__ == "__main__":
                         metavar="update")
 
 
-	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser]) 
+	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser])
     # subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
 
 
