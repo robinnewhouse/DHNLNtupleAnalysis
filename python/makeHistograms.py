@@ -26,10 +26,10 @@ def main():
 	# histograms will be saved for each channel called histName_ch in histograms.root
 	###########################################################################################################################
 	channels = {
-			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
-			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
-			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']
-			   }
+		'emu': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'emu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		'OS': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS'],
+		'SS': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'SS']
+	}
 
 
 	analysisCode = {}
@@ -42,13 +42,13 @@ def main():
 
 	nentries = options.nevents or len(tree.dvmass)
 
-	for k in channels:
-		ch = k
+	for channel, selections in channels.items():
 		# Make instance of the analysis class
-		ana = anaClass(ch, channels[k], output_path + "histograms.root")
-		analysisCode[k] = ana
+		ana = anaClass(channel, selections, output_path + "histograms.root")
 		# Loop over each event
 		for ievt in xrange(nentries):
+			if (ievt % 1000 == 0):
+				print "Channel {}: processing event {}".format(channel, ievt)
 			# Create an event instance to keep track of basic event properties
 			evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
 			ndv = len(tree.dvx[ievt])
@@ -62,7 +62,10 @@ def main():
 				ana.DVSelection(DVevt)
 
 			ana.unlock()  # !!! Does this do anything now? RN
+		# Call functions to finalize analysis
 		ana.end()
+		# Store analysis in dictionary for possible later use
+		analysisCode[channel] = ana
 
 
 if __name__ == "__main__":
