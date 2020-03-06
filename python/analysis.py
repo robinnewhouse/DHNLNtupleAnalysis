@@ -56,7 +56,7 @@ class Analysis(object):
 		# trigger cut
 		if ('alltriggers' in self.sel): 
 			self.triggger = 'all'
-			self.dotrigger = True
+			self.do_trigger_cut = True
 		else: 
 			logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
 			self.dotriggger = False
@@ -64,46 +64,46 @@ class Analysis(object):
 		# filter cut
 		if ('4-filter' in self.sel):
 			self.filter_type = '4-filter'
-			self.dofilter = True
+			self.do_filter_cut = True
 		elif ('3-filter' in self.sel):
 			self.filter_type = '3-fitler'
-			self.dofilter = True
+			self.do_filter_cut = True
 		elif ('2-filter'in self.sel): 
 			self.filter_type = '2-filter'
-			self.dofilter = True
+			self.do_filter_cut = True
 		elif('1-filter'in self.sel): 
 			self.filter_type = '1-fitler'
-			self.dofilter = True
+			self.do_filter_cut = True
 		elif('mumu-filter' in self.sel):
 			self.filter_type = 'mu-mu'
-			self.dofilter = True
+			self.do_filter_cut = True
 		elif('elmu-filter' in self.sel):
 			self.filter_type = 'el-mu'
-			self.dofilter = True
+			self.do_filter_cut = True
 		elif('elel-filter' in self.sel):
 			self.filter_type = 'el-el'
-			self.dofilter = True
+			self.do_filter_cut = True
 		elif('muel-filter' in self.sel):
 			self.filter_type = 'mu-el'
-			self.dofilter = True
+			self.do_filter_cut = True
 		else: 
 			logger.warn('You did not specify a filter configuration for this channel. Skipping filter selection.')
-			self.dofilter = False
+			self.do_filter_cut = False
 
 		#prompt lepton cut
 		if ('pmuon' in self.sel):
 			self.plep = 'muon'
-			self.doplep = True
+			self.do_prompt_lepton_cut = True
 		elif ('pelectron' in self.sel):
 			self.plep = 'electron'
-			self.doplep = True
+			self.do_prompt_lepton_cut = True
 		else: 
 			logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
-			self.doplep = False
+			self.do_prompt_lepton_cut = False
 
 		# nDV cut 
-		self.donDV = ('nDV' in self.sel)
-		if not self.donDV: logger.warn('You did not add nDV cut. Skipping nDV selection.')
+		self.do_ndv_cut = ('nDV' in self.sel)
+		if not self.do_ndv_cut: logger.warn('You did not add nDV cut. Skipping nDV selection.')
 
 		#2 track cut
 		if ('2track' in self.sel): 
@@ -180,7 +180,7 @@ class Analysis(object):
 		else: 
 			self.doDVmass = False
 
-		if self.domlll == True and self.doplep == False: 
+		if self.domlll == True and self.do_prompt_lepton_cut == False: 
 			logger.error("You cannot calculate mlll without selecting a prompt lepton!")
 			quit()
 
@@ -280,15 +280,15 @@ class Analysis(object):
 	def DVSelection(self, evt): 
 		self._DVSelection(evt)
 
-	def _trigCut(self, evt):
+	def _trigger_cut(self, evt):
 		trigger_sel = selections.Trigger(evt=evt, trigger=self.triggger)
 		return trigger_sel.passes()
 
-	def _filterCut(self, evt):
+	def _filter_cut(self, evt):
 		filter_sel = selections.Filter(evt=evt, filter_type=self.filter_type)
 		return filter_sel.passes()
 
-	def _plepCut(self, evt):
+	def _prompt_lepton_cut(self, evt):
 		self.plep_sel = selections.Plepton(evt=evt, lepton=self.plep)
 
 		# add to histogram all prompt leptons that pass selection. If _plepCut() is run after trigger and filter cut then those cuts will also be applied.
@@ -299,7 +299,7 @@ class Analysis(object):
 		self.h["plep_z0"][self.ch].Fill(self.plep_sel.plepz0)
 		return self.plep_sel.passes()
 
-	def _nDVCut(self, evt):
+	def _ndv_cut(self, evt):
 		DV_sel = selections.nDV(evt=evt)
 		return DV_sel.passes()
 
@@ -449,7 +449,7 @@ class Analysis(object):
 	def _fillselectedDVHistos(self, evt): 
 		if self._locked < FILL_LOCKED:
 			#these are the histograms you only want to fill ONCE per DV
-			if self.doplep:
+			if self.do_prompt_lepton_cut:
 				plep_vec = self.plep_sel.plepVec
 				plepd0 = self.plep_sel.plepd0
 				plepz0 = self.plep_sel.plepz0
@@ -522,11 +522,11 @@ class WmuHNL(Analysis):
 		#Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event. 
 		#Default is to select the first event that passes the selection
 		###########################################################################################################################
-		self.passPresel = False
-		self.passTrigger = False
-		self.passHNLfilter = False
-		self.passPlep = False
-		self.passnDV = False
+		self.passes_preselection_cuts = False
+		self.passes_trigger_cut = False
+		self.passes_filter_cut = False
+		self.passes_prompt_lepton_cut = False
+		self.passes_ndv_cut = False
 		self.passFid = False
 		self.passntracks = False
 		self.passChargeDV = False
@@ -547,37 +547,38 @@ class WmuHNL(Analysis):
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used) 
 		######################################################################################################
 
-		if self.dotrigger and not self.passTrigger:
-			if self._trigCut(evt):
+		if self.do_trigger_cut and not self.passes_trigger_cut:
+			if self._trigger_cut(evt):
+				# Fill the plot at the specified bin
 				self.h['CutFlow'][self.ch].Fill(1)
-				self.passTrigger = True
+				# Record that this cut has been done so we don't accidentally reject it in later tests
+				self.passes_trigger_cut = True
 			else:
 				return
 
-		if self.dofilter and not self.passHNLfilter:
-			if self._filterCut(evt):
+		if self.do_filter_cut and not self.passes_filter_cut:
+			if self._filter_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(2)
-				self.passHNLfilter = True
+				self.passes_filter_cut = True
 			else:
 				return
 
-		if self.doplep and not self.passPlep:
-			if self._plepCut(evt):
+		if self.do_prompt_lepton_cut and not self.passes_prompt_lepton_cut:
+			if self._prompt_lepton_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(3)
-				self.passPlep = True
+				self.passes_prompt_lepton_cut = True
 			else:
 				return
 
-		if self.donDV and not self.passnDV:
-			if self._nDVCut(evt):
+		if self.do_ndv_cut and not self.passes_ndv_cut:
+			if self._ndv_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(4)
-				self.passnDV = True
+				self.passes_ndv_cut = True
 			else:
 				return
 
-		if self.passTrigger and self.passHNLfilter and self.passPlep and self.passnDV: 
-			self.passPresel = True
-
+		# If you've made it here, preselection is passed
+		self.passes_preselection_cuts = True
 
 	def _DVSelection(self, evt):
 
@@ -588,7 +589,7 @@ class WmuHNL(Analysis):
 		
 		self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 
-		if self.passPresel: # only do the DV selection if the preselction was passed for the event. 
+		if self.passes_preselection_cuts: # only do the DV selection if the preselction was passed for the event. 
 			
 			fidvolCut = self._doCut(self._fidvolCut(evt), self.passFid, 5)
 			if fidvolCut == True: 
