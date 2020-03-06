@@ -280,12 +280,9 @@ class Analysis(object):
 	def DVSelection(self, evt): 
 		self._DVSelection(evt)
 
-	def _trigCut(self, evt): 
-		if self.dotrigger == True: 
-			trigger_sel = selections.Trigger(evt = evt,trigger = self.triggger) 
-			return trigger_sel.passes()
-		else: 
-			return "unused cut"
+	def _trigCut(self, evt):
+		trigger_sel = selections.Trigger(evt=evt, trigger=self.triggger)
+		return trigger_sel.passes()
 
 	def _filterCut(self, evt):
 		filter_sel = selections.Filter(evt=evt, filter_type=self.filter_type)
@@ -550,12 +547,12 @@ class WmuHNL(Analysis):
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used) 
 		######################################################################################################
 
-		passTrigger = self._doCut(self._trigCut(evt), self.passTrigger, 1)
-		if passTrigger == True: 
-			self.passTrigger = True
-		else: 
-			return # leave the function and dont apply the rest of the preselection cuts. Should speed cut the process.
-
+		if self.dotrigger and not self.passTrigger:
+			if self._trigCut(evt):
+				self.h['CutFlow'][self.ch].Fill(1)
+				self.passTrigger = True
+			else:
+				return
 
 		if self.dofilter and not self.passHNLfilter:
 			if self._filterCut(evt):

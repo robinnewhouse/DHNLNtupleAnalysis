@@ -4,53 +4,30 @@ import numpy as np
 import helpers
 
 
-
 class Trigger():
 	def __init__(self, evt, trigger):
 		self.evt = evt
-		# self.plepton = plepton 
-		self.trigger = trigger
 
 		# trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
 		apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
-		apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0","HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium","HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
-	
-		if self.trigger == "muononly": 
-			self.triggerlist = apiSingleMuonTriggerlist
-		
-		if self.trigger == "electrononly":
-			self.triggerlist = apiSingleElectronTriggerlist
-		
-		if self.trigger =="all": 
-			self.triggerlist = apiSingleMuonTriggerlist + apiSingleElectronTriggerlist
+		apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium", "HLT_e60_medium",
+										"HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
 
-		if self.trigger == "muononly" or self.trigger == "electrononly" or self.trigger == "all":
-			self.usetriggerlist = True
-		else: 
-			self.usetriggerlist = False
-
-		self.ntriggers = len(self.evt.tree.passedtriggers[self.evt.ievt])
-
+		if trigger == "muononly":
+			self.allowed_trigger_list = apiSingleMuonTriggerlist
+		elif trigger == "electrononly":
+			self.allowed_trigger_list = apiSingleElectronTriggerlist
+		elif trigger == "all":
+			self.allowed_trigger_list = apiSingleMuonTriggerlist + apiSingleElectronTriggerlist
+		else:
+			self.allowed_trigger_list = list(trigger)
 
 	def passes(self):
-		self.passtrig = False
-
-	
-		for itrig in range(self.ntriggers): 
-			
-			if self.usetriggerlist: 
-				for ileptrig in range(len(self.triggerlist)): 
-					if self.triggerlist[ileptrig] ==  self.evt.tree.passedtriggers[self.evt.ievt][itrig]: 
-						self.passtrig = True
-			else: 
-				if self.evt.tree.passedtriggers[self.evt.ievt][itrig] == self.trigger:
-					self.passtrig = True
-	
-		if self.passtrig == True: 
-			return True
-		else:
-			return False
-
+		# evaluate whether the event passed the trigger
+		# This method checks if there is any overlap between sets a and b
+		# https://stackoverflow.com/questions/3170055/test-if-lists-share-any-items-in-python
+		event_triggers = self.evt.tree.passedtriggers[self.evt.ievt]
+		return not set(event_triggers).isdisjoint(self.allowed_trigger_list)
 
 class Filter():
 	def __init__(self, evt, filter_type):
