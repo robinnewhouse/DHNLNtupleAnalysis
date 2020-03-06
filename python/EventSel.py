@@ -146,7 +146,7 @@ def Event_Sel(fileName, dsid, plepton, DV_type, mass, lifetime, MC_campaign, Vtx
 		# if plepton == "electron": 
 		# 	HNLfilter = selections.Filter(evt= evt, _filter="el-mu")
 
-		HNLfilter = selections.Filter(evt= evt, _filter="4-filter")
+		HNLfilter = selections.Filter(evt= evt, filter_type="4-filter")
 
 		HNLfiltercut = HNLfilter.passes()
 		if HNLfiltercut: 

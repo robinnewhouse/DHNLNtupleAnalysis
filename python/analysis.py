@@ -202,7 +202,7 @@ class Analysis(object):
 			self.h[hName][s].SetDirectory(0)
 
 	def addVar(self, hName, nBinsList):
-		ar = array("d", nBinsList)
+		ar = np.array("d", nBinsList)
 		#self.fi.cd()
 		self.h[hName] = {}
 		self.h[hName] = ROOT.TH1D(hName+'_'+self.ch, "", len(nBinsList) - 1, ar)
@@ -286,13 +286,10 @@ class Analysis(object):
 			return trigger_sel.passes()
 		else: 
 			return "unused cut"
-		
-	def _filterCut(self, evt): 
-		if self.dofilter == True: 
-			filter_sel =  selections.Filter(evt= evt, _filter=self.filter_type)
-			return filter_sel.passes()
-		else: 
-			return "unused cut"
+
+	def _filterCut(self, evt):
+		filter_sel = selections.Filter(evt=evt, filter_type=self.filter_type)
+		return filter_sel.passes()
 
 	def _plepCut(self, evt):
 		self.plep_sel = selections.Plepton(evt=evt, lepton=self.plep)
@@ -560,11 +557,12 @@ class WmuHNL(Analysis):
 			return # leave the function and dont apply the rest of the preselection cuts. Should speed cut the process.
 
 
-		filterCut = self._doCut(self._filterCut(evt), self.passHNLfilter, 2)
-		if filterCut == True: 
-			self.passHNLfilter = True
-		else: 
-			return
+		if self.dofilter and not self.passHNLfilter:
+			if self._filterCut(evt):
+				self.h['CutFlow'][self.ch].Fill(2)
+				self.passHNLfilter = True
+			else:
+				return
 
 		if self.doplep and not self.passPlep:
 			if self._plepCut(evt):

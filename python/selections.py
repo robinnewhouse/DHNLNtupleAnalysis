@@ -52,65 +52,41 @@ class Trigger():
 			return False
 
 
-
-
 class Filter():
-	def __init__(self, evt, _filter):
+	def __init__(self, evt, filter_type):
 		self.evt = evt
-		self.filter = _filter 
-		
+		self.filter_type = filter_type
+
 	def passes(self):
-		if self.filter == "mu-mu":
-			if self.evt.tree.mumufilter[self.evt.ievt] == True:
-				return True
-			else:
-				return False
+		if self.filter_type == "mu-mu":
+			return self.evt.tree.mumufilter[self.evt.ievt]
 
-		if self.filter == "mu-el":
-			if self.evt.tree.muelfilter[self.evt.ievt] == True:
-				return True
-			else:
-				return False
+		if self.filter_type == "mu-el":
+			return self.evt.tree.muelfilter[self.evt.ievt]
 
-		if self.filter == "el-mu":
-			if self.evt.tree.elmufilter[self.evt.ievt] == True:
-				return True
-			else:
-				return False
+		if self.filter_type == "el-mu":
+			return self.evt.tree.elmufilter[self.evt.ievt]
 
-		if self.filter == "el-el":
-			if self.evt.tree.elelfilter[self.evt.ievt] == True:
-				return True
-			else:
-				return False
+		if self.filter_type == "el-el":
+			return self.evt.tree.elelfilter[self.evt.ievt]
 
-		if self.filter == "4-filter": 
-			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] or self.evt.tree.elelfilter[self.evt.ievt] or self.evt.tree.muelfilter[self.evt.ievt] )
-		
-			if pass4filt == True:
-				return True
-			else: 
-				return False
+		if self.filter_type == "4-filter":
+			return (self.evt.tree.mumufilter[self.evt.ievt]
+					or self.evt.tree.elmufilter[self.evt.ievt]
+					or self.evt.tree.elelfilter[self.evt.ievt]
+					or self.evt.tree.muelfilter[self.evt.ievt])
 
-		if self.filter == "3-filter": 
-			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] or self.evt.tree.elelfilter[self.evt.ievt] )
-			if pass4filt == True:
-				return True
-			else: 
-				return False
-		if self.filter == "2-filter": 
-			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt] or self.evt.tree.elmufilter[self.evt.ievt] )
-			if pass4filt == True:
-				return True
-			else: 
-				return False
+		if self.filter_type == "3-filter":
+			return (self.evt.tree.mumufilter[self.evt.ievt]
+					or self.evt.tree.elmufilter[self.evt.ievt]
+					or self.evt.tree.elelfilter[self.evt.ievt])
 
-		if self.filter == "1-filter": 
-			pass4filt = (self.evt.tree.mumufilter[self.evt.ievt])
-			if pass4filt == True:
-				return True
-			else: 
-				return False
+		if self.filter_type == "2-filter":
+			return (self.evt.tree.mumufilter[self.evt.ievt]
+					or self.evt.tree.elmufilter[self.evt.ievt])
+
+		if self.filter_type == "1-filter":
+			return self.evt.tree.mumufilter[self.evt.ievt]
 
 
 class Plepton():
