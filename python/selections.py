@@ -211,17 +211,13 @@ class Plepton():
 							# 	print "lepton quality: ", lepquality[self.evt.ievt]
 							# 	print "muon type: ", self.evt.tree.muontype[self.evt.ievt]
 
-						
-
 	def passes(self):
-		if self.highestpt_plep.Pt() != 0: 
+		if self.highestpt_plep.Pt() != 0:
 			self.plepVec = self.highestpt_plep
 			self.plepd0 = self.highestpt_plep_d0
 			self.plepz0 = self.highestpt_plep_z0
- 
-
 			return True
-		else: 
+		else:
 			return False
 
 
@@ -230,10 +226,7 @@ class nDV():
 		self.evt = evt
 
 	def passes(self):
-		if len(self.evt.tree.dvx[self.evt.ievt]) > 0:
-			return True
-		else:
-			return False
+		return len(self.evt.tree.dvx[self.evt.ievt]) > 0
 
 
 
