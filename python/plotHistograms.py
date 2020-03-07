@@ -1,22 +1,23 @@
 # Plotting Script
 import argparse, os, math, ROOT, glob, uproot, time
 
+import atlas_style
 
 import numpy as np
-from ROOT import*
+from ROOT import *
 from pylab import *
-gROOT.LoadMacro("AtlasStyle.C")
-gROOT.LoadMacro("AtlasUtils.C")
-gROOT.LoadMacro("AtlasLabels.C")
+# gROOT.LoadMacro("AtlasStyle.C")
+# gROOT.LoadMacro("AtlasUtils.C")
+# gROOT.LoadMacro("AtlasLabels.C")
 
 #############################################################################################################################################
 # globals
-histos_savepath = '/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/output/VSI_DerivationStudies/' # change path here to save your histograms
+histos_savepath = '/afs/cern.ch/user/r/rnewhous/tmp/' # change path here to save your histograms
 
 #############################################################################################################################################
 
 ROOT.gROOT.SetBatch(True)
-SetAtlasStyle()
+atlas_style.AtlasStyle()
 
 #get note
 def getNote(size=14):
@@ -49,7 +50,7 @@ def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
 	# 	e.DrawLatex(ax,ay-0.20,'VSI')
 	# else:
 	e.DrawLatex(ax,ay-0.20,Vertextype)
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 def drawNotesData(datarun,Vertextype):
 	a = getNote()
@@ -60,7 +61,7 @@ def drawNotesData(datarun,Vertextype):
 
 	a.DrawLatex(ax,ay,datarun)
 	b.DrawLatex(ax,ay-0.05,Vertextype)
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 
 
@@ -194,13 +195,13 @@ if __name__ == '__main__':
 	####################################################################################################################################
 	# Here's where you configure what histograms to plot
 
-	plot_cutflow(options.file[0], ch_name = "run1",
+	plot_cutflow(options.file[0], ch_name = "emu",
 								  vertextype = "Run1",
-								  savefilename = "run1")
+								  savefilename = "master")
 
-	plot_cutflow(options.file[0], ch_name ="run2",
+	plot_cutflow(options.file[0], ch_name ="emu",
 								  vertextype = "Run2",
-								  savefilename = "run2")
+								  savefilename = "refactored")
 
 	compare2(options.file[0], h1name="DV_r_run1", 
 							  h1label="run1", 	
