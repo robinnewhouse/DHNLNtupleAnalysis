@@ -257,10 +257,10 @@ class ChargeDV():
 
 
 class DVtype():
-	def __init__(self, evt, decayprod, decaymode="leptonic"):
+	def __init__(self, evt, dv_type, decaymode="leptonic"):
 		self.evt = evt
 		self.decaymode = decaymode
-		self.decayprod = decayprod
+		self.dv_type = dv_type
 		
 		if self.decaymode == "leptonic": 
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
@@ -284,7 +284,7 @@ class DVtype():
 	def passes(self): 
 		combined = 0 
 
-		if self.decayprod == "emu": 
+		if self.dv_type == "emu": 
 			if self.nel == 1 and self.nmu == 1: 
 				mu1_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[0]]
 
@@ -296,7 +296,7 @@ class DVtype():
 				return False
 
 
-		elif self.decayprod == "mumu":
+		elif self.dv_type == "mumu":
 			if self.nmu == 2: 
 				mu1_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[0]]
 				mu2_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[1]]
@@ -308,25 +308,25 @@ class DVtype():
 			else:
 				return False
 
-		elif self.decayprod == "ee":
+		elif self.dv_type == "ee":
 			if self.nel == 2: 
 				return True
 			else:
 				return False
 
-		elif self.decayprod == "mumu-notcomb":
+		elif self.dv_type == "mumu-notcomb":
 			if self.nmu == 2: 
 
 				return True
 			else: 
 				return False
 
-		elif self.decayprod == "1-lep":
+		elif self.dv_type == "1-lep":
 			if self.nmu > 0 or self.nel> 0: 					
 				return True
 			else: 
 				return False
-		elif self.decayprod == "2-lep":
+		elif self.dv_type == "2-lep":
 			if self.nmu == 2 or (self.nmu == 1 and self.nel == 1) or self.nel ==2:
 				return True
 			else:
@@ -440,9 +440,9 @@ class Cosmicveto():
 
 
 class Mlll():
-	def __init__(self, decayprod, plep, dMu, dEl, decaymode="leptonic", _minmlll= 50 , _maxmlll = 84):
+	def __init__(self, dv_type, plep, dMu, dEl, decaymode="leptonic", _minmlll= 50 , _maxmlll = 84):
 		self.decaymode = decaymode
-		self.decayprod = decayprod
+		self.dv_type = dv_type
 		self.plep = plep
 		self.dMu = dMu
 		self.dEl = dEl
@@ -454,15 +454,15 @@ class Mlll():
 
 		if self.decaymode == "leptonic":	
 		
-			if self.decayprod == "emu": 
+			if self.dv_type == "emu": 
 				self.plll = self.plep + self.dEl[0] + self.dMu[0]
 				self.mlll = self.plll.M()
 
-			if self.decayprod == "mumu": 
+			if self.dv_type == "mumu": 
 				self.plll = self.plep + self.dMu[0] + self.dMu[1]
 				self.mlll = self.plll.M()
 
-			if self.decayprod == "ee": 
+			if self.dv_type == "ee": 
 				self.plll = self.plep + self.dEl[0] + self.dEl[1]
 				self.mlll = self.plll.M()
 
