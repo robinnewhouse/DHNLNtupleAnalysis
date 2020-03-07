@@ -2,6 +2,7 @@
 import ROOT
 import numpy as np
 import os
+import sys
 import helpers
 import selections
 import treenames
@@ -53,177 +54,157 @@ class Analysis(object):
 		# 	 if isdata and observable.need_truth: # need to add something like this for truth variables
 	 #            continue
 
+		#
+		# Parse input cuts
+		#
+
 		# trigger cut
-		if ('alltriggers' in self.sel): 
-			self.triggger = 'all'
+		if 'alltriggers' in self.sel:
+			self.trigger = 'all'
 			self.do_trigger_cut = True
-		else: 
+		else:
 			logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
-			self.dotriggger = False
+			self.do_trigger_cut = False
 
 		# filter cut
-		if ('4-filter' in self.sel):
+		self.do_filter_cut = True
+		if '4-filter' in self.sel:
 			self.filter_type = '4-filter'
-			self.do_filter_cut = True
-		elif ('3-filter' in self.sel):
-			self.filter_type = '3-fitler'
-			self.do_filter_cut = True
-		elif ('2-filter'in self.sel): 
+		elif '3-filter' in self.sel:
+			self.filter_type = '3-filter'
+		elif '2-filter' in self.sel:
 			self.filter_type = '2-filter'
-			self.do_filter_cut = True
-		elif('1-filter'in self.sel): 
-			self.filter_type = '1-fitler'
-			self.do_filter_cut = True
-		elif('mumu-filter' in self.sel):
+		elif '1-filter' in self.sel:
+			self.filter_type = '1-filter'
+		elif 'mumu-filter' in self.sel:
 			self.filter_type = 'mu-mu'
-			self.do_filter_cut = True
-		elif('elmu-filter' in self.sel):
+		elif 'elmu-filter' in self.sel:
 			self.filter_type = 'el-mu'
-			self.do_filter_cut = True
-		elif('elel-filter' in self.sel):
+		elif 'elel-filter' in self.sel:
 			self.filter_type = 'el-el'
-			self.do_filter_cut = True
-		elif('muel-filter' in self.sel):
+		elif 'muel-filter' in self.sel:
 			self.filter_type = 'mu-el'
-			self.do_filter_cut = True
-		else: 
+		else:
 			logger.warn('You did not specify a filter configuration for this channel. Skipping filter selection.')
 			self.do_filter_cut = False
 
-		#prompt lepton cut
-		if ('pmuon' in self.sel):
+		# prompt lepton cut
+		if 'pmuon' in self.sel:
 			self.plep = 'muon'
 			self.do_prompt_lepton_cut = True
-		elif ('pelectron' in self.sel):
+		elif 'pelectron' in self.sel:
 			self.plep = 'electron'
 			self.do_prompt_lepton_cut = True
-		else: 
+		else:
 			logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
 			self.do_prompt_lepton_cut = False
 
-		# nDV cut 
+		# nDV cut
 		self.do_ndv_cut = ('nDV' in self.sel)
 		if not self.do_ndv_cut: logger.warn('You did not add nDV cut. Skipping nDV selection.')
 
 		# fiducial volume
-		if ('fidvol' in self.sel):
-			self.dofivol = True
-		else:
-			logger.warn('You did not add DV in fiducial volume cut. Skipping DV in fiducial volume selection.')
-			self.dofivol = False
+		self.do_fidvol_cut = 'fidvol' in self.sel
+		if not self.do_fidvol_cut: logger.warn('You did not add DV in fiducial volume cut. Skipping DV in fiducial volume selection.')
 
-		#2 track cut
-		if ('2track' in self.sel): 
-			self.donTrack = True
+		# 2 (or more) track cut
+		self.do_ntrk_cut = True
+		if '2track' in self.sel:
 			self.ntrk = 2
-		elif ('3track' in self.sel): 
-			self.donTrack = True
+		elif '3track' in self.sel:
 			self.ntrk = 3
-		elif ('4track' in self.sel): 
-			self.donTrack = True
+		elif '4track' in self.sel:
 			self.ntrk = 4
-		else: 
+		else:
 			logger.warn('You did not add an ntrack cut. Skipping ntrack selection.')
-			self.donTrack = False
+			self.do_ntrk_cut = False
 
+		# Opposite sign children vertex cut
+		self.do_opposite_sign_cut = 'OS' in self.sel
+		if not self.do_opposite_sign_cut: logger.warn('You did not add an OS track cut. Skipping OS track selection.')
 
-		# OS cut
-		if ('OS' in self.sel):
-			self.doOS = True
-		else: 
-			logger.warn('You did not add an OS track cut. Skipping OS track selection.')
-			self.doOS = False
-
-		if ('SS' in self.sel): 
-			self.doSS = True
-		else: 
-			self.doSS = False
+		self.do_same_sign_cut = 'SS' in self.sel
+		if not self.do_same_sign_cut: logger.warn('You did not add an SS track cut. Skipping SS track selection.')
 
 		# DV type
-		if ('mumu' in self.sel): 
-			self.DVtype = "mumu"
-			self.doDVtype = True
-		elif('emu' in self.sel):
-			self.DVtype = "emu"
-			self.doDVtype = True
-		elif('ee' in self.sel):
-			self.DVtype = "ee"
-			self.doDVtype = True
-		elif('1-lep' in self.sel):
-			self.DVtype = "1-lep"
-			self.doDVtype = True
-		elif('2-lep' in self.sel):
-			self.DVtype = "2-lep"
-			self.doDVtype = True
-		else: 
+		self.do_DV_type_cut = True
+		if 'mumu' in self.sel:
+			self.DV_type = "mumu"
+		elif 'emu' in self.sel:
+			self.DV_type = "emu"
+		elif 'ee' in self.sel:
+			self.DV_type = "ee"
+		elif '1-lep' in self.sel:
+			self.DV_type = "1-lep"
+		elif '2-lep' in self.sel:
+			self.DV_type = "2-lep"
+		else:
 			logger.warn('You did not specify a DV type for this channel. Skipping DV type selection.')
-			self.doDVtype = False
+			self.do_DV_type_cut = False
 
-		#track quality 
-		if ('1-tight' in self.sel):
-			self.trackqul = '1-tight'
-			self.dotrackqual = True
-		elif ('2-tight' in self.sel): 
-			self.trackqual = '2-tight'
-			self.dotrackqual = True
-		else: 
+		# Track quality
+		self.do_track_quality_cut = True
+		if '1-tight' in self.sel:
+			self.track_quality = '1-tight'
+		elif '2-tight' in self.sel:
+			self.track_quality = '2-tight'
+		else:
 			logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
-			self.dotrackqual = False
+			self.do_track_quality_cut = False
 
 		# cosmic veto cut
-		if ('cosmicveto' in self.sel): 
-			self.docosmicveto = True
-		else: 
-			logger.warn('You did not add a cosmic veto cut for this channel. Skipping cosmic veto selection.')
-			self.docosmicveto = False
+		self.do_cosmic_veto_cut = 'cosmicveto' in self.sel
+		if not self.do_cosmic_veto_cut: logger.warn('You did not add a cosmic veto cut for this channel. Skipping cosmic veto selection.')
 
-
-		# mlll cut
-		if ('mlll' in self.sel): 
-			self.domlll = True
-		else: 
-			self.domlll = False
+		# tri-lepton mass cut
+		self.do_mlll_cut = 'mlll' in self.sel
+		if not self.do_mlll_cut: logger.warn('You did not add a mlll cut for this channel. Skipping tri-lepton mass selection.')
 
 		# DV mass cut
-		if ('DVmass' in self.sel): 
-			self.doDVmass = True
-		else: 
-			self.doDVmass = False
+		self.do_DV_mass_cut = 'DVmass' in self.sel
+		if not self.do_DV_mass_cut: logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
 
-		if self.domlll == True and self.do_prompt_lepton_cut == False: 
+		self.check_input_consistency()
+
+		self.set_cutflow_labels()
+
+	def check_input_consistency(self):
+		if self.do_mlll_cut and not self.do_prompt_lepton_cut:
 			logger.error("You cannot calculate mlll without selecting a prompt lepton!")
-			quit()
+			sys.exit(1)  # abort because of error
 
+		if self.do_opposite_sign_cut and self.do_same_sign_cut:
+			logger.error("These cuts are mutually exclusive. You will get zero events!")
+			sys.exit(1)  # abort because of error
+
+	def set_cutflow_labels(self):
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
-		if self.do_trigger_cut == True:
+		if self.do_trigger_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
-		if self.do_filter_cut == True:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s"%self.filter_type)
-		if self.do_prompt_lepton_cut == True:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "tight prompt %s"%self.plep)
-		if self.do_ndv_cut == True:
+		if self.do_filter_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s" % self.filter_type)
+		if self.do_prompt_lepton_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "tight prompt %s" % self.plep)
+		if self.do_ndv_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "DV")
-		if self.dofivol == True:
+		if self.do_fidvol_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "fiducial")
-		if self.donTrack == True:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "%s-track DV"%self.ntrk)
-		if self.doOS == True:
+		if self.do_ntrk_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "%s-track DV" % self.ntrk)
+		if self.do_opposite_sign_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "OS DV")
-		if self.doSS == True:
+		if self.do_same_sign_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "SS DV")
-		if self.doDVtype == True:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "%s DV"%self.DVtype)
-		if self.dotrackqual == True:
+		if self.do_DV_type_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "%s DV" % self.DV_type)
+		if self.do_track_quality_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "2-tight-lepton DV")
-		if self. docosmicveto == True:
+		if self.do_cosmic_veto_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "cosmic veto")
-		if self.domlll == True:
+		if self.do_mlll_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "m_{lll}")
-		if self.doDVmass == True:
+		if self.do_DV_mass_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "mDV")
-
-
-
 
 	def unlock(self):
 		self._locked = UNLOCKED
@@ -322,7 +303,7 @@ class Analysis(object):
 	# Protected function to create the selection object and return its success
 	# The selection object may be used to fill additional histograms (see _prompt_lepton_cut)
 	def _trigger_cut(self, evt):
-		trigger_sel = selections.Trigger(evt=evt, trigger=self.triggger)
+		trigger_sel = selections.Trigger(evt=evt, trigger=self.trigger)
 		return trigger_sel.passes()
 
 	def _filter_cut(self, evt):
@@ -346,45 +327,45 @@ class Analysis(object):
 		return dv_sel.passes()
 
 	def _fidvolCut(self, evt):
-		if self.dofivol == True:
+		if self.do_fidvol_cut == True:
 			fidvol_sel = selections.DVradius(evt= evt)
 			return fidvol_sel.passes() 
 		else: 
 			return "unused cut"
 
 	def _ntrackCut(self, evt): 
-		if self.donTrack == True:
+		if self.do_ntrk_cut == True:
 			ntracks_sel = selections.DVntracks(evt= evt,ntrk=self.ntrk)
 			return ntracks_sel.passes()
 		else: 
 			return "unused cut"
 
 	def _chargeCut(self, evt): 
-		if self.doOS: 
+		if self.do_opposite_sign_cut: 
 			os_sel = selections.ChargeDV(evt= evt,sel='OS')
 			return os_sel.passes()
-		elif self.doSS: 
+		elif self.do_same_sign_cut: 
 			ss_sel = selections.ChargeDV(evt= evt,sel='SS')
 			return ss_sel.passes()
 		else: 
 			return "unused cut"
 
 	def _DVtypeCut(self, evt):  
-		if self.doDVtype: 
-			DV_sel = selections.DVtype(evt= evt,decayprod=self.DVtype)
+		if self.do_DV_type_cut: 
+			DV_sel = selections.DVtype(evt= evt, decayprod=self.DV_type)
 			return DV_sel.passes()
 		else: 
 			return "unused cut"
 
 	def _trackqualCut(self, evt): 
-		if self.dotrackqual: 
-			trackqual_sel = selections.Trackqual(evt=evt, quality=self.trackqual)
+		if self.do_track_quality_cut: 
+			trackqual_sel = selections.Trackqual(evt=evt, quality=self.track_quality)
 			return trackqual_sel.passes()
 		else: 
 			return "unused cut"
 
 	def _cosmicvetoCut(self, evt): 
-		if self.docosmicveto: 
+		if self.do_cosmic_veto_cut: 
 			cosmicveto_sel = selections.Cosmicveto(evt= evt)
 			# self.h["DV_trk_sep"][self.ch].Fill(cosmicveto_sel.separation)
 			return cosmicveto_sel.passes()
@@ -392,7 +373,7 @@ class Analysis(object):
 			return "unused cut"
 
 	def _mlllCut(self, evt): 
-		if self.domlll: 
+		if self.do_mlll_cut: 
 			plep_vec = self.plep_sel.plepVec
 
 			muons = helpers.Tracks()
@@ -403,13 +384,13 @@ class Analysis(object):
 			electrons.getElectrons(evt= evt)
 			elVec = electrons.lepVec
 		
-			mlll_sel = selections.Mlll(decayprod=self.DVtype,plep=plep_vec,dMu=muVec,dEl=elVec)
+			mlll_sel = selections.Mlll(decayprod=self.DV_type, plep=plep_vec, dMu=muVec, dEl=elVec)
 			return mlll_sel.passes()
 		else:
 			return "unused cut"
 
 	def _DVmassCut(self, evt): 
-		if self.doDVmass: 
+		if self.do_DV_mass_cut: 
 			DVmass_sel = selections.DVmasscut(evt= evt)
 			return DVmass_sel.passes()
 		else: 
