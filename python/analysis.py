@@ -326,12 +326,10 @@ class Analysis(object):
 		dv_sel = selections.nDV(evt=evt)
 		return dv_sel.passes()
 
-	def _fidvolCut(self, evt):
-		if self.do_fidvol_cut == True:
-			fidvol_sel = selections.DVradius(evt= evt)
-			return fidvol_sel.passes() 
-		else: 
-			return "unused cut"
+	def _fidvol_cut(self, evt):
+		fidvol_sel = selections.DVradius(evt=evt)
+		return fidvol_sel.passes()
+
 
 	def _ntrackCut(self, evt): 
 		if self.do_ntrk_cut == True:
@@ -550,7 +548,7 @@ class WmuHNL(Analysis):
 		self.passed_filter_cut = False
 		self.passed_prompt_lepton_cut = False
 		self.passed_ndv_cut = False
-		self.passFid = False
+		self.passed_fidvol_cut = False
 		self.passntracks = False
 		self.passChargeDV = False
 		self.passDVtype = False
@@ -613,12 +611,21 @@ class WmuHNL(Analysis):
 		self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 
 		if self.passed_preselection_cuts: # only do the DV selection if the preselction was passed for the event. 
-			
-			fidvolCut = self._doCut(self._fidvolCut(evt), self.passFid, 5)
-			if fidvolCut == True: 
-				self.passFid = True
-			else: 
-				return
+
+			# There is an extra bit of logic here since we look at several DVs 
+			# but only want to fill the cutflow once per event
+
+			# Do we want to use this cut?
+			if self.do_fidvol_cut:
+				# Does this cut pass?
+				if self._fidvol_cut(evt):
+					# Has the cutflow already been filled for this event?
+					if not self.passed_fidvol_cut:
+						self.h['CutFlow'][self.ch].Fill(5)
+						self.passed_fidvol_cut = True
+				# If this cut doesn't pass, don't continue to check other cuts
+				else:
+					return
 
 			ntrackCut = self._doCut(self._ntrackCut(evt), self.passntracks, 6)
 			if ntrackCut == True: 
