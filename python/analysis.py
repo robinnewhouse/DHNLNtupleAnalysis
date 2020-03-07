@@ -280,6 +280,8 @@ class Analysis(object):
 	def DVSelection(self, evt): 
 		self._DVSelection(evt)
 
+	# Protected function to create the selection object and return its success
+	# The selection object may be used to fill additional histograms (see _prompt_lepton_cut)
 	def _trigger_cut(self, evt):
 		trigger_sel = selections.Trigger(evt=evt, trigger=self.triggger)
 		return trigger_sel.passes()
@@ -291,7 +293,8 @@ class Analysis(object):
 	def _prompt_lepton_cut(self, evt):
 		self.plep_sel = selections.Plepton(evt=evt, lepton=self.plep)
 
-		# add to histogram all prompt leptons that pass selection. If _plepCut() is run after trigger and filter cut then those cuts will also be applied.
+		# Add to histogram all prompt leptons that pass selection.
+		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
 		self.h["plep_pt"][self.ch].Fill(self.plep_sel.plepVec.Pt())
 		self.h["plep_eta"][self.ch].Fill(self.plep_sel.plepVec.Eta())
 		self.h["plep_phi"][self.ch].Fill(self.plep_sel.plepVec.Phi())
@@ -300,8 +303,8 @@ class Analysis(object):
 		return self.plep_sel.passes()
 
 	def _ndv_cut(self, evt):
-		DV_sel = selections.nDV(evt=evt)
-		return DV_sel.passes()
+		dv_sel = selections.nDV(evt=evt)
+		return dv_sel.passes()
 
 	def _fidvolCut(self, evt): 
 		if ('fidvol' in self.sel): 
@@ -522,11 +525,11 @@ class WmuHNL(Analysis):
 		#Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event. 
 		#Default is to select the first event that passes the selection
 		###########################################################################################################################
-		self.passes_preselection_cuts = False
-		self.passes_trigger_cut = False
-		self.passes_filter_cut = False
-		self.passes_prompt_lepton_cut = False
-		self.passes_ndv_cut = False
+		self.passed_preselection_cuts = False
+		self.passed_trigger_cut = False
+		self.passed_filter_cut = False
+		self.passed_prompt_lepton_cut = False
+		self.passed_ndv_cut = False
 		self.passFid = False
 		self.passntracks = False
 		self.passChargeDV = False
@@ -547,38 +550,38 @@ class WmuHNL(Analysis):
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used) 
 		######################################################################################################
 
-		if self.do_trigger_cut and not self.passes_trigger_cut:
+		if self.do_trigger_cut and not self.passed_trigger_cut:
 			if self._trigger_cut(evt):
 				# Fill the plot at the specified bin
 				self.h['CutFlow'][self.ch].Fill(1)
 				# Record that this cut has been done so we don't accidentally reject it in later tests
-				self.passes_trigger_cut = True
+				self.passed_trigger_cut = True
 			else:
 				return
 
-		if self.do_filter_cut and not self.passes_filter_cut:
+		if self.do_filter_cut and not self.passed_filter_cut:
 			if self._filter_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(2)
-				self.passes_filter_cut = True
+				self.passed_filter_cut = True
 			else:
 				return
 
-		if self.do_prompt_lepton_cut and not self.passes_prompt_lepton_cut:
+		if self.do_prompt_lepton_cut and not self.passed_prompt_lepton_cut:
 			if self._prompt_lepton_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(3)
-				self.passes_prompt_lepton_cut = True
+				self.passed_prompt_lepton_cut = True
 			else:
 				return
 
-		if self.do_ndv_cut and not self.passes_ndv_cut:
+		if self.do_ndv_cut and not self.passed_ndv_cut:
 			if self._ndv_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(4)
-				self.passes_ndv_cut = True
+				self.passed_ndv_cut = True
 			else:
 				return
 
 		# If you've made it here, preselection is passed
-		self.passes_preselection_cuts = True
+		self.passed_preselection_cuts = True
 
 	def _DVSelection(self, evt):
 
@@ -589,7 +592,7 @@ class WmuHNL(Analysis):
 		
 		self._fillallDVHistos(evt) # Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 
-		if self.passes_preselection_cuts: # only do the DV selection if the preselction was passed for the event. 
+		if self.passed_preselection_cuts: # only do the DV selection if the preselction was passed for the event. 
 			
 			fidvolCut = self._doCut(self._fidvolCut(evt), self.passFid, 5)
 			if fidvolCut == True: 
