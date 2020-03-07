@@ -195,13 +195,13 @@ class Analysis(object):
 			quit()
 
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
-		if self.dotrigger == True:
+		if self.do_trigger_cut == True:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
-		if self.dofilter == True:
+		if self.do_filter_cut == True:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s"%self.filter_type)
-		if self.doplep == True:
+		if self.do_prompt_lepton_cut == True:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "tight prompt %s"%self.plep)
-		if self.donDV == True:
+		if self.do_ndv_cut == True:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "DV")
 		if self.dofivol == True:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "fiducial")
