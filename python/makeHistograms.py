@@ -16,7 +16,7 @@ def main():
 		logger.info('Making output directory')
 		os.mkdir(output_path)
 
-	if options.update == "False":
+	if options.update == False:
 		if os.path.exists(output_path +"histograms.root"):
 			logger.info('Removing histograms.root')
 			os.remove(output_path + "histograms.root") # by default remove histrogram file that if you previously created it.
@@ -106,10 +106,10 @@ if __name__ == "__main__":
                         type = int,
                         help='Number of events are going to be processed for test-only purpose.')
 	parser.add_argument("-u", "--update",
-                        dest="update",
-                        default="False",
-                        help="Update histogram file? Default is to recreate.",
-                        metavar="update")
+						action="store_true",
+						dest="update",
+						help="Update histogram file? Default is to recreate?")
+
 
 
 	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser])
