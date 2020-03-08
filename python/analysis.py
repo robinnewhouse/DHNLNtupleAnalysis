@@ -19,15 +19,12 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	ch = ''
-	h = {}  # map of histogram names to map of systematics to histograms
-	blinded = True
-	mapSel = {}
 
 	def __init__(self, channel, selections, outputFile):
 		# print channel
 		# print outputFile
 
+		self.blinded = True
 		self.sel = selections
 		self._outputFile = outputFile
 		# self.fi = ROOT.TFile.Open(outputFile + '.part', 'recreate')
@@ -160,6 +157,11 @@ class Analysis(object):
 		self.do_dv_mass_cut = 'DVmass' in self.sel
 		if not self.do_dv_mass_cut: logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
 
+		# Filter mismatch study
+		self.do_filter_mismatch_cut = helpers.is_in(['TP', 'FP', 'TN', 'FN'], self.sel)
+		if self.do_filter_mismatch_cut:
+			self.mismatch_mode = list({'TP', 'FP', 'TN', 'FN'} & set(self.sel))[0]  # Use intersection to pick the mode
+
 		self.check_input_consistency()
 
 		self.set_cutflow_labels()
@@ -171,7 +173,15 @@ class Analysis(object):
 
 		if self.do_opposite_sign_cut and self.do_same_sign_cut:
 			logger.error("These cuts are mutually exclusive. You will get zero events!")
-			sys.exit(1)  # abort because of error
+			sys.exit(1)
+
+		if self.do_filter_mismatch_cut:
+			if not self.do_filter_cut:
+				logger.error("If you're doing a filter mismatch test you need to specify a filter.")
+				sys.exit(1)
+			# But we don't want to cut on the filter if we're testing the filter mismatch
+			self.do_filter_cut = False
+			
 
 	def set_cutflow_labels(self):
 		# Bin labels are 1 greater than histogram bins
@@ -279,7 +289,8 @@ class Analysis(object):
 		# 	os.rename(f + '.part', f)
 		# except OSError as e:
 		# 	logger.error(e, exc_info=True)
-
+	
+	# This is python's version of an abstract implementation
 	def _preSelection(self, evt):
 		raise NotImplementedError
 
@@ -362,6 +373,10 @@ class Analysis(object):
 	def _dv_mass_cut(self, evt):
 		dv_mass_sel = selections.DVmasscut(evt=evt)
 		return dv_mass_sel.passes()
+
+	def _filter_mismatch_cut(self, evt):
+		filter_mismatch_sel = selections.FilterMismatchCut(evt=evt, mismatch_mode=self.mismatch_mode, allowed_filter=self.filter_type)  # Filter type hardcoded for now
+		return filter_mismatch_sel.passes()
 
 	def _fill_histos(self, evt):
 		for imu in range(len(evt.tree.muontype[evt.ievt])):
@@ -487,6 +502,7 @@ class WmuHNL(Analysis):
 		self.passed_preselection_cuts = False
 		self.passed_trigger_cut = False
 		self.passed_filter_cut = False
+		self.passed_filter_mismatch_cut = False
 		self.passed_prompt_lepton_cut = False
 		self.passed_ndv_cut = False
 		self.passed_fidvol_cut = False
@@ -513,6 +529,14 @@ class WmuHNL(Analysis):
 				self.h['CutFlow'][self.ch].Fill(1)
 				# Record that this cut has been done so we don't accidentally reject it in later tests
 				self.passed_trigger_cut = True
+			else:
+				return
+
+		# This cut is used to produce plots studying the effect of the filter mismatch problem when using large-radius tracking
+		if self.do_filter_mismatch_cut and not self.passed_filter_mismatch_cut:
+			if self._filter_mismatch_cut(evt):
+				self.h['CutFlow'][self.ch].Fill(2)
+				self.passed_filter_mismatch_cut = True
 			else:
 				return
 

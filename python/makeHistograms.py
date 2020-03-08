@@ -26,19 +26,24 @@ def main():
 	# histograms will be saved for each channel called histName_ch in histograms.root
 	###########################################################################################################################
 	channels = {
-			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
-			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
-			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']
-			   }
+		# 'mumu': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		# 'mumu': ['alltriggers', 'pmuon', 'mumu-filter', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		'mumu_TP': ['alltriggers', 'pmuon', 'mumu-filter', 'TP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		'mumu_FP': ['alltriggers', 'pmuon', 'mumu-filter', 'FP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		'mumu_FN': ['alltriggers', 'pmuon', 'mumu-filter', 'FN', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		# 'mue': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'mue', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		# 'emu': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'emu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		# 'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
+		# 'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']
+	}
 
 
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
 	anaClass = getattr(analysis, "WmuHNL")
 
-	file = options.file[0]
-	treename = "outTree"
-	tree = treenames.Tree(file, treename)
+	tree = treenames.Tree(options.file[0],  "outTree")
+	aod_tree = treenames.Tree(options.aod_file,  "outTree") if options.aod_file else None
 
 	nentries = options.nevents or len(tree.dvmass)
 
@@ -50,7 +55,8 @@ def main():
 			if (ievt % 1000 == 0):
 				print "Channel {}: processing event {}".format(channel, ievt)
 			# Create an event instance to keep track of basic event properties
-			evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
+			# aod_tree is temporarily necessary while doing filter mismatch tests 
+			evt = helpers.Event(tree=tree, ievt=ievt, aod_tree=aod_tree) 
 			ndv = len(tree.dvx[ievt])
 
 			# Run preselection cuts to avoid processing unnecessary events
@@ -97,35 +103,28 @@ if __name__ == "__main__":
 
 	parser.add_argument("-f", "--file",
 						dest="file", default=["/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"],
-						action = AppendActionCleanDefault,
-						type = str,
+						action=AppendActionCleanDefault,
+						type=str,
 						help="Input file",
 						metavar="FILE")
 	parser.add_argument('--nevents',
-                        default = None,
-                        type = int,
-                        help='Number of events are going to be processed for test-only purpose.')
+						default=None,
+						type=int,
+						help='Number of events are going to be processed for test-only purpose.')
 	parser.add_argument("-u", "--update",
 						action="store_true",
 						dest="update",
 						help="Update histogram file? Default is to recreate?")
+	parser.add_argument("--aod_file",
+						dest="aod_file",
+						default="",
+						help="AOD file to use in filter decision comparison studies.")
 
-
-
-	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser])
-    # subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
-
+	parent_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, parents=[parser])
+	# subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
 
 	options = parent_parser.parse_args()
 	logger.info("-> Calling main")
 	# helpers.initialise_binds()
 	main()
 	logger.info("The end.")
-
-
-
-
-
-
-
-

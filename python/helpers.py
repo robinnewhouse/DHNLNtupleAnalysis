@@ -79,10 +79,11 @@ def drawNotes(MC_campaign,DV_type,mass,lifetime,plepton,VtxConfig):
 	ATLASLabel(0.25,0.87,"Internal")
 
 class Event(): 
-	def __init__(self, tree, ievt, idv):
+	def __init__(self, tree, ievt, idv=None, aod_tree=None):
 		self.tree = tree
 		self.ievt = ievt
-		self.idv = idv 
+		self.idv = idv
+		self.aod_tree = aod_tree
 
 
 
@@ -183,19 +184,7 @@ class Tracks():
 
 			self.lepVec.append(trkvec)
 
-			
 
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Checks if any element of list a is in list b. Useful for selection checks.
+def is_in(a, b):
+	return not set(a).isdisjoint(b)
