@@ -11,15 +11,24 @@ import treenames
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
 def main():
-	output_path ="../output/"
-	if os.path.exists(output_path) == False:
-		logger.info('Making output directory')
-		os.mkdir(output_path)
+	if options.output_file:
+		output_path = os.path.abspath(os.path.join(options.output_file, os.pardir))
+		output_file = options.output_file
+	else:
+		output_path = "../output/"
+		output_file = output_path + "histograms.root"
 
-	if options.update == False:
-		if os.path.exists(output_path +"histograms.root"):
-			logger.info('Removing histograms.root')
-			os.remove(output_path + "histograms.root") # by default remove histrogram file that if you previously created it.
+	logger.info('Output file: ' + output_file)
+
+	# Make output directory if it doesn't exist
+	if not os.path.exists(output_path):
+		logger.info('Making output directory')
+		os.mkdirs(output_path)
+
+	if not options.update and os.path.exists(output_file):
+		logger.info('Removing output file')
+		os.remove(output_file) # by default remove histogram file that if you previously created it.
+
 
 	###########################################################################################################################
 	# Put a map for a 1 one word key to a list of inputs for the selections.
@@ -42,14 +51,16 @@ def main():
 	# Define that we're using a specific type of anaysis
 	anaClass = getattr(analysis, "WmuHNL")
 
+	logger.info('Loading ntuple tree from ' + options.file[0])
 	tree = treenames.Tree(options.file[0],  "outTree")
 	aod_tree = treenames.Tree(options.aod_file,  "outTree") if options.aod_file else None
-
+	
 	nentries = options.nevents or len(tree.dvmass)
+	logger.info('Finished loading. Processing {} events'.format(nentries))
 
 	for channel, selections in channels.items():
 		# Make instance of the analysis class
-		ana = anaClass(channel, selections, output_path + "histograms.root")
+		ana = anaClass(channel, selections, output_file)
 		# Loop over each event
 		for ievt in xrange(nentries):
 			if (ievt % 1000 == 0):
@@ -107,6 +118,10 @@ if __name__ == "__main__":
 						type=str,
 						help="Input file",
 						metavar="FILE")
+	parser.add_argument("--output_file",
+						dest="output_file",
+						default="",
+						help="Path of output histograms file.")
 	parser.add_argument('--nevents',
 						default=None,
 						type=int,
