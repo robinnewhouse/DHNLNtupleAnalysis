@@ -72,9 +72,10 @@ class FilterMismatchCut():
 		self.evt = evt
 		self.mismatch_mode = mismatch_mode
 		if not evt.aod_tree:
-			print "Please specify in input AOD file produced with the exact same settings as the input DAOD_RPVLL, but with LRT turned off."
+			print "You specified that you want to preform a filter mismatch test, but you haven't given an AOD to compare."
+			print "Please specify an input AOD file produced with the exact same settings as the input DAOD_RPVLL, but with LRT turned off."
 			sys.exit(1)
-			
+
 		# First check for trigger mismatch. This will be a good test for incorrect file.
 		if self.evt.tree.passedtriggers[self.evt.ievt] != self.evt.aod_tree.passedtriggers[self.evt.ievt]:
 			print "Trigger mismatch!!!"
@@ -94,12 +95,35 @@ class FilterMismatchCut():
 		elif allowed_filter == 'el-el':
 			self.aod = self.evt.aod_tree.elelfilter[self.evt.ievt]
 			self.lrt = self.evt.tree.elelfilter[self.evt.ievt]
+		elif allowed_filter == "4-filter":
+			self.aod = (self.evt.tree.mumufilter[self.evt.ievt]
+						or self.evt.tree.elmufilter[self.evt.ievt]
+						or self.evt.tree.elelfilter[self.evt.ievt]
+						or self.evt.tree.muelfilter[self.evt.ievt])
+			self.lrt = (self.evt.aod_tree.mumufilter[self.evt.ievt]
+						or self.evt.aod_tree.elmufilter[self.evt.ievt]
+						or self.evt.aod_tree.elelfilter[self.evt.ievt]
+						or self.evt.aod_tree.muelfilter[self.evt.ievt])
+		elif allowed_filter == "3-filter":
+			self.aod = (self.evt.tree.mumufilter[self.evt.ievt]
+						or self.evt.tree.elmufilter[self.evt.ievt]
+						or self.evt.tree.elelfilter[self.evt.ievt])
+			self.lrt = (self.evt.aod_tree.mumufilter[self.evt.ievt]
+						or self.evt.aod_tree.elmufilter[self.evt.ievt]
+						or self.evt.aod_tree.elelfilter[self.evt.ievt])
+		elif allowed_filter == "2-filter":
+			self.aod = (self.evt.tree.mumufilter[self.evt.ievt]
+						or self.evt.tree.elmufilter[self.evt.ievt])
+			self.lrt = (self.evt.aod_tree.mumufilter[self.evt.ievt]
+						or self.evt.aod_tree.elmufilter[self.evt.ievt])
+		elif allowed_filter == "1-filter":
+			self.aod = self.evt.aod_tree.mumufilter[self.evt.ievt]
+			self.lrt = self.evt.tree.mumufilter[self.evt.ievt]
 		else:
 			print "You did not pick a valid filter type to check!!!"
 			print "note: we're still implementing n-filter type selections"
 
-
-		# Depending on config string, pass only combinations
+	# Depending on config string, pass only combinations
 	def passes(self):
 		if self.mismatch_mode == 'TP': return self.lrt and self.aod
 		if self.mismatch_mode == 'FP': return self.lrt and not self.aod

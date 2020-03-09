@@ -189,21 +189,23 @@ class Analysis(object):
 		if self.do_trigger_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
 		if self.do_filter_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s" % self.filter_type)
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "{}".format(self.filter_type))
+		if self.do_filter_mismatch_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "{}_{}".format(self.filter_type, self.mismatch_mode))
 		if self.do_prompt_lepton_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "tight prompt %s" % self.plep)
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "tight prompt {}".format(self.plep))
 		if self.do_ndv_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "DV")
 		if self.do_fidvol_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "fiducial")
 		if self.do_ntrk_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "%s-track DV" % self.ntrk)
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "{}-track DV".format(self.ntrk))
 		if self.do_opposite_sign_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "OS DV")
 		if self.do_same_sign_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "SS DV")
 		if self.do_dv_type_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "%s DV" % self.dv_type)
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "{} DV".format(self.dv_type))
 		if self.do_track_quality_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "2-tight-lepton DV")
 		if self.do_cosmic_veto_cut:

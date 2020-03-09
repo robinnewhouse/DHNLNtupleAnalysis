@@ -9,3 +9,4 @@ python/*.txt
 python/histograms
 output/
 setup.sh
+venv/
