@@ -37,10 +37,10 @@ def main():
 	channels = {
 		# 'mumu': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'mumu': ['alltriggers', 'pmuon', 'mumu-filter', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
-		'mumu_TP': ['alltriggers', 'pmuon', 'mumu-filter', 'TP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
-		'mumu_FP': ['alltriggers', 'pmuon', 'mumu-filter', 'FP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
-		'4filter_TP': ['alltriggers', 'pmuon', '4-filter', 'TP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
-		'4filter_FP': ['alltriggers', 'pmuon', '4-filter', 'FP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		# 'mumu_TP': ['alltriggers', 'pmuon', 'mumu-filter', 'TP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		# 'mumu_FP': ['alltriggers', 'pmuon', 'mumu-filter', 'FP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		'4filter_TP': ['alltriggers', 'pmuon', '4-filter', 'TP', 'nDV', 'fidvol', '2track', 'OS', '{}'.format(options.dv_type), '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		'4filter_FP': ['alltriggers', 'pmuon', '4-filter', 'FP', 'nDV', 'fidvol', '2track', 'OS', '{}'.format(options.dv_type), '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'mumu_FN': ['alltriggers', 'pmuon', 'mumu-filter', 'FN', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'mue': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'mue', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'emu': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'emu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
@@ -136,7 +136,10 @@ if __name__ == "__main__":
 						dest="aod_file",
 						default="",
 						help="AOD file to use in filter decision comparison studies.")
-
+	parser.add_argument("--dv_type",
+						dest="dv_type",
+						default="",
+						help="type of displaced vertex to cut on. This allows for input-flag-style configuration.")
 	parent_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, parents=[parser])
 	# subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
 
