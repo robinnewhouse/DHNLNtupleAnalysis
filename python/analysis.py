@@ -123,7 +123,7 @@ class Analysis(object):
 		self.do_dv_type_cut = True
 		if 'mumu' in self.sel:
 			self.dv_type = "mumu"
-		elif 'emu' in self.sel:
+		elif 'emu' in self.sel or 'mue' in self.sel:
 			self.dv_type = "emu"
 		elif 'ee' in self.sel:
 			self.dv_type = "ee"

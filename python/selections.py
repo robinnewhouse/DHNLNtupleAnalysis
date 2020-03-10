@@ -96,29 +96,29 @@ class FilterMismatchCut():
 			self.aod = self.evt.aod_tree.elelfilter[self.evt.ievt]
 			self.lrt = self.evt.tree.elelfilter[self.evt.ievt]
 		elif allowed_filter == "4-filter":
-			self.aod = (self.evt.tree.mumufilter[self.evt.ievt]
+			self.aod = (self.evt.aod_tree.mumufilter[self.evt.ievt]
+						or self.aod_tree.elmufilter[self.evt.ievt]
+						or self.aod_tree.elelfilter[self.evt.ievt]
+						or self.aod_tree.muelfilter[self.evt.ievt])
+			self.lrt = (self.evt.tree.mumufilter[self.evt.ievt]
 						or self.evt.tree.elmufilter[self.evt.ievt]
 						or self.evt.tree.elelfilter[self.evt.ievt]
 						or self.evt.tree.muelfilter[self.evt.ievt])
-			self.lrt = (self.evt.aod_tree.mumufilter[self.evt.ievt]
-						or self.evt.aod_tree.elmufilter[self.evt.ievt]
-						or self.evt.aod_tree.elelfilter[self.evt.ievt]
-						or self.evt.aod_tree.muelfilter[self.evt.ievt])
 		elif allowed_filter == "3-filter":
-			self.aod = (self.evt.tree.mumufilter[self.evt.ievt]
+			self.aod = (self.aod_tree.mumufilter[self.evt.ievt]
+						or self.aod_tree.elmufilter[self.evt.ievt]
+						or self.aod_tree.elelfilter[self.evt.ievt])
+			self.lrt = (self.evt.tree.mumufilter[self.evt.ievt]
 						or self.evt.tree.elmufilter[self.evt.ievt]
 						or self.evt.tree.elelfilter[self.evt.ievt])
-			self.lrt = (self.evt.aod_tree.mumufilter[self.evt.ievt]
-						or self.evt.aod_tree.elmufilter[self.evt.ievt]
-						or self.evt.aod_tree.elelfilter[self.evt.ievt])
 		elif allowed_filter == "2-filter":
-			self.aod = (self.evt.tree.mumufilter[self.evt.ievt]
+			self.aod = (self.aod_tree.mumufilter[self.evt.ievt]
+						or self.aod_tree.elmufilter[self.evt.ievt])
+			self.lrt = (self.evt.tree.mumufilter[self.evt.ievt]
 						or self.evt.tree.elmufilter[self.evt.ievt])
-			self.lrt = (self.evt.aod_tree.mumufilter[self.evt.ievt]
-						or self.evt.aod_tree.elmufilter[self.evt.ievt])
 		elif allowed_filter == "1-filter":
 			self.aod = self.evt.aod_tree.mumufilter[self.evt.ievt]
-			self.lrt = self.evt.tree.mumufilter[self.evt.ievt]
+			self.lrt = self.tree.mumufilter[self.evt.ievt]
 		else:
 			print "You did not pick a valid filter type to check!!!"
 			print "note: we're still implementing n-filter type selections"
