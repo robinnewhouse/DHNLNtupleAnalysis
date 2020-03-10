@@ -195,7 +195,7 @@ class Analysis(object):
 		if self.do_dv_type_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "%s DV" % self.dv_type)
 		if self.do_track_quality_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "2-tight-lepton DV")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "{}-lepton DV".format(self.track_quality))
 		if self.do_cosmic_veto_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "cosmic veto")
 		if self.do_trilepton_mass_cut:
@@ -511,7 +511,7 @@ class WmuHNL(Analysis):
 			if self._trigger_cut(evt):
 				# Fill the plot at the specified bin
 				self.h['CutFlow'][self.ch].Fill(1)
-				# Record that this cut has been done so we don't accidentally reject it in later tests
+				# Record that this cut has been done so we don't accidentally overfill cutflows and histograms
 				self.passed_trigger_cut = True
 			else:
 				return

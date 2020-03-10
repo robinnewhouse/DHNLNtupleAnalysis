@@ -61,7 +61,7 @@ def main():
 				DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv)
 				ana.DVSelection(DVevt)
 
-			ana.unlock()  # !!! Does this do anything now? RN
+			ana.unlock()
 		# Call functions to finalize analysis
 		ana.end()
 		# Store analysis in dictionary for possible later use

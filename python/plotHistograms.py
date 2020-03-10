@@ -12,7 +12,7 @@ from pylab import *
 
 #############################################################################################################################################
 # globals
-histos_savepath = '/afs/cern.ch/user/r/rnewhous/tmp/' # change path here to save your histograms
+histos_savepath = '/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/output/VSI_DerivationStudies/' # change path here to save your histograms
 
 #############################################################################################################################################
 
