@@ -39,8 +39,8 @@ def main():
 		# 'mumu': ['alltriggers', 'pmuon', 'mumu-filter', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'mumu_TP': ['alltriggers', 'pmuon', 'mumu-filter', 'TP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'mumu_FP': ['alltriggers', 'pmuon', 'mumu-filter', 'FP', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
-		'4filter_TP': ['alltriggers', 'pmuon', '4-filter', 'TP', 'nDV', 'fidvol', '2track', 'OS', '{}'.format(options.dv_type), '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
-		'4filter_FP': ['alltriggers', 'pmuon', '4-filter', 'FP', 'nDV', 'fidvol', '2track', 'OS', '{}'.format(options.dv_type), '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		'4filter_TP': ['alltriggers', '{}'.format(options.plep), '4-filter', 'TP', 'nDV', 'fidvol', '2track', 'OS', '{}'.format(options.dv_type), '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
+		'4filter_FP': ['alltriggers', '{}'.format(options.plep), '4-filter', 'FP', 'nDV', 'fidvol', '2track', 'OS', '{}'.format(options.dv_type), '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'mumu_FN': ['alltriggers', 'pmuon', 'mumu-filter', 'FN', 'nDV', 'fidvol', '2track', 'OS', 'mumu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'mue': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'mue', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
 		# 'emu': ['alltriggers', 'pmuon', '4-filter', 'nDV', 'fidvol', '2track', 'OS', 'emu', '2-tight', 'cosmicveto', 'mlll', 'DVmass'],
@@ -140,6 +140,10 @@ if __name__ == "__main__":
 						dest="dv_type",
 						default="",
 						help="type of displaced vertex to cut on. This allows for input-flag-style configuration.")
+	parser.add_argument("--plep",
+						dest="plep",
+						default="pmuon",
+						help="Prompt lepton type to cut on.")
 	parent_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, parents=[parser])
 	# subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
 
