@@ -7,7 +7,7 @@ ObservableList = []
 class Observable(object):
 	def __init__(self, name, binning = (2000, -1000, 1000), script = None, style = 'single', do = ['hist'], only = None, title = '{self.name}', dtype = float, default = -1, need_truth = False):
 		"""Observable for filling histograms or trees
-			
+
 			Parameters
 			----------
 			name : {str}
@@ -76,7 +76,7 @@ Observable("DV_trk_eta",binning = (40,-10,10),do = ['hist']).queue()
 Observable("DV_trk_phi", binning =(64,-4,4), do = ['hist']).queue()
 Observable("DV_trk_d0", do = ['hist']).queue()
 Observable("DV_trk_z0", do = ['hist']).queue()
-Observable("DV_trk_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+Observable("DV_trk_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
 Observable("DV_trk_chi2",binning = (40,0,20), do = ['hist']).queue()
 
 Observable("DV_x",binning = (2000,-500,500), do = ['hist']).queue()
@@ -91,7 +91,7 @@ Observable("DV_eta",binning = (40,-10,10),do = ['hist']).queue()
 Observable("DV_phi", binning = (16,-4,4), do = ['hist']).queue()
 Observable("DV_minOpAng",binning = (100,0,1), do = ['hist']).queue()
 Observable("DV_maxOpAng",binning = (100,0,1), do = ['hist']).queue()
-Observable("DV_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+Observable("DV_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
 Observable("DV_chi2",binning = (40,0,20), do = ['hist']).queue()
 # Observable("DV_trk_sep", binning = (30,0,6), do = ['hist']).queue()
 
@@ -101,7 +101,7 @@ Observable("selDV_trk_eta",binning = (40,-10,10),do = ['hist']).queue()
 Observable("selDV_trk_phi", binning =(16,-4,4), do = ['hist']).queue()
 Observable("selDV_trk_d0", do = ['hist']).queue()
 Observable("selDV_trk_z0", do = ['hist']).queue()
-Observable("selDV_trk_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+Observable("selDV_trk_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
 Observable("selDV_trk_chi2",binning = (40,0,20), do = ['hist']).queue()
 
 Observable("selDV_x",binning = (2000,-500,500), do = ['hist']).queue()
@@ -116,7 +116,7 @@ Observable("selDV_eta",binning = (40,-10,10),do = ['hist']).queue()
 Observable("selDV_phi", binning = (16,-4,4), do = ['hist']).queue()
 Observable("selDV_minOpAng",binning = (100,0,1), do = ['hist']).queue()
 Observable("selDV_maxOpAng",binning = (100,0,1), do = ['hist']).queue()
-Observable("selDV_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
+Observable("selDV_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
 Observable("selDV_chi2",binning = (40,0,20), do = ['hist']).queue()
 # Observable("selDV_trk_sep", binning = (30,0,6), do = ['hist']).queue()
 
@@ -135,7 +135,8 @@ Observable("selplep_phi", binning = (16,-4,4), do = ['hist']).queue()
 Observable("selplep_d0", do = ['hist']).queue()
 Observable("selplep_z0", do = ['hist']).queue()
 
-
+Observable("nmuon", binning=(50, 0, 50), do=['hist']).queue()
+Observable("nel", binning=(50, 0, 50), do=['hist']).queue()
 Observable("muon_type", binning = (6 ,-0.5,5.5), do = ['hist']).queue()
 Observable("muon_pt", binning = (1000 ,0,1000), do = ['hist']).queue()
 Observable("muon_eta", binning = (40 ,-10,10), do = ['hist']).queue()
