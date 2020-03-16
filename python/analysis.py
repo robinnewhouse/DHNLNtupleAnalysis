@@ -163,11 +163,17 @@ class Analysis(object):
 
 		#track quality 
 		if ('1-tight' in self.sel):
-			self.trackqul = '1-tight'
+			self.trackqual = '1-tight'
 			self.dotrackqual = True
 		elif ('2-tight' in self.sel): 
 			self.trackqual = '2-tight'
 			self.dotrackqual = True
+ 		elif ('2-medium' in self.sel): 
+ 			self.trackqual = '2-medium'
+ 			self.dotrackqual = True
+ 		elif ('2-loose' in self.sel): 
+ 			self.trackqual = '2-loose'
+ 			self.dotrackqual = True
 		else: 
 			logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
 			self.dotrackqual = False

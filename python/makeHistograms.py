@@ -26,11 +26,20 @@ def main():
 	# Put a map for a 1 one word key to a list of inputs for the selections.
 	# histograms will be saved for each channel called histName_ch in histograms.root
 	###########################################################################################################################
-	channels = { 
-			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
-			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
-			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']  
-			   }
+
+#	channels = { 
+#			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
+#			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
+#			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS'] 
+#			   }
+
+  	channels = { 
+                 'mumu_2t' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'mumu','2-tight','cosmicveto', 'mlll','DVmass'],
+                 'mumu_1t' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'mumu','1-tight','cosmicveto', 'mlll','DVmass'],
+                 'mumu_2m' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'mumu','2-medium','cosmicveto', 'mlll','DVmass'],
+                 'mumu_2l' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'mumu','2-loose','cosmicveto', 'mlll','DVmass']
+         }
+
 
 
 	analysisCode = {}
