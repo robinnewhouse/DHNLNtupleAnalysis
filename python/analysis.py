@@ -485,10 +485,6 @@ class WmuHNL(Analysis):
 		# Default is to select the first event that passes the selection
 		###########################################################################################################################
 		self.passed_preselection_cuts = False
-		self.passed_trigger_cut = False
-		self.passed_filter_cut = False
-		self.passed_prompt_lepton_cut = False
-		self.passed_ndv_cut = False
 		self.passed_fidvol_cut = False
 		self.passed_ntrk_cut = False
 		self.passed_charge_cut = False
@@ -507,33 +503,28 @@ class WmuHNL(Analysis):
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
 		######################################################################################################
 
-		if self.do_trigger_cut and not self.passed_trigger_cut:
+		if self.do_trigger_cut:
 			if self._trigger_cut(evt):
 				# Fill the plot at the specified bin
 				self.h['CutFlow'][self.ch].Fill(1)
-				# Record that this cut has been done so we don't accidentally overfill cutflows and histograms
-				self.passed_trigger_cut = True
 			else:
 				return
 
-		if self.do_filter_cut and not self.passed_filter_cut:
+		if self.do_filter_cut:
 			if self._filter_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(2)
-				self.passed_filter_cut = True
 			else:
 				return
 
-		if self.do_prompt_lepton_cut and not self.passed_prompt_lepton_cut:
+		if self.do_prompt_lepton_cut:
 			if self._prompt_lepton_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(3)
-				self.passed_prompt_lepton_cut = True
 			else:
 				return
 
-		if self.do_ndv_cut and not self.passed_ndv_cut:
+		if self.do_ndv_cut:
 			if self._ndv_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(4)
-				self.passed_ndv_cut = True
 			else:
 				return
 
