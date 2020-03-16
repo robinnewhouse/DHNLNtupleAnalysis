@@ -19,13 +19,11 @@ class Tree():
 		# -----------------------------------------------------------------------
 		self.trk_muonindex = self.tree["secVtx_trk_muonIndex"].array()
 		self.trk_elindex = self.tree["secVtx_trk_electronIndex"].array()
-
-
-		self.trackpt = self.tree["secVtx_trk_pt"].array() 
-		self.tracketa = self.tree["secVtx_trk_eta"].array() 
-		self.trackphi = self.tree["secVtx_trk_phi"].array()
-		self.trackd0 = self.tree["secVtx_trk_d0"].array() 
-		self.trackz0 = self.tree["secVtx_trk_z0"].array() 
+		self.trackpt = self.tree["secVtx_trk_pt_wrtSV"].array() 
+		self.tracketa = self.tree["secVtx_trk_eta_wrtSV"].array() 
+		self.trackphi = self.tree["secVtx_trk_phi_wrtSV"].array()
+		self.trackd0 = self.tree["secVtx_trk_d0_wrtSV"].array() 
+		self.trackz0 = self.tree["secVtx_trk_z0_wrtSV"].array() 
 		self.trackhitpattern = self.tree["secVtx_trk_hitPattern"].array() 
 		self.trackisassoc = self.tree["secVtx_trk_isAssociated"].array() 
 		self.trackisFinal = self.tree["secVtx_trk_isFinal"].array() 
@@ -36,11 +34,6 @@ class Tree():
 		self.tracknSCTBarrelLayers = self.tree["secVtx_trk_nSCTBarrelLayers"].array() 
 		self.tracknSCTEndCapLayers = self.tree["secVtx_trk_nSCTEndCapLayers"].array() 
 		self.trackRadiusOfFirstHit = self.tree["secVtx_trk_radiusOfFirstHit"].array() 
-		# self.trackpt = self.tree["secVtx_trk_pt_wrtSV"].array() 
-		# self.tracketa = self.tree["secVtx_trk_eta_wrtSV"].array() 
-		# self.trackphi = self.tree["secVtx_trk_phi_wrtSV"].array()
-		# self.trackd0 = self.tree["secVtx_trk_d0_wrtSV"].array() 
-		# self.trackz0 = self.tree["secVtx_trk_z0_wrtSV"].array() 
 
 		self.trackmass = self.tree["secVtx_trk_M"].array()
 		self.trackcharge = self.tree["secVtx_trk_charge"].array()
