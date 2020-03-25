@@ -135,7 +135,7 @@ class Plepton():
 					leptracks = helpers.Tracks()
 					trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
 					leptracks.getTracks(trackevt)
-					dlepVec = leptracks.lepVec
+					dlepVec = leptracks.lepton_vector
 					ndtracks = len(dlepVec)
 						
 					for itr in xrange(ndtracks): 
@@ -255,86 +255,60 @@ class ChargeDV():
 			return False
 
 
-
 class DVtype():
 	def __init__(self, evt, dv_type, decaymode="leptonic"):
 		self.evt = evt
 		self.decaymode = decaymode
 		self.dv_type = dv_type
-		
-		if self.decaymode == "leptonic": 
+
+		if self.decaymode == "leptonic":
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 			self.nel = -1
 			self.nmu = -1
 
-
 			self.muons = helpers.Tracks()
-			self.muons.getMuons(self.evt)
-			self.nmu = len(self.muons.lepVec)
-			
+			self.muons.get_muons(self.evt)
+			self.nmu = len(self.muons.lepton_vector)
 
 			self.electrons = helpers.Tracks()
 			self.electrons.getElectrons(self.evt)
-			self.nel = len(self.electrons.lepVec)	
+			self.nel = len(self.electrons.lepton_vector)
 
-
-		
-
-
-	def passes(self): 
-		combined = 0 
+	def passes(self):
+		combined = 0  # Definition of combined muon
 
 		if self.dv_type == "emu": 
 			if self.nel == 1 and self.nmu == 1: 
-				mu1_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[0]]
-
-				if mu1_type == combined:  # Only count combined muons 
+				# Only count combined muons
+				mu1_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepton_index[0]]
+				if mu1_type == combined:
+					# Do not count leptons that share the same track
+					if self.muons.track_index[0] == self.electrons.track_index[0]:
+						return False
 					return True
-				else:
-					return False
-			else:
-				return False
-
 
 		elif self.dv_type == "mumu":
 			if self.nmu == 2: 
-				mu1_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[0]]
-				mu2_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepIndex[1]]
-
-				if (mu1_type == combined and mu2_type == combined) :  # Only count combined muons 
+				mu1_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepton_index[0]]
+				mu2_type = self.evt.tree.muontype[self.evt.ievt][self.muons.lepton_index[1]]
+				if mu1_type == combined and mu2_type == combined:  # Only count combined muons
 					return True
-				else:
-					return False
-			else:
-				return False
 
 		elif self.dv_type == "ee":
 			if self.nel == 2: 
 				return True
-			else:
-				return False
 
 		elif self.dv_type == "mumu-notcomb":
 			if self.nmu == 2: 
-
 				return True
-			else: 
-				return False
 
 		elif self.dv_type == "1-lep":
-			if self.nmu > 0 or self.nel> 0: 					
+			if self.nmu > 0 or self.nel > 0:
 				return True
-			else: 
-				return False
+
 		elif self.dv_type == "2-lep":
-			if self.nmu == 2 or (self.nmu == 1 and self.nel == 1) or self.nel ==2:
+			if self.nmu == 2 or (self.nmu == 1 and self.nel == 1) or self.nel == 2:
 				return True
-			else:
-				return False
-
-
-
-
 
 
 class Trackqual():
@@ -350,28 +324,28 @@ class Trackqual():
 			self.DVelectrons = []
 
 			muons = helpers.Tracks()
-			muons.getMuons(self.evt)
+			muons.get_muons(self.evt)
 		
 			
 
 			electrons = helpers.Tracks()
 			electrons.getElectrons(self.evt)
-			self.nel = len(electrons.lepVec)
+			self.nel = len(electrons.lepton_vector)
 
 			self.nmu_tight = 0
 			self.nel_tight = 0
 
-			self.ndvmu = len(muons.lepVec)
-			self.ndvel = len(electrons.lepVec)
+			self.ndvmu = len(muons.lepton_vector)
+			self.ndvel = len(electrons.lepton_vector)
 		
 			for imu in range(self.ndvmu):
-				muindex = muons.lepIndex[imu]
+				muindex = muons.lepton_index[imu]
 				muisTight = self.evt.tree.tightmu[self.evt.ievt][muindex]
 				if muisTight: 
 					self.nmu_tight = self.nmu_tight + 1
 
 			for iel in range(self.ndvel):
-				elindex = electrons.lepIndex[iel]
+				elindex = electrons.lepton_index[iel]
 				elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
 				if elisTight: 
 					self.nel_tight = self.nel_tight + 1
@@ -381,19 +355,19 @@ class Trackqual():
 			# if (self.evt.ievt == 875) or (self.evt.ievt == 2115) or (self.evt.ievt == 2995) or (self.evt.ievt == 44464) or (self.evt.ievt == 339):
 			# print "----------"
 			# print self.evt.ievt
-			# print "track 1: ", electrons.lepVec[0].Pt(), electrons.lepVec[0].Eta(), electrons.lepVec[0].Phi()
-			# print "el 1: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepIndex[0]], self.evt.tree.eleta[self.evt.ievt][electrons.lepIndex[0]], self.evt.tree.elphi[self.evt.ievt][electrons.lepIndex[0]]
-			# print "el 1 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepIndex[0]]
+			# print "track 1: ", electrons.lepton_vector[0].Pt(), electrons.lepton_vector[0].Eta(), electrons.lepton_vector[0].Phi()
+			# print "el 1: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepton_index[0]], self.evt.tree.eleta[self.evt.ievt][electrons.lepton_index[0]], self.evt.tree.elphi[self.evt.ievt][electrons.lepton_index[0]]
+			# print "el 1 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepton_index[0]]
 			# print ""
-			# print "track 2: ", electrons.lepVec[1].Pt(), electrons.lepVec[1].Eta(), electrons.lepVec[1].Phi()	
-			# print "el 2: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepIndex[1]], self.evt.tree.eleta[self.evt.ievt][electrons.lepIndex[1]], self.evt.tree.elphi[self.evt.ievt][electrons.lepIndex[1]]
-			# print "el 2 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepIndex[1]]
+			# print "track 2: ", electrons.lepton_vector[1].Pt(), electrons.lepton_vector[1].Eta(), electrons.lepton_vector[1].Phi()
+			# print "el 2: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepton_index[1]], self.evt.tree.eleta[self.evt.ievt][electrons.lepton_index[1]], self.evt.tree.elphi[self.evt.ievt][electrons.lepton_index[1]]
+			# print "el 2 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepton_index[1]]
 
 			# print "number of tight electrons",self.nel_tight
 
 
 			# for iel in range(self.ndvel): 
-			# 	elindex = electrons.lepIndex[iel]
+			# 	elindex = electrons.lepton_index[iel]
 			# 	elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
 			# 	if elisTight:
 			# 		self.nel_tight = self.nel_tight + 1

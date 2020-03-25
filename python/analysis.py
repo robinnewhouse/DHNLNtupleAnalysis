@@ -349,12 +349,12 @@ class Analysis(object):
 		plep_vec = self.plep_sel.plepVec
 
 		muons = helpers.Tracks()
-		muons.getMuons(evt=evt)
-		muVec = muons.lepVec
+		muons.get_muons(evt=evt)
+		muVec = muons.lepton_vector
 
 		electrons = helpers.Tracks()
 		electrons.getElectrons(evt=evt)
-		elVec = electrons.lepVec
+		elVec = electrons.lepton_vector
 
 		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
 		return mlll_sel.passes()
