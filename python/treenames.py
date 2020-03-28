@@ -4,8 +4,12 @@ import uproot
 class Tree():
 	def __init__(self, fileName,treeName):
 		self.file = uproot.open(fileName)
+		self.file.keys()
 		self.tree = self.file[treeName]
+		self.cutflow = self.file["cutflow"]
 		
+		self.allEvt =  self.cutflow[1]
+
 		# -----------------------------------------------------------------------
 		self.passedtriggers = self.tree["passedTriggers"].array()
 		self.mumufilter = self.tree["passesHnlMuMuFilter"].array()
@@ -16,34 +20,34 @@ class Tree():
 		# -----------------------------------------------------------------------
 		# DV track variables
 		# -----------------------------------------------------------------------
-		self.trk_muonindex = self.tree["secVtx_trk_muonIndex"].array()
-		self.trk_elindex = self.tree["secVtx_trk_electronIndex"].array()
-		self.trackpt = self.tree["secVtx_trk_pt_wrtSV"].array() 
-		self.tracketa = self.tree["secVtx_trk_eta_wrtSV"].array() 
-		self.trackphi = self.tree["secVtx_trk_phi_wrtSV"].array()
-		self.trackmass = self.tree["secVtx_trk_M"].array()
-		self.trackd0 = self.tree["secVtx_trk_d0_wrtSV"].array() 
-		self.trackz0 = self.tree["secVtx_trk_z0_wrtSV"].array() 
-		self.trackcharge = self.tree["secVtx_trk_charge"].array()
-		self.trackchi2 = self.tree["secVtx_trk_chi2_toSV"].array()
+		self.trk_muonindex = self.tree["secVtx_VSI_trk_muonIndex"].array()
+		self.trk_elindex = self.tree["secVtx_VSI_trk_electronIndex"].array()
+		self.trackpt = self.tree["secVtx_VSI_trk_pt_wrtSV"].array() 
+		self.tracketa = self.tree["secVtx_VSI_trk_eta_wrtSV"].array() 
+		self.trackphi = self.tree["secVtx_VSI_trk_phi_wrtSV"].array()
+		self.trackmass = self.tree["secVtx_VSI_trk_M"].array()
+		self.trackd0 = self.tree["secVtx_VSI_trk_d0_wrtSV"].array() 
+		self.trackz0 = self.tree["secVtx_VSI_trk_z0_wrtSV"].array() 
+		self.trackcharge = self.tree["secVtx_VSI_trk_charge"].array()
+		self.trackchi2 = self.tree["secVtx_VSI_trk_chi2_toSV"].array()
 
 		# -----------------------------------------------------------------------
 		# DV reco variables
 		# -----------------------------------------------------------------------
-		self.dvx = self.tree["secVtx_x"].array()  
-		self.dvy = self.tree["secVtx_y"].array()  
-		self.dvz = self.tree["secVtx_z"].array() 
-		self.dvr = self.tree["secVtx_r"].array() 
-		self.dvmass = self.tree["secVtx_mass"].array()  
-		self.dvpt = self.tree["secVtx_pt"].array()
-		self.dveta = self.tree["secVtx_eta"].array()  
-		self.dvphi = self.tree["secVtx_phi"].array() 
-		self.dvminOpAng = self.tree["secVtx_minOpAng"].array() 
-		self.dvmaxOpAng = self.tree["secVtx_maxOpAng"].array()   
-		self.dvntrk = self.tree["secVtx_ntrk"].array() 
-		self.dvdistFromPV = self.tree["secVtx_distFromPV"].array() 
-		self.dvcharge = self.tree["secVtx_charge"].array() 
-		self.dvchi2 = self.tree["secVtx_chi2"].array() 
+		self.dvx = self.tree["secVtx_VSI_x"].array()  
+		self.dvy = self.tree["secVtx_VSI_y"].array()  
+		self.dvz = self.tree["secVtx_VSI_z"].array() 
+		self.dvr = self.tree["secVtx_VSI_r"].array() 
+		self.dvmass = self.tree["secVtx_VSI_mass"].array()  
+		self.dvpt = self.tree["secVtx_VSI_pt"].array()
+		self.dveta = self.tree["secVtx_VSI_eta"].array()  
+		self.dvphi = self.tree["secVtx_VSI_phi"].array() 
+		self.dvminOpAng = self.tree["secVtx_VSI_minOpAng"].array() 
+		self.dvmaxOpAng = self.tree["secVtx_VSI_maxOpAng"].array()   
+		self.dvntrk = self.tree["secVtx_VSI_ntrk"].array() 
+		self.dvdistFromPV = self.tree["secVtx_VSI_distFromPV"].array() 
+		self.dvcharge = self.tree["secVtx_VSI_charge"].array() 
+		self.dvchi2 = self.tree["secVtx_VSI_chi2"].array() 
 		# -----------------------------------------------------------------------
 		
 		# -----------------------------------------------------------------------

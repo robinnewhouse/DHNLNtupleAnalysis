@@ -470,6 +470,7 @@ class WmuHNL(Analysis):
 		# self.add2D()
 		# self.add()
 
+
 	def _preSelection(self, evt):
 		######################################################################################################
 		# Preselection are all the cuts that are requied per event
@@ -494,9 +495,10 @@ class WmuHNL(Analysis):
 		self.passed_trilepton_mass_cut = False
 		self.passed_dv_mass_cut = False
 
-		self.h['CutFlow'][self.ch].Fill(0)
-
 		self._fill_histos(evt)
+		
+		self.h['CutFlow'][self.ch].SetBinContent(1, evt.tree.allEvt)
+
 
 		######################################################################################################
 		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
