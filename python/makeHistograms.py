@@ -5,12 +5,16 @@ import ROOT
 import csv
 import analysis
 import treenames
+import json
 # import reweighting
 # import systematics
 
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
+
+
 def main():
+
 	output_path ="../output/"
 	if os.path.exists(output_path) == False:
 		logger.info('Making output directory')
@@ -25,12 +29,14 @@ def main():
 	# Put a map for a 1 one word key to a list of inputs for the selections.
 	# histograms will be saved for each channel called histName_ch in histograms.root
 	###########################################################################################################################
-	channels = {
-			  'emu' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS', 'emu','2-tight','cosmicveto', 'mlll','DVmass'],
-			   'OS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','OS'],
-			   'SS' : ['alltriggers','pmuon', '4-filter', 'nDV', 'fidvol','2track','SS']
-			   }
+	
 
+	with open(options.config, 'r') as json_config:
+		configs = json.load(json_config)
+
+
+	channels = configs["default"]["channels"]
+	vtx_container = configs["default"]["vtx_container"]
 
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
@@ -38,8 +44,7 @@ def main():
 
 	file = options.file[0]
 	treename = "outTree"
-	tree = treenames.Tree(file, treename)
-
+	tree = treenames.Tree(file, treename, vtx_container)
 	nentries = options.nevents or len(tree.dvmass)
 
 	for channel, selections in channels.items():
@@ -86,6 +91,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=False)
 
 
+
 	###########################################################################################################################
 	# Parser arguments are not fully functional yet, but we should implement arguments like this to help with running the code.
 	###########################################################################################################################
@@ -101,10 +107,17 @@ if __name__ == "__main__":
 						type = str,
 						help="Input file",
 						metavar="FILE")
+
+	parser.add_argument("--config",
+						dest="config",
+						type = str,
+						default="default_config.json",
+						help="Input config file for makeHisotgrams.py.")
+
 	parser.add_argument('--nevents',
-                        default = None,
-                        type = int,
-                        help='Number of events are going to be processed for test-only purpose.')
+						default = None,
+						type = int,
+						help='Number of events are going to be processed for test-only purpose.')
 	parser.add_argument("-u", "--update",
 						action="store_true",
 						dest="update",
@@ -112,8 +125,10 @@ if __name__ == "__main__":
 
 
 
+
+
 	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser])
-    # subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
+	# subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
 
 
 	options = parent_parser.parse_args()
