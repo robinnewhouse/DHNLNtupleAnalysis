@@ -32,11 +32,11 @@ def main():
 	
 
 	with open(options.config, 'r') as json_config:
-		configs = json.load(json_config)
+		config_file = json.load(json_config)
 
 
-	channels = configs["default"]["channels"]
-	vtx_container = configs["default"]["vtx_container"]
+	# channels = configs["default"]["channels"]
+	# vtx_container = configs["default"]["vtx_container"]
 
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
@@ -44,33 +44,38 @@ def main():
 
 	file = options.file[0]
 	treename = "outTree"
-	tree = treenames.Tree(file, treename, vtx_container)
-	nentries = options.nevents or len(tree.dvmass)
+	for k, configs in config_file.items():
+		channels =  config_file[k]["channels"]
+		vtx_container =  config_file[k]["vtx_container"]
+		# k =config_file[k]["channels"]
 
-	for channel, selections in channels.items():
-		# Make instance of the analysis class
-		ana = anaClass(channel, selections, output_path + "histograms.root")
-		# Loop over each event
-		for ievt in xrange(nentries):
-			if (ievt % 1000 == 0):
-				print "Channel {}: processing event {}".format(channel, ievt)
-			# Create an event instance to keep track of basic event properties
-			evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
-			ndv = len(tree.dvx[ievt])
+		tree = treenames.Tree(file, treename, vtx_container)
+		nentries = options.nevents or len(tree.dvmass)
 
-			# Run preselection cuts to avoid processing unnecessary events
-			presel = ana.preSelection(evt)
+		for channel, selections in channels.items():
+			# Make instance of the analysis class
+			ana = anaClass(channel, selections, output_path + "histograms.root")
+			# Loop over each event
+			for ievt in xrange(nentries):
+				if (ievt % 1000 == 0):
+					print "Channel {}: processing event {}".format(channel, ievt)
+				# Create an event instance to keep track of basic event properties
+				evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
+				ndv = len(tree.dvx[ievt])
 
-			# Loop over each vertex in the event
-			for idv in xrange(ndv):
-				DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv)
-				ana.DVSelection(DVevt)
+				# Run preselection cuts to avoid processing unnecessary events
+				presel = ana.preSelection(evt)
 
-			ana.unlock()
-		# Call functions to finalize analysis
-		ana.end()
-		# Store analysis in dictionary for possible later use
-		analysisCode[channel] = ana
+				# Loop over each vertex in the event
+				for idv in xrange(ndv):
+					DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv)
+					ana.DVSelection(DVevt)
+
+				ana.unlock()
+			# Call functions to finalize analysis
+			ana.end()
+			# Store analysis in dictionary for possible later use
+			analysisCode[channel] = ana
 
 
 if __name__ == "__main__":
