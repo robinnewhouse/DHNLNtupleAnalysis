@@ -7,7 +7,8 @@ import helpers
 import selections
 import treenames
 import observables
-logger = helpers.getLogger('dHNLAnalysis.analysis')
+import logging
+logger = helpers.getLogger('dHNLAnalysis.analysis',level = logging.WARNING)
 
 
 
