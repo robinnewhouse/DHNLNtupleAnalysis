@@ -25,18 +25,9 @@ def main():
 			logger.info('Removing histograms.root')
 			os.remove(output_path + "histograms.root") # by default remove histrogram file that if you previously created it.
 
-	###########################################################################################################################
-	# Put a map for a 1 one word key to a list of inputs for the selections.
-	# histograms will be saved for each channel called histName_ch in histograms.root
-	###########################################################################################################################
-	
-
 	with open(options.config, 'r') as json_config:
-		config_file = json.load(json_config)
+		config_file = json.load(json_config) # load JSON config file that contains a channel name mapped to a list of selections
 
-
-	# channels = configs["default"]["channels"]
-	# vtx_container = configs["default"]["vtx_container"]
 
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
@@ -44,17 +35,20 @@ def main():
 
 	file = options.file[0]
 	treename = "outTree"
-	for k, configs in config_file.items():
-		channels =  config_file[k]["channels"]
-		vtx_container =  config_file[k]["vtx_container"]
-		# k =config_file[k]["channels"]
 
-		tree = treenames.Tree(file, treename, vtx_container)
+	#loop over all the configurations in the config file
+	for k, configs in config_file.items():
+
+		channels =  config_file[k]["channels"] # define channels for each section in config file
+		vtx_container =  config_file[k]["vtx_container"] # define vertex container to be used 
+
+		tree = treenames.Tree(file, treename, vtx_container) # define variables to be accessed from rootfile
 		nentries = options.nevents or len(tree.dvmass)
 
 		for channel, selections in channels.items():
 			# Make instance of the analysis class
 			ana = anaClass(channel, selections, output_path + "histograms.root")
+			
 			# Loop over each event
 			for ievt in xrange(nentries):
 				if (ievt % 1000 == 0):
