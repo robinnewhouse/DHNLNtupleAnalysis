@@ -6,18 +6,19 @@ import atlas_style
 import numpy as np
 from ROOT import *
 from pylab import *
-# gROOT.LoadMacro("AtlasStyle.C")
-# gROOT.LoadMacro("AtlasUtils.C")
-# gROOT.LoadMacro("AtlasLabels.C")
+gROOT.LoadMacro("AtlasStyle.C")
+gROOT.LoadMacro("AtlasUtils.C")
+gROOT.LoadMacro("AtlasLabels.C")
 
 #############################################################################################################################################
 # globals
-histos_savepath = '/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/output/VSI_DerivationStudies/' # change path here to save your histograms
-
+# histos_savepath = '/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/output/VSI_DerivationStudies/' # change path here to save your histograms
+histos_savepath = '/home/dtrischuk/HNLAnalysis/SS_bkgStudies/plots/periodB/'
 #############################################################################################################################################
 
 ROOT.gROOT.SetBatch(True)
-atlas_style.AtlasStyle()
+# atlas_style.AtlasStyle()
+SetAtlasStyle()
 
 #get note
 def getNote(size=14):
@@ -82,7 +83,7 @@ def plot_cutflow(histos, ch_name, vertextype,savefilename):
   	hcutflow.Draw("HIST TEXT0 SAME")
 
   	if options.data == True: 
-  		drawNotesData("data17 test",vertextype) 
+  		drawNotesData("data2018 period B",vertextype) 
   	else: 
   		drawNotesMC("",'VSI Leptons',"emu",'20','10') 
   	MyC01.SaveAs(histos_savepath +'Cutflow_'+savefilename+'.pdf')
@@ -194,21 +195,30 @@ if __name__ == '__main__':
 
 	####################################################################################################################################
 	# Here's where you configure what histograms to plot
+	channels = ["pel_ee_VSI","pel_emu_VSI","pel_mumu_VSI","pmu_ee_VSI","pmu_emu_VSI","pmu_mumu_VSI","pel_ee_VSILep","pel_emu_VSILep","pel_mumu_VSILep","pmu_ee_VSILep","pmu_emu_VSILep","pmu_mumu_VSILep"]
+	channel_VSILep = ["pel_ee_VSILep","pel_emu_VSILep","pel_mumu_VSILep","pmu_ee_VSILep","pmu_emu_VSILep","pmu_mumu_VSILep"]
+	for i in range(len(channels)):
 
-	plot_cutflow(options.file[0], ch_name = "emu",
-								  vertextype = "Run1",
-								  savefilename = "master")
+		plot_cutflow(options.file[0], ch_name = channels[i],
+									  vertextype = "VSI",
+									  savefilename = "periodB_%s"%channels[i])
 
-	plot_cutflow(options.file[0], ch_name ="emu",
-								  vertextype = "Run2",
-								  savefilename = "refactored")
+	for i in range(len(channel_VSILep)):
 
-	compare2(options.file[0], h1name="DV_r_run1", 
-							  h1label="run1", 	
-							  h2name="DV_r_run2",
-							  h2label="run2", 
-							  xlabel='r DV [mm]',
-							  savefilename='hrDV_compare2deri')
+		plot_cutflow(options.file[0], ch_name = channels[i],
+									  vertextype = "VSI Leptons",
+									  savefilename = "periodB_%s"%channels[i])
+
+	# plot_cutflow(options.file[0], ch_name ="emu",
+	# 							  vertextype = "Run2",
+	# 							  savefilename = "refactored")
+
+	# compare2(options.file[0], h1name="DV_r_run1", 
+	# 						  h1label="run1", 	
+	# 						  h2name="DV_r_run2",
+	# 						  h2label="run2", 
+	# 						  xlabel='r DV [mm]',
+	# 						  savefilename='hrDV_compare2deri')
 
 	####################################################################################################################################
 
