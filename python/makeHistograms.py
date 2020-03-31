@@ -11,7 +11,7 @@ import json
 
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
-
+blinded = True
 
 def main():
 
@@ -47,6 +47,10 @@ def main():
 
 		for channel, selections in channels.items():
 			# Make instance of the analysis class
+			if blinded: 
+				if tree.isData and "OS" in selections:
+					logger.fatal("You are running on data and you cannot look at OS verticies!!!")
+					exit()
 			ana = anaClass(channel, selections, output_path + "histograms.root")
 			
 			# Loop over each event

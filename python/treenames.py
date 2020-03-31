@@ -3,9 +3,14 @@ import uproot
 
 class Tree():
 	def __init__(self, fileName,treeName,vtx_container):
-		self.file = uproot.open(fileName)
-		self.file.keys()
+		self.file = uproot.open(fileName)	
 		self.tree = self.file[treeName]
+		
+		if "truthVtx_x" in self.file[treeName].keys(): 
+			self.isData = False
+		else: 
+			self.isData = True
+
 		DVprefix = "secVtx_" + vtx_container
 
 		self.cutflow = self.file["cutflow"]
@@ -92,16 +97,17 @@ class Tree():
 		# -----------------------------------------------------------------------
 		# DV truth variables
 		# -----------------------------------------------------------------------
-		self.truth_dvx = self.tree["truthVtx_x"].array()  
-		self.truth_dvy = self.tree["truthVtx_y"].array()  
-		self.truth_dvz = self.tree["truthVtx_z"].array() 
-		self.truth_dvr = self.tree["truthVtx_r"].array() 
-		self.truth_dvmass = self.tree["truthVtx_mass"].array()  
-		self.truth_dvpt = self.tree["truthVtx_pt"].array()
-		self.truth_dveta = self.tree["truthVtx_eta"].array()  
-		self.truth_dvphi = self.tree["truthVtx_phi"].array() 
-		# self.dvntrk = self.tree["truthVtx_ntrk"].array() 
-		# self.dvdistFromPV = self.tree["truthVtx_distFromPV"].array() 
-		# self.dvcharge = self.tree["truthVtx_charge"].array() 
-		# self.dvcharge = self.tree["truthVtx_chi2"].array() 
+		if self.isData == False:
+			self.truth_dvx = self.tree["truthVtx_x"].array()  
+			self.truth_dvy = self.tree["truthVtx_y"].array()  
+			self.truth_dvz = self.tree["truthVtx_z"].array() 
+			self.truth_dvr = self.tree["truthVtx_r"].array() 
+			self.truth_dvmass = self.tree["truthVtx_mass"].array()  
+			self.truth_dvpt = self.tree["truthVtx_pt"].array()
+			self.truth_dveta = self.tree["truthVtx_eta"].array()  
+			self.truth_dvphi = self.tree["truthVtx_phi"].array() 
+			# self.dvntrk = self.tree["truthVtx_ntrk"].array() 
+			# self.dvdistFromPV = self.tree["truthVtx_distFromPV"].array() 
+			# self.dvcharge = self.tree["truthVtx_charge"].array() 
+			# self.dvcharge = self.tree["truthVtx_chi2"].array() 
 		# -----------------------------------------------------------------------
