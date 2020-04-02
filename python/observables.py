@@ -111,6 +111,7 @@ Observable("selDV_r",binning = (500,0,500), do = ['hist']).queue()
 Observable("selDV_num_trks",binning = (6,-0.5,5.5), do = ['hist']).queue()
 Observable("selDV_distFromPV",binning = (500,0,500), do = ['hist']).queue()
 Observable("selDV_mass",binning = (10000,0,5000), do = ['hist']).queue()
+Observable("selDV_mass",binning = (10000,0,5000), do = ['hist']).queue()
 Observable("selDV_pt",binning = (1000,0,1000), do = ['hist']).queue()
 Observable("selDV_eta",binning = (40,-10,10),do = ['hist']).queue()
 Observable("selDV_phi", binning = (16,-4,4), do = ['hist']).queue()
@@ -300,7 +301,10 @@ Observable("mlllDV_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
 Observable("mlllDV_chi2",binning = (40,0,20), do = ['hist']).queue()
 
 
+Observable("precutDV_mlll",binning = (10000,0,5000), do = ['hist']).queue()
 
+Observable("postcutDV_mlll",binning = (10000,0,5000), do = ['hist']).queue()
+Observable("selDV_mlll",binning = (10000,0,5000), do = ['hist']).queue()
 
 # Bug with the truth variables in DHNL alg. Need to fix -DT
 # Observable("truth_DV_x",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()

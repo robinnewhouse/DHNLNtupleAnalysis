@@ -51,7 +51,7 @@ def main():
 				if tree.isData and "OS" in selections:
 					logger.fatal("You are running on data and you cannot look at OS verticies!!!")
 					exit()
-			ana = anaClass(channel, selections, output_path + "histograms.root")
+			ana = anaClass(channel, selections, output_path + "histograms_MC10G_10mm_el.root")
 			
 			# Loop over each event
 			for ievt in xrange(nentries):
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 	parser.add_argument("--config",
 						dest="config",
 						type = str,
-						default="default_config.json",
+						required = True,
 						help="Input config file for makeHisotgrams.py.")
 
 	parser.add_argument('--nevents',

@@ -358,10 +358,34 @@ class Analysis(object):
 		elVec = electrons.lepVec
 
 		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
+		self.h["precutDV_mlll"][self.ch].Fill(mlll_sel.mlll)
+
+		if mlll_sel.passes():
+			self.h["postcutDV_mlll"][self.ch].Fill(mlll_sel.mlll)
+
+
+
 		return mlll_sel.passes()
 
 	def _dv_mass_cut(self, evt):
 		dv_mass_sel = selections.DVmasscut(evt=evt)
+
+		plep_vec = self.plep_sel.plepVec
+
+		muons = helpers.Tracks()
+		muons.getMuons(evt=evt)
+		muVec = muons.lepVec
+
+		electrons = helpers.Tracks()
+		electrons.getElectrons(evt=evt)
+		elVec = electrons.lepVec
+
+		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
+		
+		if dv_mass_sel.passes():
+			self.h["selDV_mlll"][self.ch].Fill(mlll_sel.mlll)
+
+
 		return dv_mass_sel.passes()
 
 	def _fill_histos(self, evt):
