@@ -468,8 +468,23 @@ class Analysis(object):
 				trkVec = tracks.lepVec	
 
 				if tracks.ntracks == 2: 
-					mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
-					self.h[histprefix + "_mltt"][self.ch].Fill(mltt.mltt)
+					# mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
+					Mhnl = selections.Mhnl(evt=evt, plep=plep_vec, trks =trkVec )
+					Mtrans = selections.Mtrans(plep=plep_vec, trks =trkVec )
+
+					self.h[histprefix + "_mvis"][self.ch].Fill(Mhnl.mvis)
+					self.h[histprefix + "_mhnl"][self.ch].Fill(Mhnl.mhnl)
+					self.h[histprefix + "_mtrans"][self.ch].Fill(Mtrans.mtrans)
+					self.h[histprefix + "_mtrans_rot"][self.ch].Fill(Mhnl.mtrans_rot)
+				
+					deta = abs(tracks.eta[0] - tracks.eta[1])
+					dphi = abs(tracks.phi[0] - tracks.phi[1])
+					dpt = abs(tracks.pt[0] - tracks.pt[1])
+					dR =  np.sqrt(deta**2 + dphi**2)
+					self.h[histprefix + "_DV_trk_deta"][self.ch].Fill(deta)
+					self.h[histprefix + "_DV_trk_dphi"][self.ch].Fill(dphi)
+					self.h[histprefix + "_DV_trk_dpt"][self.ch].Fill(dpt)
+					self.h[histprefix + "_DV_trk_dR"][self.ch].Fill(dR)
 
 
 			ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
@@ -823,7 +838,7 @@ class WmuHNL(Analysis):
 			else:
 				return
 
-		self._fill_selected_dv_histos(evt, "chargesel")
+		self._fill_selected_dv_histos(evt, "charge")
 
 		if self.do_dv_type_cut:
 			if self._dv_type_cut(evt, self.dv_type):

@@ -130,6 +130,9 @@ class Tracks():
 	def __init__(self):
 		self.lepVec = []
 		self.lepIndex = []
+		self.eta = []
+		self.phi = []
+		self.pt = []
 		self.ntracks = -1 
 
 	def getMuons(self, evt):
@@ -222,7 +225,9 @@ class Tracks():
 			trkvec.SetPtEtaPhiM(pt, eta, phi, M)
 
 			self.lepVec.append(trkvec)
-
+			self.eta.append(eta)
+			self.phi.append(phi)
+			self.pt.append(pt)
 
 			
 
