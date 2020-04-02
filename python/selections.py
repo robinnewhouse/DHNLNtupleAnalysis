@@ -455,16 +455,16 @@ class Mlll():
 		if self.decaymode == "leptonic":	
 		
 			if self.dv_type == "emu": 
-				self.plll = self.plep + self.dEl[0] + self.dMu[0]
-				self.mlll = self.plll.M()
+				self.plll = self.plep + self.dEl[0] + self.dMu[0]	
 
 			if self.dv_type == "mumu": 
 				self.plll = self.plep + self.dMu[0] + self.dMu[1]
-				self.mlll = self.plll.M()
+				
 
 			if self.dv_type == "ee": 
 				self.plll = self.plep + self.dEl[0] + self.dEl[1]
-				self.mlll = self.plll.M()
+			
+			self.mlll = self.plll.M()
 
 	def passes(self):
 		
@@ -473,22 +473,104 @@ class Mlll():
 		else: 
 			return False
 
-
-
-class DVmasscut():
-	def __init__(self, evt,  decaymode="leptonic",dvmasscut=4):
-		self.evt = evt
+class Mltt():
+	def __init__(self, plep, trks, decaymode="leptonic", _minmltt= 50 , _maxmltt = 84):
 		self.decaymode = decaymode
-		self.dvmasscut = dvmasscut
+		self.plep = plep
+		self.trks = trks
+		self._minmltt = _minmltt
+		self._maxmltt = _maxmltt
+
+		self.mltt = -1
+		self.plll = ROOT.TLorentzVector(0,0,0,0)
+
+		if self.decaymode == "leptonic":	
+			self.plll = self.plep + self.trks[0] + self.trks[1]
+			self.mltt = self.plll.M()
 
 	def passes(self):
-		dvmass = self.evt.tree.dvmass[self.evt.ievt][self.evt.idv]
-		if (dvmass > self.dvmasscut):
+		
+		if (self.mltt> self._minmltt and self.mltt < self._maxmltt):
+			return True
+		else: 
+			return False
+
+class Mtrans():
+	def __init__(self, plep, trks, decaymode="leptonic", _minmtrans= 50 , _maxmtrans = 84):
+		self.decaymode = decaymode
+		self.plep = plep
+		self.trks = trks
+		self._minmtrans = _minmtrans
+		self._maxmtrans = _maxmtrans
+
+		self.mtrans = -1
+		self.plll = ROOT.TLorentzVector(0,0,0,0)
+
+		if self.decaymode == "leptonic":	
+			self.plll = self.plep + self.trks[0] + self.trks[1]
+			self.mtrans = self.plll.Perp()
+
+	def passes(self):
+		
+		if (self.mtrans> self._minmtrans and self.mtrans < self._maxmtrans):
 			return True
 		else: 
 			return False
 
 
+
+class DVmass():
+	def __init__(self, evt, decaymode="leptonic",dvmasscut=4):
+		self.evt = evt
+		self.decaymode = decaymode
+		self.dvmasscut = dvmasscut
+		self.dvmass = self.evt.tree.dvmass[self.evt.ievt][self.evt.idv]
+
+	def passes(self):
+		if (self.dvmass > self.dvmasscut):
+			return True
+		else: 
+			return False
+
+
+class Mhnl():
+	def __init__(self, evt, plep, trks):
+		self.evt = evt
+		self.plep = plep
+		self.trks = trks
+
+		self.mhnl = -1
+		self.pv_vec = ROOT.TVector3(self.evt.tree.pvx[self.evt.ievt][self.evt.idv],
+									self.evt.tree.pvy[self.evt.ievt][self.evt.idv],
+									self.evt.tree.pvz[self.evt.ievt][self.evt.idv]) 
+
+		self.dv_vec = ROOT.TVector3(self.evt.tree.dvx[self.evt.ievt][self.evt.idv],
+								self.evt.tree.dvy[self.evt.ievt][self.evt.idv],
+								self.evt.tree.dvz[self.evt.ievt][self.evt.idv]) 
+
+
+	def passes(self):
+		
+		if (self.mtrans> self._minmtrans and self.mtrans < self._maxmtrans):
+			return True
+		else: 
+			return False
+
+
+
+class PV():
+	def __init__(self, evt):
+		self.evt = evt
+		self.pv_x = self.evt.tree.pvx[self.evt.ievt]
+		self.pv_y = self.evt.tree.pvy[self.evt.ievt]
+		self.pv_z = self.evt.tree.pvz[self.evt.ievt]
+
+	def passes(self):
+		
+		if (self.pv_x != -999.0 and self.pv_y != -999.0 and self.pv_z != -999.0 ): 
+			return True
+		else: 
+			return False # no primary vertex in the event
 
 
 

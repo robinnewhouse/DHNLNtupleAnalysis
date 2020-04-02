@@ -51,7 +51,7 @@ def main():
 				if tree.isData and "OS" in selections:
 					logger.fatal("You are running on data and you cannot look at OS verticies!!!")
 					exit()
-			ana = anaClass(channel, selections, output_path + "histograms_MC10G_10mm_el.root")
+			ana = anaClass(channel, selections, output_path + "histograms.root")
 			
 			# Loop over each event
 			for ievt in xrange(nentries):

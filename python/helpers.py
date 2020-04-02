@@ -130,6 +130,7 @@ class Tracks():
 	def __init__(self):
 		self.lepVec = []
 		self.lepIndex = []
+		self.ntracks = -1 
 
 	def getMuons(self, evt):
 		self.evt = evt 
@@ -210,7 +211,6 @@ class Tracks():
 	def getTracks(self, evt):
 		self.evt = evt
 		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
-	
 
 		for itr in xrange(self.ntracks):
 			trkvec = ROOT.TLorentzVector()
@@ -222,6 +222,7 @@ class Tracks():
 			trkvec.SetPtEtaPhiM(pt, eta, phi, M)
 
 			self.lepVec.append(trkvec)
+
 
 			
 
