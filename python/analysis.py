@@ -473,7 +473,10 @@ class Analysis(object):
 					Mtrans = selections.Mtrans(plep=plep_vec, trks =trkVec )
 
 					self.h[histprefix + "_mvis"][self.ch].Fill(Mhnl.mvis)
-					self.h[histprefix + "_mhnl"][self.ch].Fill(Mhnl.mhnl)
+					self.h[histprefix + "_HNLm"][self.ch].Fill(Mhnl.mhnl)
+					self.h[histprefix + "_HNLphi"][self.ch].Fill(Mhnl.hnlpt)
+					self.h[histprefix + "_HNLeta"][self.ch].Fill(Mhnl.hnleta)
+					self.h[histprefix + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi)
 					self.h[histprefix + "_mtrans"][self.ch].Fill(Mtrans.mtrans)
 					self.h[histprefix + "_mtrans_rot"][self.ch].Fill(Mhnl.mtrans_rot)
 				

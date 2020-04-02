@@ -525,6 +525,9 @@ class Mhnl():
 
 		self.mvis = -1 
 		self.mhnl = -1
+		self.hnlpt = -1
+		self.hnleta = -99
+		self.hnlphi = -99
 		self.mtrans_rot = -1 
 
 		def rotate_vector(r,v):
@@ -614,6 +617,9 @@ class Mhnl():
 
 			# truth studies show pHNL_2 is the solution that gets us the HNL mass
 			self.mhnl = pHNL_2.M()
+			self.hnlpt = pHNL_2.Pt()
+			self.hnleta = pHNL_2.Eta()
+			self.hnlphi = pHNL_2.Phi()
 
 	def passes(self):
 		
