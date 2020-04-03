@@ -541,6 +541,19 @@ class Mhnl():
 				print logger.ERROR("Roatating vectors did not work!! Check HNL mass calculation.")
 			return r_new
 
+		def unrotate_vector(r,v):
+			# r_new = ROOT.TVector3(v)
+			r_new = v
+
+			rotation_axis = ROOT.TVector3(-1*r.Y(),r.X(),0.0)
+			rotation_angle = r.Theta() 
+			r_new.Rotate(rotation_angle,rotation_axis)
+			
+			# if (r== v and r_new.X() > 0.001): 
+			# 	#if r=v then you should end up with a vector all in the z component
+			# 	print logger.ERROR("Roatating vectors did not work!! Check HNL mass calculation.")
+			return r_new
+
 		#primary vertex vector
 		pv_vec = ROOT.TVector3( self.evt.tree.pvx[self.evt.ievt],
 								self.evt.tree.pvy[self.evt.ievt],
@@ -559,6 +572,7 @@ class Mhnl():
 		for i in xrange(ntrk):
 			trkp_vec.append( ROOT.TVector3(self.trks[i].Px(),self.trks[i].Py(),self.trks[i].Pz()) )
 
+		# print "Original DV vector: (", hnl_vec.X(),",", hnl_vec.Y(),",",hnl_vec.Z() , ")"
 
 		#rotate coordinate system so hnl vector = z-axis
 		lepp_vec_rot = rotate_vector(hnl_vec,lepp_vec)
@@ -617,9 +631,16 @@ class Mhnl():
 
 			# truth studies show pHNL_2 is the solution that gets us the HNL mass
 			self.mhnl = pHNL_2.M()
-			self.hnlpt = pHNL_2.Pt()
-			self.hnleta = pHNL_2.Eta()
-			self.hnlphi = pHNL_2.Phi()
+
+			pHNL_2_lab = unrotate_vector(hnl_vec,pHNL_2)
+			hnl_vec_unrot = unrotate_vector(hnl_vec,hnl_vec_rot)
+
+			# check that you rotated back to the original reference frame
+			#print "Unrotated DV vector: (", hnl_vec_unrot.X(),",", hnl_vec_unrot.Y(),",",hnl_vec_unrot.Z() , ")"
+
+			self.hnlpt = pHNL_2_lab.Pt()
+			self.hnleta = pHNL_2_lab.Eta()
+			self.hnlphi = pHNL_2_lab.Phi()
 
 	def passes(self):
 		

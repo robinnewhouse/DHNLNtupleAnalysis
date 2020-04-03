@@ -24,9 +24,10 @@ class Tree():
 		self.elelfilter = self.tree["passesHnlElElFilter"].array()
 		self.elmufilter = self.tree["passesHnlElMuFilter"].array()
 
-		self.pvx = self.tree["vertex_x"].array()  
-		self.pvy = self.tree["vertex_y"].array()  
-		self.pvz = self.tree["vertex_z"].array() 
+		if "vertex_x" in self.file[treeName].keys(): 
+			self.pvx = self.tree["vertex_x"].array()  
+			self.pvy = self.tree["vertex_y"].array()  
+			self.pvz = self.tree["vertex_z"].array() 
 		
 		# -----------------------------------------------------------------------
 		# DV track variables

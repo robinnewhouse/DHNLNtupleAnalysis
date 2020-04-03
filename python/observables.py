@@ -202,6 +202,9 @@ def selhistograms(histprefix):
 	Observable(histprefix + "_HNLphi", binning = (64,-4,4), do = ['hist']).queue()
 	Observable(histprefix + "_mtrans",binning = (10000,0,5000), do = ['hist']).queue()
 	Observable(histprefix + "_mtrans_rot",binning = (10000,0,5000), do = ['hist']).queue()
+	Observable(histprefix + "_DV_redmass",binning = (10000,0,5000), do = ['hist']).queue()
+	Observable(histprefix + "_DV_redmassvis",binning = (10000,0,5000), do = ['hist']).queue()
+	Observable(histprefix + "_DV_redmassHNL",binning = (10000,0,5000), do = ['hist']).queue()
 
 selhistograms("sel")
 selhistograms("charge")
