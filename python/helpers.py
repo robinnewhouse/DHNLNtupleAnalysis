@@ -87,7 +87,7 @@ def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
 	c = getNote()
 	d = getNote()
 	e = getNote()
-	ax = 0.50
+	ax = 0.25
 	ay = 0.87
 	if MC_campaign == "merged": 
 		a.DrawLatex(ax,ay,'all MC campaigns')

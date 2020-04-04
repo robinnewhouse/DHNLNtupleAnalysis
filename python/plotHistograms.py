@@ -25,28 +25,33 @@ SetAtlasStyle()
 def plot_cutflow(histos, ch_name, vertextype,savefilename):
 
 	file = ROOT.TFile(histos)
-  	hcutflow = file.Get('CutFlow_'+ch_name)
+	hcutflow = file.Get('CutFlow_'+ch_name)
 
 	MyC01= ROOT.TCanvas("MyC01","cutflow",600,400)
 	# ROOT.gPad.SetLogy()
   # 	MyC01.Divide(1,1)
- 	# MyC01.cd(1)
+	# MyC01.cd(1)
 
- 	ymax_cutflow = hcutflow.GetMaximum()
- 	hcutflow.GetYaxis().SetRangeUser(0,ymax_cutflow*1.05)
- 	hcutflow.SetFillColor(kAzure-4)
- 	hcutflow.SetLineWidth(0)
-  	hcutflow.Draw("HIST TEXT0 SAME")
+	ymax_cutflow = hcutflow.GetMaximum()
+	hcutflow.GetYaxis().SetRangeUser(0,ymax_cutflow*1.05)
+	hcutflow.SetFillColor(kAzure-4)
+	hcutflow.SetLineWidth(0)
+	hcutflow.Draw("HIST TEXT0 SAME")
 
-  	if options.data == True: 
-  		helpers.drawNotesData("data18 period B",vertextype) 
-  	else: 
-  		helpers.drawNotesMC("",'VSI Leptons',"emu",'20','10') 
-  	MyC01.SaveAs(histos_savepath +'Cutflow_'+savefilename+'.pdf')
+	if options.data == True: 
+		helpers.drawNotesData("data18 period B",vertextype) 
+	else: 
+		helpers.drawNotesMC("",'VSI Leptons',"emu",'20','10') 
+	MyC01.SaveAs(histos_savepath +'Cutflow_'+savefilename+'.pdf')
 
 def xlabelhistograms(hist): 
 	if "DV_r" in hist:
-		return "DV r [mm]"
+		if  ("redmassvis" in hist):
+			return "reduced visible mass [GeV]"
+		elif  ("redmass" in hist):
+			return "reduced DV mass [GeV]"
+		else: 
+			return "DV r [mm]"
 	if "DV_mass" in hist: 
 		return "DV mass [GeV]"
 	if "trk_pt" in hist:
@@ -57,8 +62,18 @@ def xlabelhistograms(hist):
 		return "track \phi"
 	if "trk_d0" in hist:
 		return "track d_{0}"
-	if "mlll" in hist:
-		return "tri-lepton mass [GeV]"
+	if "mvis" in hist:
+		return "Visible mass (m_{lll}) [GeV]"
+	if "dpt" in hist: 
+		return "\Deltap_{T} between tracks in DV [GeV]"
+	if "deta" in hist: 
+		return "\Delta\eta between tracks in DV"
+	if "dphi" in hist: 
+		return "\Delta\phi between tracks in DV"
+	if "dR" in hist: 
+		return "\DeltaR between tracks in DV"
+	if "mtrans" in hist:
+		return "m_{T} [GeV]"
 	else: 
 		return ""
 
@@ -72,16 +87,18 @@ def histColours(nhist):
 	if nhist== 3:
 		return kGreen+1
 	if nhist== 4:
-		return kBlue
+		return kOrange -3
+	else: 
+		return kBlack
 
 
 
 
 
-def compareN(file, hname, hlabel,savefilename):
+def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=1,nRebin=1):
 	############################################################################
 	nRebin = 5 # set to 1 if you dont want to rebin.
-	scaleymax = 1.6 # use this to scale height of y axis for asthetics
+	# scaleymax = 1.6 # use this to scale height of y axis for asthetics
 	############################################################################
 
 
@@ -89,31 +106,34 @@ def compareN(file, hname, hlabel,savefilename):
 	nhist = len(hname)
 	f = ROOT.TFile(file)
 	# file2 = ROOT.TFile(histos)
-  	
-  	h = {}
-  	for i in xrange(nhist): 
-	  	h[hname[i]] = f.Get(hname[i])
+	print file
+	
+	h = {}
+	for i in xrange(nhist): 
+		# print hname[i]
+		h[hname[i]] = f.Get(hname[i])
+	# exit()
 
 
-  	#define your canvas
+	#define your canvas
 	MyC01= ROOT.TCanvas("MyC01","",600,400)
 	MyC01.Divide(1,1)
 	MyC01.cd(1)
 
 	#format legend
 	leg01 = ROOT.TLegend(0.60,0.7,0.91,0.92)
-  	leg01.SetTextSize(0.035)
-  	leg01.SetBorderSize(0)
-  	leg01.SetFillColor(kWhite)
-  	leg01.SetShadowColor(kWhite)
+	leg01.SetTextSize(0.035)
+	leg01.SetBorderSize(0)
+	leg01.SetFillColor(kWhite)
+	leg01.SetShadowColor(kWhite)
 
 
-  	ymax_list = []
-  	h_binxmax_list = []
-  	h_binxmin_list = []
-  	for i in xrange(nhist):
-	  	leg01.AddEntry(h[hname[i]],hlabel[i],"l")
-	  	h[hname[i]].Rebin(nRebin)
+	ymax_list = []
+	h_binxmax_list = []
+	h_binxmin_list = []
+	for i in xrange(nhist):
+		leg01.AddEntry(h[hname[i]],hlabel[i],"lp")
+		h[hname[i]].Rebin(nRebin)
 
 		ymax_list.append(h[hname[i]].GetMaximum())
 		h_binxmax_list.append(h[hname[i]].FindLastBinAbove(0,1))
@@ -123,29 +143,41 @@ def compareN(file, hname, hlabel,savefilename):
 	bin_xmax = max(h_binxmax_list)
 	bin_xmin = min(h_binxmin_list)
 
-
+	shapelist = [20,22,21,33,29]
 	for i in xrange(nhist): 
+		h[hname[i]].SetLineColor(histColours(i))
+		h[hname[i]].SetMarkerColor(histColours(i))
+		h[hname[i]].SetMarkerSize(0.7)
+		h[hname[i]].SetMarkerStyle(shapelist[i])
 		if i == 0:
-			h[hname[i]].SetLineColor(histColours(i))
 			h[hname[i]].GetXaxis().SetTitle(xlabelhistograms(hname[i]))
-		  	h[hname[i]].GetYaxis().SetTitle("entries")
-		  	h[hname[i]].GetYaxis().SetRangeUser(0,y_max*scaleymax)
-			h[hname[i]].GetXaxis().SetRangeUser(0,3000)
-			h[hname[i]].GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
-			h[hname[i]].Draw("HIST")
+			h[hname[i]].GetYaxis().SetTitle("entries")
+			h[hname[i]].GetYaxis().SetRangeUser(0,y_max*scaleymax)
+			if setxrange != "":
+				X_minmax = [item for item in setxrange.split(' ')]
+				h[hname[i]].GetXaxis().SetRangeUser(int(X_minmax[0]),int(X_minmax[1]))
+			else:
+				h[hname[i]].GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
+			h[hname[i]].Draw("E0 HIST")
 		else: 
-			h[hname[i]].SetLineColor(histColours(i))
-			h[hname[i]].Draw("HIST SAME")
+			h[hname[i]].Draw("E0 HIST SAME")
 
 
 	leg01.Draw()
 	ATLASLabel(0.25,0.87,"Internal")
+
+	if "pmu" in hname[0]: 
+		if "mumu" in hname[0]:
+			helpers.drawNotesMC("",vertextype, "mumu","10","10")
+		if "emu" in hname[0]:
+			helpers.drawNotesMC("",vertextype, "mumu","10","10")
+	
 	
 	MyC01.SaveAs(histos_savepath +savefilename+'.pdf')
 
 
 
-def compare_dataMC(datafile,mcfile, nRebin, hdataname, hdatalabel, hmcname, hmclabel, setrange,scaleymax, vertextype,savefilename):
+def compare_dataMC(datafile,mcfile, nRebin, hdataname, hdatalabel, hmcname, hmclabel, setrange,scaleymax, vertextype,savefilename,setlogy=False):
 	############################################################################
 	# nRebin = 5 # set to 1 if you dont want to rebin.
 	# scaleymax = 1.2 # use this to scale height of y axis for asthetics
@@ -156,24 +188,22 @@ def compare_dataMC(datafile,mcfile, nRebin, hdataname, hdatalabel, hmcname, hmcl
 
 	data = ROOT.TFile(datafile)
 	mc = ROOT.TFile(mcfile)
-  	hdata = data.Get(hdataname)
-  	hmc = mc.Get(hmcname)
+	hdata = data.Get(hdataname)
+	hmc = mc.Get(hmcname)
 
 
-  	#define your canvas
+	#define your canvas
 	MyC01= ROOT.TCanvas("MyC01","",600,400)
-	MyC01.Divide(1,1)
-	MyC01.cd(1)
 
 	#format legend
 	leg01 = ROOT.TLegend(0.60,0.7,0.91,0.92)
-  	leg01.SetTextSize(0.035)
-  	leg01.SetBorderSize(0)
-  	leg01.SetFillColor(kWhite)
-  	leg01.SetShadowColor(kWhite)
+	leg01.SetTextSize(0.035)
+	leg01.SetBorderSize(0)
+	leg01.SetFillColor(kWhite)
+	leg01.SetShadowColor(kWhite)
 
-  	leg01.AddEntry(hdata,hdatalabel,"l")
-	leg01.AddEntry(hmc,hmclabel,"l")
+	leg01.AddEntry(hdata,hdatalabel,"lp")
+	leg01.AddEntry(hmc,hmclabel,"lp")
 
 
 
@@ -205,46 +235,70 @@ def compare_dataMC(datafile,mcfile, nRebin, hdataname, hdatalabel, hmcname, hmcl
 
 
 
-	hdata.SetLineColor(kAzure+6)
+	hdata.SetLineColor(kBlack)
 	hdata.GetXaxis().SetTitle(xlabelhistograms(hdataname))
-  	hdata.GetYaxis().SetTitle("entries")
-  	hdata.GetYaxis().SetRangeUser(0,y_max*scaleymax)
+	hdata.GetYaxis().SetTitle("entries")
+	hdata.GetYaxis().SetRangeUser(0,y_max*scaleymax)
 
 
-  	if setrange == "":
+	if setrange == "":
 		hdata.GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
 	else: 
 
 		minmax = [item for item in setrange.split(' ')]
 		hdata.GetXaxis().SetRangeUser(int(minmax[0]),int(minmax[1]))
 	
-	hdata.Draw("HIST")
+	hdata.SetMarkerSize(0.7)
+	hmc.SetMarkerSize(0.7)
+	hdata.Draw("E0 HIST")
 
 	
- 	hmc.SetLineColor(kRed)
- 	# hmc.SetLineStyle(3)
- 	hmc.Draw("HIST SAME")
+	hmc.SetLineColor(kAzure+6)
+	hmc.SetMarkerColor(kAzure+6)
+	hmc.SetMarkerStyle(kFullTriangleUp)
+	# hmc.SetLineStyle(3)
+	hmc.Draw("E0 HIST SAME")
 
- 	if "mass" in hdataname:
-	 	mDVcut=TLine(4,0,4,y_max)
-	 	mDVcut.SetLineStyle(3)
+	if setlogy: 
+		gPad.SetLogy()
+
+	if "DV_mass" in hdataname:
+		mDVcut=TLine(4,0,4,y_max)
+		mDVcut.SetLineStyle(3)
 		mDVcut.Draw("SAME")
-	if "mlll" in hdataname:
+
+	if "mvis" in hdataname:
 		min_mlll=TLine(50,0,50,y_max)
-	 	min_mlll.SetLineStyle(3)
+		min_mlll.SetLineStyle(3)
 		min_mlll.Draw("SAME")
 
 		max_mlll=TLine(84,0,84,y_max)
-	 	max_mlll.SetLineStyle(3)
+		max_mlll.SetLineStyle(3)
 		max_mlll.Draw("SAME")
+
+	if "DV_r" in hdataname:
+		if  "redmass" in hdataname:
+			pass
+		else: 
+			matlayers = [33.25,50.5,88.5,122.5,299]
+			nmatlayers = len(matlayers)
+			matlay={}
+			for i in range(nmatlayers):
+				print "plotting material layers!"
+				matlay[i]=TLine(matlayers[i],0,matlayers[i],y_max)
+				matlay[i].SetLineStyle(3)
+				matlay[i].Draw("SAME")
+
+	
+
 
 	leg01.Draw()
 	ATLASLabel(0.25,0.87,"Internal")
 	if "pmu" in hdataname: 
 		if "mumu" in hdataname:
-  			helpers.drawNotes("mumu","muon",vertextype) 
-  		if "emu" in hdataname:
-  			helpers.drawNotes("emu","muon",vertextype) 
+			helpers.drawNotes("mumu","muon",vertextype) 
+		if "emu" in hdataname:
+			helpers.drawNotes("emu","muon",vertextype) 
 	
 	MyC01.SaveAs(histos_savepath +savefilename+'.pdf')
 
@@ -350,16 +404,16 @@ def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,s
 	hratio.SetMarkerStyle(21)
 	hratio.GetYaxis().SetTitle("Orig. VSI / Rerun VSI")
 	hratio.GetYaxis().SetNdivisions(505)
-   	hratio.GetYaxis().SetTitleSize(20)
-   	hratio.GetYaxis().SetTitleFont(43)
-   	hratio.GetYaxis().SetTitleOffset(1.55)
-   	hratio.GetYaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
-   	hratio.GetYaxis().SetLabelSize(15)
+	hratio.GetYaxis().SetTitleSize(20)
+	hratio.GetYaxis().SetTitleFont(43)
+	hratio.GetYaxis().SetTitleOffset(1.55)
+	hratio.GetYaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
+	hratio.GetYaxis().SetLabelSize(15)
 	hratio.GetXaxis().SetTitleSize(20)
-   	hratio.GetXaxis().SetTitleFont(43)
-   	hratio.GetXaxis().SetTitleOffset(4.)
-   	hratio.GetXaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
-   	hratio.GetXaxis().SetLabelSize(15)
+	hratio.GetXaxis().SetTitleFont(43)
+	hratio.GetXaxis().SetTitleOffset(4.)
+	hratio.GetXaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
+	hratio.GetXaxis().SetLabelSize(15)
 
 
 	hratio.Draw("ep")
@@ -368,6 +422,113 @@ def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,s
 	MyC01.SaveAs(histos_savepath +savefilename+'.pdf')
 
 
+def massplot2D(file, hname, hlabel,savefilename,vertextype, setxrange="",setyrange="",rebinx=1,rebiny=1):
+	############################################################################
+	# nRebin = 5 # set to 1 if you dont want to rebin.
+	# scaleymax = 1.6 # use this to scale height of y axis for asthetics
+	############################################################################
+
+
+	# get 2 histograms from input file
+	nhist = len(hname)
+	f = ROOT.TFile(file)
+	# file2 = ROOT.TFile(histos)
+	
+	h = f.Get(hname)
+	# exit()
+
+
+	#define your canvas
+	MyC01= ROOT.TCanvas("MyC01","",800,500)
+	MyC01.SetRightMargin(20)
+	# MyC01.Divide(1,1)
+	# MyC01.cd(1)
+
+
+	#format legend
+	leg01 = ROOT.TLegend(0.60,0.8,0.89,0.92)
+	leg01.SetTextSize(0.035)
+	leg01.SetBorderSize(0)
+	leg01.SetFillColor(kWhite)
+	leg01.SetShadowColor(kWhite)
+	leg01.AddEntry(h,hlabel,"")
+	# rebin
+	hold = h.Clone()
+	hold.SetDirectory(0)
+	nbinsx = hold.GetXaxis().GetNbins()
+	nbinsy = hold.GetYaxis().GetNbins()
+	xmin  = hold.GetXaxis().GetXmin()
+	xmax  = hold.GetXaxis().GetXmax()
+	ymin  = hold.GetYaxis().GetXmin()
+	ymax  = hold.GetYaxis().GetXmax()
+	nx = nbinsx/rebinx
+	ny = nbinsy/rebiny
+	h.SetBins(nx,xmin,xmax,ny,ymin,ymax)
+	
+	#loop on all bins to reset contents and errors
+	for biny in range(1, nbinsy): 
+		if (biny <= nbinsy): 
+			for binx in range(1, nbinsx):
+				if binx <= nbinsx: 
+					ibin = h.GetBin(binx,biny)
+					h.SetBinContent(ibin,0)
+			  
+   
+   #//loop on all bins and refill
+	for biny in range(1, nbinsy): 
+		if (biny <= nbinsy): 
+			by  = hold.GetYaxis().GetBinCenter(biny)
+			iy  = h.GetYaxis().FindBin(by)
+			for binx in range(1, nbinsx):
+				if binx <= nbinsx: 
+					bx = hold.GetXaxis().GetBinCenter(binx)
+					ix  = h.GetXaxis().FindBin(bx)
+					Bin = hold.GetBin(binx,biny)
+					ibin= h.GetBin(ix,iy)
+					cu  = hold.GetBinContent(Bin)
+					h.AddBinContent(ibin,cu)
+  
+
+	if setxrange != "": 
+		X_minmax = [item for item in setxrange.split(' ')]
+		h.GetXaxis().SetRangeUser(int(X_minmax[0]),int(X_minmax[1]))
+
+	if setyrange != "": 
+		Y_minmax = [item for item in setyrange.split(' ')]
+		h.GetYaxis().SetRangeUser(int(Y_minmax[0]),int(Y_minmax[1]))
+
+	if "DVmass_mvis" in hname: 
+		h.GetXaxis().SetTitle("DV mass [GeV]")
+		h.GetYaxis().SetTitle("Visible Mass [GeV]")
+	if "DVmass_mhnl" in hname: 
+		h.GetXaxis().SetTitle("DV mass [GeV]")
+		h.GetYaxis().SetTitle("HNL Mass [GeV]")
+	if "DVmass_mtrans" in hname: 
+		h.GetXaxis().SetTitle("DV mass [GeV]")
+		h.GetYaxis().SetTitle("Visible m_{T} [GeV]")
+	if "mvis_mhnl" in hname: 
+		h.GetXaxis().SetTitle("Visible mass [GeV]")
+		h.GetYaxis().SetTitle("HNL mass [GeV]")
+	if "mvis_mtrans" in hname: 
+		h.GetXaxis().SetTitle("Visible Mass [GeV]")
+		h.GetYaxis().SetTitle("Visible m_{T} [GeV]")
+	if "mhnl_mtrans" in hname: 
+		h.GetXaxis().SetTitle("HNL mass [GeV]")
+		h.GetYaxis().SetTitle("Visible m_{T} [GeV]")
+
+	h.GetZaxis().SetTitleOffset(-1.5)
+	h.Draw("colz")
+
+
+	leg01.Draw()
+	ATLASLabel(0.25,0.87,"Internal")
+	if "pmu" in hname: 
+		if "mumu" in hname:
+			helpers.drawNotes("mumu","muon",vertextype) 
+		if "emu" in hname:
+			helpers.drawNotes("emu","muon",vertextype) 
+		
+	MyC01.SaveAs(histos_savepath +savefilename+'.pdf')
 
 
 if __name__ == '__main__':
@@ -406,11 +567,11 @@ if __name__ == '__main__':
 						help="Input file 2",
 						metavar="FILE")
 
-	parser.add_argument("--config",
-						dest="config",
-						type = str,
-						required = True,
-						help="Input config file for plotHisotgrams.py.")
+	# parser.add_argument("--config",
+	# 					dest="config",
+	# 					type = str,
+	# 					required = True,
+	# 					help="Input config file for plotHisotgrams.py.")
 
 
 	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser]) 
@@ -419,8 +580,8 @@ if __name__ == '__main__':
 
 
 
-	with open(options.config, 'r') as json_config:
-		config_file = json.load(json_config) # load JSON config file that contains a channel name mapped to a list of selections
+	# with open(options.config, 'r') as json_config:
+	# 	config_file = json.load(json_config) # load JSON config file that contains a channel name mapped to a list of selections
 
 	# print options.file[0]
 
@@ -432,10 +593,10 @@ if __name__ == '__main__':
 					nRebin = 1, 
 					setrange= "0 20",
 					scaleymax = 1.2,				
-					hdataname = "SSDV_mass_pmu_mumu_VSILep", 
+					hdataname = "charge_DV_mass_pmu_mumu_VSILep", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_mass_pmu_mumu_VSILep",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_mass_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI Leptons",
 					savefilename = "DV_mass_MCdatacompare_VSILep"	)
 
@@ -444,10 +605,10 @@ if __name__ == '__main__':
 					nRebin = 1, 
 					setrange= "0 40",
 					scaleymax = 1.2,				
-					hdataname = "SSDV_mass_pmu_mumu_VSI", 
+					hdataname = "charge_DV_mass_pmu_mumu_VSI", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_mass_pmu_mumu_VSI",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_mass_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI",
 					savefilename = "DV_mass_MCdatacompare_VSI"	)
 
@@ -455,10 +616,10 @@ if __name__ == '__main__':
 					nRebin = 5, 
 					setrange= "",
 					scaleymax = 1.2,
-					hdataname = "SSDV_r_pmu_mumu_VSILep", 
+					hdataname = "charge_DV_r_pmu_mumu_VSILep", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_r_pmu_mumu_VSILep",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_r_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI Leptons",
 					savefilename = "DV_r_MCdatacompare_VSILep"	)
 
@@ -467,10 +628,10 @@ if __name__ == '__main__':
 					nRebin = 5, 
 					setrange= "",
 					scaleymax = 1.2,
-					hdataname = "SSDV_r_pmu_mumu_VSI", 
+					hdataname = "charge_DV_r_pmu_mumu_VSI", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_r_pmu_mumu_VSI",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_r_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI",
 					savefilename = "DV_r_MCdatacompare_VSI"	)
 
@@ -479,21 +640,22 @@ if __name__ == '__main__':
 					nRebin = 2, 
 					setrange= "0 100",
 					scaleymax = 1.2,					
-					hdataname = "SSDV_trk_pt_pmu_mumu_VSILep", 
+					hdataname = "charge_DV_trk_pt_pmu_mumu_VSILep", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_trk_pt_pmu_mumu_VSILep",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_trk_pt_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI Leptons",
 					savefilename = "trk_pt_MCdatacompare_VSILep"	)
 
 	compare_dataMC(files[1],files[0],
 					nRebin = 2, 
 					setrange= "0 100",
+					setlogy= False,
 					scaleymax = 1.2,					
-					hdataname = "SSDV_trk_pt_pmu_mumu_VSI", 
+					hdataname = "charge_DV_trk_pt_pmu_mumu_VSI", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_trk_pt_pmu_mumu_VSI",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_trk_pt_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI",
 					savefilename = "trk_pt_MCdatacompare_VSI"	)
 
@@ -503,10 +665,10 @@ if __name__ == '__main__':
 					nRebin = 1, 
 					setrange= "",
 					scaleymax = 2.2,
-					hdataname = "SSDV_trk_phi_pmu_mumu_VSILep", 
+					hdataname = "charge_DV_trk_phi_pmu_mumu_VSILep", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_trk_phi_pmu_mumu_VSILep",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_trk_phi_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI Leptons",
 					savefilename = "trk_phi_MCdatacompare_VSILep"	)
 
@@ -514,10 +676,10 @@ if __name__ == '__main__':
 					nRebin = 1, 
 					setrange= "",
 					scaleymax = 2.2,
-					hdataname = "SSDV_trk_phi_pmu_mumu_VSI", 
+					hdataname = "charge_DV_trk_phi_pmu_mumu_VSI", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_trk_phi_pmu_mumu_VSI",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_trk_phi_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI",
 					savefilename = "trk_phi_MCdatacompare_VSI"	)
 
@@ -526,10 +688,10 @@ if __name__ == '__main__':
 					nRebin = 1, 
 					setrange= "",
 					scaleymax = 2.2,
-					hdataname = "SSDV_trk_eta_pmu_mumu_VSILep", 
+					hdataname = "charge_DV_trk_eta_pmu_mumu_VSILep", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_trk_eta_pmu_mumu_VSILep",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_trk_eta_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI Leptons",
 					savefilename = "trk_eta_MCdatacompare_VSILep"	)
 
@@ -537,10 +699,10 @@ if __name__ == '__main__':
 					nRebin = 1, 
 					setrange= "",
 					scaleymax = 2.2,
-					hdataname = "SSDV_trk_eta_pmu_mumu_VSI", 
+					hdataname = "charge_DV_trk_eta_pmu_mumu_VSI", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_trk_eta_pmu_mumu_VSI",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_trk_eta_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI",
 					savefilename = "trk_eta_MCdatacompare_VSI"	)
 
@@ -549,10 +711,10 @@ if __name__ == '__main__':
 					nRebin = 1, 
 					setrange= "-10 10",
 					scaleymax = 1.2,
-					hdataname = "SSDV_trk_d0_pmu_mumu_VSILep", 
+					hdataname = "charge_DV_trk_d0_pmu_mumu_VSILep", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_trk_d0_pmu_mumu_VSILep",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_trk_d0_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI Leptons",
 					savefilename = "trk_d0_MCdatacompare_VSILep"	)
 
@@ -560,38 +722,370 @@ if __name__ == '__main__':
 					nRebin = 1, 
 					setrange= "-10 10",
 					scaleymax = 1.2,
-					hdataname = "SSDV_trk_d0_pmu_mumu_VSI", 
+					hdataname = "charge_DV_trk_d0_pmu_mumu_VSI", 
 					hdatalabel= "data 2018 period B",
-					hmcname = "SSDV_trk_d0_pmu_mumu_VSI",
-					hmclabel = "MC 10G 10mm",
+					hmcname = "charge_DV_trk_d0_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
 					vertextype = "VSI",
 					savefilename = "trk_d0_MCdatacompare_VSI"	)
 
 
-	# compare_dataMC(files[1],files[0],
-	# 				nRebin = 5, 
-	# 				setrange= "0 200",
-	# 				scaleymax = 1.5,
-	# 				hdataname = "precutDV_mlll_pmu_mumu_VSILep", 
-	# 				hdatalabel= "data 2018 period B",
-	# 				hmcname = "precutDV_mlll_pmu_mumu_VSILep",
-	# 				hmclabel = "MC 10G 10mm",
-	# 				vertextype = "VSI Leptons",
-	# 				savefilename = "precutmlll_MCdatacompare_VSILep"	)
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "-10 10",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_d0_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_d0_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "trk_d0_MCdatacompare_VSILep"	)
 
-	# compare_dataMC(files[1],files[0],
-	# 				nRebin = 5, 
-	# 				setrange= "0 200",
-	# 				scaleymax = 1.5,
-	# 				hdataname = "precutDV_mlll_pmu_mumu_VSI", 
-	# 				hdatalabel= "data 2018 period B",
-	# 				hmcname = "precutDV_mlll_pmu_mumu_VSI",
-	# 				hmclabel = "MC 10G 10mm",
-	# 				vertextype = "VSI",
-	# 				savefilename = "precutmlll_MCdatacompare_VSI"	)
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "-10 10",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_d0_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_d0_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "trk_d0_MCdatacompare_VSI"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 5, 
+					setrange= "0 20",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_dpt_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_dpt_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "trk_dpt_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 5, 
+					setrange= "0 20",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_dpt_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_dpt_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "trk_dpt_MCdatacompare_VSI"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 2, 
+					setrange= "0 4",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_deta_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_deta_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "trk_deta_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 2, 
+					setrange= "0 4",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_deta_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_deta_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "trk_deta_MCdatacompare_VSI"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "0 8",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_dphi_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_dphi_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "trk_dphi_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "0 8",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_dphi_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_dphi_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "trk_dphi_MCdatacompare_VSI"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 10, 
+					setrange= "0 2",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_dR_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_dR_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "trk_dR_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 10, 
+					setrange= "0 10",
+					scaleymax = 1.2,
+					hdataname = "charge_DV_trk_dR_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_trk_dR_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "trk_dR_MCdatacompare_VSI"	)
+
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 5, 
+					setrange= "0 200",
+					scaleymax = 1.5,
+					hdataname = "charge_mvis_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_mvis_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "mvis_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 5, 
+					setrange= "0 200",
+					scaleymax = 1.5,
+					hdataname = "charge_mvis_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_mvis_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "mvis_MCdatacompare_VSI"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 5, 
+					setrange= "0 200",
+					scaleymax = 1.5,
+					hdataname = "charge_mtrans_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_mtrans_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "mtrans_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 5, 
+					setrange= "0 200",
+					scaleymax = 1.5,
+					hdataname = "charge_mtrans_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_mtrans_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "mtrans_MCdatacompare_VSI"	)
 
 
 
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "0 20",
+					scaleymax = 1.5,
+					hdataname = "charge_DV_redmass_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_redmass_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "DV_redmass_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "0 20",
+					scaleymax = 1.5,
+					hdataname = "charge_DV_redmass_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_redmass_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "DV_redmass_MCdatacompare_VSI"	)
+
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 5, 
+					setrange= "0 200",
+					scaleymax = 1.5,
+					hdataname = "charge_DV_redmassvis_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_redmassvis_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "DV_redmassvis_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 5, 
+					setrange= "0 200",
+					scaleymax = 1.5,
+					hdataname = "charge_DV_redmassvis_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_DV_redmassvis_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "DV_redmassvis_MCdatacompare_VSI"	)
+
+
+	# massplot2D(files[0], 
+	# 		hname="charge_DVmass_mvis_pmu_mumu_VSI", 
+	# 		hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+	# 		vertextype="VSI",
+	# 		savefilename="MC_charge_DVmass_mvis_VSI",
+	# 		setxrange="0 30",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[0], 
+	# 		hname="charge_DVmass_mvis_pmu_mumu_VSILep", 
+	# 		hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+	# 		vertextype="VSI Leptons",
+	# 		savefilename="MC_charge_DVmass_mvis_VSILep",
+	# 		setxrange="0 30",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[0], 
+	# 		rebinx=2,
+	# 		rebiny=5,
+	# 		hname="charge_DVmass_mtrans_pmu_mumu_VSI", 
+	# 		hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+	# 		vertextype="VSI",
+	# 		savefilename="MC_charge_DVmass_mtrans_VSI",
+	# 		setxrange="0 30",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[0], 
+	# 		rebinx=2,
+	# 		rebiny=5,
+	# 		hname="charge_DVmass_mtrans_pmu_mumu_VSILep", 
+	# 		hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+	# 		vertextype="VSI Leptons",
+	# 		savefilename="MC_charge_DVmass_mtrans_VSILep",
+	# 		setxrange="0 30",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[0], 
+	# 		rebinx=5,
+	# 		rebiny=5,
+	# 		hname="charge_mvis_mtrans_pmu_mumu_VSI", 
+	# 		hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+	# 		vertextype="VSI",
+	# 		savefilename="MC_charge_mvis_mtrans_VSI",
+	# 		setxrange="0 100",
+	# 		setyrange="0 300")
+
+	massplot2D(files[0], 
+			rebinx=5,
+			rebiny=5,
+			hname="charge_mvis_mtrans_pmu_mumu_VSILep", 
+			hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+			vertextype="VSI Leptons",
+			savefilename="MC_charge_mvis_mtrans_VSILep",
+			setxrange="0 100",
+			setyrange="0 300")
+
+ #   # data 2D mass 
+	# massplot2D(files[1], 
+	# 		hname="charge_DVmass_mvis_pmu_mumu_VSI", 
+	# 		hlabel="data 2018 period B",
+	# 		vertextype="VSI",
+	# 		savefilename="Data_charge_DVmass_mvis_VSI",
+	# 		setxrange="0 30",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[1], 
+	# 		hname="charge_DVmass_mvis_pmu_mumu_VSILep", 
+	# 		hlabel="data 2018 period B",
+	# 		vertextype="VSI Leptons",
+	# 		savefilename="Data_charge_DVmass_mvis_VSILep",
+	# 		setxrange="0 30",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[1], 
+	# 		rebinx=2,
+	# 		rebiny=5,
+	# 		hname="charge_DVmass_mtrans_pmu_mumu_VSI", 
+	# 		hlabel="data 2018 period B",
+	# 		vertextype="VSI",
+	# 		savefilename="Data_charge_DVmass_mtrans_VSI",
+	# 		setxrange="0 30",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[1], 
+	# 		rebinx=2,
+	# 		rebiny=5,
+	# 		hname="charge_DVmass_mtrans_pmu_mumu_VSILep", 
+	# 		hlabel="data 2018 period B",
+	# 		vertextype="VSI Leptons",
+	# 		savefilename="Data_charge_DVmass_mtrans_VSILep",
+	# 		setxrange="0 30",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[1], 
+	# 		rebinx=5,
+	# 		rebiny=5,
+	# 		hname="charge_mvis_mtrans_pmu_mumu_VSI", 
+	# 		hlabel="data 2018 period B",
+	# 		vertextype="VSI",
+	# 		savefilename="Data_charge_mvis_mtrans_VSI",
+	# 		setxrange="0 100",
+	# 		setyrange="0 300")
+
+	# massplot2D(files[1], 
+	# 		rebinx=5,
+	# 		rebiny=5,
+	# 		hname="charge_mvis_mtrans_pmu_mumu_VSILep", 
+	# 		hlabel="data 2018 period B",
+	# 		vertextype="VSI Leptons",
+	# 		savefilename="Data_charge_mvis_mtrans_VSILep",
+	# 		setxrange="0 100",
+	# 		setyrange="0 300")
+
+
+
+
+	compareN(files[0],
+			setxrange= "0 100",
+			scaleymax=1.2,
+			nRebin=2,
+			hname = ["sel_DV_mass_pmu_mumu_VSILep","sel_mvis_pmu_mumu_VSILep","sel_HNLm_pmu_mumu_VSILep","sel_mtrans_pmu_mumu_VSILep","sel_DV_redmass_pmu_mumu_VSILep"],
+			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+			vertextype= "VSI Leptons",
+			savefilename="selMC_compareMassDef_VSILep" )
+
+
+	compareN(files[0],
+			setxrange= "0 100",
+			scaleymax=1.2,
+			nRebin=2,
+			hname = ["sel_DV_mass_pmu_mumu_VSI","sel_mvis_pmu_mumu_VSI","sel_HNLm_pmu_mumu_VSI","sel_mtrans_pmu_mumu_VSI","sel_DV_redmass_pmu_mumu_VSI"],
+			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+			vertextype= "VSI",
+			savefilename="selMC_compareMassDef_VSI" )
+
+	compareN(files[0],
+			setxrange= "0 100",
+			scaleymax=1.6,
+			nRebin=2,
+			hname = ["charge_DV_mass_pmu_mumu_VSILep","charge_mvis_pmu_mumu_VSILep","charge_HNLm_pmu_mumu_VSILep","charge_mtrans_pmu_mumu_VSILep","charge_DV_redmass_pmu_mumu_VSILep"],
+			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+			vertextype= "VSI Leptons",
+			savefilename="chargeMC_compareMassDef_VSILep" )
+
+
+	compareN(files[0],
+			setxrange= "0 100",
+			scaleymax=1.2,
+			nRebin=2,
+			hname = ["charge_DV_mass_pmu_mumu_VSI","charge_mvis_pmu_mumu_VSI","charge_HNLm_pmu_mumu_VSI","charge_mtrans_pmu_mumu_VSI","charge_DV_redmass_pmu_mumu_VSI"],
+			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+			vertextype= "VSI",
+			savefilename="chargeMC_compareMassDef_VSI" )
 
 
 
@@ -600,13 +1094,13 @@ if __name__ == '__main__':
 	exit()
 # def compareN(file, hname, hlabel,savefilename):
 
-	for k, configs in config_file.items():
-		for key in config_file[k]["channels"]: 
-			print key
-		# print config_file[k]["channels"].keys()
+	# for k, configs in config_file.items():
+	# 	for key in config_file[k]["channels"]: 
+	# 		print key
+	# 	# print config_file[k]["channels"].keys()
 
 
-	compareN(options.file[0],["DVtypeDV_r_pel_ee_VSILep","DVtypeDV_r_pmu_ee_VSILep","DVtypeDV_r_pel_mumu_VSILep"],["eee","muee","mumu"], savefilename="testfile_MC" )
+	# compareN(options.file[0],["DVtypeDV_r_pel_ee_VSILep","DVtypeDV_r_pmu_ee_VSILep","DVtypeDV_r_pel_mumu_VSILep"],["eee","muee","mumu"], savefilename="testfile_MC" )
 	####################################################################################################################################
 	# Here's where you configure what histograms to plot
 
@@ -628,7 +1122,7 @@ if __name__ == '__main__':
 	# 							  savefilename = "selLep_periodB_%s"%channel_VSILep[i])
 
 
-	# plot_cutflow(options.file[0], ch_name ="SS",
+	# plot_cutflow(options.file[0], ch_name ="charge",
 	# 							  vertextype = "VSI",
 	# 							  savefilename = "VSILep_02_fullSel_SS")
 

@@ -476,6 +476,30 @@ class Mlll():
 			return False
 
 
+class Mltt():
+	
+	def __init__(self, plep, trks, decaymode="leptonic", _minmltt= 50 , _maxmltt = 84):
+		self.decaymode = decaymode
+		self.plep = plep
+		self.trks = trks
+		self._minmltt = _minmltt
+		self._maxmltt = _maxmltt
+
+		self.mltt = -1
+		self.plll = ROOT.TLorentzVector(0,0,0,0)
+
+		if self.decaymode == "leptonic":	
+	
+			self.plll = self.plep + self.trks[0] + self.trks[1]
+			self.mltt = self.plll.M()
+
+	def passes(self):
+		if (self.mltt> self._minmltt and self.mltt < self._maxmltt):
+			return True
+		else: 
+			return False
+
+
 class Mtrans():
 	def __init__(self, plep, trks, decaymode="leptonic", _minmtrans= 50 , _maxmtrans = 84):
 		self.decaymode = decaymode
