@@ -49,7 +49,10 @@ def xlabelhistograms(hist):
 		if  ("redmassvis" in hist):
 			return "reduced visible mass [GeV]"
 		elif  ("redmass" in hist):
-			return "reduced DV mass [GeV]"
+			if "redmassHNL" in hist:
+				return "reduced HNL mass [GeV]"
+			else:
+				return "reduced DV mass [GeV]"
 		else: 
 			return "DV r [mm]"
 	if "DV_mass" in hist: 
@@ -74,6 +77,14 @@ def xlabelhistograms(hist):
 		return "\DeltaR between tracks in DV"
 	if "mtrans" in hist:
 		return "m_{T} [GeV]"
+	if "HNLm" in hist: 
+		return "HNL mass [GeV]"
+	if "HNLpt" in hist: 
+		return "HNL p_{T} [GeV]"
+	if "HNLphi" in hist: 
+		return "HNL \phi"
+	if "HNLeta" in hist: 
+		return "HNL \eta"
 	else: 
 		return ""
 
@@ -294,11 +305,13 @@ def compare_dataMC(datafile,mcfile, nRebin, hdataname, hdatalabel, hmcname, hmcl
 
 	leg01.Draw()
 	ATLASLabel(0.25,0.87,"Internal")
-	if "pmu" in hdataname: 
-		if "mumu" in hdataname:
-			helpers.drawNotes("mumu","muon",vertextype) 
-		if "emu" in hdataname:
-			helpers.drawNotes("emu","muon",vertextype) 
+	helpers.drawNotesData("data 2018 period B",vertextype)
+	# if "pmu" in hdataname: 
+	# 	if "mumu" in hdataname:
+
+	# 		helpers.drawNotes("mumu","muon",vertextype) 
+	# 	if "emu" in hdataname:
+	# 		helpers.drawNotes("emu","muon",vertextype) 
 	
 	MyC01.SaveAs(histos_savepath +savefilename+'.pdf')
 
@@ -753,7 +766,7 @@ if __name__ == '__main__':
 					savefilename = "trk_d0_MCdatacompare_VSI"	)
 
 	compare_dataMC(files[1],files[0],
-					nRebin = 5, 
+					nRebin = 2, 
 					setrange= "0 20",
 					scaleymax = 1.2,
 					hdataname = "charge_DV_trk_dpt_pmu_mumu_VSILep", 
@@ -764,7 +777,7 @@ if __name__ == '__main__':
 					savefilename = "trk_dpt_MCdatacompare_VSILep"	)
 
 	compare_dataMC(files[1],files[0],
-					nRebin = 5, 
+					nRebin = 2, 
 					setrange= "0 20",
 					scaleymax = 1.2,
 					hdataname = "charge_DV_trk_dpt_pmu_mumu_VSI", 
@@ -932,6 +945,122 @@ if __name__ == '__main__':
 					vertextype = "VSI",
 					savefilename = "DV_redmassvis_MCdatacompare_VSI"	)
 
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "0 20",
+					scaleymax = 1.5,
+					hdataname = "charge_HNLm_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_HNLm_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "HNLm_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "0 20",
+					scaleymax = 1.5,
+					hdataname = "charge_HNLm_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_HNLm_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "HNLm_MCdatacompare_VSI"	)
+
+
+	# compare_dataMC(files[1],files[0],
+	# 				nRebin = 1, 
+	# 				setrange= "0 20",
+	# 				scaleymax = 1.5,
+	# 				hdataname = "charge_DV_redmassHNL_pmu_mumu_VSILep", 
+	# 				hdatalabel= "data 2018 period B",
+	# 				hmcname = "charge_DV_redmassHNL_pmu_mumu_VSILep",
+	# 				hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+	# 				vertextype = "VSI Leptons",
+	# 				savefilename = "redmassHNL_MCdatacompare_VSILep"	)
+
+	# compare_dataMC(files[1],files[0],
+	# 				nRebin = 1, 
+	# 				setrange= "0 20",
+	# 				scaleymax = 1.5,
+	# 				hdataname = "charge_DV_redmassHNL_pmu_mumu_VSI", 
+	# 				hdatalabel= "data 2018 period B",
+	# 				hmcname = "charge_DV_redmassHNL_pmu_mumu_VSI",
+	# 				hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+	# 				vertextype = "VSI",
+	# 				savefilename = "redmassHNL_MCdatacompare_VSI"	)
+
+
+
+	# compare_dataMC(files[1],files[0],
+	# 				nRebin = 5, 
+	# 				setrange= "",
+	# 				scaleymax = 1.5,
+	# 				hdataname = "charge_HNLpt_pmu_mumu_VSILep", 
+	# 				hdatalabel= "data 2018 period B",
+	# 				hmcname = "charge_HNLpt_pmu_mumu_VSILep",
+	# 				hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+	# 				vertextype = "VSI Leptons",
+	# 				savefilename = "HNLpt_MCdatacompare_VSILep"	)
+
+	# compare_dataMC(files[1],files[0],
+	# 				nRebin = 5, 
+	# 				setrange= "",
+	# 				scaleymax = 1.5,
+	# 				hdataname = "charge_HNLpt_pmu_mumu_VSI", 
+	# 				hdatalabel= "data 2018 period B",
+	# 				hmcname = "charge_HNLpt_pmu_mumu_VSI",
+	# 				hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+	# 				vertextype = "VSI",
+	# 				savefilename = "HNLpt_MCdatacompare_VSI"	)
+
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "-4 4",
+					scaleymax = 1.5,
+					hdataname = "charge_HNLphi_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_HNLphi_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "HNLphi_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "-4 4",
+					scaleymax = 1.5,
+					hdataname = "charge_HNLphi_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_HNLphi_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "HNLphi_MCdatacompare_VSI"	)
+
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "-3 3",
+					scaleymax = 1.5,
+					hdataname = "charge_HNLeta_pmu_mumu_VSILep", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_HNLeta_pmu_mumu_VSILep",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI Leptons",
+					savefilename = "HNLeta_MCdatacompare_VSILep"	)
+
+	compare_dataMC(files[1],files[0],
+					nRebin = 1, 
+					setrange= "-3 3",
+					scaleymax = 1.5,
+					hdataname = "charge_HNLeta_pmu_mumu_VSI", 
+					hdatalabel= "data 2018 period B",
+					hmcname = "charge_HNLeta_pmu_mumu_VSI",
+					hmclabel = "(m_{HNL}, c\\tau) = (10, 10)",
+					vertextype = "VSI",
+					savefilename = "HNLeta_MCdatacompare_VSI"	)
+
+
 
 	# massplot2D(files[0], 
 	# 		hname="charge_DVmass_mvis_pmu_mumu_VSI", 
@@ -979,15 +1108,76 @@ if __name__ == '__main__':
 	# 		setxrange="0 100",
 	# 		setyrange="0 300")
 
+	# massplot2D(files[0], 
+	# 		rebinx=5,
+	# 		rebiny=5,
+	# 		hname="charge_mvis_mtrans_pmu_mumu_VSILep", 
+	# 		hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+	# 		vertextype="VSI Leptons",
+	# 		savefilename="MC_charge_mvis_mtrans_VSILep",
+	# 		setxrange="0 100",
+	# 		setyrange="0 300")
+
 	massplot2D(files[0], 
-			rebinx=5,
-			rebiny=5,
-			hname="charge_mvis_mtrans_pmu_mumu_VSILep", 
+			hname="charge_DVmass_mhnl_pmu_mumu_VSI", 
+			hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+			vertextype="VSI",
+			savefilename="MC_charge_DVmass_mhnl_VSI",
+			setxrange="0 50",
+			setyrange="0 50")
+
+	massplot2D(files[0], 
+			hname="charge_DVmass_mhnl_pmu_mumu_VSILep", 
 			hlabel="(m_{HNL}, c\\tau) = (10, 10)",
 			vertextype="VSI Leptons",
-			savefilename="MC_charge_mvis_mtrans_VSILep",
-			setxrange="0 100",
+			savefilename="MC_charge_DVmass_mhnl_VSILep",
+			setxrange="0 50",
+			setyrange="0 50")
+
+
+	massplot2D(files[0], 
+			rebinx=5,
+			rebiny=1,
+			hname="charge_mvis_mhnl_pmu_mumu_VSI", 
+			hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+			vertextype="VSI",
+			savefilename="MC_charge_mvis_mhnl_VSI",
+			setxrange="0 300",
+			setyrange="0 50")
+
+	massplot2D(files[0], 
+			rebinx=5,
+			rebiny=1,
+			hname="charge_mvis_mhnl_pmu_mumu_VSILep", 
+			hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+			vertextype="VSI Leptons",
+			savefilename="MC_charge_mvis_mhnl_VSILep",
+			setxrange="0 300",
+			setyrange="0 50")
+
+
+	massplot2D(files[0], 
+			rebinx=1,
+			rebiny=5,
+			hname="charge_mhnl_mtrans_pmu_mumu_VSI", 
+			hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+			vertextype="VSI",
+			savefilename="MC_charge_mhnl_mtrans_VSI",
+			setxrange="0 50",
 			setyrange="0 300")
+
+	massplot2D(files[0], 
+			rebinx=1,
+			rebiny=5,
+			hname="charge_mhnl_mtrans_pmu_mumu_VSILep", 
+			hlabel="(m_{HNL}, c\\tau) = (10, 10)",
+			vertextype="VSI Leptons",
+			savefilename="MC_charge_mhnl_mtrans_VSILep",
+			setxrange="0 50",
+			setyrange="0 300")
+
+
+
 
  #   # data 2D mass 
 	# massplot2D(files[1], 
@@ -1046,46 +1236,125 @@ if __name__ == '__main__':
 	# 		setxrange="0 100",
 	# 		setyrange="0 300")
 
+	massplot2D(files[1], 
+			hname="charge_DVmass_mhnl_pmu_mumu_VSI", 
+			hlabel="data 2018 period B",
+			vertextype="VSI",
+			savefilename="data_charge_DVmass_mhnl_VSI",
+			setxrange="0 50",
+			setyrange="0 50")
+
+	massplot2D(files[1], 
+			hname="charge_DVmass_mhnl_pmu_mumu_VSILep", 
+			hlabel="data 2018 period B",
+			vertextype="VSI Leptons",
+			savefilename="data_charge_DVmass_mhnl_VSILep",
+			setxrange="0 50",
+			setyrange="0 50")
+
+
+	massplot2D(files[1], 
+			rebinx=5,
+			rebiny=1,
+			hname="charge_mvis_mhnl_pmu_mumu_VSI", 
+			hlabel="data 2018 period B",
+			vertextype="VSI",
+			savefilename="data_charge_mvis_mhnl_VSI",
+			setxrange="0 300",
+			setyrange="0 50")
+
+	massplot2D(files[1], 
+			rebinx=5,
+			rebiny=1,
+			hname="charge_mvis_mhnl_pmu_mumu_VSILep", 
+			hlabel="data 2018 period B",
+			vertextype="VSI Leptons",
+			savefilename="data_charge_mvis_mhnl_VSILep",
+			setxrange="0 300",
+			setyrange="0 50")
+
+
+	massplot2D(files[1], 
+			rebinx=1,
+			rebiny=5,
+			hname="charge_mhnl_mtrans_pmu_mumu_VSI", 
+			hlabel="data 2018 period B",
+			vertextype="VSI",
+			savefilename="data_charge_mhnl_mtrans_VSI",
+			setxrange="0 50",
+			setyrange="0 300")
+
+	massplot2D(files[1], 
+			rebinx=1,
+			rebiny=5,
+			hname="charge_mhnl_mtrans_pmu_mumu_VSILep", 
+			hlabel="data 2018 period B",
+			vertextype="VSI Leptons",
+			savefilename="data_charge_mhnl_mtrans_VSILep",
+			setxrange="0 50",
+			setyrange="0 300")
 
 
 
-	compareN(files[0],
-			setxrange= "0 100",
-			scaleymax=1.2,
-			nRebin=2,
-			hname = ["sel_DV_mass_pmu_mumu_VSILep","sel_mvis_pmu_mumu_VSILep","sel_HNLm_pmu_mumu_VSILep","sel_mtrans_pmu_mumu_VSILep","sel_DV_redmass_pmu_mumu_VSILep"],
-			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
-			vertextype= "VSI Leptons",
-			savefilename="selMC_compareMassDef_VSILep" )
 
 
-	compareN(files[0],
-			setxrange= "0 100",
-			scaleymax=1.2,
-			nRebin=2,
-			hname = ["sel_DV_mass_pmu_mumu_VSI","sel_mvis_pmu_mumu_VSI","sel_HNLm_pmu_mumu_VSI","sel_mtrans_pmu_mumu_VSI","sel_DV_redmass_pmu_mumu_VSI"],
-			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
-			vertextype= "VSI",
-			savefilename="selMC_compareMassDef_VSI" )
+	# compareN(files[0],
+	# 		setxrange= "0 100",
+	# 		scaleymax=1.2,
+	# 		nRebin=2,
+	# 		hname = ["sel_DV_mass_pmu_mumu_VSILep","sel_mvis_pmu_mumu_VSILep","sel_HNLm_pmu_mumu_VSILep","sel_mtrans_pmu_mumu_VSILep","sel_DV_redmass_pmu_mumu_VSILep"],
+	# 		hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+	# 		vertextype= "VSI Leptons",
+	# 		savefilename="selMC_compareMassDef_VSILep" )
 
-	compareN(files[0],
+
+	# compareN(files[0],
+	# 		setxrange= "0 100",
+	# 		scaleymax=1.2,
+	# 		nRebin=2,
+	# 		hname = ["sel_DV_mass_pmu_mumu_VSI","sel_mvis_pmu_mumu_VSI","sel_HNLm_pmu_mumu_VSI","sel_mtrans_pmu_mumu_VSI","sel_DV_redmass_pmu_mumu_VSI"],
+	# 		hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+	# 		vertextype= "VSI",
+	# 		savefilename="selMC_compareMassDef_VSI" )
+
+	# compareN(files[0],
+	# 		setxrange= "0 100",
+	# 		scaleymax=1.6,
+	# 		nRebin=2,
+	# 		hname = ["charge_DV_mass_pmu_mumu_VSILep","charge_mvis_pmu_mumu_VSILep","charge_HNLm_pmu_mumu_VSILep","charge_mtrans_pmu_mumu_VSILep","charge_DV_redmass_pmu_mumu_VSILep"],
+	# 		hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+	# 		vertextype= "VSI Leptons",
+	# 		savefilename="chargeMC_compareMassDef_VSILep" )
+
+
+	# compareN(files[0],
+	# 		setxrange= "0 100",
+	# 		scaleymax=1.2,
+	# 		nRebin=2,
+	# 		hname = ["charge_DV_mass_pmu_mumu_VSI","charge_mvis_pmu_mumu_VSI","charge_HNLm_pmu_mumu_VSI","charge_mtrans_pmu_mumu_VSI","charge_DV_redmass_pmu_mumu_VSI"],
+	# 		hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+	# 		vertextype= "VSI",
+	# 		savefilename="chargeMC_compareMassDef_VSI" )
+
+
+	compareN(files[1],
 			setxrange= "0 100",
 			scaleymax=1.6,
 			nRebin=2,
 			hname = ["charge_DV_mass_pmu_mumu_VSILep","charge_mvis_pmu_mumu_VSILep","charge_HNLm_pmu_mumu_VSILep","charge_mtrans_pmu_mumu_VSILep","charge_DV_redmass_pmu_mumu_VSILep"],
 			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
 			vertextype= "VSI Leptons",
-			savefilename="chargeMC_compareMassDef_VSILep" )
+			savefilename="chargeData_compareMassDef_VSILep" )
 
 
-	compareN(files[0],
+	compareN(files[1],
 			setxrange= "0 100",
 			scaleymax=1.2,
 			nRebin=2,
 			hname = ["charge_DV_mass_pmu_mumu_VSI","charge_mvis_pmu_mumu_VSI","charge_HNLm_pmu_mumu_VSI","charge_mtrans_pmu_mumu_VSI","charge_DV_redmass_pmu_mumu_VSI"],
 			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
 			vertextype= "VSI",
-			savefilename="chargeMC_compareMassDef_VSI" )
+			savefilename="chargeData_compareMassDef_VSI" )
 
 
 
