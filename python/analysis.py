@@ -40,11 +40,11 @@ class Analysis(object):
 		# self.histSuffixes = self.histSuffixes + [self.ch]
 		# print self.histSuffixes
 		# make histograms (common for all channels)
-		self.add('CutFlow', 14, -0.5, 13.5)
+		self.add('CutFlow', 15, -0.5, 14.5)
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
-		self.add2D( 'charge_DVmass_mvis', 1000, 0, 500, 100, 0, 500)
-		self.add2D( 'charge_DVmass_mhnl', 1000, 0, 500, 100, 0, 500)
+		self.add2D( 'charge_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
+		self.add2D( 'charge_DVmass_mhnl', 1000, 0, 500, 1000, 0, 500)
 		self.add2D( 'charge_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
 		self.add2D( 'charge_mvis_mhnl', 1000, 0, 500, 1000, 0, 500)
 		self.add2D( 'charge_mvis_mtrans', 1000, 0, 500, 1000, 0, 500)
@@ -168,6 +168,11 @@ class Analysis(object):
 		self.do_dv_mass_cut = 'DVmass' in self.sel
 		if not self.do_dv_mass_cut: logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
 
+		#HNL mass cut
+		self.do_HNL_mass_cut = 'HNLmass' in self.sel
+		if not self.do_HNL_mass_cut: logger.warn('You did not add an HNLmass cut for this channel. Skipping HNL mass selection.')
+
+
 		self.check_input_consistency()
 
 		self.set_cutflow_labels()
@@ -210,7 +215,9 @@ class Analysis(object):
 		if self.do_trilepton_mass_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
 		if self.do_dv_mass_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "mDV")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
+		if self.do_HNL_mass_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "m_{HNL}")
 
 	def unlock(self):
 		self._locked = UNLOCKED
@@ -401,6 +408,19 @@ class Analysis(object):
 
 		return dv_mass_sel.passes()
 
+	def _HNL_mass_cut(self, evt):
+		tracks = helpers.Tracks()
+		tracks.getTracks(evt=evt)
+
+		plep_vec = self.plep_sel.plepVec
+		tracks_vec = tracks.lepVec
+
+		mHNL_sel = selections.Mhnl(evt=evt,plep=plep_vec,trks=tracks_vec)
+
+		return mHNL_sel.passes()
+
+
+
 	def _fill_histos(self, evt):
 		for imu in range(len(evt.tree.muontype[evt.ievt])):
 			self.h["muon_type"][self.ch].Fill(evt.tree.muontype[evt.ievt][imu])
@@ -483,7 +503,7 @@ class Analysis(object):
 
 					self.h[histprefix + "_mvis"][self.ch].Fill(Mhnl.mvis)
 					self.h[histprefix + "_HNLm"][self.ch].Fill(Mhnl.mhnl)
-					self.h[histprefix + "_HNLphi"][self.ch].Fill(Mhnl.hnlpt)
+					self.h[histprefix + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt)
 					self.h[histprefix + "_HNLeta"][self.ch].Fill(Mhnl.hnleta)
 					self.h[histprefix + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi)
 					self.h[histprefix + "_mtrans"][self.ch].Fill(Mtrans.mtrans)
@@ -510,7 +530,7 @@ class Analysis(object):
 
 					self.h[histprefix + "_DV_redmass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]/dR)
 					self.h[histprefix + "_DV_redmassvis"][self.ch].Fill(Mhnl.mvis/dR)
-					# self.h[histprefix + "_DV_redmassHNL"][self.ch].Fill(Mhnl.mhnl/dR)
+					self.h[histprefix + "_DV_redmassHNL"][self.ch].Fill(Mhnl.mhnl/dR)
 
 
 			ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
@@ -578,6 +598,7 @@ class WmuHNL(Analysis):
 		self.passed_cosmic_veto_cut = False
 		self.passed_trilepton_mass_cut = False
 		self.passed_dv_mass_cut = False
+		self.passed_HNL_mass_cut = False
 
 		self._fill_histos(evt)
 		
@@ -714,6 +735,13 @@ class WmuHNL(Analysis):
 				if not self.passed_dv_mass_cut:
 					self.h['CutFlow'][self.ch].Fill(13)
 					self.passed_dv_mass_cut = True
+
+		if self.do_HNL_mass_cut:
+			if self._HNL_mass_cut(evt):
+				if not self.passed_HNL_mass_cut:
+					self.h['CutFlow'][self.ch].Fill(14)
+					self.passed_HNL_mass_cut = True
+
 			else:
 				return
 
