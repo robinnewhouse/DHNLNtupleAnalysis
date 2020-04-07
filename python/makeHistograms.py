@@ -37,58 +37,57 @@ def main():
 	treename = "outTree"
 
 	#loop over all the channels in the config file
-	for k, configs in config_file.items():
+	for channel, configs in config_file.items():
 
-		logger.info('Running on channel: %s'%k)
+		logger.info('Running on channel: %s'%channel)
 		#create one output file per channel in your config file
-		outputfile = output_path + "histograms_%s.root"%k
+		outputfile = output_path + "histograms_%s.root"%channel
 
 		if os.path.exists(outputfile):
 			if options.force == False:
-				logger.error("Output histograms_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%k)
+				logger.error("Output histograms_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%channel)
 				exit()
 			else:
-				logger.info('Removing histograms_%s.root'%k)
+				logger.info('Removing histograms_%s.root'%channel)
 				os.remove(outputfile) # if force option is given then remove histrograms file that was previously created.
 
-		# loop over the vertex containers in each channel (usually VSI & VSI Leptons)
-		for vtx_container in config_file[k]["vtx_containers"]:
-			channels =  config_file[k]["channels"] # define channel name for each section in config file
-
+		# loop over the vertex containers in each channel (usually just VSI & VSI Leptons)
+		for vtx_container in config_file[channel]["vtx_containers"]:
+			
+			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
 			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile
 			nentries = options.nevents or len(tree.dvmass)
-
 			
-			for a, selections in channels.items():
-				if blinded:  # blinding flag
-					if tree.isData and "OS" in selections:
-						logger.error("You are running on data and you cannot look at OS verticies!!!")
-						exit()
+			#blinding flag to prevent accidental unblinding in data
+			if blinded:
+				if tree.isData and "OS" in selections:
+					logger.error("You are running on data and you cannot look at OS verticies!!!")
+					exit()
 
-				# Make instance of the analysis class
-				ana = anaClass(vtx_container, selections, outputfile)
-				
-				# Loop over each event
-				for ievt in xrange(nentries):
-					if (ievt % 1000 == 0):
-						logger.info("Channel {}: processing event {}".format("%s_%s"%(k,vtx_container), ievt))
-					# Create an event instance to keep track of basic event properties
-					evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
-					ndv = len(tree.dvx[ievt])
+			# Make instance of the analysis class
+			ana = anaClass(vtx_container, selections, outputfile)
+			
+			# Loop over each event
+			for ievt in xrange(nentries):
+				if (ievt % 1000 == 0):
+					logger.info("Channel {}: processing event {}".format("%s_%s"%(channel,vtx_container), ievt))
+				# Create an event instance to keep track of basic event properties
+				evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
+				ndv = len(tree.dvx[ievt])
 
-					# Run preselection cuts to avoid processing unnecessary events
-					presel = ana.preSelection(evt)
+				# Run preselection cuts to avoid processing unnecessary events
+				presel = ana.preSelection(evt)
 
-					# Loop over each vertex in the event
-					for idv in xrange(ndv):
-						DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv)
-						ana.DVSelection(DVevt)
+				# Loop over each vertex in the event
+				for idv in xrange(ndv):
+					DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv)
+					ana.DVSelection(DVevt)
 
-					ana.unlock()
-				# Call functions to finalize analysis
-				ana.end()
-				# Store analysis in dictionary for possible later use
-				analysisCode["%s_%s"%(k,vtx_container)] = ana
+				ana.unlock()
+			# Call functions to finalize analysis
+			ana.end()
+			# Store analysis in dictionary for possible later use
+			analysisCode["%s_%s"%(channel,vtx_container)] = ana
 
 
 if __name__ == "__main__":
