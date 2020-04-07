@@ -2,11 +2,7 @@
    
 "euu":{
             "vtx_containers" : ["VSI", "VSI_Leptons"],
-
-            "channels":{
-                "main":["alltriggers","pelectron", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-tight","cosmicveto", "mlll","DVmass" ]
-                
-            }
+            "selections":["alltriggers","pelectron", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-tight","cosmicveto", "mlll","DVmass" ]
 
          }
 
