@@ -36,10 +36,10 @@ If you only want to run on a single channel (e.g. uuu channel) then run:
 cd python 
 python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json
 ```
-For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_uuu.root. See a full list of channels see this [list](#list-of-configuration-files) below.
+For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_uuu.root. To see a full list of channels see this [section](#list-of-configuration-files).
 
 
-If you have previously created histograms files for the channel you are trying to run, you can run the following to overwrite the output file: 
+If you have previously created a histogram file for the channel you are trying to run, you can run the following to overwrite the output file: 
 ```
 python makeHistograms.py --force -i path_to_dHNLntuple --config ../data/config_mc_all.json
 ```
