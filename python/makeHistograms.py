@@ -11,7 +11,7 @@ import json
 
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
-blinded = True
+blinded = True # Dont dont change this flag! This ensures you do not accidentilly unblind when looking at data. 
 
 def main():
 
@@ -39,7 +39,7 @@ def main():
 	#loop over all the configurations in the config file
 	for k, configs in config_file.items():
 
-		channels =  config_file[k]["channels"] # define channels for each section in config file
+		channels =  config_file[k]["channels"] # define channel name for each section in config file
 		vtx_container =  config_file[k]["vtx_container"] # define vertex container to be used 
 
 		tree = treenames.Tree(file, treename, vtx_container) # define variables to be accessed from rootfile
@@ -47,10 +47,12 @@ def main():
 
 		for channel, selections in channels.items():
 			# Make instance of the analysis class
-			if blinded: 
+			
+			if blinded:  # blinding flag
 				if tree.isData and "OS" in selections:
 					logger.fatal("You are running on data and you cannot look at OS verticies!!!")
 					exit()
+
 			ana = anaClass(channel, selections, output_path + "histograms.root")
 			
 			# Loop over each event
@@ -104,12 +106,18 @@ if __name__ == "__main__":
 	# 					dest="data",
 	# 					help="Is this data?")
 
-	parser.add_argument("-f", "--file",
-						dest="file", default=["/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"],
+	parser.add_argument("-i", "--input",
+						dest="input", default=["/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"],
 						action = AppendActionCleanDefault,
 						type = str,
-						help="Input file",
+						help="Input ntuple produced by DHNLAlgorithm.",
 						metavar="FILE")
+
+	parser.add_argument("-f", "--force",
+						action="store_true",
+						dest="file",
+						help="Overwrite previous histograms output file if it exists. (default: False)")
+						#"Output histograms file already exists. Either re-run with -f/--force, choose a different output"
 
 	parser.add_argument("--config",
 						dest="config",
@@ -121,6 +129,7 @@ if __name__ == "__main__":
 						default = None,
 						type = int,
 						help='Number of events are going to be processed for test-only purpose.')
+
 	parser.add_argument("-u", "--update",
 						action="store_true",
 						dest="update",
