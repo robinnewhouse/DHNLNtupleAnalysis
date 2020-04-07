@@ -40,14 +40,14 @@ python makeHistograms.py --force -i path_to_dHNLntuple --config ../data/config_m
 
 ### Running plotHistograms.py
 
-Coming soon...
+Will update soon!!
 
 
 ## Quick Start Guide
 
 This ntuple analysis code is designed to output histograms for analysis selection variables in the dHNL analysis. 
 
-The `makeHistogram.py` file is the steering code for making histograms. To run the code, a configuration file is needed that provides the analysis code with a list of selections associated to a given channel name. For a list of the supported channel names see [List of configuration files](#List-of-configuration-files).
+The `makeHistogram.py` file is the steering code for making histograms. To run the code, a configuration file is needed that provides the analysis code with a list of selections associated to a given channel name. For a list of the supported channel names see [List of configuration files](#list-of-configuration-files).
 
 To add a new channel, edit the corresponding config file and make a new channel that includes the cuts you wish to apply. 
 
@@ -61,7 +61,7 @@ To add new histograms, add a new observable to the list in `observables.py`. The
 
 To add a new selection, make a new class in `selections.py`.
 
-# List of configuration files
+## List of configuration files
 
 The following are the default channels that have corresponding config files in DHNLNtupleAnalysis/data: 
 - uuu: Prompt muon, 2-displaced muons
@@ -74,7 +74,8 @@ The following are the default channels that have corresponding config files in D
 
 
 ## Making Pretty Plots
-
+<details><summary>This info is out of date. Don't follow this!</summary>
+<p>
 
 N.B This section is still under development and not currently accurate. Don't follow this!!!
 
@@ -99,5 +100,11 @@ python plotHistograms.py -f ../output/histograms.root
 ```
 
 More functionality (e.g. ratio plots, compare3 histograms etc.) is planned to be added!
+
+</p>
+</details>
+
+
+
 
 
