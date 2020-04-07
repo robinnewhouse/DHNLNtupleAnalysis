@@ -99,6 +99,8 @@ def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
 		d.DrawLatex(ax,ay-0.15,'DV type: e\mu')
 	elif DV_type == "mumu":
 		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
+	elif DV_type == "mumumu":
+		d.DrawLatex(ax,ay-0.15,'channel: \mu\mu\mu')
 	# if DV_Default == True:
 	# 	e.DrawLatex(ax,ay-0.20,'VSI')
 	# else:
@@ -112,8 +114,8 @@ def drawNotesData(datarun,Vertextype):
 	ax = 0.25
 	ay = 0.82
 
-	a.DrawLatex(ax,ay,datarun)
-	b.DrawLatex(ax,ay-0.05,Vertextype)
+	a.DrawLatex(ax,ay,Vertextype)
+	b.DrawLatex(ax,ay-0.05,datarun)
 	ATLASLabel(0.25,0.87,"Internal")
 
 
