@@ -24,19 +24,27 @@ If you are running on a local cluster the complier version might change (i.e. gc
 ### Running makeHistograms.py
 
 To make histograms from DHNL ntuples do the following: 
-
 ```
 cd python 
 python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_all.json
 ```
+One root file per channel will be saved in DHNLNtupleAnalysis/output/ folder. 
 
-One root file per channel will saved in DHNLNtupleAnalysis/output/. For example the uuu channel will be saved as DHNLNtupleAnalysis/output/histograms_uuu.root.
 
-If you have previously created histograms file for the channel you are trying to run, you can run the following to overwrite the output file: 
+If you only want to run on a single channel (e.g. uuu channel) then run: 
+```
+cd python 
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json
+```
+For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_uuu.root. See a full list of channels see this [list](#list-of-configuration-files) below.
 
+
+If you have previously created histograms files for the channel you are trying to run, you can run the following to overwrite the output file: 
 ```
 python makeHistograms.py --force -i path_to_dHNLntuple --config ../data/config_mc_all.json
 ```
+Without the `--force` option, the code will not run to prevent you from accidentally overwriting your histogram files!
+
 
 ### Running plotHistograms.py
 
