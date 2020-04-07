@@ -43,14 +43,13 @@ def main():
 		#create one output file per channel in your config file
 		outputfile = output_path + "histograms_%s.root"%k
 
-		if options.update == False:
-			if os.path.exists(outputfile):
-				if options.force == False:
-					logger.error("Output histograms_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%k)
-					exit()
-				else:
-					logger.info('Removing histograms_%s.root'%k)
-					os.remove(outputfile) # if force option is given then remove histrograms file that was previously created.
+		if os.path.exists(outputfile):
+			if options.force == False:
+				logger.error("Output histograms_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%k)
+				exit()
+			else:
+				logger.info('Removing histograms_%s.root'%k)
+				os.remove(outputfile) # if force option is given then remove histrograms file that was previously created.
 
 		# loop over the vertex containers in each channel (usually VSI & VSI Leptons)
 		for vtx_container in config_file[k]["vtx_containers"]:
