@@ -6,7 +6,7 @@ logger = helpers.getLogger('dHNLAnalysis.treenames')
 
 class Tree():
 	def __init__(self, fileName,treeName,vtx_container):
-		logger.info("Importing trees from ntuple.")
+		logger.info("Importing trees from ntuple for %s."%vtx_container)
 		self.file = uproot.open(fileName)	
 		self.tree = self.file[treeName]
 		
