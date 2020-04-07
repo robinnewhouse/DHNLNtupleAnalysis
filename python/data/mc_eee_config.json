@@ -1,0 +1,24 @@
+{
+   
+"default":{
+            "vtx_container" : "VSI",
+
+            "channels":{
+                "pel_ee_VSI":["alltriggers","pelectron", "4-filter", "nDV", "fidvol","2track","OS", "ee","2-tight","cosmicveto", "mlll","DVmass" ]
+                
+            }
+
+         },
+
+"VSILep":{
+            "vtx_container" : "VSI_Leptons",
+
+             "channels":{
+                "pel_ee_VSILep":["alltriggers","pelectron", "4-filter", "nDV", "fidvol","2track","OS", "ee","2-tight","cosmicveto", "mlll","DVmass" ]
+
+            }
+            
+         }
+
+
+}
