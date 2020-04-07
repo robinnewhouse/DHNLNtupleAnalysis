@@ -1,8 +1,12 @@
 import ROOT
 import uproot
+import helpers
+
+logger = helpers.getLogger('dHNLAnalysis.treenames')
 
 class Tree():
 	def __init__(self, fileName,treeName,vtx_container):
+		logger.info("Importing trees from ntuple.")
 		self.file = uproot.open(fileName)	
 		self.tree = self.file[treeName]
 		
@@ -116,3 +120,4 @@ class Tree():
 			# self.dvcharge = self.tree["truthVtx_charge"].array() 
 			# self.dvcharge = self.tree["truthVtx_chi2"].array() 
 		# -----------------------------------------------------------------------
+		logger.info("Done importing trees!")

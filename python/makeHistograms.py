@@ -40,7 +40,7 @@ def main():
 	for k, configs in config_file.items():
 
 		logger.info('Running on channel: %s'%k)
-		#create one outputfile per channel in your config file
+		#create one output file per channel in your config file
 		outputfile = output_path + "histograms_%s.root"%k
 
 		if options.update == False:
@@ -55,9 +55,8 @@ def main():
 		# loop over the vertex containers in each channel (usually VSI & VSI Leptons)
 		for vtx_container in config_file[k]["vtx_containers"]:
 			channels =  config_file[k]["channels"] # define channel name for each section in config file
-			# vtx_container =  config_file[k]["vtx_container"] # define vertex container to be used
 
-			tree = treenames.Tree(file, treename, vtx_container) # define variables to be accessed from rootfile
+			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile
 			nentries = options.nevents or len(tree.dvmass)
 
 			
@@ -91,7 +90,6 @@ def main():
 				ana.end()
 				# Store analysis in dictionary for possible later use
 				analysisCode["%s_%s"%(k,vtx_container)] = ana
-	print analysisCode
 
 
 if __name__ == "__main__":
