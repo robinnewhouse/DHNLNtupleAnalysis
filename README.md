@@ -48,7 +48,7 @@ Without the `--force` option, the code will not run to prevent you from accident
 
 ### Running plotHistograms.py
 
-Once you have run makeHistograms.py edit `../data/config_plotting.json` to include the histogram files you want to plot, as well as an identifying label for the file.
+Once you have run makeHistograms.py edit `../data/config_plotting.json` to include a path to the histogram files you want to plot, as well as an identifying label for each file.
 
 Then run:
 ```
