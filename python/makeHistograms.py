@@ -119,7 +119,8 @@ if __name__ == "__main__":
 	# 					help="Is this data?")
 
 	parser.add_argument("-i", "--input",
-						dest="input", default=["/eos/atlas/atlascerngroupdisk/phys-exotics/ueh/HNL/DHNLAlg_testNtuples/newframework_Ntuple_WmuHNL_20G_lt10dd_emu_wTrigMatch.root"],
+						dest="input",
+						required = True,
 						action = AppendActionCleanDefault,
 						type = str,
 						help="Input ntuple produced by DHNLAlgorithm.",
