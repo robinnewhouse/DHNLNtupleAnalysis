@@ -48,7 +48,15 @@ Without the `--force` option, the code will not run to prevent you from accident
 
 ### Running plotHistograms.py
 
-Will update soon!!
+Once you have run makeHistograms.py edit `../data/config_plotting.json` to include the histogram files you want to plot, as well as an identifying label for the file.
+
+Then run:
+```
+python plotHistograms.py --config ../data/config_plotting.json
+```
+
+The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting function in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
+
 
 
 ## Quick Start Guide
@@ -69,6 +77,7 @@ To add new histograms, add a new observable to the list in `observables.py`. The
 
 To add a new selection, make a new class in `selections.py`.
 
+
 ## List of configuration files
 
 The following are the default channels that have corresponding config files in DHNLNtupleAnalysis/data: 
@@ -82,35 +91,26 @@ The following are the default channels that have corresponding config files in D
 
 
 ## Making Pretty Plots
-<details><summary>This info is out of date. Don't follow this!</summary>
-<p>
 
-N.B This section is still under development and not currently accurate. Don't follow this!!!
-
-
-A skeleton plotting code called `plotHistograms.py` is implemented to format plots from `histograms.root` output file. Currently you can save cutflows and compare 2 histograms contained in one histogram.root file. 
+Plotting functions are defined in `plotting.py`. The steering code `plotHistograms.py` defines what kinds of plots to save in the default output directory `DHNLNtupleAnalysis/output/plots/`. Running plotHistograms.py you can plot different distribtions on the same canvas and save them to the output directory 
 
 For making cutflow plots: 
 
-1) open `plotHistogram.py`
-2) edit the histos_savepath to the path where you want to save the plots
-3) update the plot_cutflow() function with the channel name, vertexing configuration and the savefilename
+1. open `plotHistogram.py`
+2. edit the function makeCutflows() following the example provided. 
+3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/Cutflows`
 
-For comparing two histograms: 
-1) open `plotHistogram.py`
-2) edit the histos_savepath to the path where you want to save the plots
-3) update the compare2() function with name and legend label for each histogram, xlabel and savefilename
+For comparing data and MC distributions: 
+1. open `plotHistogram.py`
+2. edit compareMCdata() following the examples provided. 
+3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/`
 
-To run: 
+For comparing N histograms in the same file: 
+1. open `plotHistogram.py`
+2. edit compareHistograms() following the examples provided. 
+3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/`
 
-```
-python plotHistograms.py -f ../output/histograms.root
-```
 
-More functionality (e.g. ratio plots, compare3 histograms etc.) is planned to be added!
-
-</p>
-</details>
 
 
 
