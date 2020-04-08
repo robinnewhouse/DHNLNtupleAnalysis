@@ -345,11 +345,11 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	helpers.drawNotesVertextype(vertextype)
 	
 	if vertextype == "VSI":
-		savefilename= hname + "_compare_dataMC_multi_VSI"
+		savefilename= hname + "_compare_dataMC_VSI"
 	elif vertextype == "VSI Leptons":
-		savefilename= hname + "_compare_dataMC_multi_VSILep"
+		savefilename= hname + "_compare_dataMC_VSILep"
 	else: 
-		savefilename= hname + "_compare_dataMC_multi_VSILep"
+		savefilename= hname + "_compare_dataMC_VSILep"
 
 	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
