@@ -40,11 +40,11 @@ class Analysis(object):
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
 		self.add2D( 'charge_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'charge_DVmass_mhnl', 1000, 0, 500, 1002, -2, 500)
+		self.add2D( 'charge_DVmass_mhnl', 1000, 0, 500, 1005, -5, 500)
 		self.add2D( 'charge_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'charge_mvis_mhnl', 1000, 0, 500, 1002, -2, 500)
+		self.add2D( 'charge_mvis_mhnl', 1000, 0, 500, 1005, -5, 500)
 		self.add2D( 'charge_mvis_mtrans', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'charge_mhnl_mtrans', 1002, -2, 500, 1000, 0, 500)
+		self.add2D( 'charge_mhnl_mtrans', 1005, -5, 500, 1000, 0, 500)
 		self._locked = UNLOCKED
 
 		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
