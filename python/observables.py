@@ -119,7 +119,7 @@ def selhistograms(selection):
 	Observable(selection + "_DV_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
 	Observable(selection + "_DV_chi2",binning = (40,0,20), do = ['hist']).queue()
 	Observable(selection + "_mvis",binning = (10000,0,5000), do = ['hist']).queue()
-	Observable(selection + "_HNLm",binning = (10000,0,5000), do = ['hist']).queue()
+	Observable(selection + "_HNLm",binning = (10002,-2,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLpt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_HNLeta",binning = (160,-10,10),do = ['hist']).queue()
 	Observable(selection + "_HNLphi", binning = (64,-4,4), do = ['hist']).queue()
