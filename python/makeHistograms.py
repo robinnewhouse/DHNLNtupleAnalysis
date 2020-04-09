@@ -14,7 +14,7 @@ logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 blinded = True # Dont dont change this flag! This ensures you do not accidentilly unblind when looking at data. 
 
 def main():
-
+	
 	output_path ="../output/"
 	if os.path.exists(output_path) == False:
 		logger.info('Making output directory')
@@ -38,17 +38,21 @@ def main():
 
 	#loop over all the channels in the config file
 	for channel, configs in config_file.items():
+		
 
 		logger.info('Running on channel: %s'%channel)
 		#create one output file per channel in your config file
-		outputfile = output_path + "histograms_%s.root"%channel
+		if "data" in options.config.split("config")[1]:
+			outputfile = output_path + "histograms_data_%s.root"%channel
+		else:
+			outputfile = output_path + "histograms_mc_%s.root"%channel
 
 		if os.path.exists(outputfile):
 			if options.force == False:
 				logger.error("Output histograms_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%channel)
 				exit()
 			else:
-				logger.info('Removing histograms_%s.root'%channel)
+				logger.info('Removing %s'%outputfile)
 				os.remove(outputfile) # if force option is given then remove histrograms file that was previously created.
 
 		# loop over the vertex containers in each channel (usually just VSI & VSI Leptons)

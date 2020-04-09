@@ -210,11 +210,11 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 
 	data = ROOT.TFile(datafile)
 	if vertextype == "VSI":
-		# hdata = data.Get(hname + "_VSI") # need to remake histograms with new format ;) 
-		hdata = data.Get(hname + "_pmu_mumu_VSI") # need to remake histograms with new format ;) 
+		hdata = data.Get(hname + "_VSI") # need to remake histograms with new format ;) 
+		# hdata = data.Get(hname + "_pmu_mumu_VSI") # need to remake histograms with new format ;) 
 	elif vertextype == "VSI Leptons": 
-		hdata = data.Get(hname + "_pmu_mumu_VSILep") # need to fix this ;) 
-		# hdata = data.Get(hname + "_VSI_Leptons") # need to fix this ;) 
+		hdata = data.Get(hname + "_VSI_Leptons") # need to fix this ;) 
+		# hdata = data.Get(hname + "_pmu_mumu_VSILep") # need to fix this ;) 
 	else: 
 		logger.error("Couldn't find the data  histogram you requested!")
 		logger.error("Check file %s has the histogram you are looking for!"%datafile)
@@ -478,9 +478,11 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 	f = ROOT.TFile(file)
 	if "data" in file:
 		if vertextype == "VSI":
-			h = f.Get(hname+"_pmu_mumu_VSI") # get histogram
+			h = f.Get(hname+"_VSI") # get histogram
+			# h = f.Get(hname+"_pmu_mumu_VSI") # get histogram
 		elif vertextype == "VSI Leptons": 
-			h = f.Get(hname+"_pmu_mumu_VSILep") # get histogram
+			h = f.Get(hname+"_VSI_Leptons") # get histogram
+			# h = f.Get(hname+"_pmu_mumu_VSILep") # get histogram
 	else:
 		if vertextype == "VSI":
 			h = f.Get(hname+"_VSI") # get histogram

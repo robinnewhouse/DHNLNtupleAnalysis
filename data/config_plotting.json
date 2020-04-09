@@ -1,11 +1,11 @@
 {
    
-            "dataFile": "/data/hnl/data18_ntuples/data18_periodB_HNLcut_emumumu/histograms_periodB_emumumu.root",
+            "dataFile": "../output/histograms_data_uuu.root",
             "dataLabel":"data 2018 period B" ,
             
-            "mcFile":["../output/histograms_uuu.root",
-            	      "../output/histograms_ueu.root",
-            	      "../output/histograms_eee.root"],
+            "mcFile":["../output/histograms_mc_uuu.root",
+            	      "../output/histograms_mc_ueu.root",
+            	      "../output/histograms_mc_eee.root"],
             "mcLabel":["(m_{HNL}, c\\tau, chan.) = (10, 10, \\mu\\mu\\mu)", 
             		   "(m_{HNL}, c\\tau, chan.) = (10, 10, \\mue\\mu)", 
             		   "(m_{HNL}, c\\tau, chan.) = (10, 10, eee)" ]
