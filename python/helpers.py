@@ -10,6 +10,9 @@ import re
 import subprocess
 import urlparse
 
+gROOT.LoadMacro("AtlasStyle.C")
+gROOT.LoadMacro("AtlasUtils.C")
+gROOT.LoadMacro("AtlasLabels.C")
 
 
 import logging
@@ -30,54 +33,6 @@ logger = getLogger('dHNLAnalysis')
 
 
 
-#get note
-def getNote(size=14):
-	n = ROOT.TLatex()
-	n.SetNDC()
-	n.SetTextFont(43)
-	n.SetTextColor(1)
-	n.SetTextSize(size)
-	return n
-
-	
-def drawNotes(MC_campaign,DV_type,mass,lifetime,plepton,VtxConfig):
-	a = getNote()
-	b = getNote()
-	c = getNote()
-	d = getNote()
-	e = getNote()
-	f = getNote()
-	ax = 0.50
-	ay = 0.87
-
-	if mass == "-1" or lifetime == "-1": 
-		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
-		if plepton == "muon":
-			b.DrawLatex(ax,ay-0.05,'Prompt muon')
-		if plepton == "electron":
-			b.DrawLatex(ax,ay-0.05,'Prompt electron')
-		c.DrawLatex(ax,ay-0.10,'DV type: 1-lepton')
-		d.DrawLatex(ax,ay-0.15,'%s'%(VtxConfig))
-
-	else: 
-		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
-		b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
-		c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-		if plepton == "muon":
-			d.DrawLatex(ax,ay-0.15,'Prompt muon')
-		if plepton == "electron":
-			d.DrawLatex(ax,ay-0.15,'Prompt electron')
-		if DV_type == "mumu":
-			e.DrawLatex(ax,ay-0.20,'DV type: \mu\mu\\nu')
-		if DV_type == "emu":
-			e.DrawLatex(ax,ay-0.20,'DV type: e\mu\\nu')
-		if DV_type == "ee":
-			e.DrawLatex(ax,ay-0.20,'DV type: ee\\nu')
-		f.DrawLatex(ax,ay-0.25,'%s'%(VtxConfig))
-		# else:
-		# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
-	ATLASLabel(0.25,0.87,"Internal")
-
 class Event(): 
 	def __init__(self, tree, ievt, idv):
 		self.tree = tree
@@ -90,6 +45,10 @@ class Tracks():
 	def __init__(self):
 		self.lepVec = []
 		self.lepIndex = []
+		self.eta = []
+		self.phi = []
+		self.pt = []
+		self.ntracks = -1 
 
 	def getMuons(self, evt):
 		self.evt = evt 
@@ -126,9 +85,6 @@ class Tracks():
 				else:
 					continue
 	
-
-
-
 	
 	def getElectrons(self, evt):
 		self.evt = evt 
@@ -170,7 +126,6 @@ class Tracks():
 	def getTracks(self, evt):
 		self.evt = evt
 		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
-	
 
 		for itr in xrange(self.ntracks):
 			trkvec = ROOT.TLorentzVector()
@@ -182,6 +137,170 @@ class Tracks():
 			trkvec.SetPtEtaPhiM(pt, eta, phi, M)
 
 			self.lepVec.append(trkvec)
+			self.eta.append(eta)
+			self.phi.append(phi)
+			self.pt.append(pt)
+
+
+#get note
+def getNote(size=14):
+	n = ROOT.TLatex()
+	n.SetNDC()
+	n.SetTextFont(43)
+	n.SetTextColor(1)
+	n.SetTextSize(size)
+	return n
+
+	
+def drawNotes(DV_type,plepton,VtxConfig):
+	a = getNote()
+	b = getNote()
+	c = getNote()
+	d = getNote()
+	e = getNote()
+	f = getNote()
+	ax = 0.25
+	ay = 0.87
+
+	if plepton == "muon":
+		a.DrawLatex(ax,ay-0.05,'Prompt muon')
+	if plepton == "electron":
+		a.DrawLatex(ax,ay-0.05,'Prompt electron')
+	if DV_type == "mumu":
+		b.DrawLatex(ax,ay-0.10,'DV type: \mu\mu\\nu')
+	if DV_type == "emu":
+		b.DrawLatex(ax,ay-0.10,'DV type: e\mu\\nu')
+	c.DrawLatex(ax,ay-0.15,'%s'%(VtxConfig))
+
+	# else: 
+	# 	a.DrawLatex(ax,ay,'%s'%MC_campaign) 
+	# 	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
+	# 	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
+	# 	if plepton == "muon":
+	# 		d.DrawLatex(ax,ay-0.15,'Prompt muon')
+	# 	if plepton == "electron":
+	# 		d.DrawLatex(ax,ay-0.15,'Prompt electron')
+	# 	if DV_type == "mumu":
+	# 		e.DrawLatex(ax,ay-0.20,'DV type: \mu\mu\\nu')
+	# 	if DV_type == "emu":
+	# 		e.DrawLatex(ax,ay-0.20,'DV type: e\mu\\nu')
+	# 	if DV_type == "ee":
+	# 		e.DrawLatex(ax,ay-0.20,'DV type: ee\\nu')
+	# 	f.DrawLatex(ax,ay-0.25,'%s'%(VtxConfig))
+	# 	# else:
+		# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
+	ATLASLabel(0.25,0.87,"Internal")
+
+
+def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
+	a = getNote()
+	b = getNote()
+	c = getNote()
+	d = getNote()
+	e = getNote()
+	ax = 0.25
+	ay = 0.87
+	if MC_campaign == "merged": 
+		a.DrawLatex(ax,ay,'all MC campaigns')
+	else:
+		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
+	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
+	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
+	if DV_type == "emu":
+		d.DrawLatex(ax,ay-0.15,'DV type: e\mu')
+	elif DV_type == "mumu":
+		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
+	elif DV_type == "mumumu":
+		d.DrawLatex(ax,ay-0.15,'channel: \mu\mu\mu')
+	# if DV_Default == True:
+	# 	e.DrawLatex(ax,ay-0.20,'VSI')
+	# else:
+	e.DrawLatex(ax,ay-0.20,Vertextype)
+	ATLASLabel(0.25,0.87,"Internal")
+
+def drawNotesData(datarun,Vertextype):
+	a = getNote()
+	b = getNote()
+	
+	ax = 0.25
+	ay = 0.82
+
+	a.DrawLatex(ax,ay,Vertextype)
+	b.DrawLatex(ax,ay-0.05,datarun)
+	ATLASLabel(0.25,0.87,"Internal")
+
+
+def drawNotesVertextype(Vertextype):
+	a = getNote()
+	b = getNote()
+	
+	ax = 0.25
+	ay = 0.82
+
+	a.DrawLatex(ax,ay,Vertextype)
+
+
+def xlabelhistograms(hist): 
+	if "DV_r" in hist:
+		if  ("redmassvis" in hist):
+			return "reduced visible mass [GeV]"
+		elif  ("redmass" in hist):
+			if "redmassHNL" in hist:
+				return "reduced HNL mass [GeV]"
+			else:
+				return "reduced DV mass [GeV]"
+		else: 
+			return "DV r [mm]"
+	if "DV_mass" in hist: 
+		return "DV mass [GeV]"
+	if "trk_pt" in hist:
+		return "track p_{T} [GeV]"
+	if "trk_eta" in hist:
+		return "track \eta"
+	if "trk_phi" in hist:
+		return "track \phi"
+	if "trk_d0" in hist:
+		return "track d_{0}"
+	if "mvis" in hist:
+		return "Visible mass (m_{lll}) [GeV]"
+	if "dpt" in hist: 
+		return "\Deltap_{T} between tracks in DV [GeV]"
+	if "deta" in hist: 
+		return "\Delta\eta between tracks in DV"
+	if "dphi" in hist: 
+		return "\Delta\phi between tracks in DV"
+	if "dR" in hist: 
+		return "\DeltaR between tracks in DV"
+	if "mtrans" in hist:
+		return "m_{T} [GeV]"
+	if "HNLm" in hist: 
+		return "HNL mass [GeV]"
+	if "HNLpt" in hist: 
+		return "HNL p_{T} [GeV]"
+	if "HNLphi" in hist: 
+		return "HNL \phi"
+	if "HNLeta" in hist: 
+		return "HNL \eta"
+	else: 
+		return ""
+
+
+def histColours(nhist): 
+	if nhist== 0:
+		return kAzure+6
+	if nhist== 1:
+		return kViolet+8
+	if nhist== 2:
+		return kRed
+	if nhist== 3:
+		return kGreen+1
+	if nhist== 4:
+		return kOrange -3
+	else: 
+		return kBlack
+
+
+
 
 			
 

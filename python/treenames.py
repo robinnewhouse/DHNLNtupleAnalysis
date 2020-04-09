@@ -1,49 +1,69 @@
 import ROOT
 import uproot
+import helpers
+
+logger = helpers.getLogger('dHNLAnalysis.treenames')
 
 class Tree():
-	def __init__(self, fileName,treeName):
-		self.file = uproot.open(fileName)
+	def __init__(self, fileName,treeName,vtx_container):
+		logger.info("Importing trees from ntuple for %s."%vtx_container)
+		self.file = uproot.open(fileName)	
 		self.tree = self.file[treeName]
 		
+		if "truthVtx_x" in self.file[treeName].keys(): 
+			self.isData = False
+		else: 
+			self.isData = True
+
+		DVprefix = "secVtx_" + vtx_container
+
+		self.cutflow = self.file["cutflow"]
+		
+		self.allEvt =  self.cutflow[1]
+
 		# -----------------------------------------------------------------------
 		self.passedtriggers = self.tree["passedTriggers"].array()
 		self.mumufilter = self.tree["passesHnlMuMuFilter"].array()
 		self.muelfilter = self.tree["passesHnlMuElFilter"].array()
 		self.elelfilter = self.tree["passesHnlElElFilter"].array()
 		self.elmufilter = self.tree["passesHnlElMuFilter"].array()
+
+		if "vertex_x" in self.file[treeName].keys(): 
+			self.pvx = self.tree["vertex_x"].array()  
+			self.pvy = self.tree["vertex_y"].array()  
+			self.pvz = self.tree["vertex_z"].array() 
 		
 		# -----------------------------------------------------------------------
 		# DV track variables
 		# -----------------------------------------------------------------------
-		self.trk_muonindex = self.tree["secVtx_trk_muonIndex"].array()
-		self.trk_elindex = self.tree["secVtx_trk_electronIndex"].array()
-		self.trackpt = self.tree["secVtx_trk_pt_wrtSV"].array() 
-		self.tracketa = self.tree["secVtx_trk_eta_wrtSV"].array() 
-		self.trackphi = self.tree["secVtx_trk_phi_wrtSV"].array()
-		self.trackmass = self.tree["secVtx_trk_M"].array()
-		self.trackd0 = self.tree["secVtx_trk_d0_wrtSV"].array() 
-		self.trackz0 = self.tree["secVtx_trk_z0_wrtSV"].array() 
-		self.trackcharge = self.tree["secVtx_trk_charge"].array()
-		self.trackchi2 = self.tree["secVtx_trk_chi2_toSV"].array()
+		self.trk_muonindex = self.tree[DVprefix + "_trk_muonIndex"].array()
+		self.trk_elindex = self.tree[DVprefix + "_trk_electronIndex"].array()
+		self.trackpt = self.tree[DVprefix + "_trk_pt_wrtSV"].array() 
+		self.tracketa = self.tree[DVprefix + "_trk_eta_wrtSV"].array() 
+		self.trackphi = self.tree[DVprefix + "_trk_phi_wrtSV"].array()
+		self.trackmass = self.tree[DVprefix + "_trk_M"].array()
+		self.trackd0 = self.tree[DVprefix + "_trk_d0_wrtSV"].array() 
+		self.trackz0 = self.tree[DVprefix + "_trk_z0_wrtSV"].array() 
+		self.trackcharge = self.tree[DVprefix + "_trk_charge"].array()
+		self.trackchi2 = self.tree[DVprefix + "_trk_chi2_toSV"].array()
 
 		# -----------------------------------------------------------------------
 		# DV reco variables
 		# -----------------------------------------------------------------------
-		self.dvx = self.tree["secVtx_x"].array()  
-		self.dvy = self.tree["secVtx_y"].array()  
-		self.dvz = self.tree["secVtx_z"].array() 
-		self.dvr = self.tree["secVtx_r"].array() 
-		self.dvmass = self.tree["secVtx_mass"].array()  
-		self.dvpt = self.tree["secVtx_pt"].array()
-		self.dveta = self.tree["secVtx_eta"].array()  
-		self.dvphi = self.tree["secVtx_phi"].array() 
-		self.dvminOpAng = self.tree["secVtx_minOpAng"].array() 
-		self.dvmaxOpAng = self.tree["secVtx_maxOpAng"].array()   
-		self.dvntrk = self.tree["secVtx_ntrk"].array() 
-		self.dvdistFromPV = self.tree["secVtx_distFromPV"].array() 
-		self.dvcharge = self.tree["secVtx_charge"].array() 
-		self.dvchi2 = self.tree["secVtx_chi2"].array() 
+		self.dvx = self.tree[DVprefix + "_x"].array()  
+		self.dvy = self.tree[DVprefix + "_y"].array()  
+		self.dvz = self.tree[DVprefix + "_z"].array() 
+		self.dvr = self.tree[DVprefix + "_r"].array() 
+		self.dvmass = self.tree[DVprefix + "_mass"].array()  
+		self.dvpt = self.tree[DVprefix + "_pt"].array()
+		self.dveta = self.tree[DVprefix + "_eta"].array()  
+		self.dvphi = self.tree[DVprefix + "_phi"].array() 
+		self.dvminOpAng = self.tree[DVprefix + "_minOpAng"].array() 
+		self.dvmaxOpAng = self.tree[DVprefix + "_maxOpAng"].array()   
+		self.dvntrk = self.tree[DVprefix + "_ntrk"].array() 
+		self.dvdistFromPV = self.tree[DVprefix + "_distFromPV"].array() 
+		self.dvcharge = self.tree[DVprefix + "_charge"].array() 
+		self.dvchi2 = self.tree[DVprefix + "_chi2"].array() 
 		# -----------------------------------------------------------------------
 		
 		# -----------------------------------------------------------------------
@@ -86,16 +106,18 @@ class Tree():
 		# -----------------------------------------------------------------------
 		# DV truth variables
 		# -----------------------------------------------------------------------
-		self.truth_dvx = self.tree["truthVtx_x"].array()  
-		self.truth_dvy = self.tree["truthVtx_y"].array()  
-		self.truth_dvz = self.tree["truthVtx_z"].array() 
-		self.truth_dvr = self.tree["truthVtx_r"].array() 
-		self.truth_dvmass = self.tree["truthVtx_mass"].array()  
-		self.truth_dvpt = self.tree["truthVtx_pt"].array()
-		self.truth_dveta = self.tree["truthVtx_eta"].array()  
-		self.truth_dvphi = self.tree["truthVtx_phi"].array() 
-		# self.dvntrk = self.tree["truthVtx_ntrk"].array() 
-		# self.dvdistFromPV = self.tree["truthVtx_distFromPV"].array() 
-		# self.dvcharge = self.tree["truthVtx_charge"].array() 
-		# self.dvcharge = self.tree["truthVtx_chi2"].array() 
+		if self.isData == False:
+			self.truth_dvx = self.tree["truthVtx_x"].array()  
+			self.truth_dvy = self.tree["truthVtx_y"].array()  
+			self.truth_dvz = self.tree["truthVtx_z"].array() 
+			self.truth_dvr = self.tree["truthVtx_r"].array() 
+			self.truth_dvmass = self.tree["truthVtx_mass"].array()  
+			self.truth_dvpt = self.tree["truthVtx_pt"].array()
+			self.truth_dveta = self.tree["truthVtx_eta"].array()  
+			self.truth_dvphi = self.tree["truthVtx_phi"].array() 
+			# self.dvntrk = self.tree["truthVtx_ntrk"].array() 
+			# self.dvdistFromPV = self.tree["truthVtx_distFromPV"].array() 
+			# self.dvcharge = self.tree["truthVtx_charge"].array() 
+			# self.dvcharge = self.tree["truthVtx_chi2"].array() 
 		# -----------------------------------------------------------------------
+		logger.info("Done importing trees!")
