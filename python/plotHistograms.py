@@ -6,12 +6,12 @@ from ROOT import *
 from ROOT import gPad
 from pylab import *
 import plotting
-gROOT.LoadMacro("AtlasStyle.C")
-gROOT.LoadMacro("AtlasUtils.C")
-gROOT.LoadMacro("AtlasLabels.C")
+# gROOT.LoadMacro("AtlasStyle.C")
+# gROOT.LoadMacro("AtlasUtils.C")
+# gROOT.LoadMacro("AtlasLabels.C")
 ROOT.gROOT.SetBatch(True)
-SetAtlasStyle()
-# gROOT.SetStyle("ATLAS") #might have to change how you set atlas style like this, depends how you have setup python
+# SetAtlasStyle()
+gROOT.SetStyle("ATLAS") #might have to change how you set atlas style like this, depends how you have setup python
 
 logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
