@@ -55,7 +55,7 @@ Then run:
 python plotHistograms.py --config ../data/config_plotting.json
 ```
 
-The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting function in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
+The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting functions in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
 
 
 
@@ -92,7 +92,9 @@ The following are the default channels that have corresponding config files in D
 
 ## Making Pretty Plots
 
-Plotting functions are defined in `plotting.py`. The steering code `plotHistograms.py` defines what kinds of plots to save in the default output directory `DHNLNtupleAnalysis/output/plots/`. Running plotHistograms.py you can plot different distribtions on the same canvas and save them to the output directory 
+Plotting functions are defined in `plotting.py`. The steering code `plotHistograms.py` defines what kinds of plots to save in the default output directory `DHNLNtupleAnalysis/output/plots/`. Running plotHistograms.py you can plot different distribtions on the same canvas and save them to the output directory.
+
+Make sure you edit `DHNLNtupleAnalysis/data/config_plotting.json` to include the files you wish to plot.
 
 For making cutflow plots: 
 
