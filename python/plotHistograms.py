@@ -1,159 +1,684 @@
 # Plotting Script
-import argparse, os, math, ROOT, glob, uproot, time
-
-import atlas_style
-
+import argparse, os, math, ROOT, glob, uproot, time, json
 import numpy as np
+import helpers
 from ROOT import *
+from ROOT import gPad
 from pylab import *
-# gROOT.LoadMacro("AtlasStyle.C")
-# gROOT.LoadMacro("AtlasUtils.C")
-# gROOT.LoadMacro("AtlasLabels.C")
+import plotting
+gROOT.LoadMacro("AtlasStyle.C")
+gROOT.LoadMacro("AtlasUtils.C")
+gROOT.LoadMacro("AtlasLabels.C")
+ROOT.gROOT.SetBatch(True)
+SetAtlasStyle()
+# gROOT.SetStyle("ATLAS") #might have to change how you set atlas style like this, depends how you have setup python
+
+logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
 #############################################################################################################################################
 # globals
-histos_savepath = '/home/dtrischuk/HNLAnalysis/DHNLNtupleAnalysis/output/VSI_DerivationStudies/' # change path here to save your histograms
+outputDir = '../output/plots/' # change path here to save your histograms somewhere else!
+
 
 #############################################################################################################################################
 
-ROOT.gROOT.SetBatch(True)
-atlas_style.AtlasStyle()
-
-#get note
-def getNote(size=14):
-	n = ROOT.TLatex()
-	n.SetNDC()
-	n.SetTextFont(43)
-	n.SetTextColor(1)
-	n.SetTextSize(size)
-	return n
-
-def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
-	a = getNote()
-	b = getNote()
-	c = getNote()
-	d = getNote()
-	e = getNote()
-	ax = 0.50
-	ay = 0.87
-	if MC_campaign == "merged": 
-		a.DrawLatex(ax,ay,'all MC campaigns')
-	else:
-		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
-	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
-	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-	if DV_type == "emu":
-		d.DrawLatex(ax,ay-0.15,'DV type: e\mu')
-	elif DV_type == "mumu":
-		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
-	# if DV_Default == True:
-	# 	e.DrawLatex(ax,ay-0.20,'VSI')
-	# else:
-	e.DrawLatex(ax,ay-0.20,Vertextype)
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
-
-def drawNotesData(datarun,Vertextype):
-	a = getNote()
-	b = getNote()
-	
-	ax = 0.5
-	ay = 0.87
-
-	a.DrawLatex(ax,ay,datarun)
-	b.DrawLatex(ax,ay-0.05,Vertextype)
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 
+def compareMCdata(config_file):
+
+	# add plots here if you want to compare different distributions with with data & MC
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel=  config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_mass", 
+							scaleymax = 1.5,
+							setrange= "0 20",					
+							vertextype = "VSI",
+							outputDir=outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel=  config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],				
+							hname = "charge_DV_mass", 
+						    setrange= "0 20",
+							vertextype = "VSI Leptons",
+							outputDir=outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_r", 
+							nRebin = 5, 
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
 
 
-def plot_cutflow(histos, ch_name, vertextype,savefilename):
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_r", 
+							nRebin = 5, 
+							vertextype = "VSI",
+							outputDir= outputDir)
 
-	file = ROOT.TFile(histos)
-  	hcutflow = file.Get('CutFlow_'+ch_name)
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_pt",
+							nRebin = 2, 
+							setrange= "0 100",					
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
 
-	MyC01= ROOT.TCanvas("MyC01","cutflow",600,400)
-  	MyC01.Divide(1,1)
- 	MyC01.cd(1)
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_pt",
+							nRebin = 2, 
+							setrange= "0 100",
+							vertextype = "VSI",
+							outputDir= outputDir)
 
- 	ymax_cutflow = hcutflow.GetMaximum()
- 	hcutflow.GetYaxis().SetRangeUser(0,ymax_cutflow*1.05)
- 	hcutflow.SetFillColor(kAzure-4)
- 	hcutflow.SetLineWidth(0)
-  	hcutflow.Draw("HIST TEXT0 SAME")
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_phi", 
+							scaleymax = 2.2,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
 
-  	if options.data == True: 
-  		drawNotesData("data17 test",vertextype) 
-  	else: 
-  		drawNotesMC("",'VSI Leptons',"emu",'20','10') 
-  	MyC01.SaveAs(histos_savepath +'Cutflow_'+savefilename+'.pdf')
-
-
-def compare2(histos, h1name, h1label, h2name, h2label, xlabel,savefilename):
-	############################################################################
-	nRebin = 5 # set to 1 if you dont want to rebin.
-	scaleymax = 1.6 # use this to scale height of y axis for asthetics
-	############################################################################
-
-
-	# get 2 histograms from the file 
-	file = ROOT.TFile(histos)
-  	h1 = file.Get(h1name)
-  	h2 = file.Get(h2name)
-
-  	print h1.GetEntries()
-  	print h2.GetEntries()
-
-  	#define your canvas
-	MyC01= ROOT.TCanvas("MyC01","",600,400)
-	MyC01.Divide(1,1)
-	MyC01.cd(1)
-
-	#format legend
-	leg01 = ROOT.TLegend(0.60,0.7,0.91,0.92)
-  	leg01.SetTextSize(0.035)
-  	leg01.SetBorderSize(0)
-  	leg01.SetFillColor(kWhite)
-  	leg01.SetShadowColor(kWhite)
-
-  	leg01.AddEntry(h1,h1label,"l")
-	leg01.AddEntry(h2,h2label,"l")
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_phi", 
+							scaleymax = 2.2,
+							vertextype = "VSI",
+							outputDir= outputDir)
 
 
-	#rebin histograms
-	h1.Rebin(nRebin)
-	h2.Rebin(nRebin)
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_eta", 
+							scaleymax = 2.2,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
 
-	# find the max of the 2 histograms
-	y1_max = h1.GetMaximum()
-	y2_max = h1.GetMaximum()
-	y_max = max(y1_max,y2_max) # scale the max for asthetics 
-
-	h1_binxmax = h1.FindLastBinAbove(0,1)
-	h2_binxmax = h2.FindLastBinAbove(0,1)
-	bin_xmax = max(h1_binxmax,h2_binxmax)
-
-	h1_binxmin = h1.FindFirstBinAbove(0,1)
-	h2_binxmin = h2.FindFirstBinAbove(0,1)
-	bin_xmin = min(h1_binxmin,h2_binxmin)
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"],
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"], 
+							hname = "charge_DV_trk_eta", 
+							scaleymax = 2.2,
+							vertextype = "VSI",
+							outputDir= outputDir)
 
 
-	h1.SetLineColor(kAzure+6)
-	h1.GetXaxis().SetTitle(xlabel)
-  	h1.GetYaxis().SetTitle("entries")
-  	h1.GetYaxis().SetRangeUser(0,y_max*scaleymax)
-	h1.GetXaxis().SetRangeUser(0,3000)
-	h1.GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
-	h1.Draw("HIST")
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_d0",
+							setrange= "-10 10",
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
 
-	
- 	h2.SetLineColor(kViolet+8)
- 	h2.SetLineStyle(3)
- 	h2.Draw("HIST SAME")
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_d0", 
+							setrange= "-10 10",							
+							vertextype = "VSI",
+							outputDir= outputDir)
 
-	leg01.Draw()
-	ATLASLabel(0.25,0.87,"Internal")
-	
-	MyC01.SaveAs(histos_savepath +savefilename+'.pdf')
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_dpt",
+							nRebin = 2, 
+							setrange= "0 20",
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_dpt",
+							nRebin = 2, 
+							setrange= "0 20",						
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_deta", 
+							nRebin = 2, 
+							setrange= "0 4",
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+						  	mcfiles=config_file["mcFile"],
+						  	hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"], 
+							hname = "charge_DV_trk_deta", 
+							nRebin = 2, 
+							setrange= "0 4",
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_dphi",
+							setrange= "0 8",
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_dphi",  
+							setrange= "0 8",	
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_dR", 
+							nRebin = 10, 
+							setrange= "0 2",							
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_trk_dR", 
+							nRebin = 10, 
+							setrange= "0 10",
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_mvis", 
+							nRebin = 5, 
+							setrange= "0 200",
+							scaleymax = 1.5,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_mvis", 
+							nRebin = 5, 
+							setrange= "0 200",
+							scaleymax = 1.5,							
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_mtrans",
+							nRebin = 5, 
+							setrange= "0 200",
+							scaleymax = 1.5,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_mtrans", 
+							nRebin = 5, 
+							setrange= "0 200",
+							scaleymax = 1.5,
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"],
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_redmass",  
+							setrange= "0 20",
+							scaleymax = 1.5,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"],
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_redmass", 
+							setrange= "0 20",
+							scaleymax = 1.5,
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_redmassvis",
+							nRebin = 5, 
+							setrange= "0 200",
+							scaleymax = 1.5,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_redmassvis", 
+							nRebin = 5, 
+							setrange= "0 200",
+							scaleymax = 1.5,
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_HNLm",
+							setrange= "0 20",
+							scaleymax = 1.5,							 							
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_HNLm", 
+							setrange= "0 20",
+							scaleymax = 1.5,
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"],
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"], 
+							hname = "charge_DV_redmassHNL",
+							setrange= "0 50",
+							scaleymax = 1.5,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_DV_redmassHNL", 
+							nRebin = 1, 
+							setrange= "0 50",
+							scaleymax = 1.5,				
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_HNLpt",
+							nRebin = 5, 
+							setrange= "0 200",
+							scaleymax = 1.5,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_HNLpt",
+							nRebin = 5, 
+							setrange= "0 200",
+							scaleymax = 1.5,
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_HNLphi", 
+							setrange= "-4 4",
+							scaleymax = 1.5,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_HNLphi", 
+							setrange= "-4 4",
+							scaleymax = 1.5,
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_HNLeta",
+							setrange= "-3 3",
+							scaleymax = 1.5,
+							vertextype = "VSI Leptons",
+							outputDir= outputDir)
+
+	plotting.compare_dataMC(datafile=config_file["dataFile"],
+							mcfiles=config_file["mcFile"], 
+							hdatalabel= config_file["dataLabel"],
+							hmclabels = config_file["mcLabel"],
+							hname = "charge_HNLeta",
+							setrange= "-3 3",
+							scaleymax = 1.5,			
+							vertextype = "VSI",
+							outputDir= outputDir)
+
+
+
+
+def make2Dmassplots(config_file):
+
+	# MC FILES
+	plotting.CorrPlot2D( file= config_file["mcFile"][0], 
+				hname="charge_DVmass_mvis", 
+				hlabel=config_file["mcLabel"][0],
+				rebinx=2,
+				rebiny=5,
+				vertextype="VSI",
+				setxrange="0 30",
+				setyrange="0 300",
+				outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D( file= config_file["mcFile"][0], 
+				hlabel=config_file["mcLabel"][0],
+				hname="charge_DVmass_mvis",
+				rebinx=2,
+				rebiny=5,
+				vertextype="VSI Leptons",
+				setxrange="0 30",
+				setyrange="0 300",
+				outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			rebinx=2,
+			rebiny=5,
+			hname="charge_DVmass_mtrans", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI",
+			setxrange="0 30",
+			setyrange="0 300",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			rebinx=2,
+			rebiny=5,
+			hname="charge_DVmass_mtrans", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI Leptons",
+			setxrange="0 30",
+			setyrange="0 300",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			rebinx=5,
+			rebiny=5,
+			hname="charge_mvis_mtrans", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI",
+			setxrange="0 100",
+			setyrange="0 300",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			rebinx=5,
+			rebiny=5,
+			hname="charge_mvis_mtrans", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI Leptons",
+			setxrange="0 100",
+			setyrange="0 300",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			hname="charge_DVmass_mhnl", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI",
+			setxrange="0 50",
+			setyrange="0 50",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			hname="charge_DVmass_mhnl", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI Leptons",
+			setxrange="0 50",
+			setyrange="0 50",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			rebinx=5,
+			rebiny=1,
+			hname="charge_mvis_mhnl", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI",
+			setxrange="0 300",
+			setyrange="0 50",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			rebinx=5,
+			rebiny=1,
+			hname="charge_mvis_mhnl", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI Leptons",
+			setxrange="0 300",
+			setyrange="0 50",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			rebinx=1,
+			rebiny=5,
+			hname="charge_mhnl_mtrans", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI",
+			setxrange="0 50",
+			setyrange="0 300",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
+			rebinx=1,
+			rebiny=5,
+			hname="charge_mhnl_mtrans", 
+			hlabel=config_file["mcLabel"][0],
+			vertextype="VSI Leptons",
+			setxrange="0 50",
+			setyrange="0 300",
+			outputDir=outputDir + "2Dmassplots/mc/")
+
+	# DATA FILES
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			hname="charge_DVmass_mvis", 
+			hlabel=config_file["dataLabel"],
+			rebinx=2,
+			rebiny=5,
+			vertextype="VSI",
+			setxrange="0 30",
+			setyrange="0 300",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			hname="charge_DVmass_mvis", 
+			hlabel=config_file["dataLabel"],
+			rebinx=2,
+			rebiny=5,
+			vertextype="VSI Leptons",
+			setxrange="0 30",
+			setyrange="0 300",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			rebinx=2,
+			rebiny=5,
+			hname="charge_DVmass_mtrans", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI",
+			setxrange="0 30",
+			setyrange="0 300",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			rebinx=2,
+			rebiny=5,
+			hname="charge_DVmass_mtrans", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI Leptons",
+			setxrange="0 30",
+			setyrange="0 300",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			rebinx=5,
+			rebiny=5,
+			hname="charge_mvis_mtrans", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI",
+			setxrange="0 100",
+			setyrange="0 300",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			rebinx=5,
+			rebiny=5,
+			hname="charge_mvis_mtrans", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI Leptons",
+			setxrange="0 100",
+			setyrange="0 300",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			hname="charge_DVmass_mhnl", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI",
+			setxrange="0 50",
+			setyrange="0 50",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			hname="charge_DVmass_mhnl", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI Leptons",
+			setxrange="0 50",
+			setyrange="0 50",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			rebinx=5,
+			rebiny=1,
+			hname="charge_mvis_mhnl", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI",
+			setxrange="0 300",
+			setyrange="0 50",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			rebinx=5,
+			rebiny=1,
+			hname="charge_mvis_mhnl", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI Leptons",
+			setxrange="0 300",
+			setyrange="0 50",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			rebinx=1,
+			rebiny=5,
+			hname="charge_mhnl_mtrans", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI",
+			setxrange="0 50",
+			setyrange="0 300",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+	plotting.CorrPlot2D(config_file["dataFile"], 
+			rebinx=1,
+			rebiny=5,
+			hname="charge_mhnl_mtrans", 
+			hlabel=config_file["dataLabel"],
+			vertextype="VSI Leptons",
+			setxrange="0 50",
+			setyrange="0 300",
+			outputDir=outputDir +"2Dmassplots/data/")
+
+
+def makeCutflows(config_file):
+	# make Cutflow plots here
+	plotting.plot_cutflow(file = config_file["mcFile"][0],
+						  vertextype= "VSI Leptons",
+						  outputDir=outputDir + "Cutflows/")
+
+def compareHistograms(config_file):
+	# compare different histograms from the same file here
+	plotting.compareN(file=config_file["mcFile"][0],
+			hname = ["sel_DV_mass","sel_mvis","sel_HNLm","sel_mtrans","sel_DV_redmass"],
+			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+			setxrange= "0 100",
+			scaleymax=1.5,
+			nRebin=5,
+			vertextype= "VSI Leptons",
+			savefilename="selMC_mass",
+			outputDir=outputDir)
+
 
 
 
@@ -174,48 +699,37 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=False)
 
-	parser.add_argument("-d", "--isData",
-						action="store_true",
-						dest="data",
-						help="Is this data?")
-
-	parser.add_argument("-f", "--file",
-						dest="file", default=[""],
-						action = AppendActionCleanDefault,
+	parser.add_argument("--config",
+						dest="config",
 						type = str,
-						help="Input file",
-						metavar="FILE")
-
+						required = True,
+						help="Input config file for plotHisotgrams.py.")
 
 	parent_parser = argparse.ArgumentParser(formatter_class = argparse.ArgumentDefaultsHelpFormatter, parents = [parser]) 
 
 	options = parent_parser.parse_args()
 
-
-	####################################################################################################################################
-	# Here's where you configure what histograms to plot
-
-	plot_cutflow(options.file[0], ch_name = "emu",
-								  vertextype = "Run1",
-								  savefilename = "master")
-
-	plot_cutflow(options.file[0], ch_name ="emu",
-								  vertextype = "Run2",
-								  savefilename = "refactored")
-
-	compare2(options.file[0], h1name="DV_r_run1", 
-							  h1label="run1", 	
-							  h2name="DV_r_run2",
-							  h2label="run2", 
-							  xlabel='r DV [mm]',
-							  savefilename='hrDV_compare2deri')
-
-	####################################################################################################################################
+	if os.path.exists(outputDir):
+		pass
+	else: 
+		logger.info('Making output directories...')
+		os.mkdir(outputDir)
+		os.mkdir(outputDir + "Cutflows/")
+		os.mkdir(outputDir + "2Dmassplots")
+		os.mkdir(outputDir + "2Dmassplots/data/")
+		os.mkdir(outputDir + "2Dmassplots/mc/")
 
 
 
+	with open(options.config, 'r') as json_config:
+		config_file = json.load(json_config) # load JSON config file
 
 
+	#execute plotting here, comment out functions in you dont want to plot them again.	
+	compareMCdata(config_file)
+	makeCutflows(config_file)
+	compareHistograms(config_file)
+	make2Dmassplots(config_file)
 
-
-
+	
+	
