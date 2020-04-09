@@ -9,11 +9,7 @@ import os
 import re
 import subprocess
 import urlparse
-
-gROOT.LoadMacro("AtlasStyle.C")
-gROOT.LoadMacro("AtlasUtils.C")
-gROOT.LoadMacro("AtlasLabels.C")
-
+import atlas_style
 
 import logging
 # logging.captureWarnings(True)
@@ -189,7 +185,7 @@ def drawNotes(DV_type,plepton,VtxConfig):
 	# 	f.DrawLatex(ax,ay-0.25,'%s'%(VtxConfig))
 	# 	# else:
 		# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 
 def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
@@ -216,7 +212,7 @@ def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
 	# 	e.DrawLatex(ax,ay-0.20,'VSI')
 	# else:
 	e.DrawLatex(ax,ay-0.20,Vertextype)
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 def drawNotesData(datarun,Vertextype):
 	a = getNote()
@@ -227,7 +223,7 @@ def drawNotesData(datarun,Vertextype):
 
 	a.DrawLatex(ax,ay,Vertextype)
 	b.DrawLatex(ax,ay-0.05,datarun)
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 
 def drawNotesVertextype(Vertextype):

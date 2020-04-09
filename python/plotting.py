@@ -134,7 +134,7 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 
 	leg01.Draw()
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 	# if "pmu" in hname[0]: 
 	# 	if "mumu" in hname[0]:
@@ -341,7 +341,7 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 			leg01.AddEntry(matlay[0],"material layers","l")
 
 	leg01.Draw()
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 	helpers.drawNotesVertextype(vertextype)
 	
 	if vertextype == "VSI":
@@ -435,7 +435,7 @@ def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,s
 	# axis.Draw()
 
 	leg01.Draw()
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 	MyC01.cd(1)
 	pad2 = ROOT.TPad("pad2", "pad2", 0, 0.05, 1, 0.3)
@@ -573,7 +573,7 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 
 
 	leg01.Draw()
-	ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 	
 	if "uuu" in file: 
 		helpers.drawNotes("mumu","muon",vertextype) 
