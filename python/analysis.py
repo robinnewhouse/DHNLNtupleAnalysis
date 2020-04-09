@@ -491,18 +491,16 @@ class Analysis(object):
 						self.h[sel +'_mvis_mtrans'][self.ch].Fill(Mhnl.mvis,Mtrans.mtrans)
 						self.h[sel +'_mhnl_mtrans'][self.ch].Fill(Mhnl.mhnl,Mtrans.mtrans)
 					
-					deta = abs(tracks.eta[0] - tracks.eta[1])
-					dphi = abs(tracks.phi[0] - tracks.phi[1])
-					dpt = abs(tracks.pt[0] - tracks.pt[1])
-					dR =  np.sqrt(deta**2 + dphi**2)
 
+					deta = abs(tracks.eta[0] - tracks.eta[1])
+					dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
+					dpt = abs(tracks.pt[0] - tracks.pt[1])
+					dR = tracks.lepVec[0].DeltaR(tracks.lepVec[1])
+					
 					self.h[sel + "_DV_trk_deta"][self.ch].Fill(deta)
 					self.h[sel + "_DV_trk_dphi"][self.ch].Fill(dphi)
 					self.h[sel + "_DV_trk_dpt"][self.ch].Fill(dpt)
 					self.h[sel + "_DV_trk_dR"][self.ch].Fill(dR)
-
-					# print evt.tree.dvmass[evt.ievt][evt.idv]/dR
-
 					self.h[sel + "_DV_redmass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]/dR)
 					self.h[sel + "_DV_redmassvis"][self.ch].Fill(Mhnl.mvis/dR)
 					self.h[sel + "_DV_redmassHNL"][self.ch].Fill(Mhnl.mhnl/dR)

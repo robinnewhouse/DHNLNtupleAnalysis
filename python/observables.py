@@ -102,7 +102,7 @@ def selhistograms(selection):
 	Observable(selection + "_DV_trk_dpt",binning = (2000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_deta",binning = (160,0,20),do = ['hist']).queue()
 	Observable(selection + "_DV_trk_dphi", binning = (64,0,8), do = ['hist']).queue()
-	Observable(selection + "_DV_trk_dR", binning = (1000,0,10), do = ['hist']).queue()
+	Observable(selection + "_DV_trk_dR", binning = (1010,-5,10), do = ['hist']).queue()
 
 	Observable(selection + "_DV_x",binning = (2000,-500,500), do = ['hist']).queue()
 	Observable(selection + "_DV_y",binning = (2000,-500,500), do = ['hist']).queue()
@@ -125,9 +125,9 @@ def selhistograms(selection):
 	Observable(selection + "_HNLphi", binning = (64,-4,4), do = ['hist']).queue()
 	Observable(selection + "_mtrans",binning = (10000,0,5000), do = ['hist']).queue()
 	Observable(selection + "_mtrans_rot",binning = (10000,0,5000), do = ['hist']).queue()
-	Observable(selection + "_DV_redmass",binning = (10000,0,5000), do = ['hist']).queue()
-	Observable(selection + "_DV_redmassvis",binning = (10000,0,5000), do = ['hist']).queue()
-	Observable(selection + "_DV_redmassHNL",binning = (10000,0,5000), do = ['hist']).queue()
+	Observable(selection + "_DV_redmass",binning = (10005,-5,5000), do = ['hist']).queue()
+	Observable(selection + "_DV_redmassvis",binning = (10005,-5,5000), do = ['hist']).queue()
+	Observable(selection + "_DV_redmassHNL",binning = (10005,-5,5000), do = ['hist']).queue()
 
 selhistograms("all")
 selhistograms("charge")
