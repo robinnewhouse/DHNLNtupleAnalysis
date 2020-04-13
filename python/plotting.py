@@ -1,4 +1,5 @@
 # plotting functions
+from __future__ import division
 import argparse, os, math, ROOT, glob, uproot, time, json
 
 import atlas_style
@@ -204,7 +205,8 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 
 
-def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, setrange = "", scaleymax=1.2, nRebin=1,setlogy=False,outputDir="../output/"):
+def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, setrange = "", 
+                   scaleymax=1.2, nRebin=1, setlogy=False, outputDir="../output/", save_name = ""):
 
 	# get 2 histograms from input file
 
@@ -256,48 +258,52 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 		leg01.AddEntry(hmc[i],hmclabels[i],"lp")
 		hmc[i].Rebin(nRebin)
 
+	
+
+	# find the common min and max for x axis
+	bin_xmax = hdata.FindLastBinAbove(0,1)
+	bin_xmin = hdata.FindFirstBinAbove(0,1)
+	for i in xrange(nmc_files):
+		if hmc[i].FindLastBinAbove(0,1) > bin_xmax: bin_xmax = hmc[i].FindLastBinAbove(0,1)
+		if hmc[i].FindFirstBinAbove(0,1) > bin_xmin: bin_xmin = hmc[i].FindFirstBinAbove(0,1)
+	if setrange == "":
+		x_min = bin_xmin-1
+		x_max = bin_xmax+1
+	else: 
+		x_min, x_max = [float(item) for item in setrange.split(' ')]
+		bin_xmax = hdata.GetXaxis().FindBin(x_max)
+		bin_xmin = hdata.GetXaxis().FindBin(x_min)
+	hdata.GetXaxis().SetRangeUser(x_min, x_max)
+	for i in xrange(nmc_files):
+		hmc[i].GetXaxis().SetRangeUser(x_min, x_max)
+
+	# normalize the histograms
 	norm = 1
-	scale_data = norm/(hdata.Integral())
+	if (hdata.Integral() != 0):
+		# Normalize in specified range
+		scale_data = norm/(hdata.Integral(bin_xmin, bin_xmax)) 
+	else:
+		scale_data = norm
 	hdata.Scale(scale_data)
 
-	for i in range(nmc_files): 
-		scale_mc = norm/(hmc[i].Integral())
-		hmc[i].Scale(scale_mc)	
+	for i in range(nmc_files):
+		if (hmc[i].Integral() != 0):
+			scale_mc = norm/(hmc[i].Integral(bin_xmin, bin_xmax))
+		else:
+			scale_mc = norm
+		hmc[i].Scale(scale_mc)
 
-	# find the max of the n histograms
-	ydata_max = hdata.GetMaximum()
-	hdata_binxmax = hdata.FindLastBinAbove(0,1)
-	hdata_binxmin = hdata.FindFirstBinAbove(0,1)
-
-	ymax_list = []
-	h_binxmax_list = []
-	h_binxmin_list = []
-
-	ymax_list.append(ydata_max)
-	h_binxmax_list.append(hdata_binxmax)
-	h_binxmin_list.append(hdata_binxmin)
-
+	# find the common min and max for y axis
+	y_max = hdata.GetMaximum()
 	for i in xrange(nmc_files):
-		ymax_list.append(hmc[i].GetMaximum())
-		h_binxmax_list.append(hmc[i].FindLastBinAbove(0,1))
-		h_binxmin_list.append(hmc[i].FindFirstBinAbove(0,1))
+		if hmc[i].GetMaximum() > y_max: y_max = hmc[i].GetMaximum()
 
-	y_max = max(ymax_list)
-	bin_xmax = max(h_binxmax_list)
-	bin_xmin = min(h_binxmin_list)
 
 	hdata.SetLineColor(kBlack)
 	hdata.GetXaxis().SetTitle(helpers.xlabelhistograms(hname))
 	hdata.GetYaxis().SetTitle("entries")
 	hdata.GetYaxis().SetRangeUser(0,y_max*scaleymax)
 	hdata.SetMarkerSize(0.7)
-	
-	if setrange == "":
-		hdata.GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
-	else: 
-
-		minmax = [item for item in setrange.split(' ')]
-		hdata.GetXaxis().SetRangeUser(int(minmax[0]),int(minmax[1]))
 
 	hdata.Draw("E0 HIST")
 
@@ -344,12 +350,13 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 	helpers.drawNotesVertextype(vertextype)
 	
+	save_name = hname if save_name == "" else save_name
 	if vertextype == "VSI":
-		savefilename= hname + "_compare_dataMC_VSI"
+		savefilename= save_name + "_compare_dataMC_VSI"
 	elif vertextype == "VSI Leptons":
-		savefilename= hname + "_compare_dataMC_VSILep"
+		savefilename= save_name + "_compare_dataMC_VSILep"
 	else: 
-		savefilename= hname + "_compare_dataMC_VSILep"
+		savefilename= save_name + "_compare_dataMC_VSILep"
 
 	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 

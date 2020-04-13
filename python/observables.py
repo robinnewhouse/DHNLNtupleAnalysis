@@ -110,7 +110,7 @@ def selhistograms(selection):
 	Observable(selection + "_DV_r",binning = (500,0,500), do = ['hist']).queue()
 	Observable(selection + "_DV_num_trks",binning = (6,-0.5,5.5), do = ['hist']).queue()
 	Observable(selection + "_DV_distFromPV",binning = (500,0,500), do = ['hist']).queue()
-	Observable(selection + "_DV_mass",binning = (10000,0,5000), do = ['hist']).queue()
+	Observable(selection + "_DV_mass",binning = (10000*100,0,5000), do = ['hist']).queue()
 	Observable(selection + "_DV_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_eta",binning = (160,-10,10),do = ['hist']).queue()
 	Observable(selection + "_DV_phi", binning = (64,-4,4), do = ['hist']).queue()
