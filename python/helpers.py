@@ -166,6 +166,8 @@ def drawNotes(DV_type,plepton,VtxConfig):
 		b.DrawLatex(ax,ay-0.10,'DV type: \mu\mu\\nu')
 	if DV_type == "emu":
 		b.DrawLatex(ax,ay-0.10,'DV type: e\mu\\nu')
+	if DV_type == "ee":
+		b.DrawLatex(ax,ay-0.10,'DV type: ee\\nu')
 	c.DrawLatex(ax,ay-0.15,'%s'%(VtxConfig))
 
 	# else: 
@@ -208,6 +210,10 @@ def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
 		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
 	elif DV_type == "mumumu":
 		d.DrawLatex(ax,ay-0.15,'channel: \mu\mu\mu')
+	elif DV_type == "ee":
+		d.DrawLatex(ax,ay-0.15,'DV type: ee')
+	elif DV_type == "eee":
+		d.DrawLatex(ax,ay-0.15,'channel: eee')
 	# if DV_Default == True:
 	# 	e.DrawLatex(ax,ay-0.20,'VSI')
 	# else:

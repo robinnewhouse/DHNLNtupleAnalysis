@@ -669,6 +669,9 @@ def make2Dmassplots(config_file):
 def makeCutflows(config_file):
 	# make Cutflow plots here
 	plotting.plot_cutflow(file = config_file["mcFile"][0],
+						  vertextype= "VSI",
+						  outputDir=outputDir + "Cutflows/")
+	plotting.plot_cutflow(file = config_file["mcFile"][0],
 						  vertextype= "VSI Leptons",
 						  outputDir=outputDir + "Cutflows/")
 
@@ -680,8 +683,17 @@ def compareHistograms(config_file):
 			setxrange= "0 100",
 			scaleymax=1.5,
 			nRebin=5,
+			vertextype= "VSI",
+			savefilename="selMC_mass_VSI",
+			outputDir=outputDir)
+	plotting.compareN(file=config_file["mcFile"][0],
+			hname = ["sel_DV_mass","sel_mvis","sel_HNLm","sel_mtrans","sel_DV_redmass"],
+			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
+			setxrange= "0 100",
+			scaleymax=1.5,
+			nRebin=5,
 			vertextype= "VSI Leptons",
-			savefilename="selMC_mass",
+			savefilename="selMC_mass_VSI_Leptons",
 			outputDir=outputDir)
 
 
@@ -732,9 +744,9 @@ if __name__ == '__main__':
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
 	compareMCdata(config_file)
-	makeCutflows(config_file)
-	compareHistograms(config_file)
-	make2Dmassplots(config_file)
+	# makeCutflows(config_file)
+	# compareHistograms(config_file)
+	# make2Dmassplots(config_file)
 
 	
 	

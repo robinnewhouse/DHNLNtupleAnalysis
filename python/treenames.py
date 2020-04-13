@@ -119,5 +119,10 @@ class Tree():
 			# self.dvdistFromPV = self.tree["truthVtx_distFromPV"].array() 
 			# self.dvcharge = self.tree["truthVtx_charge"].array() 
 			# self.dvcharge = self.tree["truthVtx_chi2"].array() 
+			self.truth_parent_pdgId = self.tree["truthVtx_parent_pdgId"].array() 
+			self.truth_nOutP = self.tree["truthVtx_nOutP"].array() 
+			self.truth_outP_pdgId = self.tree["truthVtx_outP_pdgId"].array() 
+			self.truth_outP_barcode = self.tree["truthVtx_outP_barcode"].array() 
+
 		# -----------------------------------------------------------------------
 		logger.info("Done importing trees!")

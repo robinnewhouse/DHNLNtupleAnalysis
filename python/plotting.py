@@ -18,7 +18,7 @@ def plot_cutflow(file, vertextype, outputDir="../output/"):
 	if vertextype == "VSI":
 		hcutflow = Tfile.Get('CutFlow_VSI')
 	elif vertextype == "VSI Leptons":
-		hcutflow = Tfile.Get('CutFlow_VSI')
+		hcutflow = Tfile.Get('CutFlow_VSI_Leptons')
 
 	MyC01= ROOT.TCanvas("MyC01","cutflow",600,400)
 
