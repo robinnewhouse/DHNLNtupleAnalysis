@@ -1,0 +1,3 @@
+python makeHistograms.py --config ../data/config_mc_kshort.json --input /home/newhouse/public/Analysis/HNL/DHNLAlgorithm/run/testRun/data-tree/dijet_files.root --force
+python makeHistograms.py --config ../data/config_data_kshort.json --input /data/hnl/data18_ntuples/user.dtrischu.data18_13TeV.periodB.physics_Main.PhysCont.DAOD_RPVLL.pro25_v01_HNLNtuple_v3_tree.root/user.dtrischu.20914911._000018.tree.root --nevents 18000 --force
+python plotHistograms.py  --config ../data/config_plotting_kshort.json

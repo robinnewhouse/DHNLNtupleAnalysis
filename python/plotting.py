@@ -328,7 +328,6 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 		lines[i].Draw("SAME")
 
 	if 'material_layers' in kwargs and kwargs['material_layers']:
-		print ("Doing material layers")
 		for i, x in enumerate([33.25,50.5,88.5,122.5,299]):
 			lines.append(TLine(x,0,x,y_max))
 			lines[i].SetLineStyle(3)
