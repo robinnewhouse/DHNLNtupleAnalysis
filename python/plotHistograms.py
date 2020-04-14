@@ -37,8 +37,9 @@ def compareMCdata(config_file):
 							hdatalabel=  config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_mass", 
+							vertical_lines=[4],
 							scaleymax = 1.5,
-							setrange= "0 20",					
+							setrange= (0, 20),					
 							vertextype = "VSI",
 							outputDir=outputDir)
 
@@ -47,7 +48,8 @@ def compareMCdata(config_file):
 							hdatalabel=  config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],				
 							hname = "charge_DV_mass", 
-						    setrange= "0 20",
+							vertical_lines=[4],
+						    setrange= (0, 20),
 							vertextype = "VSI Leptons",
 							outputDir=outputDir)
 
@@ -58,7 +60,8 @@ def compareMCdata(config_file):
 							hname = "charge_DV_r", 
 							nRebin = 5, 
 							vertextype = "VSI Leptons",
-							outputDir= outputDir)
+							outputDir= outputDir,
+							material_layers = True)
 
 
 	plotting.compare_dataMC(datafile=config_file["dataFile"],
@@ -68,7 +71,8 @@ def compareMCdata(config_file):
 							hname = "charge_DV_r", 
 							nRebin = 5, 
 							vertextype = "VSI",
-							outputDir= outputDir)
+							outputDir= outputDir,
+							material_layers = True)
 
 	plotting.compare_dataMC(datafile=config_file["dataFile"],
 							mcfiles=config_file["mcFile"], 
@@ -76,7 +80,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_pt",
 							nRebin = 2, 
-							setrange= "0 100",					
+							setrange= (0, 100),					
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
 
@@ -86,7 +90,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_pt",
 							nRebin = 2, 
-							setrange= "0 100",
+							setrange= (0, 100),
 							vertextype = "VSI",
 							outputDir= outputDir)
 
@@ -133,7 +137,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_d0",
-							setrange= "-10 10",
+							setrange= (-10, 10),
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
 
@@ -142,7 +146,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_d0", 
-							setrange= "-10 10",							
+							setrange= (-10, 10),							
 							vertextype = "VSI",
 							outputDir= outputDir)
 
@@ -152,7 +156,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_dpt",
 							nRebin = 2, 
-							setrange= "0 20",
+							setrange= (0, 20),
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
 
@@ -162,7 +166,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_dpt",
 							nRebin = 2, 
-							setrange= "0 20",						
+							setrange= (0, 20),						
 							vertextype = "VSI",
 							outputDir= outputDir)
 
@@ -172,7 +176,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_deta", 
 							nRebin = 2, 
-							setrange= "0 4",
+							setrange= (0, 4),
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
 
@@ -182,7 +186,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"], 
 							hname = "charge_DV_trk_deta", 
 							nRebin = 2, 
-							setrange= "0 4",
+							setrange= (0, 4),
 							vertextype = "VSI",
 							outputDir= outputDir)
 
@@ -191,7 +195,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_dphi",
-							setrange= "0 8",
+							setrange= (0, 8),
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
 
@@ -200,7 +204,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_dphi",  
-							setrange= "0 8",	
+							setrange= (0, 8),	
 							vertextype = "VSI",
 							outputDir= outputDir)
 
@@ -210,7 +214,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_dR", 
 							nRebin = 10, 
-							setrange= "0 2",							
+							setrange= (0, 2),							
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
 
@@ -220,7 +224,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_trk_dR", 
 							nRebin = 10, 
-							setrange= "0 10",
+							setrange= (0, 10),
 							vertextype = "VSI",
 							outputDir= outputDir)
 
@@ -230,8 +234,9 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_mvis", 
+							vertical_lines=[50, 84],
 							nRebin = 5, 
-							setrange= "0 200",
+							setrange= (0, 200),
 							scaleymax = 1.5,
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -241,8 +246,9 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_mvis", 
+							vertical_lines=[50, 84],
 							nRebin = 5, 
-							setrange= "0 200",
+							setrange= (0, 200),
 							scaleymax = 1.5,							
 							vertextype = "VSI",
 							outputDir= outputDir)
@@ -253,7 +259,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_mtrans",
 							nRebin = 5, 
-							setrange= "0 200",
+							setrange= (0, 200),
 							scaleymax = 1.5,
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -264,7 +270,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_mtrans", 
 							nRebin = 5, 
-							setrange= "0 200",
+							setrange= (0, 200),
 							scaleymax = 1.5,
 							vertextype = "VSI",
 							outputDir= outputDir)
@@ -276,7 +282,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_redmass",  
-							setrange= "0 20",
+							setrange= (0, 20),
 							scaleymax = 1.5,
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -286,7 +292,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_redmass", 
-							setrange= "0 20",
+							setrange= (0, 20),
 							scaleymax = 1.5,
 							vertextype = "VSI",
 							outputDir= outputDir)
@@ -298,7 +304,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_redmassvis",
 							nRebin = 5, 
-							setrange= "0 200",
+							setrange= (0, 200),
 							scaleymax = 1.5,
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -309,7 +315,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_redmassvis", 
 							nRebin = 5, 
-							setrange= "0 200",
+							setrange= (0, 200),
 							scaleymax = 1.5,
 							vertextype = "VSI",
 							outputDir= outputDir)
@@ -319,7 +325,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_HNLm",
-							setrange= "0 20",
+							setrange= (0, 20),
 							scaleymax = 1.5,							 							
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -329,7 +335,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_HNLm", 
-							setrange= "0 20",
+							setrange= (0, 20),
 							scaleymax = 1.5,
 							vertextype = "VSI",
 							outputDir= outputDir)
@@ -340,7 +346,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"], 
 							hname = "charge_DV_redmassHNL",
-							setrange= "0 50",
+							setrange= (0, 50),
 							scaleymax = 1.5,
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -351,7 +357,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_DV_redmassHNL", 
 							nRebin = 1, 
-							setrange= "0 50",
+							setrange= (0, 50),
 							scaleymax = 1.5,				
 							vertextype = "VSI",
 							outputDir= outputDir)
@@ -364,7 +370,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_HNLpt",
 							nRebin = 5, 
-							setrange= "0 200",
+							setrange= (0, 200),
 							scaleymax = 1.5,
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -375,7 +381,7 @@ def compareMCdata(config_file):
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_HNLpt",
 							nRebin = 5, 
-							setrange= "0 200",
+							setrange= (0, 200),
 							scaleymax = 1.5,
 							vertextype = "VSI",
 							outputDir= outputDir)
@@ -386,7 +392,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_HNLphi", 
-							setrange= "-4 4",
+							setrange= (-4, 4),
 							scaleymax = 1.5,
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -396,7 +402,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_HNLphi", 
-							setrange= "-4 4",
+							setrange= (-4, 4),
 							scaleymax = 1.5,
 							vertextype = "VSI",
 							outputDir= outputDir)
@@ -407,7 +413,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_HNLeta",
-							setrange= "-3 3",
+							setrange= (-3, 3),
 							scaleymax = 1.5,
 							vertextype = "VSI Leptons",
 							outputDir= outputDir)
@@ -417,7 +423,7 @@ def compareMCdata(config_file):
 							hdatalabel= config_file["dataLabel"],
 							hmclabels = config_file["mcLabel"],
 							hname = "charge_HNLeta",
-							setrange= "-3 3",
+							setrange= (-3, 3),
 							scaleymax = 1.5,			
 							vertextype = "VSI",
 							outputDir= outputDir)

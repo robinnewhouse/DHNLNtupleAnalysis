@@ -205,8 +205,8 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 
 
-def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, setrange = "", 
-                   scaleymax=1.2, nRebin=1, setlogy=False, outputDir="../output/", save_name = ""):
+def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, setrange = None, 
+                   scaleymax=1.2, nRebin=1, setlogy=False, outputDir="../output/", save_name = "", vertical_lines = [], **kwargs):
 
 	# get 2 histograms from input file
 
@@ -261,18 +261,19 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	
 
 	# find the common min and max for x axis
-	bin_xmax = hdata.FindLastBinAbove(0,1)
-	bin_xmin = hdata.FindFirstBinAbove(0,1)
-	for i in xrange(nmc_files):
-		if hmc[i].FindLastBinAbove(0,1) > bin_xmax: bin_xmax = hmc[i].FindLastBinAbove(0,1)
-		if hmc[i].FindFirstBinAbove(0,1) > bin_xmin: bin_xmin = hmc[i].FindFirstBinAbove(0,1)
-	if setrange == "":
-		x_min = bin_xmin-1
-		x_max = bin_xmax+1
+	if setrange == None:
+		bin_xmax = hdata.FindLastBinAbove(0,1)
+		bin_xmin = hdata.FindFirstBinAbove(0,1)
+		for i in xrange(nmc_files):
+			if hmc[i].FindLastBinAbove(0,1) > bin_xmax: bin_xmax = hmc[i].FindLastBinAbove(0,1)
+			if hmc[i].FindFirstBinAbove(0,1) > bin_xmin: bin_xmin = hmc[i].FindFirstBinAbove(0,1)
+			x_min = bin_xmin-1
+			x_max = bin_xmax+1
 	else: 
-		x_min, x_max = [float(item) for item in setrange.split(' ')]
+		x_min, x_max = setrange
 		bin_xmax = hdata.GetXaxis().FindBin(x_max)
 		bin_xmin = hdata.GetXaxis().FindBin(x_min)
+	# set the common x limits for all histograms
 	hdata.GetXaxis().SetRangeUser(x_min, x_max)
 	for i in xrange(nmc_files):
 		hmc[i].GetXaxis().SetRangeUser(x_min, x_max)
@@ -319,32 +320,20 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	if setlogy: 
 		gPad.SetLogy()
 
-	if "DV_mass" in hname:
-		mDVcut=TLine(4,0,4,y_max)
-		mDVcut.SetLineStyle(3)
-		mDVcut.Draw("SAME")
+	# draw vertical lines
+	lines  = []
+	for i, x in enumerate(vertical_lines):
+		lines.append(TLine(x,0,x,y_max))
+		lines[i].SetLineStyle(3)
+		lines[i].Draw("SAME")
 
-	if "mvis" in hname:
-		min_mlll=TLine(50,0,50,y_max)
-		min_mlll.SetLineStyle(3)
-		min_mlll.Draw("SAME")
-
-		max_mlll=TLine(84,0,84,y_max)
-		max_mlll.SetLineStyle(3)
-		max_mlll.Draw("SAME")
-
-	if "DV_r" in hname:
-		if  "redmass" in hname:
-			pass
-		else: 
-			matlayers = [33.25,50.5,88.5,122.5,299]
-			nmatlayers = len(matlayers)
-			matlay={}
-			for i in range(nmatlayers):
-				matlay[i]=TLine(matlayers[i],0,matlayers[i],y_max)
-				matlay[i].SetLineStyle(3)
-				matlay[i].Draw("SAME")
-			leg01.AddEntry(matlay[0],"material layers","l")
+	if 'material_layers' in kwargs and kwargs['material_layers']:
+		print ("Doing material layers")
+		for i, x in enumerate([33.25,50.5,88.5,122.5,299]):
+			lines.append(TLine(x,0,x,y_max))
+			lines[i].SetLineStyle(3)
+			lines[i].Draw("SAME")
+		leg01.AddEntry(lines[0],"material layers","l")
 
 	leg01.Draw()
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
@@ -520,8 +509,8 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 	xmax  = hold.GetXaxis().GetXmax()
 	ymin  = hold.GetYaxis().GetXmin()
 	ymax  = hold.GetYaxis().GetXmax()
-	nx = nbinsx/rebinx
-	ny = nbinsy/rebiny
+	nx = int(nbinsx/rebinx)
+	ny = int(nbinsy/rebiny)
 	h.SetBins(nx,xmin,xmax,ny,ymin,ymax)
 	
 	#loop on all bins to reset contents and errors
