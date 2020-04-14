@@ -549,10 +549,17 @@ class Mhnl():
 
 		self.mvis = -1 
 		self.mhnl = -1
+		self.mhnl2 = -1
 		self.hnlpt = -1
 		self.hnleta = -99
 		self.hnlphi = -99
 		self.mtrans_rot = -1 
+		self.neg_mhnl12 = -1
+		self.neg_mhnl13 = -1
+		self.neg_mhnl23 = -1
+		self.pos_mhnl12 = -1
+		self.pos_mhnl13 = -1
+		self.pos_mhnl23 = -1
 
 		def rotate_vector(r,v):
 			r_new = ROOT.TVector3(v)
@@ -650,10 +657,22 @@ class Mhnl():
 			pnu_rot2 = ROOT.TLorentzVector(pnu_rot2_vec,pnu_rot2_vec.Mag())
 
 			# 2 solutions for HNL 4-vector
-			pHNL_1 = ptk1_rot + ptk2_rot + pnu_rot1
-			pHNL_2 = ptk1_rot + ptk2_rot + pnu_rot2
+			pHNL_1 = ptk1_rot + ptk2_rot + pnu_rot1 # postive root
+			pHNL_2 = ptk1_rot + ptk2_rot + pnu_rot2 # negative root
+						#1        #2          #3
+			
+			neg_mhnl12_vec = ptk1_rot + ptk2_rot
+			neg_mhnl13_vec = ptk1_rot + pnu_rot2
+			neg_mhnl23_vec = ptk2_rot + pnu_rot2
+
+
+			pos_mhnl12_vec = ptk1_rot + ptk2_rot
+			pos_mhnl13_vec = ptk1_rot + pnu_rot1
+			pos_mhnl23_vec = ptk2_rot + pnu_rot1
+
 
 			# truth studies show pHNL_2 is the solution that gets us the HNL mass
+			self.mhnl2 = pHNL_1.M()
 			self.mhnl = pHNL_2.M()
 
 			pHNL_2_lab = unrotate_vector(hnl_vec,pHNL_2)
@@ -665,6 +684,15 @@ class Mhnl():
 			self.hnlpt = pHNL_2_lab.Pt()
 			self.hnleta = pHNL_2_lab.Eta()
 			self.hnlphi = pHNL_2_lab.Phi()
+
+
+			self.neg_mhnl12 = neg_mhnl12_vec.M()
+			self.neg_mhnl13 = neg_mhnl13_vec.M()
+			self.neg_mhnl23 = neg_mhnl23_vec.M()
+
+			self.pos_mhnl12 = pos_mhnl12_vec.M()
+			self.pos_mhnl13 = pos_mhnl13_vec.M()
+			self.pos_mhnl23 = pos_mhnl23_vec.M()
 
 	def passes(self):
 		

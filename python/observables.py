@@ -120,6 +120,7 @@ def selhistograms(selection):
 	Observable(selection + "_DV_chi2",binning = (40,0,20), do = ['hist']).queue()
 	Observable(selection + "_mvis",binning = (10000,0,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLm",binning = (10005,-5,5000), do = ['hist']).queue()
+	Observable(selection + "_HNLm2",binning = (10005,-5,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLpt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_HNLeta",binning = (160,-10,10),do = ['hist']).queue()
 	Observable(selection + "_HNLphi", binning = (64,-4,4), do = ['hist']).queue()
@@ -136,6 +137,7 @@ selhistograms("trkqual")
 selhistograms("trkqual")
 selhistograms("cosmic")
 selhistograms("mlll")
+selhistograms("mDV")
 selhistograms("sel")
 
 

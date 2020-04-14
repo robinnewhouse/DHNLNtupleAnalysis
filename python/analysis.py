@@ -36,7 +36,7 @@ class Analysis(object):
 		self.histSuffixes = [self.ch]
 		self.h = {}
 		# make histograms (common for all channels)
-		self.add('CutFlow', 15, -0.5, 14.5)
+		self.add('CutFlow', 16, -0.5, 15.5)
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
 		self.add2D( 'charge_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
@@ -44,7 +44,31 @@ class Analysis(object):
 		self.add2D( 'charge_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
 		self.add2D( 'charge_mvis_mhnl', 1000, 0, 500, 1005, -5, 500)
 		self.add2D( 'charge_mvis_mtrans', 1000, 0, 500, 1000, 0, 500)
+		self.add2D( 'charge_mhnl_hnlpt', 1005, -5, 500, 1000, 0, 500)
 		self.add2D( 'charge_mhnl_mtrans', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'charge_mhnl2D', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'charge_pos_mhnl12_13', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'charge_pos_mhnl23_12', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'charge_pos_mhnl13_23', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'charge_neg_mhnl12_13', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'charge_neg_mhnl23_12', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'charge_neg_mhnl13_23', 1005, -5, 500, 1000, 0, 500)
+
+		self.add2D( 'sel_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
+		self.add2D( 'sel_DVmass_mhnl', 1000, 0, 500, 1005, -5, 500)
+		self.add2D( 'sel_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
+		self.add2D( 'sel_mvis_mhnl', 1000, 0, 500, 1005, -5, 500)
+		self.add2D( 'sel_mvis_mtrans', 1000, 0, 500, 1000, 0, 500)
+		self.add2D( 'sel_mhnl_mtrans', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'sel_mhnl2D', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'sel_mhnl_hnlpt', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'sel_mhnl2D', 1005, -5, 500, 1005, -5, 500)
+		self.add2D( 'sel_pos_mhnl12_13', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'sel_pos_mhnl23_12', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'sel_pos_mhnl13_23', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'sel_neg_mhnl12_13', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'sel_neg_mhnl23_12', 1005, -5, 500, 1000, 0, 500)
+		self.add2D( 'sel_neg_mhnl13_23', 1005, -5, 500, 1000, 0, 500)
 		self._locked = UNLOCKED
 
 		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
@@ -168,6 +192,8 @@ class Analysis(object):
 		self.do_HNL_mass_cut = 'HNLmass' in self.sel
 		# if not self.do_HNL_mass_cut: logger.warn('You did not add an HNLmass cut for this channel. Skipping HNL mass selection.')
 
+		#HNL pT cut
+		self.do_HNL_pt_cut = 'HNLpt' in self.sel
 
 		self.check_input_consistency()
 
@@ -214,6 +240,8 @@ class Analysis(object):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
 		if self.do_HNL_mass_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "m_{HNL}")
+		if self.do_HNL_pt_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(16, "HNL p_{T}")
 
 	def unlock(self):
 		self._locked = UNLOCKED
@@ -377,7 +405,7 @@ class Analysis(object):
 		return mlll_sel.passes()
 
 	def _dv_mass_cut(self, evt):
-		dv_mass_sel = selections.DVmass(evt=evt)
+		dv_mass_sel = selections.DVmass(evt=evt,dvmasscut=4)
 		return dv_mass_sel.passes()
 
 	def _HNL_mass_cut(self, evt):
@@ -390,6 +418,21 @@ class Analysis(object):
 		mHNL_sel = selections.Mhnl(evt=evt,plep=plep_vec,trks=tracks_vec)
 
 		return mHNL_sel.passes()
+
+
+	def _HNL_pt_cut(self, evt):
+		tracks = helpers.Tracks()
+		tracks.getTracks(evt=evt)
+
+		plep_vec = self.plep_sel.plepVec
+		tracks_vec = tracks.lepVec
+
+		mHNL_sel = selections.Mhnl(evt=evt,plep=plep_vec,trks=tracks_vec)
+
+		if (mHNL_sel.hnlpt > 20 and mHNL_sel.hnlpt < 60):
+			return True
+		else: 
+			return False
 
 
 
@@ -477,19 +520,31 @@ class Analysis(object):
 
 					self.h[sel + "_mvis"][self.ch].Fill(Mhnl.mvis)
 					self.h[sel + "_HNLm"][self.ch].Fill(Mhnl.mhnl)
+				 	self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2)
 					self.h[sel + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt)
 					self.h[sel + "_HNLeta"][self.ch].Fill(Mhnl.hnleta)
 					self.h[sel + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi)
 					self.h[sel + "_mtrans"][self.ch].Fill(Mtrans.mtrans)
 					self.h[sel + "_mtrans_rot"][self.ch].Fill(Mhnl.mtrans_rot)
 					
-					if sel == "charge": # fill 2D mass correlation plots here 
+					if (sel == "charge"  or sel == "sel"): # fill 2D mass correlation plots here 
 						self.h[sel +'_DVmass_mvis'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mvis)
 						self.h[sel +'_DVmass_mhnl'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mhnl)
 						self.h[sel +'_DVmass_mtrans'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mtrans.mtrans)
 						self.h[sel +'_mvis_mhnl'][self.ch].Fill(Mhnl.mvis,Mhnl.mhnl)
 						self.h[sel +'_mvis_mtrans'][self.ch].Fill(Mhnl.mvis,Mtrans.mtrans)
 						self.h[sel +'_mhnl_mtrans'][self.ch].Fill(Mhnl.mhnl,Mtrans.mtrans)
+						self.h[sel +'_mhnl_hnlpt'][self.ch].Fill(Mhnl.mhnl,Mhnl.hnlpt)
+						self.h[sel +'_mhnl2D'][self.ch].Fill(Mhnl.mhnl,Mhnl.mhnl2)
+						self.h[sel +'_neg_mhnl12_13'][self.ch].Fill(Mhnl.neg_mhnl12,Mhnl.neg_mhnl13)
+						self.h[sel +'_neg_mhnl23_12'][self.ch].Fill(Mhnl.neg_mhnl23,Mhnl.neg_mhnl12)
+						self.h[sel +'_neg_mhnl13_23'][self.ch].Fill(Mhnl.neg_mhnl13,Mhnl.neg_mhnl23)
+						self.h[sel +'_pos_mhnl12_13'][self.ch].Fill(Mhnl.pos_mhnl12,Mhnl.pos_mhnl13)
+						self.h[sel +'_pos_mhnl23_12'][self.ch].Fill(Mhnl.pos_mhnl23,Mhnl.pos_mhnl12)
+						self.h[sel +'_pos_mhnl13_23'][self.ch].Fill(Mhnl.pos_mhnl13,Mhnl.pos_mhnl23)
+					
+					# if sel == "sel":
+					# 	self.h[sel +'_mhnl2D'][self.ch].Fill(Mhnl.mhnl,Mhnl.mhnl2)
 					
 
 					deta = abs(tracks.eta[0] - tracks.eta[1])
@@ -572,6 +627,7 @@ class WmuHNL(Analysis):
 		self.passed_trilepton_mass_cut = False
 		self.passed_dv_mass_cut = False
 		self.passed_HNL_mass_cut = False
+		self.passed_HNL_pt_cut = False
 
 		self._fill_histos(evt)
 		
@@ -711,11 +767,23 @@ class WmuHNL(Analysis):
 			else:
 				return
 
+		self._fill_selected_dv_histos(evt, "mDV")
+
+
 		if self.do_HNL_mass_cut:
 			if self._HNL_mass_cut(evt):
 				if not self.passed_HNL_mass_cut:
 					self.h['CutFlow'][self.ch].Fill(14)
 					self.passed_HNL_mass_cut = True
+
+			else:
+				return
+
+		if self.do_HNL_pt_cut:
+			if self._HNL_pt_cut(evt):
+				if not self.passed_HNL_pt_cut:
+					self.h['CutFlow'][self.ch].Fill(15)
+					self.passed_HNL_pt_cut = True
 
 			else:
 				return

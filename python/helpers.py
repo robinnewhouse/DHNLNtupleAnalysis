@@ -73,7 +73,9 @@ class Tracks():
 					phi = self.evt.tree.muonphi[self.evt.ievt][muon_index]
 					M = self.evt.tree.muonmass[self.evt.ievt][muon_index]
 					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
-				
+					self.pt.append(pt)
+					self.eta.append(eta)
+					self.phi.append(phi)
 
 						
 					self.lepVec.append(lepVec)
@@ -109,6 +111,9 @@ class Tracks():
 					phi = self.evt.tree.elphi[self.evt.ievt][el_index]
 					M = self.evt.tree.elmass[self.evt.ievt][el_index]
 					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+					self.pt.append(pt)
+					self.eta.append(eta)
+					self.phi.append(phi)
 
 
 					self.lepVec.append(lepVec)
@@ -188,7 +193,7 @@ def drawNotes(DV_type,plepton,VtxConfig):
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 
-def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
+def drawNotesMC(MC_campaign,Vertextype, channel,mass,lifetime):
 	a = getNote()
 	b = getNote()
 	c = getNote()
@@ -202,12 +207,18 @@ def drawNotesMC(MC_campaign,Vertextype, DV_type,mass,lifetime):
 		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
 	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
 	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-	if DV_type == "emu":
-		d.DrawLatex(ax,ay-0.15,'DV type: e\mu')
-	elif DV_type == "mumu":
-		d.DrawLatex(ax,ay-0.15,'DV type: \mu\mu')
-	elif DV_type == "mumumu":
+	if channel == "uuu":
 		d.DrawLatex(ax,ay-0.15,'channel: \mu\mu\mu')
+	elif channel == "ueu":
+		d.DrawLatex(ax,ay-0.15,'channel: \mue\mu')
+	elif channel == "uee":
+		d.DrawLatex(ax,ay-0.15,'channel: \muee')
+	elif channel == "eee":
+		d.DrawLatex(ax,ay-0.15,'channel: eee')
+	elif channel == "eeu":
+		d.DrawLatex(ax,ay-0.15,'channel: ee\mu')
+	elif channel == "euu":
+		d.DrawLatex(ax,ay-0.15,'channel: e\mu\mu')
 	# if DV_Default == True:
 	# 	e.DrawLatex(ax,ay-0.20,'VSI')
 	# else:
