@@ -34,6 +34,43 @@ class Event():
 		self.tree = tree
 		self.ievt = ievt
 		self.idv = idv 
+		if tree.isData: 
+			self.weight = 1
+		else:
+			truth = Truth()
+			truth.getTruthParticles(tree=tree, ievt=ievt)
+			mN = truth.HNL_vec[0].M() # signal mass of HNL in GeV		 
+			mW = 80.379 # mass of W boson in GeV
+			xsec = 20.6e6*1e-5*(1-(mN/mW)**2)*(1+(mN**2)/(2*mW**2))#in fb
+			self.weight = 1*xsec/tree.allEvt #scale to 1 fb^-1  of luminosity
+
+
+
+class Truth(): 
+	def __init__(self):
+		self.HNL_vec = []
+		self.dMuon_vec = []
+		self.dEl_vec = []
+		self.dNu_vec = []
+		self.HNL_pdgID = 50
+
+	def getTruthParticles(self, tree, ievt): 
+
+		ntruthDV = len(tree.truth_parent_pdgId[ievt])
+		for idvtru in xrange(ntruthDV):
+			if abs(tree.truth_parent_pdgId[ievt][idvtru]) == 50: 
+				if len(tree.truth_outP_pdgId[ievt][idvtru]) == 3:
+					# print tree.truth_parent_pdgId[ievt][idvtru]
+					# print tree.truth_outP_pdgId[ievt][idvtru]
+					HNLVec = ROOT.TLorentzVector()
+					HNLVec.SetPtEtaPhiM(tree.truth_parent_pt[ievt][idvtru],
+										tree.truth_parent_eta[ievt][idvtru],
+										tree.truth_parent_phi[ievt][idvtru],
+										tree.truth_parent_m[ievt][idvtru])
+					self.HNL_vec.append(HNLVec)
+					# print HNLVec.M()
+				# self.num_HNL = self.num_HNL + 1
+				# print self.num_HNL
 
 
 
@@ -142,7 +179,43 @@ class Tracks():
 			self.phi.append(phi)
 			self.pt.append(pt)
 
+def Output_filename(file,channel): 
+	if "lt1dd" in file: 
+		lt = "1mm"
+	elif "lt10dd" in file: 
+		lt = "10mm"
+	elif "lt100dd" in file: 
+		lt = "100mm"
 
+	if "3G" in file: 
+		mass = "3G"
+	elif "4G" in file:
+		mass = "4G"
+	elif "4p5G" in file:
+		mass = "4p5G"
+	elif "5G" in file: 
+		mass = "5G"
+	elif "7p5G" in file: 
+		mass = "7p5G"
+	elif "10G" in file:
+		mass = "10G" 
+	elif "12p5G" in file: 
+		mass = "12p5G"
+	elif "15G" in file: 
+		mass = "15G"
+	elif "17p5G" in file: 
+		mass = "17p5G"
+	elif "20G" in file: 
+		mass = "20G"
+
+	if "r10740" in file: 
+		MC_campaign = "mc16a"
+	if "r10739" in file: 
+		MC_campaign = "mc16d"
+	if "r10790" in file: 
+		MC_campaign = "mc16e"
+
+	return "histograms_%s_%s_%s_%s.root"%(MC_campaign, mass, lt, channel)
 #get note
 def getNote(size=14):
 	n = ROOT.TLatex()
@@ -237,14 +310,16 @@ def drawNotesData(datarun,Vertextype):
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 
-def drawNotesVertextype(Vertextype):
+def drawNotesVertextype(Vertextype, lumi=1):
 	a = getNote()
 	b = getNote()
 	
 	ax = 0.25
 	ay = 0.82
 
-	a.DrawLatex(ax,ay,Vertextype)
+	a.DrawLatex(ax,ay,"%s fb^{-1}"%lumi)
+	b.DrawLatex(ax,ay-0.05,Vertextype)
+	
 
 
 def xlabelhistograms(hist): 

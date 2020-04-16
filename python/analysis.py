@@ -28,7 +28,6 @@ class Analysis(object):
 	def __init__(self, channel, selections, outputFile):
 		# print channel
 		# print outputFile
-
 		self.sel = selections
 		self._outputFile = outputFile
 		self.fi = ROOT.TFile.Open(outputFile, 'update')
@@ -38,7 +37,6 @@ class Analysis(object):
 		# make histograms (common for all channels)
 		self.add('CutFlow', 16, -0.5, 15.5)
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
-
 		self.add2D( 'charge_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
 		self.add2D( 'charge_DVmass_mhnl', 1000, 0, 500, 1005, -5, 500)
 		self.add2D( 'charge_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
@@ -353,11 +351,11 @@ class Analysis(object):
 
 		# Add to histogram all prompt leptons that pass selection.
 		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
-		self.h["all_plep_pt"][self.ch].Fill(self.plep_sel.plepVec.Pt())
-		self.h["all_plep_eta"][self.ch].Fill(self.plep_sel.plepVec.Eta())
-		self.h["all_plep_phi"][self.ch].Fill(self.plep_sel.plepVec.Phi())
-		self.h["all_plep_d0"][self.ch].Fill(self.plep_sel.plepd0)
-		self.h["all_plep_z0"][self.ch].Fill(self.plep_sel.plepz0)
+		self.h["all_plep_pt"][self.ch].Fill(self.plep_sel.plepVec.Pt(), evt.weight)
+		self.h["all_plep_eta"][self.ch].Fill(self.plep_sel.plepVec.Eta(), evt.weight)
+		self.h["all_plep_phi"][self.ch].Fill(self.plep_sel.plepVec.Phi(), evt.weight)
+		self.h["all_plep_d0"][self.ch].Fill(self.plep_sel.plepd0, evt.weight)
+		self.h["all_plep_z0"][self.ch].Fill(self.plep_sel.plepz0, evt.weight)
 		return self.plep_sel.passes()
 
 	def _ndv_cut(self, evt):
@@ -438,21 +436,21 @@ class Analysis(object):
 
 	def _fill_histos(self, evt):
 		for imu in range(len(evt.tree.muontype[evt.ievt])):
-			self.h["muon_type"][self.ch].Fill(evt.tree.muontype[evt.ievt][imu])
-			self.h["muon_pt"][self.ch].Fill(evt.tree.muonpt[evt.ievt][imu])
-			self.h["muon_eta"][self.ch].Fill(evt.tree.muoneta[evt.ievt][imu])
-			self.h["muon_phi"][self.ch].Fill(evt.tree.muonphi[evt.ievt][imu])
+			self.h["muon_type"][self.ch].Fill(evt.tree.muontype[evt.ievt][imu], evt.weight)
+			self.h["muon_pt"][self.ch].Fill(evt.tree.muonpt[evt.ievt][imu], evt.weight)
+			self.h["muon_eta"][self.ch].Fill(evt.tree.muoneta[evt.ievt][imu], evt.weight)
+			self.h["muon_phi"][self.ch].Fill(evt.tree.muonphi[evt.ievt][imu], evt.weight)
 
 		for iel in range(len(evt.tree.elpt[evt.ievt])):
-			self.h["el_pt"][self.ch].Fill(evt.tree.elpt[evt.ievt][iel])
-			self.h["el_eta"][self.ch].Fill(evt.tree.eleta[evt.ievt][iel])
-			self.h["el_phi"][self.ch].Fill(evt.tree.elphi[evt.ievt][iel])
+			self.h["el_pt"][self.ch].Fill(evt.tree.elpt[evt.ievt][iel], evt.weight)
+			self.h["el_eta"][self.ch].Fill(evt.tree.eleta[evt.ievt][iel], evt.weight)
+			self.h["el_phi"][self.ch].Fill(evt.tree.elphi[evt.ievt][iel], evt.weight)
 
 		# fill truth
 		# should add a flag like this to prevent filling
-		# if isdata and observable.need_truth: # need to get the "needs truth variable"
-			# return
- 		#else:
+		# if evt.tree.isData: # need to get the "needs truth variable"
+		# 	return
+ 	# 	else:
 			# BUG with the truth values in ntuple need to investigate this -DT
 			# self.h["truth_DV_x"].Fill(evt.tree.truth_dvx[evt.ievt])
 			# self.h["truth_DV_y"].Fill(evt.tree.truth_dvy[evt.ievt])
@@ -465,31 +463,31 @@ class Analysis(object):
 
 	def _fill_all_dv_histos(self, evt):
 
-		self.h["charge_ntrk"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], evt.tree.dvntrk[evt.ievt][evt.idv])
+		self.h["charge_ntrk"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], evt.tree.dvntrk[evt.ievt][evt.idv], evt.weight)
 		ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
 		for itrk in range(ntracks):  # loop over tracks
-			self.h["all_DV_trk_pt"][self.ch].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
-			self.h["all_DV_trk_eta"][self.ch].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
-			self.h["all_DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
-			self.h["all_DV_trk_d0"][self.ch].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
-			self.h["all_DV_trk_z0"][self.ch].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk])
-			self.h["all_DV_trk_charge"][self.ch].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk])
-			self.h["all_DV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
+			self.h["all_DV_trk_pt"][self.ch].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk], evt.weight )
+			self.h["all_DV_trk_eta"][self.ch].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk], evt.weight )
+			self.h["all_DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk], evt.weight )
+			self.h["all_DV_trk_d0"][self.ch].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk], evt.weight )
+			self.h["all_DV_trk_z0"][self.ch].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk], evt.weight )
+			self.h["all_DV_trk_charge"][self.ch].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk], evt.weight )
+			self.h["all_DV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk], evt.weight )
 
-		self.h["all_DV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
-		self.h["all_DV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv])
-		self.h["all_DV_y"][self.ch].Fill(evt.tree.dvy[evt.ievt][evt.idv])
-		self.h["all_DV_z"][self.ch].Fill(evt.tree.dvz[evt.ievt][evt.idv])
-		self.h["all_DV_r"][self.ch].Fill(evt.tree.dvr[evt.ievt][evt.idv])
-		self.h["all_DV_distFromPV"][self.ch].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv])
-		self.h["all_DV_mass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv])
-		self.h["all_DV_pt"][self.ch].Fill(evt.tree.dvpt[evt.ievt][evt.idv])
-		self.h["all_DV_eta"][self.ch].Fill(evt.tree.dveta[evt.ievt][evt.idv])
-		self.h["all_DV_phi"][self.ch].Fill(evt.tree.dvphi[evt.ievt][evt.idv])
-		self.h["all_DV_minOpAng"][self.ch].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv])
-		self.h["all_DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv])
-		self.h["all_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv])
-		self.h["all_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
+		self.h["all_DV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_y"][self.ch].Fill(evt.tree.dvy[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_z"][self.ch].Fill(evt.tree.dvz[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_r"][self.ch].Fill(evt.tree.dvr[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_distFromPV"][self.ch].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_mass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_pt"][self.ch].Fill(evt.tree.dvpt[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_eta"][self.ch].Fill(evt.tree.dveta[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_phi"][self.ch].Fill(evt.tree.dvphi[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_minOpAng"][self.ch].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], evt.weight)
+		self.h["all_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv], evt.weight)
 
 	def _fill_selected_dv_histos(self, evt, sel):
 		if self._locked < FILL_LOCKED:
@@ -501,11 +499,11 @@ class Analysis(object):
 				plepd0 = self.plep_sel.plepd0
 				plepz0 = self.plep_sel.plepz0
 
-				self.h[sel + "_plep_pt"][self.ch].Fill(plep_vec.Pt())
-				self.h[sel + "_plep_eta"][self.ch].Fill(plep_vec.Eta())
-				self.h[sel + "_plep_phi"][self.ch].Fill(plep_vec.Phi())
-				self.h[sel + "_plep_d0"][self.ch].Fill(plepd0)
-				self.h[sel + "_plep_z0"][self.ch].Fill(plepz0)
+				self.h[sel + "_plep_pt"][self.ch].Fill(plep_vec.Pt(), evt.weight)
+				self.h[sel + "_plep_eta"][self.ch].Fill(plep_vec.Eta(), evt.weight)
+				self.h[sel + "_plep_phi"][self.ch].Fill(plep_vec.Phi(), evt.weight)
+				self.h[sel + "_plep_d0"][self.ch].Fill(plepd0, evt.weight)
+				self.h[sel + "_plep_z0"][self.ch].Fill(plepz0, evt.weight)
 				
 				tracks = helpers.Tracks()
 				tracks.getTracks(evt=evt)
@@ -518,30 +516,30 @@ class Analysis(object):
 					Mhnl = selections.Mhnl(evt=evt, plep=plep_vec, trks =trkVec )
 					Mtrans = selections.Mtrans(plep=plep_vec, trks =trkVec )
 
-					self.h[sel + "_mvis"][self.ch].Fill(Mhnl.mvis)
-					self.h[sel + "_HNLm"][self.ch].Fill(Mhnl.mhnl)
-				 	self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2)
-					self.h[sel + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt)
-					self.h[sel + "_HNLeta"][self.ch].Fill(Mhnl.hnleta)
-					self.h[sel + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi)
-					self.h[sel + "_mtrans"][self.ch].Fill(Mtrans.mtrans)
-					self.h[sel + "_mtrans_rot"][self.ch].Fill(Mhnl.mtrans_rot)
+					self.h[sel + "_mvis"][self.ch].Fill(Mhnl.mvis, evt.weight)
+					self.h[sel + "_HNLm"][self.ch].Fill(Mhnl.mhnl, evt.weight)
+				 	self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, evt.weight)
+					self.h[sel + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt, evt.weight)
+					self.h[sel + "_HNLeta"][self.ch].Fill(Mhnl.hnleta, evt.weight)
+					self.h[sel + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi, evt.weight)
+					self.h[sel + "_mtrans"][self.ch].Fill(Mtrans.mtrans, evt.weight)
+					self.h[sel + "_mtrans_rot"][self.ch].Fill(Mhnl.mtrans_rot, evt.weight)
 					
 					if (sel == "charge"  or sel == "sel"): # fill 2D mass correlation plots here 
-						self.h[sel +'_DVmass_mvis'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mvis)
-						self.h[sel +'_DVmass_mhnl'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mhnl)
-						self.h[sel +'_DVmass_mtrans'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mtrans.mtrans)
-						self.h[sel +'_mvis_mhnl'][self.ch].Fill(Mhnl.mvis,Mhnl.mhnl)
-						self.h[sel +'_mvis_mtrans'][self.ch].Fill(Mhnl.mvis,Mtrans.mtrans)
-						self.h[sel +'_mhnl_mtrans'][self.ch].Fill(Mhnl.mhnl,Mtrans.mtrans)
-						self.h[sel +'_mhnl_hnlpt'][self.ch].Fill(Mhnl.mhnl,Mhnl.hnlpt)
-						self.h[sel +'_mhnl2D'][self.ch].Fill(Mhnl.mhnl,Mhnl.mhnl2)
-						self.h[sel +'_neg_mhnl12_13'][self.ch].Fill(Mhnl.neg_mhnl12,Mhnl.neg_mhnl13)
-						self.h[sel +'_neg_mhnl23_12'][self.ch].Fill(Mhnl.neg_mhnl23,Mhnl.neg_mhnl12)
-						self.h[sel +'_neg_mhnl13_23'][self.ch].Fill(Mhnl.neg_mhnl13,Mhnl.neg_mhnl23)
-						self.h[sel +'_pos_mhnl12_13'][self.ch].Fill(Mhnl.pos_mhnl12,Mhnl.pos_mhnl13)
-						self.h[sel +'_pos_mhnl23_12'][self.ch].Fill(Mhnl.pos_mhnl23,Mhnl.pos_mhnl12)
-						self.h[sel +'_pos_mhnl13_23'][self.ch].Fill(Mhnl.pos_mhnl13,Mhnl.pos_mhnl23)
+						self.h[sel +'_DVmass_mvis'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mvis, evt.weight)
+						self.h[sel +'_DVmass_mhnl'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mhnl, evt.weight)
+						self.h[sel +'_DVmass_mtrans'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mtrans.mtrans, evt.weight)
+						self.h[sel +'_mvis_mhnl'][self.ch].Fill(Mhnl.mvis,Mhnl.mhnl, evt.weight)
+						self.h[sel +'_mvis_mtrans'][self.ch].Fill(Mhnl.mvis,Mtrans.mtrans, evt.weight)
+						self.h[sel +'_mhnl_mtrans'][self.ch].Fill(Mhnl.mhnl,Mtrans.mtrans, evt.weight)
+						self.h[sel +'_mhnl_hnlpt'][self.ch].Fill(Mhnl.mhnl,Mhnl.hnlpt, evt.weight)
+						self.h[sel +'_mhnl2D'][self.ch].Fill(Mhnl.mhnl,Mhnl.mhnl2, evt.weight)
+						self.h[sel +'_neg_mhnl12_13'][self.ch].Fill(Mhnl.neg_mhnl12,Mhnl.neg_mhnl13, evt.weight)
+						self.h[sel +'_neg_mhnl23_12'][self.ch].Fill(Mhnl.neg_mhnl23,Mhnl.neg_mhnl12, evt.weight)
+						self.h[sel +'_neg_mhnl13_23'][self.ch].Fill(Mhnl.neg_mhnl13,Mhnl.neg_mhnl23, evt.weight)
+						self.h[sel +'_pos_mhnl12_13'][self.ch].Fill(Mhnl.pos_mhnl12,Mhnl.pos_mhnl13, evt.weight)
+						self.h[sel +'_pos_mhnl23_12'][self.ch].Fill(Mhnl.pos_mhnl23,Mhnl.pos_mhnl12, evt.weight)
+						self.h[sel +'_pos_mhnl13_23'][self.ch].Fill(Mhnl.pos_mhnl13,Mhnl.pos_mhnl23, evt.weight)
 					
 					# if sel == "sel":
 					# 	self.h[sel +'_mhnl2D'][self.ch].Fill(Mhnl.mhnl,Mhnl.mhnl2)
@@ -552,39 +550,39 @@ class Analysis(object):
 					dpt = abs(tracks.pt[0] - tracks.pt[1])
 					dR = tracks.lepVec[0].DeltaR(tracks.lepVec[1])
 					
-					self.h[sel + "_DV_trk_deta"][self.ch].Fill(deta)
-					self.h[sel + "_DV_trk_dphi"][self.ch].Fill(dphi)
-					self.h[sel + "_DV_trk_dpt"][self.ch].Fill(dpt)
-					self.h[sel + "_DV_trk_dR"][self.ch].Fill(dR)
-					self.h[sel + "_DV_redmass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]/dR)
-					self.h[sel + "_DV_redmassvis"][self.ch].Fill(Mhnl.mvis/dR)
-					self.h[sel + "_DV_redmassHNL"][self.ch].Fill(Mhnl.mhnl/dR)
+					self.h[sel + "_DV_trk_deta"][self.ch].Fill(deta, evt.weight)
+					self.h[sel + "_DV_trk_dphi"][self.ch].Fill(dphi, evt.weight)
+					self.h[sel + "_DV_trk_dpt"][self.ch].Fill(dpt, evt.weight)
+					self.h[sel + "_DV_trk_dR"][self.ch].Fill(dR, evt.weight)
+					self.h[sel + "_DV_redmass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]/dR, evt.weight)
+					self.h[sel + "_DV_redmassvis"][self.ch].Fill(Mhnl.mvis/dR, evt.weight)
+					self.h[sel + "_DV_redmassHNL"][self.ch].Fill(Mhnl.mhnl/dR, evt.weight)
 
 
 			ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
 			for itrk in range(ntracks):  # loop over tracks
-				self.h[sel + "_DV_trk_pt"][self.ch].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk])
-				self.h[sel + "_DV_trk_eta"][self.ch].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk])
-				self.h[sel + "_DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
-				self.h[sel + "_DV_trk_d0"][self.ch].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
-				self.h[sel + "_DV_trk_z0"][self.ch].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk])
-				self.h[sel + "_DV_trk_charge"][self.ch].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk])
-				self.h[sel + "_DV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
+				self.h[sel + "_DV_trk_pt"][self.ch].Fill(evt.tree.trackpt[evt.ievt][evt.idv][itrk], evt.weight)
+				self.h[sel + "_DV_trk_eta"][self.ch].Fill(evt.tree.tracketa[evt.ievt][evt.idv][itrk], evt.weight)
+				self.h[sel + "_DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk], evt.weight)
+				self.h[sel + "_DV_trk_d0"][self.ch].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk], evt.weight)
+				self.h[sel + "_DV_trk_z0"][self.ch].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk], evt.weight)
+				self.h[sel + "_DV_trk_charge"][self.ch].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk], evt.weight)
+				self.h[sel + "_DV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk], evt.weight)
 
-			self.h[sel + "_DV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
-			self.h[sel + "_DV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv])
-			self.h[sel + "_DV_y"][self.ch].Fill(evt.tree.dvy[evt.ievt][evt.idv])
-			self.h[sel + "_DV_z"][self.ch].Fill(evt.tree.dvz[evt.ievt][evt.idv])
-			self.h[sel + "_DV_r"][self.ch].Fill(evt.tree.dvr[evt.ievt][evt.idv])
-			self.h[sel + "_DV_distFromPV"][self.ch].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv])
-			self.h[sel + "_DV_mass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv])
-			self.h[sel + "_DV_pt"][self.ch].Fill(evt.tree.dvpt[evt.ievt][evt.idv])
-			self.h[sel + "_DV_eta"][self.ch].Fill(evt.tree.dveta[evt.ievt][evt.idv])
-			self.h[sel + "_DV_phi"][self.ch].Fill(evt.tree.dvphi[evt.ievt][evt.idv])
-			self.h[sel + "_DV_minOpAng"][self.ch].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv])
-			self.h[sel + "_DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv])
-			self.h[sel + "_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv])
-			self.h[sel + "_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
+			self.h[sel + "_DV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_y"][self.ch].Fill(evt.tree.dvy[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_z"][self.ch].Fill(evt.tree.dvz[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_r"][self.ch].Fill(evt.tree.dvr[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_distFromPV"][self.ch].Fill(evt.tree.dvdistFromPV[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_mass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_pt"][self.ch].Fill(evt.tree.dvpt[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_eta"][self.ch].Fill(evt.tree.dveta[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_phi"][self.ch].Fill(evt.tree.dvphi[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_minOpAng"][self.ch].Fill(evt.tree.dvminOpAng[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], evt.weight)
+			self.h[sel + "_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv], evt.weight)
 
 			
 

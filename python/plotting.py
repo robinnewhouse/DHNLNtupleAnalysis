@@ -207,7 +207,8 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 
 def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, setrange = "", 
-                   scaleymax=1.2, nRebin=1, setlogy=False, outputDir="../output/", save_name = ""):
+                   scaleymax=1.2, nRebin=1, setlogy=False, outputDir="../output/", save_name = "",
+                   normalize=True, lumi=1):
 
 	# get 2 histograms from input file
 
@@ -279,20 +280,25 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 		hmc[i].GetXaxis().SetRangeUser(x_min, x_max)
 
 	# normalize the histograms
-	norm = 1
-	if (hdata.Integral() != 0):
-		# Normalize in specified range
-		scale_data = norm/(hdata.Integral(bin_xmin, bin_xmax)) 
-	else:
-		scale_data = norm
-	hdata.Scale(scale_data)
-
-	for i in range(nmc_files):
-		if (hmc[i].Integral() != 0):
-			scale_mc = norm/(hmc[i].Integral(bin_xmin, bin_xmax))
+	if normalize: 
+		norm = 1
+		if (hdata.Integral() != 0):
+			# Normalize in specified range
+			scale_data = norm/(hdata.Integral(bin_xmin, bin_xmax)) 
 		else:
-			scale_mc = norm
-		hmc[i].Scale(scale_mc)
+			scale_data = norm
+		hdata.Scale(scale_data)
+
+		for i in range(nmc_files):
+			if (hmc[i].Integral() != 0):
+				scale_mc = norm/(hmc[i].Integral(bin_xmin, bin_xmax))
+			else:
+				scale_mc = norm
+			hmc[i].Scale(scale_mc)
+	else: 
+		for i in range(nmc_files):
+			hmc[i].Scale(lumi) # scale mc to a given luminosity in inverse fb
+
 
 	# find the common min and max for y axis
 	y_max = hdata.GetMaximum()
@@ -351,7 +357,7 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 
 	leg01.Draw()
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
-	helpers.drawNotesVertextype(vertextype)
+	helpers.drawNotesVertextype(vertextype, lumi)
 	
 	save_name = hname if save_name == "" else save_name
 	if vertextype == "VSI":

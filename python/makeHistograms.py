@@ -45,11 +45,11 @@ def main():
 		if "data" in options.config.split("config")[1]:
 			outputfile = output_path + "histograms_data_%s.root"%channel
 		else:
-			outputfile = output_path + "histograms_mc_%s.root"%channel
+			outputfile = output_path + helpers.Output_filename(file, channel)
 
 		if os.path.exists(outputfile):
 			if options.force == False:
-				logger.error("Output histograms_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%channel)
+				logger.error("Output %s file already exists. Either re-run with -f/--force OR choose a different output path."%helpers.Output_filename(file, channel))
 				exit()
 			else:
 				logger.info('Removing %s'%outputfile)
