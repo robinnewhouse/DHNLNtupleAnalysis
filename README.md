@@ -45,6 +45,17 @@ python makeHistograms.py --force -i path_to_dHNLntuple --config ../data/config_m
 ```
 Without the `--force` option, the code will not run to prevent you from accidentally overwriting your histogram files!
 
+## A note about MC weighting
+
+Event weighting for monte carlo samples should be implmented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required information. If you see a warning such as:
+
+```
+"Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!"
+```
+this is becuase your file name is not appropriately named such that the information about mass, lifetime etc. is in the name. We are trying to update the DHNL Algorithm to propely save this info inside the file when the ntuple is made. Stay tuned for a fix!
+
+For now either rename your ntuple file following the convention from the DAOD_RPVLL you used to make the ntuple or make due without event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
+
 
 ### Running plotHistograms.py
 

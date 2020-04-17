@@ -34,7 +34,7 @@ def main():
 
 	#loop over all the channels in the config file
 	for channel, configs in config_file.items():
-		
+   		
 		logger.info('Running on channel: %s'%channel)
 		file_info = helpers.File_info(file, channel) # If you are running on MC this will give info about signal mass and lifetime
 

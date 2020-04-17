@@ -36,16 +36,20 @@ class Event():
 		self.idv = idv 
 		LNV = False
 
-		if tree.isData: 
+		if tree.isData: # you are running on data
 			self.weight = 1
-		else:
-			mW = 80.379 # mass of W boson in GeV
-			U2Gronau=4.49e-12*3e8*mass**(-5.19)/(ctau/1000) #LNC prediction	
-			if(LNV):  U2=0.5*U2
-			else: U2 =  U2Gronau
+		else: # you are running on MC file
+			if mass == -1 or ctau == -1: # MC weighting error
+				logger.warning("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
+				self.weight = 1
+			else: 
+				mW = 80.379 # mass of W boson in GeV
+				U2Gronau=4.49e-12*3e8*mass**(-5.19)/(ctau/1000) #LNC prediction	
+				if(LNV):  U2=0.5*U2
+				else: U2 =  U2Gronau
 
-			xsec = 20.6e6*U2*((1-(mass/mW)**2)**2)*(1+(mass**2)/(2*mW**2))#in fb
-			self.weight = 1*xsec/tree.allEvt #scale to 1 fb^-1  of luminosity
+				xsec = 20.6e6*U2*((1-(mass/mW)**2)**2)*(1+(mass**2)/(2*mW**2))#in fb
+				self.weight = 1*xsec/tree.allEvt #scale to 1 fb^-1  of luminosity
 
 
 
@@ -189,6 +193,10 @@ class File_info():
 		self.mass = -1 # signal mass of HNL in GeV
 		self.ctau = -1 # in mm
 
+		MC_campaign =""
+		ctau_str = ""
+		mass_str = ""
+
 		if "lt1dd" in file:
 			self.ctau = 1.0
 			ctau_str = "1mm"
@@ -229,6 +237,7 @@ class File_info():
 		elif "20G" in file:
 			self.mass = 20.0
 			mass_str = "20G"
+		
 
 		if "r10740" in file:
 			MC_campaign = "mc16a"
@@ -236,8 +245,10 @@ class File_info():
 			MC_campaign = "mc16d"
 		if "r10790" in file:
 			MC_campaign = "mc16e"
+		
 
-		self.Output_filename = "histograms_%s_%s_%s_%s.root"%(MC_campaign, mass_str, ctau_str, channel)
+
+		self.Output_filename = "histograms_%s_%s_%s_%s.root"%(MC_campaign, mass_str, ctau_str, channel) 
 		
 
 #get note
