@@ -462,7 +462,6 @@ class Analysis(object):
 			# self.h["truth_DV_phi"].Fill(evt.tree.truth_dvphi[evt.ievt])
 
 	def _fill_all_dv_histos(self, evt):
-
 		self.h["charge_ntrk"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], evt.tree.dvntrk[evt.ievt][evt.idv], evt.weight)
 		ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
 		for itrk in range(ntracks):  # loop over tracks

@@ -25,23 +25,26 @@ def getLogger(name = None, level = logging.DEBUG):
         logging.basicConfig(format = msgfmt, datefmt = datefmt)
         logger.setLevel(level)
     return logger
-logger = getLogger('dHNLAnalysis')
+logger = getLogger('dHNLAnalysis.helpers')
 
 
 
 class Event(): 
-	def __init__(self, tree, ievt, idv):
+	def __init__(self, tree, ievt, idv=None, mass=1.0, ctau=1.0):
 		self.tree = tree
 		self.ievt = ievt
 		self.idv = idv 
+		LNV = False
+
 		if tree.isData: 
 			self.weight = 1
 		else:
-			truth = Truth()
-			truth.getTruthParticles(tree=tree, ievt=ievt)
-			mN = truth.HNL_vec[0].M() # signal mass of HNL in GeV		 
 			mW = 80.379 # mass of W boson in GeV
-			xsec = 20.6e6*1e-5*(1-(mN/mW)**2)*(1+(mN**2)/(2*mW**2))#in fb
+			U2Gronau=4.49e-12*3e8*mass**(-5.19)/(ctau/1000) #LNC prediction	
+			if(LNV):  U2=0.5*U2
+			else: U2 =  U2Gronau
+
+			xsec = 20.6e6*U2*((1-(mass/mW)**2)**2)*(1+(mass**2)/(2*mW**2))#in fb
 			self.weight = 1*xsec/tree.allEvt #scale to 1 fb^-1  of luminosity
 
 
@@ -179,43 +182,64 @@ class Tracks():
 			self.phi.append(phi)
 			self.pt.append(pt)
 
-def Output_filename(file,channel): 
-	if "lt1dd" in file: 
-		lt = "1mm"
-	elif "lt10dd" in file: 
-		lt = "10mm"
-	elif "lt100dd" in file: 
-		lt = "100mm"
+class File_info():
 
-	if "3G" in file: 
-		mass = "3G"
-	elif "4G" in file:
-		mass = "4G"
-	elif "4p5G" in file:
-		mass = "4p5G"
-	elif "5G" in file: 
-		mass = "5G"
-	elif "7p5G" in file: 
-		mass = "7p5G"
-	elif "10G" in file:
-		mass = "10G" 
-	elif "12p5G" in file: 
-		mass = "12p5G"
-	elif "15G" in file: 
-		mass = "15G"
-	elif "17p5G" in file: 
-		mass = "17p5G"
-	elif "20G" in file: 
-		mass = "20G"
+	def __init__(self,file, channel):
+		self.Output_filename = "histograms.root"
+		self.mass = -1 # signal mass of HNL in GeV
+		self.ctau = -1 # in mm
 
-	if "r10740" in file: 
-		MC_campaign = "mc16a"
-	if "r10739" in file: 
-		MC_campaign = "mc16d"
-	if "r10790" in file: 
-		MC_campaign = "mc16e"
+		if "lt1dd" in file:
+			self.ctau = 1.0
+			ctau_str = "1mm"
+		elif "lt10dd" in file:
+			self.ctau = 10.0
+			ctau_str = "10mm"
+		elif "lt100dd" in file:
+			self.ctau = 100.0
+			ctau_str = "100mm"
 
-	return "histograms_%s_%s_%s_%s.root"%(MC_campaign, mass, lt, channel)
+		if "3G" in file:
+			self.mass = 3.0
+			mass_str = "3G"
+		elif "4G" in file:
+			self.mass = 4.0
+			mass_str = "4G"
+		elif "4p5G" in file:
+			self.mass = 4.5
+			mass_str = "4p5G"
+		elif "5G" in file:
+			self.mass = 5.0
+			mass_str = "5G"
+		elif "7p5G" in file:
+			self.mass = 7.5
+			mass_str = "7p5G"
+		elif "10G" in file:
+			self.mass = 10.0
+			mass_str = "10G" 
+		elif "12p5G" in file:
+			self.mass = 12.5
+			mass_str = "12p5G"
+		elif "15G" in file:
+			self.mass = 15.0
+			mass_str = "15G"
+		elif "17p5G" in file:
+			self.mass = 17.5
+			mass_str = "17p5G"
+		elif "20G" in file:
+			self.mass = 20.0
+			mass_str = "20G"
+
+		if "r10740" in file:
+			MC_campaign = "mc16a"
+		if "r10739" in file:
+			MC_campaign = "mc16d"
+		if "r10790" in file:
+			MC_campaign = "mc16e"
+
+		self.Output_filename = "histograms_%s_%s_%s_%s.root"%(MC_campaign, mass_str, ctau_str, channel)
+		
+
 #get note
 def getNote(size=14):
 	n = ROOT.TLatex()

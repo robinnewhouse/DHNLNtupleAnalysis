@@ -20,6 +20,7 @@ class Tree():
 		self.cutflow = self.file["cutflow"]
 		
 		self.allEvt =  self.cutflow[1]
+		self.npassTrig = int(self.cutflow[4])
 
 		# -----------------------------------------------------------------------
 		self.passedtriggers = self.tree["passedTriggers"].array()
