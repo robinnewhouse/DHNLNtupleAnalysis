@@ -551,15 +551,20 @@ class Analysis(object):
 					dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
 					dpt = abs(tracks.pt[0] - tracks.pt[1])
 					dR = tracks.lepVec[0].DeltaR(tracks.lepVec[1])
+
+					if dR == 0.0:
+						self.h[sel + "_DV_redmass"][self.ch].Fill(-1)
+						self.h[sel + "_DV_redmassvis"][self.ch].Fill(-1)
+						self.h[sel + "_DV_redmassHNL"][self.ch].Fill(-1)
+					else:
+						self.h[sel + "_DV_redmass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]/dR)
+						self.h[sel + "_DV_redmassvis"][self.ch].Fill(Mhnl.mvis/dR)
+						self.h[sel + "_DV_redmassHNL"][self.ch].Fill(Mhnl.mhnl/dR)
 					
 					self.h[sel + "_DV_trk_deta"][self.ch].Fill(deta)
 					self.h[sel + "_DV_trk_dphi"][self.ch].Fill(dphi)
 					self.h[sel + "_DV_trk_dpt"][self.ch].Fill(dpt)
 					self.h[sel + "_DV_trk_dR"][self.ch].Fill(dR)
-					self.h[sel + "_DV_redmass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]/dR)
-					self.h[sel + "_DV_redmassvis"][self.ch].Fill(Mhnl.mvis/dR)
-					self.h[sel + "_DV_redmassHNL"][self.ch].Fill(Mhnl.mhnl/dR)
-
 
 			ntracks = len(evt.tree.trackd0[evt.ievt][evt.idv])
 			for itrk in range(ntracks):  # loop over tracks
