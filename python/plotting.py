@@ -209,35 +209,38 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, setrange = "", 
                    scaleymax=1.2, nRebin=1, setlogy=False, outputDir="../output/", save_name = "",
                    normalize=True, lumi=1):
-
-	# get 2 histograms from input file
-
+	
+	if setlogy: 
+		scaleymax = scaleymax*100 #change default scale if log scale to give room for text & legend
+	
+	# get data histograms from input file
+	
 	data = ROOT.TFile(datafile)
-	if vertextype == "VSI":
-		hdata = data.Get(hname + "_VSI") # need to remake histograms with new format ;) 
-		# hdata = data.Get(hname + "_pmu_mumu_VSI") # need to remake histograms with new format ;) 
-	elif vertextype == "VSI Leptons": 
-		hdata = data.Get(hname + "_VSI_Leptons") # need to fix this ;) 
-		# hdata = data.Get(hname + "_pmu_mumu_VSILep") # need to fix this ;) 
-	else: 
-		logger.error("Couldn't find the data  histogram you requested!")
-		logger.error("Check file %s has the histogram you are looking for!"%datafile)
-		exit() 
 
+	if vertextype == "VSI" and data.GetListOfKeys().Contains(hname + "_VSI"):
+		hdata = data.Get(hname + "_VSI") 
+	elif vertextype == "VSI Leptons" and data.GetListOfKeys().Contains(hname + "_VSI_Leptons"): 
+		hdata = data.Get(hname + "_VSI_Leptons") 
+	else: 
+		logger.error("Couldn't find histogram: %s with vertextype: %s that you requested!")%(hname, vertextype )
+		logger.error("Check that file %s has the histogram you are looking for!"%datafile)
+		exit() 
 	
 	nmc_files = len(mcfiles)
 	hmc ={}
 	mc = {}
 
+	# get MC histograms from input file
+
 	for i in range(nmc_files): 
 		mc[i] = ROOT.TFile(mcfiles[i])
-		if vertextype == "VSI":
+		if vertextype == "VSI"and mc[i].GetListOfKeys().Contains(hname + "_VSI"):
 			hmc[i] = mc[i].Get(hname + "_VSI")
-		elif vertextype == "VSI Leptons":
+		elif vertextype == "VSI Leptons" and mc[i].GetListOfKeys().Contains(hname + "_VSI_Leptons"):
 			hmc[i] = mc[i].Get(hname + "_VSI_Leptons")
 		else: 
-			logger.error("Couldn't find the mc histogram you requested!")
-			logger.error("Check file %s has the histogram you are looking for!"%mcfiles[i])
+			logger.error("Couldn't find histogram: %s with vertextype: %s that you requested!")%(hname, vertextype )
+			logger.error("Check that file %s has the histogram you are looking for!"%mcfiles[i])
 			exit() 
 
 
@@ -251,16 +254,16 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
 
+	# add data entry to legend 
 	leg01.AddEntry(hdata,hdatalabel,"lp")
 
-	#rebin histograms
+	#rebin histograms (if rebin =1 (default) it will not rebin the histogram)
 	hdata.Rebin(nRebin)
 
 	for i in range(nmc_files): 
 		leg01.AddEntry(hmc[i],hmclabels[i],"lp")
 		hmc[i].Rebin(nRebin)
 
-	
 
 	# find the common min and max for x axis
 	bin_xmax = hdata.FindLastBinAbove(0,1)
@@ -295,7 +298,8 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 			else:
 				scale_mc = norm
 			hmc[i].Scale(scale_mc)
-	else: 
+
+	else: # use MC scaling to compare with data
 		for i in range(nmc_files):
 			hmc[i].Scale(lumi) # scale mc to a given luminosity in inverse fb
 
@@ -328,6 +332,7 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 		gPad.SetLogy()
 		gPad.Update()
 
+	# draw some lines 
 	if "DV_mass" in hname:
 		mDVcut=TLine(4,0,4,y_max)
 		mDVcut.SetLineStyle(3)
