@@ -792,6 +792,40 @@ class WmuHNL(Analysis):
 
 		self._fill_selected_dv_histos(evt,"sel")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 
+		
+		truth = helpers.Truth()
+		truth.getTruthParticles(evt)
+
+		print "" 
+		print ""
+		print "#########"
+		print "RECO"
+		print "#########"
+		print ""
+		print "PV:     ", evt.tree.pvx[evt.ievt][0], "     ",evt.tree.pvy[evt.ievt][0], "     ", evt.tree.pvz[evt.ievt][0] 
+		print "p lep:  ", self.plep_sel.plepVec.Pt(), "     ",self.plep_sel.plepVec.Eta(), "     ",self.plep_sel.plepVec.Phi()
+		print ""
+		print ""
+		print "DV:     ", evt.tree.dvx[evt.ievt][evt.idv], "     ",evt.tree.dvy[evt.ievt][evt.idv], "     ", evt.tree.dvz[evt.ievt][evt.idv] 
+		print "d lep 0: ", evt.tree.trackpt[evt.ievt][evt.idv][0], "     ", evt.tree.tracketa[evt.ievt][evt.idv][0], "     ", evt.tree.trackphi[evt.ievt][evt.idv][0]
+		print "d lep 1: ", evt.tree.trackpt[evt.ievt][evt.idv][1], "     ", evt.tree.tracketa[evt.ievt][evt.idv][1], "     ", evt.tree.trackphi[evt.ievt][evt.idv][1]
+
+		tracks = helpers.Tracks()
+		tracks.getTracks(evt=evt)
+		trkVec = tracks.lepVec	
+		Mhnl = selections.Mhnl(evt=evt, plep=self.plep_sel.plepVec, trks =trkVec )
+		print ""
+		print ""
+		print "negative HNL mass solution: ",  Mhnl.mhnl
+		print "negative solution for neutrino 4-vector: ",  Mhnl.nu_vec.Pt(),"     ",Mhnl.nu_vec.Eta(),"     ",Mhnl.nu_vec.Phi(),"     ",Mhnl.nu_vec.M()
+		print""
+		print "postive HNL mass solution: ",  Mhnl.mhnl2
+		print "positive solution for neutrino 4-vector: ",  Mhnl.nu_vec2.Pt(),"     ",Mhnl.nu_vec2.Eta(),"     ",Mhnl.nu_vec2.Phi(),"     ",Mhnl.nu_vec.M()
+	
+
+				
+					# mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
+
 ######################################################################################################################
 # An example of a new class. Here you could add any new cuts you want without disturbing the main analysis cuts.
 # To use your new class update the class name in analysis.py (e.g. anaClass = getattr(analysis, "new_class") )

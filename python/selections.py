@@ -3,7 +3,7 @@ import ROOT
 import numpy as np
 import helpers
 import logging
-logger = helpers.getLogger('dHNLAnalysis.selections',level = logging.WARNING)
+# logger = helpers.getLogger('dHNLAnalysis.selections',level = logging.WARNING)
 
 
 class Trigger():
@@ -561,6 +561,9 @@ class Mhnl():
 		self.pos_mhnl13 = -1
 		self.pos_mhnl23 = -1
 
+		self.nu_vec = ROOT.TLorentzVector()
+		self.nu_vec2 = ROOT.TLorentzVector()
+
 		def rotate_vector(r,v):
 			r_new = ROOT.TVector3(v)
 			rotation_axis = ROOT.TVector3(-1*r.Y(),r.X(),0.0)
@@ -671,12 +674,20 @@ class Mhnl():
 			pos_mhnl23_vec = ptk2_rot + pnu_rot1
 
 
+
 			# truth studies show pHNL_2 is the solution that gets us the HNL mass
 			self.mhnl2 = pHNL_1.M()
 			self.mhnl = pHNL_2.M()
 
 			pHNL_2_lab = unrotate_vector(hnl_vec,pHNL_2)
 			hnl_vec_unrot = unrotate_vector(hnl_vec,hnl_vec_rot)
+
+			nu_vec_unrot2 = unrotate_vector(hnl_vec,pnu_rot1)
+
+			nu_vec_unrot = unrotate_vector(hnl_vec,pnu_rot2)
+
+			self.nu_vec = nu_vec_unrot
+			self.nu_vec2 = nu_vec_unrot2
 
 			# check that you rotated back to the original reference frame
 			#print "Unrotated DV vector: (", hnl_vec_unrot.X(),",", hnl_vec_unrot.Y(),",",hnl_vec_unrot.Z() , ")"

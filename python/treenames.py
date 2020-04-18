@@ -23,6 +23,7 @@ class Tree():
 		self.npassTrig = int(self.cutflow[4])
 
 		# -----------------------------------------------------------------------
+		self.evtNum = self.tree["eventNumber"].array()
 		self.passedtriggers = self.tree["passedTriggers"].array()
 		self.mumufilter = self.tree["passesHnlMuMuFilter"].array()
 		self.muelfilter = self.tree["passesHnlMuElFilter"].array()
@@ -108,15 +109,19 @@ class Tree():
 		# DV truth variables
 		# -----------------------------------------------------------------------
 		if self.isData == False:
-			self.truth_dvx = self.tree["truthVtx_x"].array()  
-			self.truth_dvy = self.tree["truthVtx_y"].array()  
-			self.truth_dvz = self.tree["truthVtx_z"].array() 
+			self.truth_x = self.tree["truthVtx_x"].array()  
+			self.truth_y = self.tree["truthVtx_y"].array()  
+			self.truth_z = self.tree["truthVtx_z"].array() 
 			self.truth_dvr = self.tree["truthVtx_r"].array() 
 			self.truth_dvmass = self.tree["truthVtx_mass"].array()  
 			self.truth_dvpt = self.tree["truthVtx_pt"].array()
 			self.truth_dveta = self.tree["truthVtx_eta"].array()  
 			self.truth_dvphi = self.tree["truthVtx_phi"].array() 
 			self.truth_outP_pdgId = self.tree["truthVtx_outP_pdgId"].array()
+			self.truth_outP_pt = self.tree["truthVtx_outP_pt"].array()
+			self.truth_outP_eta = self.tree["truthVtx_outP_eta"].array()
+			self.truth_outP_phi = self.tree["truthVtx_outP_phi"].array()
+			self.truth_outP_m = self.tree["truthVtx_outP_M"].array()
 			self.truth_parent_pdgId = self.tree["truthVtx_parent_pdgId"].array()
 			self.truth_parent_pt = self.tree["truthVtx_parent_pt"].array()
 			self.truth_parent_eta = self.tree["truthVtx_parent_eta"].array()

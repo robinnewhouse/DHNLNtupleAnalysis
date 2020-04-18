@@ -42,7 +42,7 @@ def main():
 		if "data" in options.config.split("config")[1]:
 			outputfile = output_path + "histograms_data_%s.root"%channel
 		else:
-			outputfile = output_path + file_info.Output_filename
+			outputfile = output_path + "TRUTH_" + file_info.Output_filename
 
 		if os.path.exists(outputfile):
 			if options.force == False:

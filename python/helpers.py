@@ -9,7 +9,7 @@ import os
 import re
 import subprocess
 import urlparse
-import atlas_style
+import atlas_style, selections
 
 import logging
 # logging.captureWarnings(True)
@@ -61,20 +61,80 @@ class Truth():
 		self.dNu_vec = []
 		self.HNL_pdgID = 50
 
-	def getTruthParticles(self, tree, ievt): 
-
-		ntruthDV = len(tree.truth_parent_pdgId[ievt])
+	def getTruthParticles(self, evt): 
+		print "------------------------------------------------------------------------------"
+		print "event number: ", evt.tree.evtNum[evt.ievt]
+		print ""
+		print ""
+		print "#########"
+		print "TRUTH "
+		print "#########"
+		print ""
+		print ""
+		ntruthDV = len(evt.tree.truth_parent_pdgId[evt.ievt])
+		trkVec = []
 		for idvtru in xrange(ntruthDV):
-			if abs(tree.truth_parent_pdgId[ievt][idvtru]) == 50: 
-				if len(tree.truth_outP_pdgId[ievt][idvtru]) == 3:
-					# print tree.truth_parent_pdgId[ievt][idvtru]
-					# print tree.truth_outP_pdgId[ievt][idvtru]
-					HNLVec = ROOT.TLorentzVector()
-					HNLVec.SetPtEtaPhiM(tree.truth_parent_pt[ievt][idvtru],
-										tree.truth_parent_eta[ievt][idvtru],
-										tree.truth_parent_phi[ievt][idvtru],
-										tree.truth_parent_m[ievt][idvtru])
-					self.HNL_vec.append(HNLVec)
+			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 50: 
+				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 3:
+					# print evt.tree.truth_parent_pdgId[evt.ievt][idvtru]
+					print "DV:     ", evt.tree.truth_x[evt.ievt][idvtru], "     ",evt.tree.truth_y[evt.ievt][idvtru], "     ", evt.tree.truth_z[evt.ievt][idvtru] 
+					print "HNL:     ", evt.tree.truth_parent_pt[evt.ievt][idvtru], "     ", evt.tree.truth_parent_eta[evt.ievt][idvtru], "     ", evt.tree.truth_parent_phi[evt.ievt][idvtru], "     ",evt.tree.truth_parent_m[evt.ievt][idvtru]
+					print "d lep 0: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][0], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+					print "d lep 1: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][1], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][1], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][1], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][1]
+					print "nu:      ", evt.tree.truth_outP_pt[evt.ievt][idvtru][2], "      ", evt.tree.truth_outP_eta[evt.ievt][idvtru][2], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][2], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][2]
+					
+					trkVec0 =  ROOT.TLorentzVector()
+					trkVec1 =  ROOT.TLorentzVector()
+
+					trkVec0.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+										)
+					trkVec1.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][1],
+										evt.tree.truth_outP_eta[evt.ievt][idvtru][1],
+										evt.tree.truth_outP_phi[evt.ievt][idvtru][1],
+										evt.tree.truth_outP_m[evt.ievt][idvtru][1]
+										)
+
+					trkVec.append(trkVec0)
+					trkVec.append(trkVec1)
+
+			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 24:
+				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 2:
+					plep_vec = ROOT.TLorentzVector()
+					plep_vec.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_m[evt.ievt][idvtru][0])
+
+					print "PV:    ", evt.tree.truth_x[evt.ievt][idvtru], "     ",evt.tree.truth_y[evt.ievt][idvtru], "     ", evt.tree.truth_z[evt.ievt][idvtru] 
+					print "W:     ", evt.tree.truth_parent_pt[evt.ievt][idvtru], "     ", evt.tree.truth_parent_eta[evt.ievt][idvtru], "     ", evt.tree.truth_parent_phi[evt.ievt][idvtru], "     ",evt.tree.truth_parent_m[evt.ievt][idvtru]
+					print "p lep: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][0], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+					print ""
+					print ""
+				# 	# print tree.truth_parent_pdgId[ievt][idvtru]
+				# 	print "DV:   ", tree.truth_x[ievt][idvtru], "     ",tree.truth_y[ievt][idvtru], "     ", tree.truth_z[ievt][idvtru] 
+				# 	print "HNL:   ", tree.truth_parent_pt[ievt][idvtru], "     ", tree.truth_parent_eta[ievt][idvtru], "     ", tree.truth_parent_phi[ievt][idvtru], "     ",tree.truth_parent_m[ievt][idvtru]
+				# 	print "lep 0: ", tree.truth_outP_pt[ievt][idvtru][0], "     ", tree.truth_outP_eta[ievt][idvtru][0], "     ", tree.truth_outP_phi[ievt][idvtru][0], "     ",tree.truth_outP_m[ievt][idvtru][0]
+				# 	print "lep 1: ", tree.truth_outP_pt[ievt][idvtru][1], "     ", tree.truth_outP_eta[ievt][idvtru][1], "     ", tree.truth_outP_phi[ievt][idvtru][1], "     ",tree.truth_outP_m[ievt][idvtru][1]
+				# 	print "nu:    ", tree.truth_outP_pt[ievt][idvtru][2], "      ", tree.truth_outP_eta[ievt][idvtru][2], "     ", tree.truth_outP_phi[ievt][idvtru][2], "     ",tree.truth_outP_m[ievt][idvtru][2]
+
+		Mhnl = selections.Mhnl(evt=evt, plep=plep_vec, trks =trkVec )
+		print ""
+		print ""
+		print "negative HNL mass solution: ",  Mhnl.mhnl
+		print "negative solution for neutrino 4-vector: ",  Mhnl.nu_vec.Pt(),"     ",Mhnl.nu_vec.Eta(),"     ",Mhnl.nu_vec.Phi(),"     ",Mhnl.nu_vec.M()
+		print""
+		print "postive HNL mass solution: ",  Mhnl.mhnl2
+		print "positive solution for neutrino 4-vector: ",  Mhnl.nu_vec2.Pt(),"     ",Mhnl.nu_vec2.Eta(),"     ",Mhnl.nu_vec2.Phi(),"     ",Mhnl.nu_vec.M()
+
+					# HNLVec = ROOT.TLorentzVector()
+					# HNLVec.SetPtEtaPhiM(tree.truth_parent_pt[ievt][idvtru],
+					# 					tree.truth_parent_eta[ievt][idvtru],
+					# 					tree.truth_parent_phi[ievt][idvtru],
+					# 					tree.truth_parent_m[ievt][idvtru])
+					# self.HNL_vec.append(HNLVec)
 					# print HNLVec.M()
 				# self.num_HNL = self.num_HNL + 1
 				# print self.num_HNL
