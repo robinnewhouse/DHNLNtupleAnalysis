@@ -46,6 +46,7 @@ class Tree():
 		self.trackz0 = self.tree[DVprefix + "_trk_z0_wrtSV"].array() 
 		self.trackcharge = self.tree[DVprefix + "_trk_charge"].array()
 		self.trackchi2 = self.tree[DVprefix + "_trk_chi2_toSV"].array()
+		self.trk_truthBarcode = self.tree[DVprefix + "_trk_truthBarcode"].array()
 
 		# -----------------------------------------------------------------------
 		# DV reco variables

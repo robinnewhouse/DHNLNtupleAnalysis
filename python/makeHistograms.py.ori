@@ -31,8 +31,7 @@ def main():
 
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
-#	anaClass = getattr(analysis, "WmuHNL")
-	anaClass = getattr(analysis, "TruthInfo")
+	anaClass = getattr(analysis, "WmuHNL")
 
 	file = options.input[0]
 	treename = "outTree"
@@ -79,7 +78,6 @@ def main():
 				# Create an event instance to keep track of basic event properties
 				evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
 				ndv = len(tree.dvx[ievt])
-				truth_ndv = len(tree.truth_dvx[ievt])
 
 				# Run preselection cuts to avoid processing unnecessary events
 				presel = ana.preSelection(evt)

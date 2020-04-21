@@ -3,9 +3,9 @@
             "dataFile": "../output/histograms_data_eee.root",
             "dataLabel":"data 2018 period B" ,
             
-            "mcFile":["../output/histograms_mc_eee_10GeV_10mm.root",
-            	      "../output/histograms_mc_eee_5GeV_10mm.root",
-            	      "../output/histograms_mc_eee_3GeV_10mm.root"],
+            "mcFile":["../output/histograms_mc_eee_10GeV_10mm_SS.root",
+            	      "../output/histograms_mc_eee_5GeV_10mm_SS.root",
+            	      "../output/histograms_mc_eee_3GeV_10mm_SS.root"],
             "mcLabel":["(m_{HNL}, c\\tau, chan.) = (10, 10, eee)", 
             		   "(m_{HNL}, c\\tau, chan.) = (5, 10, eee)", 
             		   "(m_{HNL}, c\\tau, chan.) = (3, 10, eee)" ]

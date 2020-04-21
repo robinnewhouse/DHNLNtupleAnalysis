@@ -691,39 +691,6 @@ class PV():
 
 
 
-class DVtruth():
-        def __init__(self, evt):
-		self.evt = evt
-
-                self.decayLeptonBarcodes = []
-		self.nsecVtx = len(self.evt.tree.dvx[self.evt.ievt])
-		self.ntruthVtx = len(self.evt.tree.truth_dvx[self.evt.ievt])
-                self.ndvtrack = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
-
-                for itruthVtx in range(self.ntruthVtx):
-                        # HNL (PDGID=50 or -50) and decay to three particles
-                        if (abs(self.evt.tree.truth_parent_pdgId[self.evt.ievt][itruthVtx])==50 and self.evt.tree.truth_nOutP[self.evt.ievt][itruthVtx]==3):
-                                for iOutP in range(self.evt.tree.truth_nOutP[self.evt.ievt][itruthVtx]):
-                                        outP_pdgId = self.evt.tree.truth_outP_pdgId[self.evt.ievt][itruthVtx][iOutP]
-                                        if abs(outP_pdgId)==11: # or abs(outP_pdgId)==13 or abs(outP_pdgId)==15:
-                                                self.decayLeptonBarcodes.append(self.evt.tree.truth_outP_barcode[self.evt.ievt][itruthVtx][iOutP])
-
-                for isecVtx in range(self.nsecVtx):
-                        self.matched = [False, False]
-                        for itrk in range(self.ndvtrack):
-                                if (self.evt.tree.trk_truthBarcode[self.evt.ievt][isecVtx][itrk]==self.decayLeptonBarcodes[0]):
-                                        self.matched[0] = True
-                                if (self.evt.tree.trk_truthBarcode[self.evt.ievt][isecVtx][itrk]==self.decayLeptonBarcodes[1]):
-                                        self.matched[1] = True
-
-                self.nmatched = float(self.matched[0])+float(self.matched[1])
-
-	def passes(self):
-
-		if (self.nmatched == 2):
-			return True
-		else: 
-			return False
 
 
 

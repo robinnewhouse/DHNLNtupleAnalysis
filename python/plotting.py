@@ -31,7 +31,8 @@ def plot_cutflow(file, vertextype, outputDir="../output/"):
 
 	if "data" in file: 
 		helpers.drawNotesData("data18 period B",vertextype) 
-	if "uuu" in file: 
+	elif "uuu" in file: 
+	# if "uuu" in file: 
 		helpers.drawNotes("mumu","muon",vertextype) 
 	elif "ueu" in file: 
 		helpers.drawNotes("emu","muon",vertextype) 
@@ -46,7 +47,8 @@ def plot_cutflow(file, vertextype, outputDir="../output/"):
 	else: 
 		helpers.drawNotesVertextype(vertextype)
 
-	channel = file.split("_")[1].split(".")[0]
+	channel = file.split("_",1)[1].split(".")[0]
+#	channel = file.split("_")[1].split(".")[0]
 
 	if vertextype == "VSI":
 		savefilename= "CutFlow_VSI_" + channel
@@ -146,7 +148,7 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 	if "data" in file: 
 		helpers.drawNotesData("data18 period B",vertextype) 
-	if "uuu" in file: 
+	elif "uuu" in file: 
 		helpers.drawNotes("mumu","muon",vertextype) 
 	elif "ueu" in file: 
 		helpers.drawNotes("emu","muon",vertextype) 
@@ -190,7 +192,8 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 			leg01.AddEntry(matlay[0],"material layers","l")
 
 
-	channel = file.split("_")[1].split(".")[0]
+	channel = file.split("_",1)[1].split(".")[0]
+#	channel = file.split("_")[1].split(".")[0]
 
 	if vertextype == "VSI":
 		name = savefilename +"_"+ channel
@@ -198,7 +201,8 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 		name= savefilename +"_"+ channel
 
 	
-	MyC01.SaveAs(outputDir +savefilename+'.pdf')
+	MyC01.SaveAs(outputDir +name+'.pdf')
+#	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
 
 
@@ -261,7 +265,10 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	hdata.Scale(scale_data)
 
 	for i in range(nmc_files): 
-		scale_mc = norm/(hmc[i].Integral())
+                if hmc[i].Integral()==0:
+                        scale_mc = 1/100000
+                else:
+                        scale_mc = norm/(hmc[i].Integral())
 		hmc[i].Scale(scale_mc)	
 
 	# find the max of the n histograms
@@ -353,6 +360,132 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 
 	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
+
+
+def compare_MC(mcfiles, hname, hmclabels, vertextype, setrange = "", scaleymax=1.2, nRebin=1,setlogy=False,outputDir="../output/"):
+
+	# get 2 histograms from input file
+
+	nmc_files = len(mcfiles)
+	hmc ={}
+	mc = {}
+
+	for i in range(nmc_files): 
+		mc[i] = ROOT.TFile(mcfiles[i])
+		if vertextype == "VSI":
+			hmc[i] = mc[i].Get(hname + "_VSI")
+		elif vertextype == "VSI Leptons":
+			hmc[i] = mc[i].Get(hname + "_VSI_Leptons")
+		else: 
+			logger.error("Couldn't find the mc histogram you requested!")
+			logger.error("Check file %s has the histogram you are looking for!"%mcfiles[i])
+			exit() 
+
+
+	#define your canvas
+	MyC01= ROOT.TCanvas("MyC01","",600,400)
+
+	#format legend
+	leg01 = ROOT.TLegend(0.50,0.7,0.91,0.92)
+	leg01.SetTextSize(0.035)
+	leg01.SetBorderSize(0)
+	leg01.SetFillColor(kWhite)
+	leg01.SetShadowColor(kWhite)
+
+	#rebin histograms
+
+	for i in range(nmc_files): 
+		leg01.AddEntry(hmc[i],hmclabels[i],"lp")
+		hmc[i].Rebin(nRebin)
+
+	# norm = 1
+	# for i in range(nmc_files): 
+        #         if hmc[i].Integral()==0:
+        #                 scale_mc = 1/100000
+        #         else:
+        #                 scale_mc = norm/(hmc[i].Integral())
+	# 	hmc[i].Scale(scale_mc)	
+
+	# find the max of the n histograms
+	ymax_list = []
+	h_binxmax_list = []
+	h_binxmin_list = []
+
+	for i in xrange(nmc_files):
+		ymax_list.append(hmc[i].GetMaximum())
+		h_binxmax_list.append(hmc[i].FindLastBinAbove(0,1))
+		h_binxmin_list.append(hmc[i].FindFirstBinAbove(0,1))
+
+	y_max = max(ymax_list)
+	bin_xmax = max(h_binxmax_list)
+	bin_xmin = min(h_binxmin_list)
+
+	hmc[0].GetXaxis().SetTitle(helpers.xlabelhistograms(hname))
+	hmc[0].GetYaxis().SetTitle("entries")
+	hmc[0].GetYaxis().SetRangeUser(0,y_max*scaleymax)
+	hmc[0].SetMarkerSize(0.7)
+	
+	if setrange == "":
+		hmc[0].GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
+	else: 
+
+		minmax = [item for item in setrange.split(' ')]
+		hmc[0].GetXaxis().SetRangeUser(int(minmax[0]),int(minmax[1]))
+
+	shapelist = [22,21,33,29]
+	for i in xrange(nmc_files): 
+		hmc[i].SetMarkerSize(0.7)
+		hmc[i].SetLineColor(helpers.histColours(i))
+		hmc[i].SetMarkerColor(helpers.histColours(i))
+		hmc[i].SetMarkerStyle(shapelist[i])
+		if i==0:
+                        hmc[i].Draw("E0 HIST")
+                else:
+                        hmc[i].Draw("E0 HIST SAME")
+
+
+	if setlogy: 
+		gPad.SetLogy()
+
+	if "DV_mass" in hname:
+		mDVcut=TLine(4,0,4,y_max)
+		mDVcut.SetLineStyle(3)
+		mDVcut.Draw("SAME")
+
+	if "mvis" in hname:
+		min_mlll=TLine(50,0,50,y_max)
+		min_mlll.SetLineStyle(3)
+		min_mlll.Draw("SAME")
+
+		max_mlll=TLine(84,0,84,y_max)
+		max_mlll.SetLineStyle(3)
+		max_mlll.Draw("SAME")
+
+	if "DV_r" in hname:
+		if  "redmass" in hname:
+			pass
+		else: 
+			matlayers = [33.25,50.5,88.5,122.5,299]
+			nmatlayers = len(matlayers)
+			matlay={}
+			for i in range(nmatlayers):
+				matlay[i]=TLine(matlayers[i],0,matlayers[i],y_max)
+				matlay[i].SetLineStyle(3)
+				matlay[i].Draw("SAME")
+			leg01.AddEntry(matlay[0],"material layers","l")
+
+	leg01.Draw()
+	atlas_style.ATLASLabel(0.25,0.87,"Internal")
+	helpers.drawNotesVertextype(vertextype)
+	
+	if vertextype == "VSI":
+		savefilename= hname + "_compare_MC_VSI"
+	elif vertextype == "VSI Leptons":
+		savefilename= hname + "_compare_MC_VSILep"
+	else: 
+		savefilename= hname + "_compare_MC_VSILep"
+
+	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
 
 
@@ -590,10 +723,21 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 	else: 
 		helpers.drawNotesVertextype(vertextype)
 
+	# if vertextype == "VSI":
+	# 	savefilename = hname + "_2Dmass_VSI"
+	# elif vertextype == "VSI Leptons":
+	# 	savefilename = hname + "_2Dmass_VSILep"
+	# else: 
+	# 	savefilename = hname + "_2Dmass_VSILep"
+
+	# MyC01.SaveAs(outputDir +savefilename+'.pdf')
+
+	channel = file.split("_",1)[1].split(".")[0]
+
 	if vertextype == "VSI":
-		savefilename = hname + "_2Dmass_VSI"
+		savefilename = hname + "_2Dmass_VSI_" + channel
 	elif vertextype == "VSI Leptons":
-		savefilename = hname + "_2Dmass_VSILep"
+		savefilename = hname + "_2Dmass_VSILep_" + channel
 	else: 
 		savefilename = hname + "_2Dmass_VSILep"
 

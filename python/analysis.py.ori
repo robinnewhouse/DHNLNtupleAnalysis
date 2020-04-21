@@ -164,13 +164,9 @@ class Analysis(object):
 		self.do_dv_mass_cut = 'DVmass' in self.sel
 		if not self.do_dv_mass_cut: logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
 
-		# HNL mass cut
+		#HNL mass cut
 		self.do_HNL_mass_cut = 'HNLmass' in self.sel
 		# if not self.do_HNL_mass_cut: logger.warn('You did not add an HNLmass cut for this channel. Skipping HNL mass selection.')
-
-		# Truth cut
-		self.do_truth_cut = 'truth' in self.sel
-		if not self.do_truth_cut: logger.warn('You did not add a Truth cut for this channel. Skipping Truth selection.')
 
 
 		self.check_input_consistency()
@@ -218,8 +214,6 @@ class Analysis(object):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
 		if self.do_HNL_mass_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "m_{HNL}")
-		if self.do_truth_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "truth matching")
 
 	def unlock(self):
 		self._locked = UNLOCKED
@@ -396,10 +390,6 @@ class Analysis(object):
 		mHNL_sel = selections.Mhnl(evt=evt,plep=plep_vec,trks=tracks_vec)
 
 		return mHNL_sel.passes()
-
-	def _truth_cut(self, evt):
-		truth_sel = selections.DVtruth(evt=evt)
-		return truth_sel.passes()
 
 
 
@@ -803,220 +793,3 @@ class WmuHNL(Analysis):
 		# 		return
 
 # 		self._fill_selected_dv_histos(evt) # Fill all the histograms with only selected DVs.
-
-
-class TruthInfo(Analysis):
-
- 	isdata = False # not currently used...
-
- 	def _init__(self, channel, selections, outputFile):
- 		Analysis.__init__(self, channel, outputFile)
- 		#make histograms specfic to this channel
- 		# self.add2D()
- 		# self.add()
-
-# 	def _DVtypeCut(self, evt):
-
-# 		DV_sel = selections.DVtype(evt= evt,dv_type="ee")
-# 		print "doing the ee DV type selection"
-# 		return DV_sel.passes()
-
-
- 	def _preSelection(self, evt):
- 		###########################################################################################################################\
- 		# Preselection are all the cuts that are requied per event
- 		#Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event.
- 		#Default is to select the first event that passes the selection
- 		###########################################################################################################################
-
- 		# initiazlie booleans here for each cut you apply to be False
- 		# self.passDVtype = False
-		self.passed_preselection_cuts = False
-		self.passed_fidvol_cut = False
-		self.passed_ntrk_cut = False
-		self.passed_charge_cut = False
-		self.passed_dv_type_cut = False
-		self.passed_track_quality_cut = False
-		self.passed_cosmic_veto_cut = False
-		self.passed_trilepton_mass_cut = False
-		self.passed_dv_mass_cut = False
-		self.passed_HNL_mass_cut = False
-		self.passed_truth_cut = False
-
- 		self._fill_histos(evt) # filling all
-
-		self.h['CutFlow'][self.ch].SetBinContent(1, evt.tree.allEvt)
- 		# self.h['CutFlow'][self.ch].Fill(0)
-
- 		######################################################################################################
- 		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
- 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
- 		######################################################################################################
-
-		if self._pv_cut(evt): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
-			self.h['CutFlow'][self.ch].Fill(1)
-		else:
-			return
-
-		if self.do_trigger_cut:
-			if self._trigger_cut(evt):
-				# Fill the plot at the specified bin
-				self.h['CutFlow'][self.ch].Fill(2)
-			else:
-				return
-
-		if self.do_filter_cut:
-			if self._filter_cut(evt):
-				self.h['CutFlow'][self.ch].Fill(3)
-			else:
-				return
-
-		if self.do_prompt_lepton_cut:
-			if self._prompt_lepton_cut(evt):
-				self.h['CutFlow'][self.ch].Fill(4)
-			else:
-				return
-
-		if self.do_ndv_cut:
-			if self._ndv_cut(evt):
-				self.h['CutFlow'][self.ch].Fill(5)
-			else:
-				return
-
-		# If you've made it here, preselection is passed
-		self.passed_preselection_cuts = True
-
-
- 	def _DVSelection(self, evt):
-
- 		######################################################################################################
- 		# DV Selection is any cuts that are done per DV
- 		######################################################################################################
-
-
-		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
-		self._fill_all_dv_histos(evt)
-
-		# only do the DV selection if the preselction was passed for the event.
-		if not self.passed_preselection_cuts:
-			return
-
-		# There is an extra bit of logic here since we look at several DVs
-		# but only want to fill the cutflow once per event
-
-		# Do we want to use this cut?
-		if self.do_fidvol_cut:
-			# Does this cut pass?
-			if self._fidvol_cut(evt):
-				# Has the cutflow already been filled for this event?
-				if not self.passed_fidvol_cut:
-					self.h['CutFlow'][self.ch].Fill(6)
-					self.passed_fidvol_cut = True
-			# If this cut doesn't pass, don't continue to check other cuts
-			else:
-				return
-
-		if self.do_ntrk_cut:
-			if self._ntrk_cut(evt):
-				if not self.passed_ntrk_cut:
-					self.h['CutFlow'][self.ch].Fill(7)
-					self.passed_ntrk_cut = True
-			else:
-				return
-
-		if self.do_truth_cut:
-			if self._truth_cut(evt):
-				if not self.passed_truth_cut:
-					self.h['CutFlow'][self.ch].Fill(14)
-					self.passed_truth_cut = True
-
-			else:
-				return
-
-		if self.do_opposite_sign_cut or self.do_same_sign_cut:
-			if self._charge_cut(evt):
-				if not self.passed_charge_cut:
-					self.h['CutFlow'][self.ch].Fill(8)
-					self.passed_charge_cut = True
-			else:
-				return
-
-		self._fill_selected_dv_histos(evt, "charge")
-
-		if self.do_dv_type_cut:
-			if self._dv_type_cut(evt, self.dv_type):
-				if not self.passed_dv_type_cut:
-					self.h['CutFlow'][self.ch].Fill(9)
-					self.passed_dv_type_cut = True
-			else:
-				return
-
-		self._fill_selected_dv_histos(evt, "DVtype")
-
-		if self.do_track_quality_cut:
-			if self._track_quality_cut(evt):
-				if not self.passed_track_quality_cut:
-					self.h['CutFlow'][self.ch].Fill(10)
-					self.passed_track_quality_cut = True
-			else:
-				return
-
-		self._fill_selected_dv_histos(evt, "trkqual")
-
-		if self.do_cosmic_veto_cut:
-			if self._cosmic_veto_cut(evt):
-				if not self.passed_cosmic_veto_cut:
-					self.h['CutFlow'][self.ch].Fill(11)
-					self.passed_cosmic_veto_cut = True
-			else:
-				return
-
-
-		self._fill_selected_dv_histos(evt, "cosmic")
-
-		if self.do_trilepton_mass_cut:
-			if self._trilepton_mass_cut(evt):
-				if not self.passed_trilepton_mass_cut:
-					self.h['CutFlow'][self.ch].Fill(12)
-					self.passed_trilepton_mass_cut = True
-			else:
-				return
-
-		self._fill_selected_dv_histos(evt, "mlll")
-
-		if self.do_dv_mass_cut:
-			if self._dv_mass_cut(evt):
-				if not self.passed_dv_mass_cut:
-					self.h['CutFlow'][self.ch].Fill(13)
-					self.passed_dv_mass_cut = True
-			else:
-				return
-
-		if self.do_HNL_mass_cut:
-			if self._HNL_mass_cut(evt):
-				if not self.passed_HNL_mass_cut:
-					self.h['CutFlow'][self.ch].Fill(14)
-					self.passed_HNL_mass_cut = True
-
-			else:
-				return
-
-		self._fill_selected_dv_histos(evt,"sel")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
-
-
-
-
-		# # Do we want to use this cut?
-		# if self.do_fidvol_cut:
-		# 	# Does this cut pass?
-		# 	if self._fidvol_cut(evt):
-		# 		# Has the cutflow already been filled for this event?
-		# 		if not self.passed_fidvol_cut:
-		# 			self.h['CutFlow'][self.ch].Fill(5)
-		# 			self.passed_fidvol_cut = True
-		# 	# If this cut doesn't pass, don't continue to check other cuts
-		# 	else:
-		# 		return
-
-# 		self._fill_selected_dv_histos(evt) # Fill all the histograms with only selected DVs.
-
