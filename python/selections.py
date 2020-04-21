@@ -95,10 +95,10 @@ class Plepton():
 		if self.lepton == "electron":
 			if self.quality == "tight": #tight muon is requested
 				lepquality = self.evt.tree.tightel
-			# if self.quality == "medium":
-			# 	lepquality = self.evt.tree.mediumel
-			# if self.quality == "loose":
-			# 	lepquality = self.evt.tree.looseel
+                        if self.quality == "medium":
+			 	lepquality = self.evt.tree.mediumel
+                        if self.quality == "loose":
+			 	lepquality = self.evt.tree.looseel
 
 			nleps = len(self.evt.tree.elpt[self.evt.ievt])
 			passPfilter = self.evt.tree.elpassPfilter
@@ -361,7 +361,11 @@ class Trackqual():
 			self.nel = len(electrons.lepVec)
 
 			self.nmu_tight = 0
+			self.nmu_medium = 0
+			self.nmu_loose = 0
 			self.nel_tight = 0
+			self.nel_medium = 0
+			self.nel_loose = 0
 
 			self.ndvmu = len(muons.lepVec)
 			self.ndvel = len(electrons.lepVec)
@@ -371,12 +375,25 @@ class Trackqual():
 				muisTight = self.evt.tree.tightmu[self.evt.ievt][muindex]
 				if muisTight: 
 					self.nmu_tight = self.nmu_tight + 1
+                                muisMedium = self.evt.tree.mediummu[self.evt.ievt][muindex]
+                                if muisMedium:
+                                        self.nmu_medium = self.nmu_medium + 1
+                                muisLoose = self.evt.tree.loosemu[self.evt.ievt][muindex]
+                                if muisLoose:
+                                        self.nmu_loose = self.nmu_loose + 1
+
 
 			for iel in range(self.ndvel):
 				elindex = electrons.lepIndex[iel]
 				elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
 				if elisTight: 
 					self.nel_tight = self.nel_tight + 1
+ 				elisMedium = self.evt.tree.mediumel[self.evt.ievt][elindex]
+ 				if elisMedium: 
+ 					self.nel_medium = self.nel_medium + 1
+ 				elisLoose = self.evt.tree.looseel[self.evt.ievt][elindex]
+ 				if elisLoose: 
+ 					self.nel_loose = self.nel_loose + 1
 
 			# print self.nmu_tight
 
@@ -414,6 +431,18 @@ class Trackqual():
 					return True
 				else: 
 					return False
+
+			if self.quality == "2-medium": 
+ 				if (self.nmu_medium == 2 or self.nel_medium == 2 or (self.nmu_medium == 1 and self.nel_medium == 1) or self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1)):
+ 					return True
+ 				else:
+ 					return False
+ 			if self.quality == "2-loose": 
+ 				if (self.nmu_loose == 2 or self.nel_loose == 2 or (self.nmu_loose == 1 and self.nel_loose == 1) ):
+ 					return True
+ 				else:
+ 					return False
+
 
 class Cosmicveto():
 	def __init__(self, evt, decaymode="leptonic",cosmicvetocut=0.05 ):
