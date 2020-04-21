@@ -59,32 +59,45 @@ class Truth():
 		self.dMuon_vec = []
 		self.dEl_vec = []
 		self.dNu_vec = []
+		self.trkVec = []
+		self.trkd0 = []
+		self.truth_x = -1 
+		self.truth_y = -1 
+		self.truth_z = -1 
+		self.truth_r = -1 
 		self.HNL_pdgID = 50
 
 	def getTruthParticles(self, evt): 
-		print "------------------------------------------------------------------------------"
-		print "event number: ", evt.tree.evtNum[evt.ievt]
-		print ""
-		print ""
-		print "#########"
-		print "TRUTH "
-		print "#########"
-		print ""
-		print ""
+		# print "------------------------------------------------------------------------------"
+		# print "event number: ", evt.tree.evtNum[evt.ievt]
+		# print ""
+		# print ""
+		# print "#########"
+		# print "TRUTH "
+		# print "#########"
+		# print ""
+		# print ""
 		ntruthDV = len(evt.tree.truth_parent_pdgId[evt.ievt])
-		trkVec = []
+	
 		for idvtru in xrange(ntruthDV):
 			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 50: 
 				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 3:
 					# print evt.tree.truth_parent_pdgId[evt.ievt][idvtru]
-					print "DV:     ", evt.tree.truth_x[evt.ievt][idvtru], "     ",evt.tree.truth_y[evt.ievt][idvtru], "     ", evt.tree.truth_z[evt.ievt][idvtru] 
-					print "HNL:     ", evt.tree.truth_parent_pt[evt.ievt][idvtru], "     ", evt.tree.truth_parent_eta[evt.ievt][idvtru], "     ", evt.tree.truth_parent_phi[evt.ievt][idvtru], "     ",evt.tree.truth_parent_m[evt.ievt][idvtru]
-					print "d lep 0: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][0], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][0]
-					print "d lep 1: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][1], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][1], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][1], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][1]
-					print "nu:      ", evt.tree.truth_outP_pt[evt.ievt][idvtru][2], "      ", evt.tree.truth_outP_eta[evt.ievt][idvtru][2], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][2], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][2]
+					# print "DV:     ", evt.tree.truth_x[evt.ievt][idvtru], "     ",evt.tree.truth_y[evt.ievt][idvtru], "     ", evt.tree.truth_z[evt.ievt][idvtru] 
+					self.truth_x = evt.tree.truth_x[evt.ievt][idvtru]
+					self.truth_y = evt.tree.truth_y[evt.ievt][idvtru]
+					self.truth_z = evt.tree.truth_z[evt.ievt][idvtru] 
+
+					self.truth_r = np.sqrt(self.truth_x**2 + self.truth_y**2)
+					# print "HNL:     ", evt.tree.truth_parent_pt[evt.ievt][idvtru], "     ", evt.tree.truth_parent_eta[evt.ievt][idvtru], "     ", evt.tree.truth_parent_phi[evt.ievt][idvtru], "     ",evt.tree.truth_parent_m[evt.ievt][idvtru]
+					# print "d lep 0: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][0], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+					# print "d lep 1: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][1], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][1], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][1], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][1]
+					# print "nu:      ", evt.tree.truth_outP_pt[evt.ievt][idvtru][2], "      ", evt.tree.truth_outP_eta[evt.ievt][idvtru][2], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][2], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][2]
 					
 					trkVec0 =  ROOT.TLorentzVector()
 					trkVec1 =  ROOT.TLorentzVector()
+					nu_vec =  ROOT.TLorentzVector()
+
 
 					trkVec0.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
 										evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
@@ -97,8 +110,28 @@ class Truth():
 										evt.tree.truth_outP_m[evt.ievt][idvtru][1]
 										)
 
-					trkVec.append(trkVec0)
-					trkVec.append(trkVec1)
+					self.trkVec.append(trkVec0)
+					self.trkVec.append(trkVec1)
+
+
+					nu_vec.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][2],
+						evt.tree.truth_outP_eta[evt.ievt][idvtru][2],
+						evt.tree.truth_outP_phi[evt.ievt][idvtru][2],
+						evt.tree.truth_outP_m[evt.ievt][idvtru][2]
+						)
+
+					HNLVec = ROOT.TLorentzVector()
+					HNLVec.SetPtEtaPhiM(evt.tree.truth_parent_pt[evt.ievt][idvtru],
+										evt.tree.truth_parent_eta[evt.ievt][idvtru],
+										evt.tree.truth_parent_phi[evt.ievt][idvtru],
+										evt.tree.truth_parent_m[evt.ievt][idvtru])
+
+					# print "HNL:     ", HNLVec.Px(), "     ", HNLVec.Py(), "     ", HNLVec.Pz(), "     ",HNLVec.M()
+					# print "d lep 0: ", trkVec0.Px(), "     ", trkVec0.Py(), "     ", trkVec0.Pz(), "     ",trkVec0.M()
+					# print "d lep 1: ", trkVec1.Px(), "     ", trkVec1.Py(), "     ", trkVec1.Pz(), "     ",trkVec1.M()
+					# print "nu:      ", nu_vec.Px(), "      ", nu_vec.Py(), "     ", nu_vec.Pz(), "     ",nu_vec.M()
+
+
 
 			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 24:
 				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 2:
@@ -108,11 +141,27 @@ class Truth():
 										evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
 										evt.tree.truth_outP_m[evt.ievt][idvtru][0])
 
-					print "PV:    ", evt.tree.truth_x[evt.ievt][idvtru], "     ",evt.tree.truth_y[evt.ievt][idvtru], "     ", evt.tree.truth_z[evt.ievt][idvtru] 
-					print "W:     ", evt.tree.truth_parent_pt[evt.ievt][idvtru], "     ", evt.tree.truth_parent_eta[evt.ievt][idvtru], "     ", evt.tree.truth_parent_phi[evt.ievt][idvtru], "     ",evt.tree.truth_parent_m[evt.ievt][idvtru]
-					print "p lep: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][0], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][0]
-					print ""
-					print ""
+					# print "PV:    ", evt.tree.truth_x[evt.ievt][idvtru], "     ",evt.tree.truth_y[evt.ievt][idvtru], "     ", evt.tree.truth_z[evt.ievt][idvtru] 
+					# print "W:     ", evt.tree.truth_parent_pt[evt.ievt][idvtru], "     ", evt.tree.truth_parent_eta[evt.ievt][idvtru], "     ", evt.tree.truth_parent_phi[evt.ievt][idvtru], "     ",evt.tree.truth_parent_m[evt.ievt][idvtru]
+					# print "p lep: ", evt.tree.truth_outP_pt[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_eta[evt.ievt][idvtru][0], "     ", evt.tree.truth_outP_phi[evt.ievt][idvtru][0], "     ",evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+				
+
+					W_vec =  ROOT.TLorentzVector()
+					plep_vec =  ROOT.TLorentzVector()
+					plep_vec.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+										)
+					W_vec.SetPtEtaPhiM(evt.tree.truth_parent_pt[evt.ievt][idvtru],
+						evt.tree.truth_parent_eta[evt.ievt][idvtru],
+						evt.tree.truth_parent_phi[evt.ievt][idvtru],
+						evt.tree.truth_parent_m[evt.ievt][idvtru]
+						)
+					# print"W:     ", W_vec.Px(), "  ",W_vec.Py(), "  ", W_vec.Pz(),"  ", W_vec.M()
+					# print"p lep:  ", plep_vec.Px(), "  ",plep_vec.Py(), "  ", plep_vec.Pz(),"  ", plep_vec.M()
+					# print ""
+					# print ""
 				# 	# print tree.truth_parent_pdgId[ievt][idvtru]
 				# 	print "DV:   ", tree.truth_x[ievt][idvtru], "     ",tree.truth_y[ievt][idvtru], "     ", tree.truth_z[ievt][idvtru] 
 				# 	print "HNL:   ", tree.truth_parent_pt[ievt][idvtru], "     ", tree.truth_parent_eta[ievt][idvtru], "     ", tree.truth_parent_phi[ievt][idvtru], "     ",tree.truth_parent_m[ievt][idvtru]
@@ -120,14 +169,14 @@ class Truth():
 				# 	print "lep 1: ", tree.truth_outP_pt[ievt][idvtru][1], "     ", tree.truth_outP_eta[ievt][idvtru][1], "     ", tree.truth_outP_phi[ievt][idvtru][1], "     ",tree.truth_outP_m[ievt][idvtru][1]
 				# 	print "nu:    ", tree.truth_outP_pt[ievt][idvtru][2], "      ", tree.truth_outP_eta[ievt][idvtru][2], "     ", tree.truth_outP_phi[ievt][idvtru][2], "     ",tree.truth_outP_m[ievt][idvtru][2]
 
-		Mhnl = selections.Mhnl(evt=evt, plep=plep_vec, trks =trkVec )
-		print ""
-		print ""
-		print "negative HNL mass solution: ",  Mhnl.mhnl
-		print "negative solution for neutrino 4-vector: ",  Mhnl.nu_vec.Pt(),"     ",Mhnl.nu_vec.Eta(),"     ",Mhnl.nu_vec.Phi(),"     ",Mhnl.nu_vec.M()
-		print""
-		print "postive HNL mass solution: ",  Mhnl.mhnl2
-		print "positive solution for neutrino 4-vector: ",  Mhnl.nu_vec2.Pt(),"     ",Mhnl.nu_vec2.Eta(),"     ",Mhnl.nu_vec2.Phi(),"     ",Mhnl.nu_vec.M()
+		# Mhnl = selections.Mhnl(evt=evt, plep=plep_vec, trks =self.trkVec )
+		# print ""
+		# print ""
+		# print "negative HNL mass solution: ",  Mhnl.mhnl
+		# print "negative solution for neutrino 4-vector: ",  Mhnl.nu_vec.Px(),"     ",Mhnl.nu_vec.Py(),"     ",Mhnl.nu_vec.Pz(),"     ",Mhnl.nu_vec.M()
+		# print""
+		# print "postive HNL mass solution: ",  Mhnl.mhnl2
+		# print "positive solution for neutrino 4-vector: ",  Mhnl.nu_vec2.Px(),"     ",Mhnl.nu_vec2.Py(),"     ",Mhnl.nu_vec2.Pz(),"     ",Mhnl.nu_vec.M()
 
 					# HNLVec = ROOT.TLorentzVector()
 					# HNLVec.SetPtEtaPhiM(tree.truth_parent_pt[ievt][idvtru],
@@ -310,171 +359,6 @@ class File_info():
 
 		self.Output_filename = "histograms_%s_%s_%s_%s.root"%(MC_campaign, mass_str, ctau_str, channel) 
 		
-
-#get note
-def getNote(size=14):
-	n = ROOT.TLatex()
-	n.SetNDC()
-	n.SetTextFont(43)
-	n.SetTextColor(1)
-	n.SetTextSize(size)
-	return n
-
-	
-def drawNotes(DV_type,plepton,VtxConfig):
-	a = getNote()
-	b = getNote()
-	c = getNote()
-	d = getNote()
-	e = getNote()
-	f = getNote()
-	ax = 0.25
-	ay = 0.87
-
-	if plepton == "muon":
-		a.DrawLatex(ax,ay-0.05,'Prompt muon')
-	if plepton == "electron":
-		a.DrawLatex(ax,ay-0.05,'Prompt electron')
-	if DV_type == "mumu":
-		b.DrawLatex(ax,ay-0.10,'DV type: \mu\mu\\nu')
-	if DV_type == "emu":
-		b.DrawLatex(ax,ay-0.10,'DV type: e\mu\\nu')
-	c.DrawLatex(ax,ay-0.15,'%s'%(VtxConfig))
-
-	# else: 
-	# 	a.DrawLatex(ax,ay,'%s'%MC_campaign) 
-	# 	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
-	# 	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-	# 	if plepton == "muon":
-	# 		d.DrawLatex(ax,ay-0.15,'Prompt muon')
-	# 	if plepton == "electron":
-	# 		d.DrawLatex(ax,ay-0.15,'Prompt electron')
-	# 	if DV_type == "mumu":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: \mu\mu\\nu')
-	# 	if DV_type == "emu":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: e\mu\\nu')
-	# 	if DV_type == "ee":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: ee\\nu')
-	# 	f.DrawLatex(ax,ay-0.25,'%s'%(VtxConfig))
-	# 	# else:
-		# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
-
-
-def drawNotesMC(MC_campaign,Vertextype, channel,mass,lifetime):
-	a = getNote()
-	b = getNote()
-	c = getNote()
-	d = getNote()
-	e = getNote()
-	ax = 0.25
-	ay = 0.87
-	if MC_campaign == "merged": 
-		a.DrawLatex(ax,ay,'all MC campaigns')
-	else:
-		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
-	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
-	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-	if channel == "uuu":
-		d.DrawLatex(ax,ay-0.15,'channel: \mu\mu\mu')
-	elif channel == "ueu":
-		d.DrawLatex(ax,ay-0.15,'channel: \mue\mu')
-	elif channel == "uee":
-		d.DrawLatex(ax,ay-0.15,'channel: \muee')
-	elif channel == "eee":
-		d.DrawLatex(ax,ay-0.15,'channel: eee')
-	elif channel == "eeu":
-		d.DrawLatex(ax,ay-0.15,'channel: ee\mu')
-	elif channel == "euu":
-		d.DrawLatex(ax,ay-0.15,'channel: e\mu\mu')
-	# if DV_Default == True:
-	# 	e.DrawLatex(ax,ay-0.20,'VSI')
-	# else:
-	e.DrawLatex(ax,ay-0.20,Vertextype)
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
-
-def drawNotesData(datarun,Vertextype):
-	a = getNote()
-	b = getNote()
-	
-	ax = 0.25
-	ay = 0.82
-
-	a.DrawLatex(ax,ay,Vertextype)
-	b.DrawLatex(ax,ay-0.05,datarun)
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
-
-
-def drawNotesVertextype(Vertextype, lumi=1):
-	a = getNote()
-	b = getNote()
-	
-	ax = 0.25
-	ay = 0.82
-
-	a.DrawLatex(ax,ay,"%s fb^{-1}"%lumi)
-	b.DrawLatex(ax,ay-0.05,Vertextype)
-	
-
-
-def xlabelhistograms(hist): 
-	if "DV_r" in hist:
-		if  ("redmassvis" in hist):
-			return "reduced visible mass [GeV]"
-		elif  ("redmass" in hist):
-			if "redmassHNL" in hist:
-				return "reduced HNL mass [GeV]"
-			else:
-				return "reduced DV mass [GeV]"
-		else: 
-			return "DV r [mm]"
-	if "DV_mass" in hist: 
-		return "DV mass [GeV]"
-	if "trk_pt" in hist:
-		return "track p_{T} [GeV]"
-	if "trk_eta" in hist:
-		return "track \eta"
-	if "trk_phi" in hist:
-		return "track \phi"
-	if "trk_d0" in hist:
-		return "track d_{0}"
-	if "mvis" in hist:
-		return "Visible mass (m_{lll}) [GeV]"
-	if "dpt" in hist: 
-		return "\Deltap_{T} between tracks in DV [GeV]"
-	if "deta" in hist: 
-		return "\Delta\eta between tracks in DV"
-	if "dphi" in hist: 
-		return "\Delta\phi between tracks in DV"
-	if "dR" in hist: 
-		return "\DeltaR between tracks in DV"
-	if "mtrans" in hist:
-		return "m_{T} [GeV]"
-	if "HNLm" in hist: 
-		return "HNL mass [GeV]"
-	if "HNLpt" in hist: 
-		return "HNL p_{T} [GeV]"
-	if "HNLphi" in hist: 
-		return "HNL \phi"
-	if "HNLeta" in hist: 
-		return "HNL \eta"
-	else: 
-		return ""
-
-
-def histColours(nhist): 
-	if nhist== 0:
-		return kAzure+6
-	if nhist== 1:
-		return kViolet+8
-	if nhist== 2:
-		return kRed
-	if nhist== 3:
-		return kGreen+1
-	if nhist== 4:
-		return kOrange -3
-	else: 
-		return kBlack
 
 
 
