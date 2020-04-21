@@ -148,6 +148,10 @@ class Analysis(object):
 			self.track_quality = '1-tight'
 		elif '2-tight' in self.sel:
 			self.track_quality = '2-tight'
+ 		elif ('2-medium' in self.sel): 
+ 			self.track_quality = '2-medium'
+ 		elif ('2-loose' in self.sel): 
+ 			self.track_quality = '2-loose'
 		else:
 			logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
 			self.do_track_quality_cut = False
@@ -167,8 +171,7 @@ class Analysis(object):
 		#HNL mass cut
 		self.do_HNL_mass_cut = 'HNLmass' in self.sel
 		# if not self.do_HNL_mass_cut: logger.warn('You did not add an HNLmass cut for this channel. Skipping HNL mass selection.')
-
-
+                
 		self.check_input_consistency()
 
 		self.set_cutflow_labels()
@@ -430,8 +433,16 @@ class Analysis(object):
 			self.h["all_DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
 			self.h["all_DV_trk_d0"][self.ch].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
 			self.h["all_DV_trk_z0"][self.ch].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk])
+#			self.h["all_DV_trk_d0_pv"][self.ch].Fill(evt.tree.trackd0_pv[evt.ievt][evt.idv][itrk])
+#			self.h["all_DV_trk_z0_pv"][self.ch].Fill(evt.tree.trackz0_pv[evt.ievt][evt.idv][itrk])
 			self.h["all_DV_trk_charge"][self.ch].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk])
 			self.h["all_DV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
+
+#                        self.h["all_DV_trk_npixB"][self.ch].Fill(evt.tree.tracknpixB[evt.ievt][evt.idv][itrk])
+ #                       self.h["all_DV_trk_npixEC"][self.ch].Fill(evt.tree.tracknpixEC[evt.ievt][evt.idv][itrk])
+  #                      self.h["all_DV_trk_nsctB"][self.ch].Fill(evt.tree.tracknsctB[evt.ievt][evt.idv][itrk])
+   #                     self.h["all_DV_trk_nsctEC"][self.ch].Fill(evt.tree.tracknsctEC[evt.ievt][evt.idv][itrk])
+
 
 		self.h["all_DV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
 		self.h["all_DV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv])
@@ -515,8 +526,15 @@ class Analysis(object):
 				self.h[sel + "_DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
 				self.h[sel + "_DV_trk_d0"][self.ch].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
 				self.h[sel + "_DV_trk_z0"][self.ch].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk])
+#				self.h[sel + "_DV_trk_d0_pv"][self.ch].Fill(evt.tree.trackd0_pv[evt.ievt][evt.idv][itrk])
+#				self.h[sel + "_DV_trk_z0_pv"][self.ch].Fill(evt.tree.trackz0_pv[evt.ievt][evt.idv][itrk])
 				self.h[sel + "_DV_trk_charge"][self.ch].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk])
 				self.h[sel + "_DV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
+                                self.h[sel + "_DV_trk_npixB"][self.ch].Fill(evt.tree.tracknpixB[evt.ievt][evt.idv][itrk])
+                                self.h[sel + "_DV_trk_npixEC"][self.ch].Fill(evt.tree.tracknpixEC[evt.ievt][evt.idv][itrk])
+                                self.h[sel + "_DV_trk_nsctB"][self.ch].Fill(evt.tree.tracknsctB[evt.ievt][evt.idv][itrk])
+                                self.h[sel + "_DV_trk_nsctEC"][self.ch].Fill(evt.tree.tracknsctEC[evt.ievt][evt.idv][itrk])
+
 
 			self.h[sel + "_DV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
 			self.h[sel + "_DV_x"][self.ch].Fill(evt.tree.dvx[evt.ievt][evt.idv])
@@ -574,6 +592,7 @@ class WmuHNL(Analysis):
 		self.passed_trilepton_mass_cut = False
 		self.passed_dv_mass_cut = False
 		self.passed_HNL_mass_cut = False
+#                self.passed_dv_matching_HNL = False
 
 		self._fill_histos(evt)
 		
@@ -723,6 +742,15 @@ class WmuHNL(Analysis):
 				return
 
 		self._fill_selected_dv_histos(evt,"sel")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
+
+
+		self._fill_selected_dv_histos(evt,"match")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
+
+
+#                if evt.tree.linkedtruthscore[evt.ievt][evt.idv] > 0.75 and (evt.tree.linkedtruthParentPdgId[evt.ievt][evt.idv] == 50 or evt.tree.linkedtruthParentPdgId[evt.ievt][evt.idv] == -50):
+ #                       self._fill_selected_dv_histos(evt,"match")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
+                
+
 
 ######################################################################################################################
 # An example of a new class. Here you could add any new cuts you want without disturbing the main analysis cuts.
