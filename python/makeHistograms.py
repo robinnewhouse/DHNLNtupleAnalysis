@@ -27,7 +27,8 @@ def main():
 
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
-	anaClass = getattr(analysis, "WmuHNL")
+	# anaClass = getattr(analysis, "oldHNLanalysis")
+	anaClass = getattr(analysis, "Run2_HNLanalysis")
 
 	file = options.input[0] # get file 
 	treename = "outTree" # define tree name 
@@ -42,11 +43,13 @@ def main():
 		if "data" in options.config.split("config")[1]:
 			outputfile = output_path + "histograms_data_%s.root"%channel
 		else:
-			outputfile = output_path + "TRUTH_" + file_info.Output_filename
-
+			outputfile = output_path + file_info.Output_filename
 		if os.path.exists(outputfile):
 			if options.force == False:
-				logger.error("Output %s file already exists. Either re-run with -f/--force OR choose a different output path."%file_info.Output_filename)
+				if "data" in options.config.split("config")[1]:
+					logger.error("Output histograms_data_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%channel)
+				else:
+					logger.error("Output %s file already exists. Either re-run with -f/--force OR choose a different output path."%file_info.Output_filename)
 				exit()
 			else:
 				logger.info('Removing %s'%outputfile)
@@ -57,7 +60,9 @@ def main():
 			
 			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
 			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile	
-			nentries = options.nevents or tree.npassTrig
+			nentries = options.nevents or len(tree.dvx)
+			# print nentries
+			#tree.npassTrig
 
 			#blinding flag to prevent accidental unblinding in data
 			if blinded:
@@ -66,7 +71,7 @@ def main():
 					exit()
 
 			# Make instance of the analysis class
-			ana = anaClass(vtx_container, selections, outputfile)
+			ana = anaClass(vtx_container, selections, outputfile,isdata=tree.isData)
 			
 			# Loop over each event
 			for ievt in xrange(nentries):

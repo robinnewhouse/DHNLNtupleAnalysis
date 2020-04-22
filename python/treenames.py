@@ -44,10 +44,12 @@ class Tree():
 		self.tracketa = self.tree[DVprefix + "_trk_eta_wrtSV"].array() 
 		self.trackphi = self.tree[DVprefix + "_trk_phi_wrtSV"].array()
 		self.trackmass = self.tree[DVprefix + "_trk_M"].array()
-		self.trackd0 = self.tree[DVprefix + "_trk_d0_wrtSV"].array() 
-		self.trackz0 = self.tree[DVprefix + "_trk_z0_wrtSV"].array() 
+		
 		self.trackcharge = self.tree[DVprefix + "_trk_charge"].array()
 		self.trackchi2 = self.tree[DVprefix + "_trk_chi2_toSV"].array()
+
+		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
+		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() 
 
 		# -----------------------------------------------------------------------
 		# DV reco variables

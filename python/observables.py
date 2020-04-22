@@ -84,7 +84,7 @@ Observable("el_phi", binning = (16 ,-4,4), do = ['hist']).queue()
 
 
 
-def selhistograms(selection): 
+def reco_histograms(selection): 
 	# histograms after selection selection
 	Observable(selection + "_plep_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_plep_eta",binning = (40,-10,10),do = ['hist']).queue()
@@ -130,15 +130,84 @@ def selhistograms(selection):
 	Observable(selection + "_DV_redmassvis",binning = (10005,-5,5000), do = ['hist']).queue()
 	Observable(selection + "_DV_redmassHNL",binning = (10005,-5,5000), do = ['hist']).queue()
 
-selhistograms("all")
-selhistograms("charge")
-selhistograms("DVtype")
-selhistograms("trkqual")
-selhistograms("trkqual")
-selhistograms("cosmic")
-selhistograms("mlll")
-selhistograms("mDV")
-selhistograms("sel")
+reco_histograms("all")
+reco_histograms("charge")
+reco_histograms("DVtype")
+reco_histograms("trkqual")
+reco_histograms("cosmic")
+reco_histograms("mlll")
+reco_histograms("mDV")
+reco_histograms("HNLpt")
+reco_histograms("sel")
+
+
+def truth_histograms(selection): 
+	# histograms after selection selection
+	Observable("truth_" + selection + "_W_mass",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_W_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_W_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_W_phi", binning = (16,-4,4), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_HNL_mass",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_mHNLcalc",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_HNL_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_HNL_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_HNL_phi", binning = (16,-4,4), do = ['hist'], need_truth = True).queue()
+
+	Observable("truth_" + selection + "_plep_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_plep_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_plep_phi", binning = (16,-4,4), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_plep_mass",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()
+
+	# Observable("truth_" + selection + "_plep_d0", do = ['hist'], need_truth = True).queue() # no d0 or z0 for truth particles
+	# Observable("truth_" + selection + "_plep_z0", do = ['hist'], need_truth = True).queue()
+
+	Observable("truth_" + selection + "_DV_trk_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_DV_trk_eta",binning = (160,-10,10),do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_DV_trk_phi", binning =(64,-4,4), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_trk_d0", do = ['hist'], need_truth = True).queue() # no d0 or z0 for truth particles
+	# Observable("truth_" + selection + "_DV_trk_z0", do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_trk_charge",binning = (11,-5.5,5.5), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_trk_chi2",binning = (40,0,20), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_trk_dpt",binning = (2000,0,1000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_trk_deta",binning = (160,0,20),do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_trk_dphi", binning = (64,0,8), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_trk_dR", binning = (1010,-5,10), do = ['hist'], need_truth = True).queue()
+
+	Observable("truth_" + selection + "_DV_x",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_DV_y",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_DV_z",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_DV_r",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_num_trks",binning = (6,-0.5,5.5), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_distFromPV",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_mass",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_eta",binning = (160,-10,10),do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_phi", binning = (64,-4,4), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_minOpAng",binning = (100,0,1), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_maxOpAng",binning = (100,0,1), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_charge",binning = (11,-5.5,5.5), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_chi2",binning = (40,0,20), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_mvis",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_HNLm",binning = (10005,-5,5000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_HNLm2",binning = (10005,-5,5000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_HNLpt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_HNLeta",binning = (160,-10,10),do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_HNLphi", binning = (64,-4,4), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_mtrans",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_mtrans_rot",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_redmass",binning = (10005,-5,5000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_redmassvis",binning = (10005,-5,5000), do = ['hist'], need_truth = True).queue()
+	# Observable("truth_" + selection + "_DV_redmassHNL",binning = (10005,-5,5000), do = ['hist'], need_truth = True).queue()
+
+truth_histograms("all")
+truth_histograms("charge")
+truth_histograms("DVtype")
+truth_histograms("trkqual")
+truth_histograms("cosmic")
+truth_histograms("mlll")
+truth_histograms("mDV")
+truth_histograms("HNLpt")
+truth_histograms("sel")
 
 
 
