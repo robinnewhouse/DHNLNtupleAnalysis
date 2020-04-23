@@ -7,20 +7,26 @@ logger = helpers.getLogger('dHNLAnalysis.selections',level = logging.WARNING)
 
 
 class Trigger():
-	def __init__(self, evt, trigger):
+	def __init__(self, evt, trigger,invert=False):
 		self.evt = evt
-
+		self.invert = invert
 		# trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
 		apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
 		apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium", "HLT_e60_medium",
 										"HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
+		apiMultiMuonTriggerlist = ["HLT_2mu10",  "HLT_2mu10_nomucomb",  "HLT_2mu14",  "HLT_2mu14_nomucomb",  "HLT_mu20_nomucomb_mu6noL1_nscan03",  "HLT_mu20_mu8noL1",  "HLT_mu22_mu8noL1",  "HLT_mu22_mu8noL1_calotag_0eta010",  "HLT_3mu4",  "HLT_mu6_2mu4",  "HLT_3mu6",  "HLT_3mu6_msonly",  "HLT_mu20_2mu4noL1",  "HLT_4mu4",  "HLT_mu11_nomucomb_2mu4noL1_nscan03_L1MU11_2MU6",  "HLT_mu11_nomucomb_2mu4noL1_nscan03_L1MU11_2MU6_bTau",  "HLT_mu20_msonly_mu10noL1_msonly_nscan05_noComb",  "HLT_mu11_nomucomb_mu6noL1_nscan03_L1MU11_2MU6_bTau",  "HLT_mu6_nomucomb_2mu4_nomucomb_bTau_L1MU6_3MU4",  "HLT_2mu6_nomucomb_mu4_nomucomb_bTau_L12MU6_3MU4"]
+		apiMultiElectronTriggerlist = ["HLT_2e12_lhloose_L12EM10VH", "HLT_2e15_lhvloose_nod0_L12EM13VH", "HLT_e17_lhloose_2e9_lhloose", "HLT_e17_lhloose_nod0_2e9_lhloose_nod0", "HLT_e17_lhloose_nod0_2e10_lhloose_nod0_L1EM15VH_3EM8VH", "HLT_2e17_lhvloose_nod0", "HLT_2e17_lhvloose_nod0_L12EM15VHI", "HLT_2e24_lhvloose_nod0", "HLT_e24_lhvloose_nod0_2e12_lhvloose_nod0_L1EM20VH_3EM10VH"]
+		apiElectronMuonTriggerlist = ["HLT_e17_lhloose_mu14", "HLT_e17_lhloose_nod0_mu14", "HLT_e24_lhmedium_nod0_L1EM20VHI_mu8noL1", "HLT_e26_lhmedium_nod0_mu8noL1", "HLT_e7_lhmedium_nod0_mu24", "HLT_e12_lhloose_nod0_2mu10", "HLT_2e12_lhloose_mu10", "HLT_2e12_lhloose_nod0_mu10", "HLT_e7_lhmedium_mu24", "HLT_e12_lhloose_2mu10"]
 
 		if trigger == "muononly":
 			self.allowed_trigger_list = apiSingleMuonTriggerlist
 		elif trigger == "electrononly":
 			self.allowed_trigger_list = apiSingleElectronTriggerlist
 		elif trigger == "all":
-			self.allowed_trigger_list = apiSingleMuonTriggerlist + apiSingleElectronTriggerlist
+			if self.invert:
+				self.allowed_trigger_list =  apiSingleMuonTriggerlist + apiSingleElectronTriggerlist
+			else:
+				self.allowed_trigger_list = apiSingleMuonTriggerlist + apiSingleElectronTriggerlist
 		else:
 			self.allowed_trigger_list = list(trigger)
 
@@ -29,7 +35,16 @@ class Trigger():
 		# This method checks if there is any overlap between sets a and b
 		# https://stackoverflow.com/questions/3170055/test-if-lists-share-any-items-in-python
 		event_triggers = self.evt.tree.passedtriggers[self.evt.ievt]
-		return not set(event_triggers).isdisjoint(self.allowed_trigger_list)
+		# print event_triggers
+		if self.invert:
+			if len(event_triggers) > 0: 
+				# if set(event_triggers).isdisjoint(self.allowed_trigger_list):
+				# 	print event_triggers
+				return set(event_triggers).isdisjoint(self.allowed_trigger_list)
+			else: 
+				return False
+		else:
+			return not set(event_triggers).isdisjoint(self.allowed_trigger_list)
 
 class Filter():
 	def __init__(self, evt, filter_type):

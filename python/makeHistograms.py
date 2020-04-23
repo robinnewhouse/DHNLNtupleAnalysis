@@ -45,7 +45,7 @@ def main():
 		if "data" in options.config.split("config")[1]:
 			outputfile = output_path + "histograms_data_%s.root"%channel
 		else:
-			outputfile = output_path + "histograms_mc_%s.root"%channel
+			outputfile = output_path + "TrigTest_histograms_mc16e_10G_10mm_%s.root"%channel
 
 		if os.path.exists(outputfile):
 			if options.force == False:
@@ -57,7 +57,7 @@ def main():
 
 		# loop over the vertex containers in each channel (usually just VSI & VSI Leptons)
 		for vtx_container in config_file[channel]["vtx_containers"]:
-			
+			print vtx_container
 			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
 			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile
 			nentries = options.nevents or len(tree.dvmass)

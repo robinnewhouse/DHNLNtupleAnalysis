@@ -341,7 +341,7 @@ class Analysis(object):
 		return pv_sel.passes()
 
 	def _trigger_cut(self, evt):
-		trigger_sel = selections.Trigger(evt=evt, trigger=self.trigger)
+		trigger_sel = selections.Trigger(evt=evt, trigger=self.trigger, invert=False)
 		return trigger_sel.passes()
 
 	def _filter_cut(self, evt):
@@ -794,7 +794,7 @@ class WmuHNL(Analysis):
 				return
 
 		self._fill_selected_dv_histos(evt,"sel")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
-
+		# print evt.tree.passedtriggers[evt.ievt]
 ######################################################################################################################
 # An example of a new class. Here you could add any new cuts you want without disturbing the main analysis cuts.
 # To use your new class update the class name in analysis.py (e.g. anaClass = getattr(analysis, "new_class") )
