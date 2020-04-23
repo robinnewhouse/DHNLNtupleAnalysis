@@ -36,37 +36,26 @@ class Analysis(object):
 		self.h = {}
 		# make histograms (common for all channels)
 		# self.add('CutFlow', 16, -0.5, 15.5)
-		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
-		self.add2D( 'charge_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'charge_DVmass_mhnl', 1000, 0, 500, 1005, -5, 500)
-		self.add2D( 'charge_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'charge_mvis_mhnl', 1000, 0, 500, 1005, -5, 500)
-		self.add2D( 'charge_mvis_mtrans', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'charge_mhnl_hnlpt', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'charge_mhnl_mtrans', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'charge_mhnl2D', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'charge_pos_mhnl12_13', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'charge_pos_mhnl23_12', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'charge_pos_mhnl13_23', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'charge_neg_mhnl12_13', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'charge_neg_mhnl23_12', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'charge_neg_mhnl13_23', 1005, -5, 500, 1000, 0, 500)
+		sel_list = ["charge", "DVtype", "mDV","mlll", "HNLpt", "sel"]
+		for sel in sel_list:
+			self.add2D( sel + '_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
+			self.add2D( sel + '_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
+			self.add2D( sel + '_DVmass_mhnl', 1000, 0, 500, 1010, -5, 500)
+			self.add2D( sel + '_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
+			self.add2D( sel + '_DVmass_hnlpt', 1000, 0, 500, 1010, -5, 500)
+			self.add2D( sel + '_mvis_mhnl', 1000, 0, 500, 1010, -5, 500)
+			self.add2D( sel + '_mvis_mtrans', 1000, 0, 500, 1000, 0, 500)
+			self.add2D( sel + '_mvis_hnlpt', 1000, 0, 500, 1010, -5, 500)
+			self.add2D( sel + '_mhnl_hnlpt', 1010, -5, 500, 1010, -5, 500)
+			self.add2D( sel + '_mhnl_mtrans', 1010, -5, 500, 1000, 0, 500)
+			self.add2D( sel + '_mhnl2D', 1010, -5, 500, 1000, 0, 500)
+			self.add2D( sel + '_pos_mhnl12_13', 1000, 0, 500, 1000, 0, 500)
+			self.add2D( sel + '_pos_mhnl23_12', 1000, 0, 500, 1000, 0, 500)
+			self.add2D( sel + '_pos_mhnl13_23', 1000, 0, 500, 1000, 0, 500)
+			self.add2D( sel + '_neg_mhnl12_13', 1000, 0, 500, 1000, 0, 500)
+			self.add2D( sel + '_neg_mhnl23_12', 1000, 0, 500, 1000, 0, 500)
+			self.add2D( sel + '_neg_mhnl13_23', 1000, 0, 500, 1000, 0, 500)
 
-		self.add2D( 'sel_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'sel_DVmass_mhnl', 1000, 0, 500, 1005, -5, 500)
-		self.add2D( 'sel_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'sel_mvis_mhnl', 1000, 0, 500, 1005, -5, 500)
-		self.add2D( 'sel_mvis_mtrans', 1000, 0, 500, 1000, 0, 500)
-		self.add2D( 'sel_mhnl_mtrans', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'sel_mhnl2D', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'sel_mhnl_hnlpt', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'sel_mhnl2D', 1005, -5, 500, 1005, -5, 500)
-		self.add2D( 'sel_pos_mhnl12_13', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'sel_pos_mhnl23_12', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'sel_pos_mhnl13_23', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'sel_neg_mhnl12_13', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'sel_neg_mhnl23_12', 1005, -5, 500, 1000, 0, 500)
-		self.add2D( 'sel_neg_mhnl13_23', 1005, -5, 500, 1000, 0, 500)
 		self._locked = UNLOCKED
 
 		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
@@ -454,11 +443,11 @@ class Analysis(object):
 	
 
 				if tracks.ntracks == 2: 
-					# mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
+					Mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
 					Mhnl = selections.Mhnl(evt=evt, plep=plep_vec, trks =trkVec )
 					Mtrans = selections.Mtrans(plep=plep_vec, trks =trkVec )
 
-					self.h[sel + "_mvis"][self.ch].Fill(Mhnl.mvis, evt.weight)
+					self.h[sel + "_mvis"][self.ch].Fill(Mltt.mltt, evt.weight)
 					self.h[sel + "_HNLm"][self.ch].Fill(Mhnl.mhnl, evt.weight)
 				 	self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, evt.weight)
 					self.h[sel + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt, evt.weight)
@@ -467,21 +456,23 @@ class Analysis(object):
 					self.h[sel + "_mtrans"][self.ch].Fill(Mtrans.mtrans, evt.weight)
 					self.h[sel + "_mtrans_rot"][self.ch].Fill(Mhnl.mtrans_rot, evt.weight)
 					
-					if (sel == "charge"  or sel == "sel"): # fill 2D mass correlation plots here 
-						self.h[sel +'_DVmass_mvis'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mvis, evt.weight)
-						self.h[sel +'_DVmass_mhnl'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mhnl, evt.weight)
-						self.h[sel +'_DVmass_mtrans'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mtrans.mtrans, evt.weight)
-						self.h[sel +'_mvis_mhnl'][self.ch].Fill(Mhnl.mvis,Mhnl.mhnl, evt.weight)
-						self.h[sel +'_mvis_mtrans'][self.ch].Fill(Mhnl.mvis,Mtrans.mtrans, evt.weight)
-						self.h[sel +'_mhnl_mtrans'][self.ch].Fill(Mhnl.mhnl,Mtrans.mtrans, evt.weight)
-						self.h[sel +'_mhnl_hnlpt'][self.ch].Fill(Mhnl.mhnl,Mhnl.hnlpt, evt.weight)
-						self.h[sel +'_mhnl2D'][self.ch].Fill(Mhnl.mhnl,Mhnl.mhnl2, evt.weight)
-						self.h[sel +'_neg_mhnl12_13'][self.ch].Fill(Mhnl.neg_mhnl12,Mhnl.neg_mhnl13, evt.weight)
-						self.h[sel +'_neg_mhnl23_12'][self.ch].Fill(Mhnl.neg_mhnl23,Mhnl.neg_mhnl12, evt.weight)
-						self.h[sel +'_neg_mhnl13_23'][self.ch].Fill(Mhnl.neg_mhnl13,Mhnl.neg_mhnl23, evt.weight)
-						self.h[sel +'_pos_mhnl12_13'][self.ch].Fill(Mhnl.pos_mhnl12,Mhnl.pos_mhnl13, evt.weight)
-						self.h[sel +'_pos_mhnl23_12'][self.ch].Fill(Mhnl.pos_mhnl23,Mhnl.pos_mhnl12, evt.weight)
-						self.h[sel +'_pos_mhnl13_23'][self.ch].Fill(Mhnl.pos_mhnl13,Mhnl.pos_mhnl23, evt.weight)
+					# if (sel == "charge"  or sel == "sel"): # fill 2D mass correlation plots here 
+					self.h[sel +'_DVmass_mvis'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mltt.mltt, evt.weight)
+					self.h[sel +'_DVmass_mhnl'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mhnl.mhnl, evt.weight)
+					self.h[sel +'_DVmass_mtrans'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mtrans.mtrans, evt.weight)
+					self.h[sel +'_DVmass_hnlpt'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv], Mhnl.hnlpt, evt.weight)
+					self.h[sel +'_mvis_mhnl'][self.ch].Fill(Mltt.mltt,Mhnl.mhnl, evt.weight)
+					self.h[sel +'_mvis_mtrans'][self.ch].Fill(Mltt.mltt,Mtrans.mtrans, evt.weight)
+					self.h[sel +'_mvis_hnlpt'][self.ch].Fill(Mltt.mltt,Mhnl.hnlpt, evt.weight)
+					self.h[sel +'_mhnl_mtrans'][self.ch].Fill(Mhnl.mhnl,Mtrans.mtrans, evt.weight)
+					self.h[sel +'_mhnl_hnlpt'][self.ch].Fill(Mhnl.mhnl,Mhnl.hnlpt, evt.weight)
+					self.h[sel +'_mhnl2D'][self.ch].Fill(Mhnl.mhnl,Mhnl.mhnl2, evt.weight)
+					self.h[sel +'_neg_mhnl12_13'][self.ch].Fill(Mhnl.neg_mhnl12,Mhnl.neg_mhnl13, evt.weight)
+					self.h[sel +'_neg_mhnl23_12'][self.ch].Fill(Mhnl.neg_mhnl23,Mhnl.neg_mhnl12, evt.weight)
+					self.h[sel +'_neg_mhnl13_23'][self.ch].Fill(Mhnl.neg_mhnl13,Mhnl.neg_mhnl23, evt.weight)
+					self.h[sel +'_pos_mhnl12_13'][self.ch].Fill(Mhnl.pos_mhnl12,Mhnl.pos_mhnl13, evt.weight)
+					self.h[sel +'_pos_mhnl23_12'][self.ch].Fill(Mhnl.pos_mhnl23,Mhnl.pos_mhnl12, evt.weight)
+					self.h[sel +'_pos_mhnl13_23'][self.ch].Fill(Mhnl.pos_mhnl13,Mhnl.pos_mhnl23, evt.weight)
 					
 					# if sel == "sel":
 					# 	self.h[sel +'_mhnl2D'][self.ch].Fill(Mhnl.mhnl,Mhnl.mhnl2)
@@ -498,8 +489,8 @@ class Analysis(object):
 						self.h[sel + "_DV_redmassHNL"][self.ch].Fill(-1, evt.weight)
 					else:
 						self.h[sel + "_DV_redmass"][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv]/dR, evt.weight)
-						self.h[sel + "_DV_redmassvis"][self.ch].Fill(Mhnl.mvis/dR, evt.weight)
-						self.h[sel + "_DV_redmassHNL"][self.ch].Fill(Mhnl.mhnl/dR, evt.weight)
+						self.h[sel + "_DV_redmassvis"][self.ch].Fill(Mltt.mltt/dR, evt.weight)
+						self.h[sel + "_DV_redmassHNL"][self.ch].Fill(Mltt.mltt/dR, evt.weight)
 					
 					self.h[sel + "_DV_trk_deta"][self.ch].Fill(deta, evt.weight)
 					self.h[sel + "_DV_trk_dphi"][self.ch].Fill(dphi, evt.weight)
@@ -532,7 +523,7 @@ class Analysis(object):
 			self.h[sel + "_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv], evt.weight)
 
 
-			if evt.tree.isData: 
+			if evt.tree.isData:
 				pass
 			else: 
 				truthInfo = helpers.Truth()
@@ -832,7 +823,7 @@ class Run2_HNLanalysis(Analysis):
 		# self.add2D()
 		# self.add()
 	def set_cutflow_labels(self):
-		self.add('CutFlow', 16, -0.5, 15.5)
+		self.add('CutFlow', 15, -0.5, 14.5)
 		# Bin labels are 1 greater than histogram bins
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
@@ -864,8 +855,8 @@ class Run2_HNLanalysis(Analysis):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "HNL p_{T}")
 		if self.do_cosmic_veto_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "cosmic veto")
-		if self.do_HNL_mass_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(16, "m_{HNL}")
+		# if self.do_HNL_mass_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(16, "m_{HNL}")
 	
 
 
@@ -1088,6 +1079,7 @@ class Run2_HNLanalysis(Analysis):
 
 			else:
 				return
+
 		self._fill_selected_dv_histos(evt, "HNLpt")
 
 		if self.do_cosmic_veto_cut:
@@ -1099,17 +1091,17 @@ class Run2_HNLanalysis(Analysis):
 				return
 
 
-		self._fill_selected_dv_histos(evt, "cosmic")
+		# self._fill_selected_dv_histos(evt, "cosmic")
 
 
-		if self.do_HNL_mass_cut:
-			if self._HNL_mass_cut(evt):
-				if not self.passed_HNL_mass_cut:
-					self.h['CutFlow'][self.ch].Fill(15)
-					self.passed_HNL_mass_cut = True
+		# if self.do_HNL_mass_cut:
+		# 	if self._HNL_mass_cut(evt):
+		# 		if not self.passed_HNL_mass_cut:
+		# 			self.h['CutFlow'][self.ch].Fill(15)
+		# 			self.passed_HNL_mass_cut = True
 
-			else:
-				return
+		# 	else:
+		# 		return
 
 
 		self._fill_selected_dv_histos(evt,"sel")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)

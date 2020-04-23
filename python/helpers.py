@@ -155,19 +155,21 @@ class Tracks():
 					# print  "track index", self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr]
 
 					# use track quantities
-					# pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-					# eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-					# phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+					pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+					eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+					phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+					M = self.evt.tree.trackmass[self.evt.ievt][self.evt.idv][itr]
 					# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
-					# lepVec.SetPtEtaPhiE(pt,eta, phi, E)
+					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
 
 					# use calibrated muon quantities
-					pt = self.evt.tree.muonpt[self.evt.ievt][muon_index]
-					# print "mu pt", pt
-					eta = self.evt.tree.muoneta[self.evt.ievt][muon_index]
-					phi = self.evt.tree.muonphi[self.evt.ievt][muon_index]
-					M = self.evt.tree.muonmass[self.evt.ievt][muon_index]
-					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+					# pt = self.evt.tree.muonpt[self.evt.ievt][muon_index]
+					# eta = self.evt.tree.muoneta[self.evt.ievt][muon_index]
+					# phi = self.evt.tree.muonphi[self.evt.ievt][muon_index]
+					# M = self.evt.tree.muonmass[self.evt.ievt][muon_index]
+					# lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+
+
 					self.pt.append(pt)
 					self.eta.append(eta)
 					self.phi.append(phi)
@@ -192,29 +194,28 @@ class Tracks():
 					el_index = np.where(self.evt.tree.elindex[self.evt.ievt] == self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr])[0][0]
 					
 
-					if (self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr] >= 0):
+					if (self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr] >= 0): # remove electrons that are also matched to muons!
 						if len(self.evt.tree.muonindex[self.evt.ievt]) > 0: 
 							muon_index = np.where(self.evt.tree.muonindex[self.evt.ievt] == self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr])[0][0]
 							# print muon_index
 							# print "track is matched to both muon and electron!"
 							continue
 
-					# print "el_index", el_index
-					# print "track index", self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr]
-					# use track quantities
-					# pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-					# eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-					# phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+					#use track quantities
+					pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+					eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+					phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+					M = self.evt.tree.trackmass[self.evt.ievt][self.evt.idv][itr]
 					# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
-					# lepVec.SetPtEtaPhiE(pt, eta, phi, E)
+					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 					# use calibrated electron quantities
-					pt = self.evt.tree.elpt[self.evt.ievt][el_index]
-					# print "el pt", pt
-					eta = self.evt.tree.eleta[self.evt.ievt][el_index]
-					phi = self.evt.tree.elphi[self.evt.ievt][el_index]
-					M = self.evt.tree.elmass[self.evt.ievt][el_index]
-					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+					# pt = self.evt.tree.elpt[self.evt.ievt][el_index]
+					# eta = self.evt.tree.eleta[self.evt.ievt][el_index]
+					# phi = self.evt.tree.elphi[self.evt.ievt][el_index]
+					# M = self.evt.tree.elmass[self.evt.ievt][el_index]
+					# lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+					
 					self.pt.append(pt)
 					self.eta.append(eta)
 					self.phi.append(phi)

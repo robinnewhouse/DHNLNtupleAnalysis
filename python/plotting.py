@@ -25,7 +25,8 @@ def plot_cutflow(file, vertextype, outputDir="../output/"):
 
 	gPad.SetLogy()
 	ymax_cutflow = hcutflow.GetMaximum()
-	hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow*1000000000000000)
+	hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow*1000)
+	# hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow)
 	hcutflow.SetFillColor(kAzure-4)
 	hcutflow.SetLineWidth(0)
 	hcutflow.GetYaxis().SetTickLength(0.)
