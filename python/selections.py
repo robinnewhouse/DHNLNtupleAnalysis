@@ -152,10 +152,12 @@ class Plepton():
 					# 	print self.evt.ievt
 					# 	print plepVec_i.Pt(),plepVec_i.Eta(),plepVec_i.Phi()
 					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required 
-						if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
-							self.highestpt_plep = plepVec_i 
-							self.highestpt_plep_d0 = lepd0
-							self.highestpt_plep_z0 = lepz0
+						sintheta = np.sin(plepVec_i.Theta())
+						if lepd0 < 3 and lepz0*sintheta < 0.5: 
+							if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
+								self.highestpt_plep = plepVec_i 
+								self.highestpt_plep_d0 = lepd0
+								self.highestpt_plep_z0 = lepz0
 
 							#for trigger matching
 							# if self.evt.tree.muontrigmatched[self.evt.ievt][ilep] == 0:
@@ -172,6 +174,7 @@ class Plepton():
 			self.plepd0 = self.highestpt_plep_d0
 			self.plepz0 = self.highestpt_plep_z0
 			return True
+		
 		else:
 			return False
 

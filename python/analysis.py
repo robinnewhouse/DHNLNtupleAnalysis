@@ -599,6 +599,7 @@ class oldHNLanalysis(Analysis):
 		if self.do_dv_mass_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
 
+
 	def _trilepton_mass_cut(self, evt):
 		plep_vec = self.plep_sel.plepVec
 
@@ -823,7 +824,7 @@ class Run2_HNLanalysis(Analysis):
 		# self.add2D()
 		# self.add()
 	def set_cutflow_labels(self):
-		self.add('CutFlow', 15, -0.5, 14.5)
+		self.add('CutFlow', 17, -0.5, 16.5)
 		# Bin labels are 1 greater than histogram bins
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
@@ -855,11 +856,19 @@ class Run2_HNLanalysis(Analysis):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "HNL p_{T}")
 		if self.do_cosmic_veto_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "cosmic veto")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(16, "1-tight")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(17, "2-tight")
 		# if self.do_HNL_mass_cut:
 		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(16, "m_{HNL}")
 	
 
+	def _track_quality_cut_1tight(self, evt):
+		track_quality_sel = selections.Trackqual(evt=evt, quality="1-tight")
+		return track_quality_sel.passes()
 
+	def _track_quality_cut_2tight(self, evt):
+		track_quality_sel = selections.Trackqual(evt=evt, quality="2-tight")
+		return track_quality_sel.passes()
 
 	def _dR_cut(self, evt):
 		tracks = helpers.Tracks()
@@ -937,6 +946,8 @@ class Run2_HNLanalysis(Analysis):
 		self.passed_dv_type_cut = False
 		self.passed_dR_cut = False
 		# self.passed_track_quality_cut = False
+		self.passed_track_2tight_cut = False
+		self.passed_track_1tight_cut = False
 		self.passed_cosmic_veto_cut = False
 		self.passed_trilepton_mass_cut = False
 		self.passed_dv_mass_cut = False
@@ -1089,6 +1100,21 @@ class Run2_HNLanalysis(Analysis):
 					self.passed_cosmic_veto_cut = True
 			else:
 				return
+
+		if self._track_quality_cut_1tight(evt):
+			if not self.passed_track_1tight_cut:
+				self.h['CutFlow'][self.ch].Fill(15)
+				self.passed_track_1tight_cut = True
+		else:
+			return
+
+
+		if self._track_quality_cut_2tight(evt):
+			if not self.passed_track_2tight_cut:
+				self.h['CutFlow'][self.ch].Fill(16)
+				self.passed_track_2tight_cut = True
+		else:
+			return
 
 
 		# self._fill_selected_dv_histos(evt, "cosmic")
