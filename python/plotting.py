@@ -97,7 +97,7 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 	# MyC01.cd(1)
 
 	#format legend
-	leg01 = ROOT.TLegend(0.60,0.7,0.91,0.92)
+	leg01 = ROOT.TLegend(0.58,0.65,0.91,0.92)
 	leg01.SetTextSize(0.035)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
@@ -278,36 +278,34 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	MyC01= ROOT.TCanvas("MyC01","",600,400)
 
 	#format legend
-	leg01 = ROOT.TLegend(0.50,0.7,0.91,0.92)
-	leg01.SetTextSize(0.035)
+	leg01 = ROOT.TLegend(0.74,0.74,0.92,0.92)
+	leg01.SetTextSize(0.02)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
 
-	# add data entry to legend 
-	leg01.AddEntry(hdata,hdatalabel,"lp")
 
 	#rebin histograms (if rebin =1 (default) it will not rebin the histogram)
 	hdata.Rebin(nRebin)
-
 	for i in range(nmc_files): 
-		leg01.AddEntry(hmc[i],hmclabels[i],"lp")
 		hmc[i].Rebin(nRebin)
 
 
-
-
-
-	# find the common min and max for x axis
+	# find the common min and max for x axis and calculate yields
 	bin_xmax = hdata.FindLastBinAbove(0,1)
 	bin_xmin = hdata.FindFirstBinAbove(0,1)
+	data_yield = round(hdata.Integral(bin_xmin,bin_xmax), 2)
+	mc_yield = {}
 	for i in xrange(nmc_files):
-		if hmc[i].FindLastBinAbove(0,1) > bin_xmax: bin_xmax = hmc[i].FindLastBinAbove(0,1)
-		if hmc[i].FindFirstBinAbove(0,1) > bin_xmin: bin_xmin = hmc[i].FindFirstBinAbove(0,1)
+		mc_yield[i] = lumi*round(hmc[i].Integral(hmc[i].FindFirstBinAbove(0,1), hmc[i].FindLastBinAbove(0,1)),2)
+		print mc_yield[i]
+		if  hmc[i].FindLastBinAbove(0,1) > bin_xmax: bin_xmax = hmc[i].FindLastBinAbove(0,1) # update bin_xmax to find hist with largest xrange
+		if hmc[i].FindFirstBinAbove(0,1) > bin_xmin: bin_xmin = hmc[i].FindFirstBinAbove(0,1) # update bin_xmin to find hist with largest xrange
+	
 	if setrange == "":
 		x_min = bin_xmin-1
 		x_max = bin_xmax+1
-	else: 
+	else:  #if xrange is specifed then aujust xmin and xmax
 		x_min, x_max = [float(item) for item in setrange.split(' ')]
 		bin_xmax = hdata.GetXaxis().FindBin(x_max)
 		bin_xmin = hdata.GetXaxis().FindBin(x_min)
@@ -336,8 +334,9 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 		for i in range(nmc_files):
 			hmc[i].Scale(lumi) # scale mc to a given luminosity in inverse fb
 
+	print 
 
-	# calculate some things for cuts
+	# calculate some lines for cuts
 	if "DV_mass" in hname:
 		b = hdata.Integral(hdata.FindFixBin(4), hdata.FindFixBin(20), "")
 		print "background ", b
@@ -380,8 +379,17 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 		hmc[i].SetLineColor(plotting_helpers.histColours(i))
 		hmc[i].SetMarkerColor(plotting_helpers.histColours(i))
 		hmc[i].SetMarkerStyle(shapelist[i])
-		hmc[i].GetYaxis().SetRangeUser(0.0001,y_max*scaleymax)
+		# hmc[i].GetYaxis().SetRangeUser(0.0001,y_max*scaleymax)
 		hmc[i].Draw("E0 HIST SAME")
+	# MyC01.SetTopMargin(1.2)
+
+	
+	# add data entry to legend 
+	leg01.AddEntry(hdata,"\\bf{%s}"%hdatalabel + "  \\bf{%s)}"%data_yield,"lp")
+	leg01.AddEntry(hdata,"","")
+	# leg01.AddEntry(hdata,"","")
+	for i in range(nmc_files): 
+		leg01.AddEntry(hmc[i],"\\bf{%s}"%hmclabels[i]+ " \\bf{%s)}"%mc_yield[i],"lp")
 
 
 	if setlogy: 
@@ -398,7 +406,7 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	if "HNLpt" in hname:
 		min_HNLptcut=TLine(20,0,20,y_max)
 		min_HNLptcut.SetLineStyle(3)
-		min_HNLptcut.Draw("SAME")
+		# min_HNLptcut.Draw("SAME")
 
 		max_HNLptcut=TLine(60,0,60,y_max)
 		max_HNLptcut.SetLineStyle(3)
@@ -427,6 +435,13 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 			leg01.AddEntry(matlay[0],"material layers","l")
 
 	leg01.Draw()
+	l = ROOT.TLatex()
+	l.SetNDC()
+	l.SetTextFont(43)
+	l.SetTextColor(1)
+	l.SetTextSize(8)
+ 	l.DrawLatex(0.785,0.865,"( m_{HNL},  c\\tau,  chan.,  yield)")
+
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 	
 
