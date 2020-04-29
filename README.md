@@ -45,16 +45,22 @@ python makeHistograms.py --force -i path_to_dHNLntuple --config ../data/config_m
 ```
 Without the `--force` option, the code will not run to prevent you from accidentally overwriting your histogram files!
 
+
+If you would like to run over a different set of analysis cuts (e.g using the ToyAnalysis cuts) you can run: 
+```
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json --analysis ToyAnalysis
+```
+
 ## A note about MC weighting
 
-Event weighting for monte carlo samples should be implmented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required information. If you see a warning such as:
+Event weighting for monte carlo samples should be implmented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
 
 ```
 "Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!"
 ```
-this is becuase your file name is not appropriately named such that the information about mass, lifetime etc. is in the name. We are trying to update the DHNL Algorithm to propely save this info inside the file when the ntuple is made. Stay tuned for a fix!
+this is becuase your file is not appropriately We are investigating how to include this information in the DHNL ntuples.
 
-For now either rename your ntuple file following the convention from the DAOD_RPVLL you used to make the ntuple or make due without event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
+For now either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
 
 
 ### Running plotHistograms.py
