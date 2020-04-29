@@ -19,6 +19,7 @@ def main():
 	if os.path.exists(output_path) == False:
 		logger.info('Making output directory')
 		os.mkdir(output_path)
+		
 
 
 	with open(options.config, 'r') as json_config:
@@ -28,7 +29,7 @@ def main():
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
 	# anaClass = getattr(analysis, "oldHNLanalysis")
-	anaClass = getattr(analysis, "Run2_HNLanalysis")
+	anaClass = getattr(analysis, options.analysis)
 
 	file = options.input[0] # get file 
 	treename = "outTree" # define tree name 
@@ -61,8 +62,6 @@ def main():
 			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
 			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile	
 			nentries = options.nevents or len(tree.dvx)
-			# print nentries
-			#tree.npassTrig
 
 			#blinding flag to prevent accidental unblinding in data
 			if blinded:
@@ -72,6 +71,7 @@ def main():
 
 			# Make instance of the analysis class
 			ana = anaClass(vtx_container, selections, outputfile,isdata=tree.isData)
+
 			
 			# Loop over each event
 			for ievt in xrange(nentries):
@@ -147,6 +147,11 @@ if __name__ == "__main__":
 						default = None,
 						type = int,
 						help='Number of events are going to be processed for test-only purpose.')
+	parser.add_argument('-a','--analysis',
+						dest="analysis",
+						default = "oldAnalysis",
+						type = str,
+						help='Name of the analysis you want to run. Default is the old 36fb dHNL analysis')
 
 	# parser.add_argument("-u", "--update",
 	# 					action="store_true",
