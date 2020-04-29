@@ -263,9 +263,6 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	# find the common min and max for x axis and calculate yields
 	bin_xmax = hdata.FindLastBinAbove(0,1)
 	bin_xmin = hdata.FindFirstBinAbove(0,1)
-	print bin_xmax, bin_xmin
-	print hdata.GetBin(bin_xmin)
-	print hdata.GetBinContent(bin_xmin)
 	data_yield = round(hdata.Integral(bin_xmin,bin_xmax), 2)
 	mc_yield = {}
 	for i in xrange(nmc_files):
@@ -415,21 +412,12 @@ def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,s
 	nRebin = 10 # set to 1 if you dont want to rebin.
 	scaleymax = 1.6 # use this to scale height of y axis for asthetics
 	############################################################################
-	print histos1
-	print histos2
-
-	print h1name
-	print h2name
 
 	# get 2 histograms from the file 
 	file1 = ROOT.TFile(histos1)
 	file2 = ROOT.TFile(histos2)
 	h1 = file1.Get(h1name)
 	h2 = file2.Get(h2name)
-
-
-	print h1.GetEntries()
-	print h2.GetEntries()
 
 	#define your canvas
 	MyC01 = ROOT.TCanvas("MyC01", "canvas", 800, 800)
@@ -686,7 +674,6 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 	
 	channel = file.split("histograms_")[1].split(".")[0]
-	print channel
 
 	if "data" in file: 
 		plotting_helpers.drawNotesVertextype(vertextype,lumi=60)
@@ -712,5 +699,5 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 
 	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
-	
+
 	
