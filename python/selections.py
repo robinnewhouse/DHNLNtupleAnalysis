@@ -148,12 +148,9 @@ class Plepton():
 
 
 				if overlap == False:
-					# if self.evt.ievt == 424:
-					# 	print self.evt.ievt
-					# 	print plepVec_i.Pt(),plepVec_i.Eta(),plepVec_i.Phi()
 					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required 
 						sintheta = np.sin(plepVec_i.Theta())
-						if lepd0 < 3 and lepz0*sintheta < 0.5: 
+						if lepd0 < 3 and lepz0*sintheta < 0.5: # check track cuts 
 							if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
 								self.highestpt_plep = plepVec_i 
 								self.highestpt_plep_d0 = lepd0
@@ -220,7 +217,6 @@ class DVntracks():
 		self.ntracks = -1 
 
 		if self.decaymode == "leptonic":
-			# print "track pt:", self.evt.tree.trackpt[self.evt.ievt][self.evt.idv]
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
 	def passes(self):
@@ -380,28 +376,6 @@ class Trackqual():
 				elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
 				if elisTight: 
 					self.nel_tight = self.nel_tight + 1
-
-			# print self.nmu_tight
-
-			# if (self.evt.ievt == 875) or (self.evt.ievt == 2115) or (self.evt.ievt == 2995) or (self.evt.ievt == 44464) or (self.evt.ievt == 339):
-			# print "----------"
-			# print self.evt.ievt
-			# print "track 1: ", electrons.lepVec[0].Pt(), electrons.lepVec[0].Eta(), electrons.lepVec[0].Phi()
-			# print "el 1: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepIndex[0]], self.evt.tree.eleta[self.evt.ievt][electrons.lepIndex[0]], self.evt.tree.elphi[self.evt.ievt][electrons.lepIndex[0]]
-			# print "el 1 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepIndex[0]]
-			# print ""
-			# print "track 2: ", electrons.lepVec[1].Pt(), electrons.lepVec[1].Eta(), electrons.lepVec[1].Phi()	
-			# print "el 2: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepIndex[1]], self.evt.tree.eleta[self.evt.ievt][electrons.lepIndex[1]], self.evt.tree.elphi[self.evt.ievt][electrons.lepIndex[1]]
-			# print "el 2 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepIndex[1]]
-
-			# print "number of tight electrons",self.nel_tight
-
-
-			# for iel in range(self.ndvel): 
-			# 	elindex = electrons.lepIndex[iel]
-			# 	elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
-			# 	if elisTight:
-			# 		self.nel_tight = self.nel_tight + 1
 
 
 	def passes(self):
@@ -579,16 +553,12 @@ class Mhnl():
 			return r_new
 
 		def unrotate_vector(r,v):
-			# r_new = ROOT.TVector3(v)
 			r_new = v
 
 			rotation_axis = ROOT.TVector3(-1*r.Y(),r.X(),0.0)
 			rotation_angle = r.Theta() 
 			r_new.Rotate(rotation_angle,rotation_axis)
-			
-			# if (r== v and r_new.X() > 0.001): 
-			# 	#if r=v then you should end up with a vector all in the z component
-			# 	print logger.ERROR("Roatating vectors did not work!! Check HNL mass calculation.")
+		
 			return r_new
 
 		#primary vertex vector
