@@ -99,6 +99,8 @@ class Plepton():
 			 	lepquality = self.evt.tree.mediumel
                         if self.quality == "loose":
 			 	lepquality = self.evt.tree.looseel
+                        if self.quality == "veryloose":
+                                lepquality = self.evt.tree.verylooseel
 
 			nleps = len(self.evt.tree.elpt[self.evt.ievt])
 			passPfilter = self.evt.tree.elpassPfilter
@@ -366,6 +368,7 @@ class Trackqual():
 			self.nel_tight = 0
 			self.nel_medium = 0
 			self.nel_loose = 0
+			self.nel_veryloose = 0
 
 			self.ndvmu = len(muons.lepVec)
 			self.ndvel = len(electrons.lepVec)
@@ -394,6 +397,9 @@ class Trackqual():
  				elisLoose = self.evt.tree.looseel[self.evt.ievt][elindex]
  				if elisLoose: 
  					self.nel_loose = self.nel_loose + 1
+				elisVeryLoose = self.evt.tree.verylooseel[self.evt.ievt][elindex]
+ 				if elisVeryLoose: 
+ 					self.nel_veryloose = self.nel_veryloose + 1
 
 			# print self.nmu_tight
 
@@ -442,6 +448,29 @@ class Trackqual():
  					return True
  				else:
  					return False
+
+ 			if self.quality == "2-veryloose": 
+ 				if (self.nel_veryloose == 2):
+ 					return True
+ 				else:
+ 					return False
+                        if self.quality == "loose-veryloose":
+                                if (self.nmu_loose == 1 and self.nel_veryloose == 1):
+                                        return True
+                                else:
+                                        return False
+                        if self.quality == "medium-veryloose":
+                                if (self.nmu_medium == 1 and self.nel_veryloose == 1):
+                                        return True
+                                else:
+                                        return False
+                        if self.quality == "tight-veryloose":
+                                if (self.nmu_tight == 1 and self.nel_veryloose == 1):
+                                        return True
+                                else:
+                                        return False
+			if self.quality == "2-any":
+                                return True
 
 
 class Cosmicveto():
