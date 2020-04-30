@@ -152,6 +152,16 @@ class Analysis(object):
  			self.track_quality = '2-medium'
  		elif ('2-loose' in self.sel): 
  			self.track_quality = '2-loose'
+ 		elif ('2-veryloose' in self.sel): 
+ 			self.track_quality = '2-veryloose'
+                elif ( 'loose-veryloose' in self.sel):
+                        self.track_quality = 'loose-veryloose'
+                elif ( 'medium-veryloose' in self.sel):
+                        self.track_quality = 'medium-veryloose'
+                elif ( 'tight-veryloose' in self.sel):
+                        self.track_quality = 'tight-veryloose'
+ 		elif ('2-any' in self.sel): 
+ 			self.track_quality = '2-any'
 		else:
 			logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
 			self.do_track_quality_cut = False
@@ -411,7 +421,36 @@ class Analysis(object):
 		# fill truth
 		# should add a flag like this to prevent filling
 		# if isdata and observable.need_truth: # need to get the "needs truth variable"
+                if evt.tree.isData: 
+                        return
 			# return
+                else:
+                        for itru in range(len(evt.tree.truth_dvx[evt.ievt])):
+                                if (evt.tree.truth_dvparentpdgId[evt.ievt][itru] == 50 or evt.tree.truth_dvparentpdgId[evt.ievt][itru] == -50) and evt.tree.truth_dvNoutP[evt.ievt][itru] > 1:
+                                        #print "HNL " , evt.tree.truth_dvparentpdgId[evt.ievt][itru] , " DV R " , evt.tree.truth_dvr[evt.ievt][itru]
+                                        self.h["truth_DV_x"][self.ch].Fill(evt.tree.truth_dvx[evt.ievt][itru])
+                                        self.h["truth_DV_y"][self.ch].Fill(evt.tree.truth_dvy[evt.ievt][itru])
+                                        self.h["truth_DV_z"][self.ch].Fill(evt.tree.truth_dvz[evt.ievt][itru])
+                                        self.h["truth_DV_r"][self.ch].Fill(evt.tree.truth_dvr[evt.ievt][itru])
+                                        self.h["truth_DV_eta"][self.ch].Fill(evt.tree.truth_dveta[evt.ievt][itru])
+                                        self.h["truth_DV_phi"][self.ch].Fill(evt.tree.truth_dvparentphi[evt.ievt][itru])
+                                        self.h["truth_DV_parent_pdgId"][self.ch].Fill(evt.tree.truth_dvparentpdgId[evt.ievt][itru])
+                                     #   self.h["truth_DV_mass"][self.ch].Fill(evt.tree.truth_dvmass[evt.ievt][itru])
+                                     #   self.h["truth_DV_pt"][self.ch].Fill(evt.tree.truth_dvpt[evt.ievt][itru])
+#                                else:
+ #                                       return
+                                        #self.h["truth_DV_y"][self.ch].Fill(evt.tree.truth_dvy[evt.ievt][itru])
+                                        #self.h["truth_DV_z"][self.ch].Fill(evt.tree.truth_dvz[evt.ievt][itru])
+                                        #self.h["truth_DV_r"][self.ch].Fill(evt.tree.truth_dvr[evt.ievt][itru])
+                                        #self.h["truth_DV_mass"][self.ch].Fill(evt.tree.truth_dvmass[evt.ievt][itru])
+                                        #self.h["truth_DV_pt"][self.ch].Fill(evt.tree.truth_dvpt[evt.ievt][itru])
+                                        #self.h["truth_DV_eta"][self.ch].Fill(evt.tree.truth_dveta[evt.ievt][itru])
+                                        #self.h["truth_DV_phi"][self.ch].Fill(evt.tree.truth_dvphi[evt.ievt][itru])
+                                        #self.h["truth_DV_parent_pdgId"][self.ch].Fill(evt.tree.truth_dvparentpdgId[evt.ievt][itru])
+                  #              self.h["el_pt"][self.ch].Fill(evt.tree.elpt[evt.ievt][iel])
+
+  #                      self.h["truth_DV_x"][self.ch].Fill(evt.tree.truth_dvx[evt.ievt])
+#			self.h["truth_DV_x"][self.ch].Fill(evt.tree.truth_dvx[evt.ievt][evt.idv])
  		#else:
 			# BUG with the truth values in ntuple need to investigate this -DT
 			# self.h["truth_DV_x"].Fill(evt.tree.truth_dvx[evt.ievt])
@@ -526,14 +565,18 @@ class Analysis(object):
 				self.h[sel + "_DV_trk_phi"][self.ch].Fill(evt.tree.trackphi[evt.ievt][evt.idv][itrk])
 				self.h[sel + "_DV_trk_d0"][self.ch].Fill(evt.tree.trackd0[evt.ievt][evt.idv][itrk])
 				self.h[sel + "_DV_trk_z0"][self.ch].Fill(evt.tree.trackz0[evt.ievt][evt.idv][itrk])
-#				self.h[sel + "_DV_trk_d0_pv"][self.ch].Fill(evt.tree.trackd0_pv[evt.ievt][evt.idv][itrk])
-#				self.h[sel + "_DV_trk_z0_pv"][self.ch].Fill(evt.tree.trackz0_pv[evt.ievt][evt.idv][itrk])
+				self.h[sel + "_DV_trk_d0_pv"][self.ch].Fill(evt.tree.trackd0_pv[evt.ievt][evt.idv][itrk])
+				self.h[sel + "_DV_trk_z0_pv"][self.ch].Fill(evt.tree.trackz0_pv[evt.ievt][evt.idv][itrk])
 				self.h[sel + "_DV_trk_charge"][self.ch].Fill(evt.tree.trackcharge[evt.ievt][evt.idv][itrk])
 				self.h[sel + "_DV_trk_chi2"][self.ch].Fill(evt.tree.trackchi2[evt.ievt][evt.idv][itrk])
                                 self.h[sel + "_DV_trk_npixB"][self.ch].Fill(evt.tree.tracknpixB[evt.ievt][evt.idv][itrk])
                                 self.h[sel + "_DV_trk_npixEC"][self.ch].Fill(evt.tree.tracknpixEC[evt.ievt][evt.idv][itrk])
+                                self.h[sel + "_DV_trk_nPix"][self.ch].Fill(evt.tree.tracknpixB[evt.ievt][evt.idv][itrk]
+                                                                           + evt.tree.tracknpixEC[evt.ievt][evt.idv][itrk])
                                 self.h[sel + "_DV_trk_nsctB"][self.ch].Fill(evt.tree.tracknsctB[evt.ievt][evt.idv][itrk])
                                 self.h[sel + "_DV_trk_nsctEC"][self.ch].Fill(evt.tree.tracknsctEC[evt.ievt][evt.idv][itrk])
+                                self.h[sel + "_DV_trk_nSCT"][self.ch].Fill(evt.tree.tracknsctB[evt.ievt][evt.idv][itrk]
+                                                                           + evt.tree.tracknsctEC[evt.ievt][evt.idv][itrk])
 
 
 			self.h[sel + "_DV_num_trks"][self.ch].Fill(evt.tree.dvntrk[evt.ievt][evt.idv])
@@ -741,10 +784,14 @@ class WmuHNL(Analysis):
 			else:
 				return
 
+                if not evt.tree.isData:
+                        if evt.tree.linkedtruthscore[evt.ievt][evt.idv] > 0.75 and (evt.tree.linkedtruthParentPdgId[evt.ievt][evt.idv] == 50 or evt.tree.linkedtruthParentPdgId[evt.ievt][evt.idv] == -50):
+                                self._fill_selected_dv_histos(evt,"match")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
+
 		self._fill_selected_dv_histos(evt,"sel")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 
 
-		self._fill_selected_dv_histos(evt,"match")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
+	#	self._fill_selected_dv_histos(evt,"match")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 
 
 #                if evt.tree.linkedtruthscore[evt.ievt][evt.idv] > 0.75 and (evt.tree.linkedtruthParentPdgId[evt.ievt][evt.idv] == 50 or evt.tree.linkedtruthParentPdgId[evt.ievt][evt.idv] == -50):
