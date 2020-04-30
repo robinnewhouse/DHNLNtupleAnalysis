@@ -1,25 +1,28 @@
 {
    
 "uuu_2tight":{
-            "vtx_containers" : ["VSI", "VSI_Leptons"],
+            "vtx_containers" : ["VSI_Leptons"],
             "selections":["alltriggers","pmuon", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-tight","cosmicveto", "mlll","DVmass" ]
 
               },
 
-"uuu_1tight":{
-            "vtx_containers" : ["VSI", "VSI_Leptons"],
-            "selections":["alltriggers","pmuon", "4-filter", "nDV", "fidvol","2track","OS", "mumu","1-tight","cosmicveto", "mlll","DVmass" ]
-
-              },
 "uuu_2medium":{
-            "vtx_containers" : ["VSI", "VSI_Leptons"],
+            "vtx_containers" : ["VSI_Leptons"],
             "selections":["alltriggers","pmuon", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-medium","cosmicveto", "mlll","DVmass" ]
 
                },
 "uuu_2loose":{
-            "vtx_containers" : ["VSI", "VSI_Leptons"],
+            "vtx_containers" : ["VSI_Leptons"],
             "selections":["alltriggers","pmuon", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-loose","cosmicveto", "mlll","DVmass" ]
 
-                }
+                },
+
+"uuu_2any":{
+            "vtx_containers" : ["VSI_Leptons"],
+            "selections":["alltriggers","pmuon", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-any","cosmicveto", "mlll","DVmass" ]
+
+         }
+
+
 
 }
