@@ -97,6 +97,8 @@ def selhistograms(selection):
 	Observable(selection + "_DV_trk_phi", binning =(64,-4,4), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_d0", binning = (100,-300,300), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_z0", binning = (100,-500,500), do = ['hist']).queue()
+	Observable(selection + "_DV_trk_d0_pv", binning = (100,-300,300), do = ['hist']).queue()
+	Observable(selection + "_DV_trk_z0_pv", binning = (100,-500,500), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_charge",binning = (12,-5.5,5.5), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_chi2",binning = (40,0,20), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_dpt",binning = (2000,0,1000), do = ['hist']).queue()
@@ -105,8 +107,10 @@ def selhistograms(selection):
 	Observable(selection + "_DV_trk_dR", binning = (1000,0,10), do = ['hist']).queue()
         Observable(selection + "_DV_trk_npixB",binning = (10,0,10), do = ['hist']).queue()
         Observable(selection + "_DV_trk_npixEC",binning = (10,0,10), do = ['hist']).queue()
+        Observable(selection + "_DV_trk_nPix",binning = (20,0,20), do = ['hist']).queue()
         Observable(selection + "_DV_trk_nsctB",binning = (10,0,10), do = ['hist']).queue()
         Observable(selection + "_DV_trk_nsctEC",binning = (10,0,10), do = ['hist']).queue()
+        Observable(selection + "_DV_trk_nSCT",binning = (20,0,20), do = ['hist']).queue()
 
 	Observable(selection + "_DV_x",binning = (2000,-500,500), do = ['hist']).queue()
 	Observable(selection + "_DV_y",binning = (2000,-500,500), do = ['hist']).queue()
@@ -148,14 +152,15 @@ selhistograms("match")
 
 
 # Bug with the truth variables in DHNL alg. Need to fix -DT
-# Observable("truth_DV_x",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
-# Observable("truth_DV_y",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
-# Observable("truth_DV_z",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
-# Observable("truth_DV_r",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
-# Observable("truth_DV_mass",binning = (100,0,50), do = ['hist'], need_truth = True).queue()
-# Observable("truth_DV_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
-# Observable("truth_DV_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
-# Observable("truth_DV_phi", binning = (64,-4,4), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_x",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_y",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_z",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_r",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_mass",binning = (100,0,50), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_eta",binning = (40,-10,10),do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_phi", binning = (64,-4,4), do = ['hist'], need_truth = True).queue()
+Observable("truth_DV_parent_pdgId", binning = (200,-100,100), do = ['hist'], need_truth = True).queue()
 
 
 
