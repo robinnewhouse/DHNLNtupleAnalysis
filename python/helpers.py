@@ -9,7 +9,7 @@ import os
 import re
 import subprocess
 import urlparse
-import atlas_style
+import atlas_style, selections
 
 import logging
 # logging.captureWarnings(True)
@@ -25,15 +25,110 @@ def getLogger(name = None, level = logging.DEBUG):
         logging.basicConfig(format = msgfmt, datefmt = datefmt)
         logger.setLevel(level)
     return logger
-logger = getLogger('dHNLAnalysis')
+logger = getLogger('dHNLAnalysis.helpers')
 
 
 
 class Event(): 
-	def __init__(self, tree, ievt, idv):
+	def __init__(self, tree, ievt, idv=None, mass=1.0, ctau=1.0):
 		self.tree = tree
 		self.ievt = ievt
 		self.idv = idv 
+		LNV = False
+
+		if tree.isData: # you are running on data
+			self.weight = 1
+		else: # you are running on MC file
+			if mass == -1 or ctau == -1: # MC weighting error
+				logger.warning("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
+				self.weight = 1
+			else: 
+				mW = 80.379 # mass of W boson in GeV
+				U2Gronau=4.49e-12*3e8*mass**(-5.19)/(ctau/1000) #LNC prediction	
+				if(LNV):  U2=0.5*U2
+				else: U2 =  U2Gronau
+
+				xsec = 20.6e6*U2*((1-(mass/mW)**2)**2)*(1+(mass**2)/(2*mW**2))#in fb
+				self.weight = 1*xsec/tree.allEvt #scale to 1 fb^-1  of luminosity
+
+
+
+class Truth(): 
+	def __init__(self):
+		self.HNL_vec = ROOT.TLorentzVector()
+		self.dNu_vec =  ROOT.TLorentzVector()
+		self.trkVec = []
+		self.truth_dvx = -1 
+		self.truth_dvy = -1 
+		self.truth_dvz = -1 
+		self.truth_dvr = -1 
+		self.W_vec =  ROOT.TLorentzVector()
+		self.plep_vec =  ROOT.TLorentzVector()
+		self.mhnl = -1
+		self.HNL_pdgID = 50
+
+	def getTruthParticles(self, evt): 
+		ntruthDV = len(evt.tree.truth_parent_pdgId[evt.ievt])
+
+		for idvtru in xrange(ntruthDV):
+			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 50:  # get the DV!
+				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 3:
+
+					self.truth_dvx = evt.tree.truth_x[evt.ievt][idvtru]
+					self.truth_dvy = evt.tree.truth_y[evt.ievt][idvtru]
+					self.truth_dvz = evt.tree.truth_z[evt.ievt][idvtru] 
+					self.truth_dvr = np.sqrt(self.truth_dvx**2 + self.truth_dvy**2)
+					
+					trkVec0 =  ROOT.TLorentzVector()
+					trkVec1 =  ROOT.TLorentzVector()
+					nu_vec =  ROOT.TLorentzVector()
+
+
+					trkVec0.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
+										evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+										)
+					trkVec1.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][1],
+										evt.tree.truth_outP_eta[evt.ievt][idvtru][1],
+										evt.tree.truth_outP_phi[evt.ievt][idvtru][1],
+										evt.tree.truth_outP_m[evt.ievt][idvtru][1]
+										)
+
+					self.trkVec.append(trkVec0)
+					self.trkVec.append(trkVec1)
+
+
+					nu_vec.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][2],
+										evt.tree.truth_outP_eta[evt.ievt][idvtru][2],
+										evt.tree.truth_outP_phi[evt.ievt][idvtru][2],
+										evt.tree.truth_outP_m[evt.ievt][idvtru][2]
+										)
+
+					self.HNL_vec.SetPtEtaPhiM(evt.tree.truth_parent_pt[evt.ievt][idvtru],
+										evt.tree.truth_parent_eta[evt.ievt][idvtru],
+										evt.tree.truth_parent_phi[evt.ievt][idvtru],
+										evt.tree.truth_parent_m[evt.ievt][idvtru])
+
+
+
+
+			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 24: # get the PV!
+				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 2:
+					self.plep_vec.SetPtEtaPhiM(  evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
+											evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
+											evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
+											evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+											)
+					self.W_vec.SetPtEtaPhiM( evt.tree.truth_parent_pt[evt.ievt][idvtru],
+										evt.tree.truth_parent_eta[evt.ievt][idvtru],
+										evt.tree.truth_parent_phi[evt.ievt][idvtru],
+										evt.tree.truth_parent_m[evt.ievt][idvtru]
+										)
+
+		Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec )
+		self.mhnl = Mhnl.mhnl
+
 
 
 
@@ -60,19 +155,21 @@ class Tracks():
 					# print  "track index", self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr]
 
 					# use track quantities
-					# pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-					# eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-					# phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+					pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+					eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+					phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+					M = self.evt.tree.trackmass[self.evt.ievt][self.evt.idv][itr]
 					# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
-					# lepVec.SetPtEtaPhiE(pt,eta, phi, E)
+					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
 
 					# use calibrated muon quantities
-					pt = self.evt.tree.muonpt[self.evt.ievt][muon_index]
-					# print "mu pt", pt
-					eta = self.evt.tree.muoneta[self.evt.ievt][muon_index]
-					phi = self.evt.tree.muonphi[self.evt.ievt][muon_index]
-					M = self.evt.tree.muonmass[self.evt.ievt][muon_index]
-					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+					# pt = self.evt.tree.muonpt[self.evt.ievt][muon_index]
+					# eta = self.evt.tree.muoneta[self.evt.ievt][muon_index]
+					# phi = self.evt.tree.muonphi[self.evt.ievt][muon_index]
+					# M = self.evt.tree.muonmass[self.evt.ievt][muon_index]
+					# lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+
+
 					self.pt.append(pt)
 					self.eta.append(eta)
 					self.phi.append(phi)
@@ -95,22 +192,30 @@ class Tracks():
 				# find position of electron in the electron container that is matched to the sec vtx track (works for calibrated and uncalibrated containers)
 				if len(self.evt.tree.elindex[self.evt.ievt]) > 0: 
 					el_index = np.where(self.evt.tree.elindex[self.evt.ievt] == self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr])[0][0]
-					# print "el_index", el_index
-					# print "track index", self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr]
-					# use track quantities
-					# pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-					# eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-					# phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+					
+
+					if (self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr] >= 0): # remove electrons that are also matched to muons!
+						if len(self.evt.tree.muonindex[self.evt.ievt]) > 0: 
+							muon_index = np.where(self.evt.tree.muonindex[self.evt.ievt] == self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr])[0][0]
+							# print muon_index
+							# print "track is matched to both muon and electron!"
+							continue
+
+					#use track quantities
+					pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
+					eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
+					phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
+					M = self.evt.tree.trackmass[self.evt.ievt][self.evt.idv][itr]
 					# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
-					# lepVec.SetPtEtaPhiE(pt, eta, phi, E)
+					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 					# use calibrated electron quantities
-					pt = self.evt.tree.elpt[self.evt.ievt][el_index]
-					# print "el pt", pt
-					eta = self.evt.tree.eleta[self.evt.ievt][el_index]
-					phi = self.evt.tree.elphi[self.evt.ievt][el_index]
-					M = self.evt.tree.elmass[self.evt.ievt][el_index]
-					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+					# pt = self.evt.tree.elpt[self.evt.ievt][el_index]
+					# eta = self.evt.tree.eleta[self.evt.ievt][el_index]
+					# phi = self.evt.tree.elphi[self.evt.ievt][el_index]
+					# M = self.evt.tree.elmass[self.evt.ievt][el_index]
+					# lepVec.SetPtEtaPhiM(pt,eta, phi, M)
+					
 					self.pt.append(pt)
 					self.eta.append(eta)
 					self.phi.append(phi)
@@ -142,169 +247,70 @@ class Tracks():
 			self.phi.append(phi)
 			self.pt.append(pt)
 
+class File_info():
 
-#get note
-def getNote(size=14):
-	n = ROOT.TLatex()
-	n.SetNDC()
-	n.SetTextFont(43)
-	n.SetTextColor(1)
-	n.SetTextSize(size)
-	return n
+	def __init__(self,file, channel):
+		self.Output_filename = "histograms.root"
+		self.mass = -1 # signal mass of HNL in GeV
+		self.ctau = -1 # in mm
 
-	
-def drawNotes(DV_type,plepton,VtxConfig):
-	a = getNote()
-	b = getNote()
-	c = getNote()
-	d = getNote()
-	e = getNote()
-	f = getNote()
-	ax = 0.25
-	ay = 0.87
+		self.MC_campaign =""
+		self.ctau_str = ""
+		self.mass_str = ""
 
-	if plepton == "muon":
-		a.DrawLatex(ax,ay-0.05,'Prompt muon')
-	if plepton == "electron":
-		a.DrawLatex(ax,ay-0.05,'Prompt electron')
-	if DV_type == "mumu":
-		b.DrawLatex(ax,ay-0.10,'DV type: \mu\mu\\nu')
-	if DV_type == "emu":
-		b.DrawLatex(ax,ay-0.10,'DV type: e\mu\\nu')
-	c.DrawLatex(ax,ay-0.15,'%s'%(VtxConfig))
+		if "lt1dd" in file or "1mm" in file:
+			self.ctau = 1.0
+			self.ctau_str = "1mm"
+		elif "lt10dd" in file  or "10mm" in file:
+			self.ctau = 10.0
+			self.ctau_str = "10mm"
+		elif "lt100dd" in file  or "100mm" in file:
+			self.ctau = 100.0
+			self.ctau_str = "100mm"
 
-	# else: 
-	# 	a.DrawLatex(ax,ay,'%s'%MC_campaign) 
-	# 	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
-	# 	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-	# 	if plepton == "muon":
-	# 		d.DrawLatex(ax,ay-0.15,'Prompt muon')
-	# 	if plepton == "electron":
-	# 		d.DrawLatex(ax,ay-0.15,'Prompt electron')
-	# 	if DV_type == "mumu":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: \mu\mu\\nu')
-	# 	if DV_type == "emu":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: e\mu\\nu')
-	# 	if DV_type == "ee":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: ee\\nu')
-	# 	f.DrawLatex(ax,ay-0.25,'%s'%(VtxConfig))
-	# 	# else:
-		# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
+		if "3G" in file:
+			self.mass = 3.0
+			self.mass_str = "3G"
+		elif "4G" in file:
+			self.mass = 4.0
+			self.mass_str = "4G"
+		elif "4p5G" in file:
+			self.mass = 4.5
+			self.mass_str = "4p5G"
+		elif "5G" in file:
+			self.mass = 5.0
+			self.mass_str = "5G"
+		elif "7p5G" in file:
+			self.mass = 7.5
+			self.mass_str = "7p5G"
+		elif "10G" in file:
+			self.mass = 10.0
+			self.mass_str = "10G" 
+		elif "12p5G" in file:
+			self.mass = 12.5
+			self.mass_str = "12p5G"
+		elif "15G" in file:
+			self.mass = 15.0
+			self.mass_str = "15G"
+		elif "17p5G" in file:
+			self.mass = 17.5
+			self.mass_str = "17p5G"
+		elif "20G" in file:
+			self.mass = 20.0
+			self.mass_str = "20G"
+		
 
-
-def drawNotesMC(MC_campaign,Vertextype, channel,mass,lifetime):
-	a = getNote()
-	b = getNote()
-	c = getNote()
-	d = getNote()
-	e = getNote()
-	ax = 0.25
-	ay = 0.87
-	if MC_campaign == "merged": 
-		a.DrawLatex(ax,ay,'all MC campaigns')
-	else:
-		a.DrawLatex(ax,ay,'%s'%MC_campaign) 
-	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
-	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-	if channel == "uuu":
-		d.DrawLatex(ax,ay-0.15,'channel: \mu\mu\mu')
-	elif channel == "ueu":
-		d.DrawLatex(ax,ay-0.15,'channel: \mue\mu')
-	elif channel == "uee":
-		d.DrawLatex(ax,ay-0.15,'channel: \muee')
-	elif channel == "eee":
-		d.DrawLatex(ax,ay-0.15,'channel: eee')
-	elif channel == "eeu":
-		d.DrawLatex(ax,ay-0.15,'channel: ee\mu')
-	elif channel == "euu":
-		d.DrawLatex(ax,ay-0.15,'channel: e\mu\mu')
-	# if DV_Default == True:
-	# 	e.DrawLatex(ax,ay-0.20,'VSI')
-	# else:
-	e.DrawLatex(ax,ay-0.20,Vertextype)
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
-
-def drawNotesData(datarun,Vertextype):
-	a = getNote()
-	b = getNote()
-	
-	ax = 0.25
-	ay = 0.82
-
-	a.DrawLatex(ax,ay,Vertextype)
-	b.DrawLatex(ax,ay-0.05,datarun)
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
+		if "r10740" in file or "mc16a" in file:
+			self.MC_campaign = "mc16a"
+		if "r10739" in file or "mc16d" in file:
+			self.MC_campaign = "mc16d"
+		if "r10790" in file or "mc16e" in file:
+			self.MC_campaign = "mc16e"
+		
 
 
-def drawNotesVertextype(Vertextype):
-	a = getNote()
-	b = getNote()
-	
-	ax = 0.25
-	ay = 0.82
-
-	a.DrawLatex(ax,ay,Vertextype)
-
-
-def xlabelhistograms(hist): 
-	if "DV_r" in hist:
-		if  ("redmassvis" in hist):
-			return "reduced visible mass [GeV]"
-		elif  ("redmass" in hist):
-			if "redmassHNL" in hist:
-				return "reduced HNL mass [GeV]"
-			else:
-				return "reduced DV mass [GeV]"
-		else: 
-			return "DV r [mm]"
-	if "DV_mass" in hist: 
-		return "DV mass [GeV]"
-	if "trk_pt" in hist:
-		return "track p_{T} [GeV]"
-	if "trk_eta" in hist:
-		return "track \eta"
-	if "trk_phi" in hist:
-		return "track \phi"
-	if "trk_d0" in hist:
-		return "track d_{0}"
-	if "mvis" in hist:
-		return "Visible mass (m_{lll}) [GeV]"
-	if "dpt" in hist: 
-		return "\Deltap_{T} between tracks in DV [GeV]"
-	if "deta" in hist: 
-		return "\Delta\eta between tracks in DV"
-	if "dphi" in hist: 
-		return "\Delta\phi between tracks in DV"
-	if "dR" in hist: 
-		return "\DeltaR between tracks in DV"
-	if "mtrans" in hist:
-		return "m_{T} [GeV]"
-	if "HNLm" in hist: 
-		return "HNL mass [GeV]"
-	if "HNLpt" in hist: 
-		return "HNL p_{T} [GeV]"
-	if "HNLphi" in hist: 
-		return "HNL \phi"
-	if "HNLeta" in hist: 
-		return "HNL \eta"
-	else: 
-		return ""
-
-
-def histColours(nhist): 
-	if nhist== 0:
-		return kAzure+6
-	if nhist== 1:
-		return kViolet+8
-	if nhist== 2:
-		return kRed
-	if nhist== 3:
-		return kGreen+1
-	if nhist== 4:
-		return kOrange -3
-	else: 
-		return kBlack
+		self.Output_filename = "histograms_%s_%s_%s_%s.root"%(self.MC_campaign, self.mass_str, self.ctau_str, channel) 
+		
 
 
 

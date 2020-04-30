@@ -2,7 +2,7 @@
    
 "ueu":{
             "vtx_containers" : ["VSI", "VSI_Leptons"],
-            "selections":["alltriggers","pmuon", "4-filter", "nDV", "fidvol","2track","SS", "emu","2-tight","cosmicveto", "mlll","DVmass" ]
+            "selections":["alltriggers","pmuon", "4-filter","nDV", "fidvol","2track","SS", "emu","2-tight","cosmicveto", "mlll","DVmass" ]
 
          }
 

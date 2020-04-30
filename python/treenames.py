@@ -20,8 +20,10 @@ class Tree():
 		self.cutflow = self.file["cutflow"]
 		
 		self.allEvt =  self.cutflow[1]
+		self.npassTrig = int(self.cutflow[4])
 
 		# -----------------------------------------------------------------------
+		self.evtNum = self.tree["eventNumber"].array()
 		self.passedtriggers = self.tree["passedTriggers"].array()
 		self.mumufilter = self.tree["passesHnlMuMuFilter"].array()
 		self.muelfilter = self.tree["passesHnlMuElFilter"].array()
@@ -47,6 +49,9 @@ class Tree():
 		
 		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() #d0 and z0 are track quantites calculated wrt IP we dont want to look at the _wrtSV variable!
 		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
+
+		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
+		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() 
 
 		# -----------------------------------------------------------------------
 		# DV reco variables
@@ -108,14 +113,24 @@ class Tree():
 		# DV truth variables
 		# -----------------------------------------------------------------------
 		if self.isData == False:
-			self.truth_dvx = self.tree["truthVtx_x"].array()  
-			self.truth_dvy = self.tree["truthVtx_y"].array()  
-			self.truth_dvz = self.tree["truthVtx_z"].array() 
+			self.truth_x = self.tree["truthVtx_x"].array()  
+			self.truth_y = self.tree["truthVtx_y"].array()  
+			self.truth_z = self.tree["truthVtx_z"].array() 
 			self.truth_dvr = self.tree["truthVtx_r"].array() 
 			self.truth_dvmass = self.tree["truthVtx_mass"].array()  
 			self.truth_dvpt = self.tree["truthVtx_pt"].array()
 			self.truth_dveta = self.tree["truthVtx_eta"].array()  
 			self.truth_dvphi = self.tree["truthVtx_phi"].array() 
+			self.truth_outP_pdgId = self.tree["truthVtx_outP_pdgId"].array()
+			self.truth_outP_pt = self.tree["truthVtx_outP_pt"].array()
+			self.truth_outP_eta = self.tree["truthVtx_outP_eta"].array()
+			self.truth_outP_phi = self.tree["truthVtx_outP_phi"].array()
+			self.truth_outP_m = self.tree["truthVtx_outP_M"].array()
+			self.truth_parent_pdgId = self.tree["truthVtx_parent_pdgId"].array()
+			self.truth_parent_pt = self.tree["truthVtx_parent_pt"].array()
+			self.truth_parent_eta = self.tree["truthVtx_parent_eta"].array()
+			self.truth_parent_phi = self.tree["truthVtx_parent_phi"].array()
+			self.truth_parent_m = self.tree["truthVtx_parent_M"].array()
 			# self.dvntrk = self.tree["truthVtx_ntrk"].array() 
 			# self.dvdistFromPV = self.tree["truthVtx_distFromPV"].array() 
 			# self.dvcharge = self.tree["truthVtx_charge"].array() 
