@@ -124,6 +124,10 @@ class Tree():
 		self.tightel = self.tree["el_LHTight"].array()
 		self.mediumel = self.tree["el_LHMedium"].array()
 		self.looseel = self.tree["el_LHLoose"].array()
+		if(self.isData):
+                        self.verylooseel = self.tree["el_LHLoose"].array()
+		if(not self.isData):
+                        self.verylooseel = self.tree["el_LHVeryLoose"].array()
 		self.elpassPfilter = self.tree["el_passesPromptCuts"].array() 
 		# -----------------------------------------------------------------------
 
@@ -142,6 +146,8 @@ class Tree():
 			self.truth_dveta = self.tree["truthVtx_eta"].array()  
 			self.truth_dvphi = self.tree["truthVtx_phi"].array() 
                         self.truth_dvparentpdgId = self.tree["truthVtx_parent_pdgId"].array()
+                        self.truth_dvparentphi = self.tree["truthVtx_parent_phi"].array()
+                        self.truth_dvNoutP = self.tree["truthVtx_nOutP"].array()
 			# self.dvntrk = self.tree["truthVtx_ntrk"].array() 
 			# self.dvdistFromPV = self.tree["truthVtx_distFromPV"].array() 
 			# self.dvcharge = self.tree["truthVtx_charge"].array() 
