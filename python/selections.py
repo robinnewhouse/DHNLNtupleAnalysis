@@ -9,6 +9,7 @@ logger = helpers.getLogger('dHNLAnalysis.selections',level = logging.WARNING)
 class Trigger():
 	def __init__(self, evt, trigger):
 		self.evt = evt
+		self.inverted = trigger == "inverted"
 
 		# trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
 		apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
@@ -19,7 +20,7 @@ class Trigger():
 			self.allowed_trigger_list = apiSingleMuonTriggerlist
 		elif trigger == "electrononly":
 			self.allowed_trigger_list = apiSingleElectronTriggerlist
-		elif trigger == "all":
+		elif trigger in ["all", "inverted"]:
 			self.allowed_trigger_list = apiSingleMuonTriggerlist + apiSingleElectronTriggerlist
 		else:
 			self.allowed_trigger_list = list(trigger)
@@ -29,7 +30,11 @@ class Trigger():
 		# This method checks if there is any overlap between sets a and b
 		# https://stackoverflow.com/questions/3170055/test-if-lists-share-any-items-in-python
 		event_triggers = self.evt.tree.passedtriggers[self.evt.ievt]
-		return not set(event_triggers).isdisjoint(self.allowed_trigger_list)
+		event_has_trigger = not set(event_triggers).isdisjoint(self.allowed_trigger_list)
+		if self.inverted:
+			return not event_has_trigger
+		else: 
+			return event_has_trigger
 
 class Filter():
 	def __init__(self, evt, filter_type):
@@ -66,6 +71,31 @@ class Filter():
 
 		if self.filter_type == "1-filter":
 			return self.evt.tree.mumufilter[self.evt.ievt]
+
+
+class Alpha():
+	def __init__(self, evt, max_alpha=0.01):
+		self.evt = evt
+		self.max_alpha = max_alpha
+		# calculate alpha
+		# primary vertex position vector
+		pv_vector = ROOT.TVector3(evt.tree.dvx[evt.ievt][evt.idv], 
+								  evt.tree.dvy[evt.ievt][evt.idv], 
+								  evt.tree.dvz[evt.ievt][evt.idv]) 
+		# secondary vertex position vector		
+		sv_vector = ROOT.TVector3(evt.tree.pvx[evt.ievt], 
+								  evt.tree.pvy[evt.ievt], 
+								  evt.tree.pvz[evt.ievt]) 
+		# vector from pv to sv		
+		pv_sv_vector = sv_vector - pv_vector
+
+		# vector difference between momentum vector and position vector		
+		alpha = pv_sv_vector.Phi() - evt.tree.dvphi[evt.ievt][evt.idv]
+		self.alpha = (alpha + np.pi/2) % np.pi*2 - np.pi
+
+	def passes(self):
+		# pass if alpha is less than the sent cut
+		return abs(self.alpha) < self.max_alpha
 
 
 class Plepton():
@@ -539,7 +569,16 @@ class DVmass():
 		else: 
 			return False
 
+class DV_mass_window():
+	def __init__(self, evt, mass_min=.4977-.01, mass_max=.4977+.01): # default kaon mass +/- 0.01
+		self.evt = evt
+		self.mass_min = mass_min
+		self.mass_max = mass_max
+		self.dvmass = self.evt.tree.dvmass[self.evt.ievt][self.evt.idv]
 
+	def passes(self):
+		return (self.dvmass > self.mass_min) and (self.dvmass < self.mass_max)
+			
 class Mhnl():
 	def __init__(self, evt, plep, trks,hnlmasscut=4):
 		self.evt = evt

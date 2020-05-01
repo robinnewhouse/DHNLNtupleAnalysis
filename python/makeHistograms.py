@@ -31,7 +31,8 @@ def main():
 
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
-	anaClass = getattr(analysis, "WmuHNL")
+	# anaClass = getattr(analysis, "WmuHNL")
+	anaClass = getattr(analysis, "KShort")
 
 	file = options.input[0]
 	treename = "outTree"
@@ -59,14 +60,21 @@ def main():
 		for vtx_container in config_file[channel]["vtx_containers"]:
 			
 			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
-			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile
-			nentries = options.nevents or len(tree.dvmass)
+			
+			nentries = options.nevents if options.nevents else None
+			tree = treenames.Tree(file, treename, vtx_container, nentries) # define variables in tree to be accessed from rootfile
+			if len(tree.dvmass) < nentries or nentries == None:
+				nentries = len(tree.dvmass)
+
 			
 			#blinding flag to prevent accidental unblinding in data
 			if blinded:
 				if tree.isData and "OS" in selections:
 					logger.error("You are running on data and you cannot look at OS verticies!!!")
 					exit()
+				if tree.isData and not "mass_window" in selections:
+					logger.error("You are running on data and you cannot look at events outside the mass window!!!")
+					# exit()
 
 			# Make instance of the analysis class
 			ana = anaClass(vtx_container, selections, outputfile)

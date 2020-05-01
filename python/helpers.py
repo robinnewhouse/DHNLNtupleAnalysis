@@ -1,5 +1,4 @@
 import ROOT
-from ROOT import * 
 import numpy as np
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
@@ -226,14 +225,46 @@ def drawNotesData(datarun,Vertextype):
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 
-def drawNotesVertextype(Vertextype):
-	a = getNote()
-	b = getNote()
+def drawNotesVertextype(Vertextype, size=14):
+	a = getNote(size)
 	
 	ax = 0.25
 	ay = 0.82
 
 	a.DrawLatex(ax,ay,Vertextype)
+
+def drawNote(note, size=14, ax=0.25, ay=0.82):
+	a = getNote(size)
+	a.DrawLatex(ax,ay,note)
+
+
+x_label_names = {
+	"DV_mass": "DV mass [GeV]",
+	"trk_pt": "track p_{T} [GeV]",
+	"trk_eta": "track \eta",
+	"trk_phi": "track \phi",
+	"trk_d0": "track d_{0}",
+	"mvis": "Visible mass (m_{lll}) [GeV]",
+	"dpt": "\Deltap_{T} between tracks in DV [GeV]",
+	"deta": "\Delta\eta between tracks in DV",
+	"dphi": "\Delta\phi between tracks in DV",
+	"dR": "\DeltaR between tracks in DV",
+	"mtrans": "m_{T} [GeV]",
+	"HNLm": "HNL mass [GeV]",
+	"HNLpt": "HNL p_{T} [GeV]",
+	"HNLphi": "HNL \phi",
+	"HNLeta": "HNL \eta",
+	"DV_r": "DV r [mm]",
+	"redmass" : "reduced DV mass [GeV]",
+	"redmassvis" : "reduced visible mass [GeV]",
+	"redmassHNL" : "reduced HNL mass [GeV]",
+}
+
+def get_x_label(hist_name):
+	if hist_name in x_label_names:
+		return x_label_names[hist_name]
+	else:
+		return hist_name
 
 
 def xlabelhistograms(hist): 
@@ -283,17 +314,17 @@ def xlabelhistograms(hist):
 
 def histColours(nhist): 
 	if nhist== 0:
-		return kAzure+6
+		return ROOT.kAzure+6
 	if nhist== 1:
-		return kViolet+8
+		return ROOT.kViolet+8
 	if nhist== 2:
-		return kRed
+		return ROOT.kRed
 	if nhist== 3:
-		return kGreen+1
+		return ROOT.kGreen+1
 	if nhist== 4:
-		return kOrange -3
+		return ROOT.kOrange -3
 	else: 
-		return kBlack
+		return ROOT.kBlack
 
 
 

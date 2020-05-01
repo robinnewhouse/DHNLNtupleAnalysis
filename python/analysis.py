@@ -63,6 +63,9 @@ class Analysis(object):
 		if 'alltriggers' in self.sel:
 			self.trigger = 'all'
 			self.do_trigger_cut = True
+		if 'invertedtriggers' in self.sel:
+			self.trigger = 'inverted'
+			self.do_trigger_cut = True
 		else:
 			logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
 			self.do_trigger_cut = False
@@ -103,6 +106,12 @@ class Analysis(object):
 		# nDV cut
 		self.do_ndv_cut = ('nDV' in self.sel)
 		if not self.do_ndv_cut: logger.warn('You did not add nDV cut. Skipping nDV selection.')
+
+		# alpha cut
+		self.do_alpha_cut = 'alpha' in self.sel
+
+		# mass window cut
+		self.do_mass_window_cut = 'mass_window' in self.sel
 
 		# fiducial volume
 		self.do_fidvol_cut = 'fidvol' in self.sel
@@ -186,34 +195,37 @@ class Analysis(object):
 		# Bin labels are 1 greater than histogram bins
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
-		if self.do_trigger_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "trigger")
-		if self.do_filter_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
-		if self.do_prompt_lepton_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
-		if self.do_ndv_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "DV")
-		if self.do_fidvol_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
-		if self.do_ntrk_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
-		if self.do_opposite_sign_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "OS DV")
-		if self.do_same_sign_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "SS DV")
-		if self.do_dv_type_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "%s DV" % self.dv_type)
-		if self.do_track_quality_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "{}-lepton DV".format(self.track_quality))
-		if self.do_cosmic_veto_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "cosmic veto")
-		if self.do_trilepton_mass_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
-		if self.do_dv_mass_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
-		if self.do_HNL_mass_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "m_{HNL}")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "Kshort mass")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "alpha")
+
+		# if self.do_trigger_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "trigger")
+		# if self.do_filter_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
+		# if self.do_prompt_lepton_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+		# if self.do_ndv_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "DV")
+		# if self.do_fidvol_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
+		# if self.do_ntrk_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
+		# if self.do_opposite_sign_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "OS DV")
+		# if self.do_same_sign_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "SS DV")
+		# if self.do_dv_type_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "%s DV" % self.dv_type)
+		# if self.do_track_quality_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "{}-lepton DV".format(self.track_quality))
+		# if self.do_cosmic_veto_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "cosmic veto")
+		# if self.do_trilepton_mass_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
+		# if self.do_dv_mass_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
+		# if self.do_HNL_mass_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "m_{HNL}")
 
 	def unlock(self):
 		self._locked = UNLOCKED
@@ -339,6 +351,10 @@ class Analysis(object):
 	def _fidvol_cut(self, evt):
 		fidvol_sel = selections.DVradius(evt=evt)
 		return fidvol_sel.passes()
+		
+	def _alpha_cut(self, evt):
+		alpha_sel = selections.Alpha(evt=evt)
+		return alpha_sel.passes()
 
 	def _ntrk_cut(self, evt):
 		ntracks_sel = selections.DVntracks(evt=evt, ntrk=self.ntrk)
@@ -379,6 +395,10 @@ class Analysis(object):
 	def _dv_mass_cut(self, evt):
 		dv_mass_sel = selections.DVmass(evt=evt)
 		return dv_mass_sel.passes()
+
+	def _mass_window_cut(self, evt):
+		dv_mass_window_sel = selections.DV_mass_window(evt=evt)
+		return dv_mass_window_sel.passes()
 
 	def _HNL_mass_cut(self, evt):
 		tracks = helpers.Tracks()
@@ -447,6 +467,9 @@ class Analysis(object):
 		self.h["all_DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv])
 		self.h["all_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv])
 		self.h["all_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
+
+		self.h["all_DV_alpha"][self.ch].Fill(selections.Alpha(evt=evt).alpha)
+
 
 	def _fill_selected_dv_histos(self, evt, sel):
 		if self._locked < FILL_LOCKED:
@@ -532,11 +555,75 @@ class Analysis(object):
 			self.h[sel + "_DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv])
 			self.h[sel + "_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv])
 			self.h[sel + "_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv])
+		
+			self.h[sel + "_DV_alpha"][self.ch].Fill(selections.Alpha(evt=evt).alpha)
 
 			
 
-			if sel == "sel": 
-				self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
+			# if sel == "sel": 
+			# 	self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
+
+class KShort(Analysis):
+	def _init__(self, channel, selections, outputFile):
+		Analysis.__init__(self, channel, outputFile)
+		self.passed_alpha_cut = False
+		self.passed_mass_window_cut = False
+		# bin labels are one greater than histogram bins
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "Kshort mass")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "alpha")
+
+	def _preSelection(self, evt):
+		self.passed_preselection_cuts = False
+		self.passed_alpha_cut = False
+		self.passed_mass_window_cut = False
+		self._fill_histos(evt)
+		self.h['CutFlow'][self.ch].Fill(0)
+
+		if self._pv_cut(evt): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
+			self.h['CutFlow'][self.ch].Fill(1)
+		else:
+			return
+
+		if self.do_trigger_cut:
+			if self._trigger_cut(evt):
+				# Fill the plot at the specified bin
+				self.h['CutFlow'][self.ch].Fill(2)
+			else:
+				return
+
+		self.passed_preselection_cuts = True
+
+
+	def _DVSelection(self, evt):
+		######################################################################################################
+		# DV Selection is any cuts that are done per DV
+		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
+		######################################################################################################
+
+		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
+		self._fill_all_dv_histos(evt)
+
+		# only do the DV selection if the preselction was passed for the event.
+		if not self.passed_preselection_cuts:
+			return
+
+		if self.do_mass_window_cut:
+			if self._mass_window_cut(evt):
+				self.h['CutFlow'][self.ch].Fill(2)
+				self.passed_mass_window_cut = True
+			else:
+				return
+		self._fill_selected_dv_histos(evt, "mass")
+
+		if self.do_alpha_cut:
+			if self._alpha_cut(evt):
+				self.h['CutFlow'][self.ch].Fill(3)
+				self.passed_alpha_cut = True
+			else:
+				return
+		self._fill_selected_dv_histos(evt, "alpha")
+
+		self._fill_selected_dv_histos(evt, "sel")
 
 
 class WmuHNL(Analysis):

@@ -118,6 +118,7 @@ def selhistograms(selection):
 	Observable(selection + "_DV_maxOpAng",binning = (100,0,1), do = ['hist']).queue()
 	Observable(selection + "_DV_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
 	Observable(selection + "_DV_chi2",binning = (40,0,20), do = ['hist']).queue()
+	Observable(selection + "_DV_alpha",binning = (400,-4,4), do = ['hist']).queue()
 	Observable(selection + "_mvis",binning = (10000,0,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLm",binning = (10005,-5,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLpt",binning = (1000,0,1000), do = ['hist']).queue()
@@ -137,6 +138,8 @@ selhistograms("trkqual")
 selhistograms("cosmic")
 selhistograms("mlll")
 selhistograms("sel")
+selhistograms("alpha")
+selhistograms("mass")
 
 
 
