@@ -32,6 +32,7 @@ class Analysis(object):
 		self.ch = channel
 		self.histSuffixes = [self.ch]
 		self.h = {}
+		self.DAOD_RPVLL_triggers = []
 		# make histograms (common for all channels)
 		# self.add('CutFlow', 16, -0.5, 15.5)
 
@@ -278,16 +279,17 @@ class Analysis(object):
 
 		# Add to histogram all prompt leptons that pass selection.
 		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
-		self.h["all_plep_pt"][self.ch].Fill(self.plep_sel.plepVec.Pt(), evt.weight)
-		self.h["all_plep_eta"][self.ch].Fill(self.plep_sel.plepVec.Eta(), evt.weight)
-		self.h["all_plep_phi"][self.ch].Fill(self.plep_sel.plepVec.Phi(), evt.weight)
-		self.h["all_plep_d0"][self.ch].Fill(self.plep_sel.plepd0, evt.weight)
-		self.h["all_plep_z0"][self.ch].Fill(self.plep_sel.plepz0, evt.weight)
+		if self.plep_sel.passes(): 
+			self.h["all_plep_pt"][self.ch].Fill(self.plep_sel.plepVec.Pt(), evt.weight)
+			self.h["all_plep_eta"][self.ch].Fill(self.plep_sel.plepVec.Eta(), evt.weight)
+			self.h["all_plep_phi"][self.ch].Fill(self.plep_sel.plepVec.Phi(), evt.weight)
+			self.h["all_plep_d0"][self.ch].Fill(self.plep_sel.plepd0, evt.weight)
+			self.h["all_plep_z0"][self.ch].Fill(self.plep_sel.plepz0, evt.weight)
 		return self.plep_sel.passes()
 
 	def _invert_prompt_lepton_cut(self, evt):
-		self.lep_sel = selections.Plepton(evt=evt, lepton=self.plep, invert=True)
-		return self.lep_sel.passes()
+		self.invt_lep = selections.InvertedPromptLepton(evt=evt)
+		return self.invt_lep.passes()
 
 
 	def _ndv_cut(self, evt):
@@ -441,7 +443,6 @@ class oldAnalysis(Analysis):
 		if self._locked < FILL_LOCKED:
 			# these are the histograms you only want to fill ONCE per DV
 			# sel refers to the last selection that was applied 
-
 			if self.do_prompt_lepton_cut:
 				plep_vec = self.plep_sel.plepVec
 				plepd0 = self.plep_sel.plepd0
@@ -776,7 +777,7 @@ class ToyAnalysis(Analysis):
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(17, "2-tight")
 		
 		# 2D correlation plots after each cut in the DV
-		sel_list = ["charge", "DVtype", "mDV","mlll", "HNLpt","1tight","2tight","sel"]
+		sel_list = ["charge", "DVtype", "mDV","mlll", "HNLpt","tight1","tight2","sel"]
 		for sel in sel_list:
 			self.add2D( sel + '_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 			self.add2D( sel + '_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
@@ -1082,7 +1083,6 @@ class ToyAnalysis(Analysis):
 
 		self._fill_histos(evt)
 
-		
 		self.h['CutFlow'][self.ch].SetBinContent(1, evt.tree.allEvt)
 
 
@@ -1232,7 +1232,7 @@ class ToyAnalysis(Analysis):
 					self.passed_cosmic_veto_cut = True
 			else:
 				return
-		self._fill_selected_dv_histos(evt, "1tight")
+		self._fill_selected_dv_histos(evt, "tight1")
 
 		if self._track_quality_cut_1tight(evt):
 			if not self.passed_track_1tight_cut:
@@ -1241,7 +1241,7 @@ class ToyAnalysis(Analysis):
 		else:
 			return
 
-		self._fill_selected_dv_histos(evt, "2tight")
+		self._fill_selected_dv_histos(evt, "tight2")
 
 		if self._track_quality_cut_2tight(evt):
 			if not self.passed_track_2tight_cut:

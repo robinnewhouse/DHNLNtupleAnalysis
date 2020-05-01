@@ -89,8 +89,8 @@ def reco_histograms(selection):
 	Observable(selection + "_plep_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_plep_eta",binning = (40,-10,10),do = ['hist']).queue()
 	Observable(selection + "_plep_phi", binning = (16,-4,4), do = ['hist']).queue()
-	Observable(selection + "_plep_d0", do = ['hist']).queue()
-	Observable(selection + "_plep_z0", do = ['hist']).queue()
+	Observable(selection + "_plep_d0",binning = (2000,-1000,1000), do = ['hist']).queue()
+	Observable(selection + "_plep_z0",binning = (2000,-1000,1000), do = ['hist']).queue()
 
 	Observable(selection + "_DV_trk_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_eta",binning = (160,-10,10),do = ['hist']).queue()
@@ -138,8 +138,8 @@ reco_histograms("cosmic")
 reco_histograms("mlll")
 reco_histograms("mDV")
 reco_histograms("HNLpt")
-reco_histograms("1tight")
-reco_histograms("2tight")
+reco_histograms("tight1")
+reco_histograms("tight2")
 reco_histograms("sel")
 
 
