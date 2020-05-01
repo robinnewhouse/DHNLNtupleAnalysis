@@ -1,0 +1,10 @@
+{
+    "dataFile": "",
+    "dataLabel": "Data period B",
+    "mcFile": [
+        "../output/histograms_mc_kshort.root"
+    ],
+    "mcLabel": [
+        "Dijet JZ4W"
+    ]
+}

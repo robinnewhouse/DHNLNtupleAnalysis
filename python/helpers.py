@@ -1,5 +1,5 @@
 import ROOT
-from ROOT import * 
+# from ROOT import * 
 import numpy as np
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
@@ -16,7 +16,7 @@ import logging
 msgfmt = '%(asctime)s %(levelname)-7s %(name)-35s %(message)s'
 datefmt = '%H:%M:%S'
 
-def getLogger(name = None, level = logging.DEBUG):
+def getLogger(name = None, level = logging.INFO):
     logger = logging.getLogger(name)
     try:
         import coloredlogs
@@ -40,7 +40,7 @@ class Event():
 			self.weight = 1
 		else: # you are running on MC file
 			if mass == -1 or ctau == -1: # MC weighting error
-				logger.warning("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
+				logger.debug("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
 				self.weight = 1
 			else: 
 				mW = 80.379 # mass of W boson in GeV
@@ -126,8 +126,11 @@ class Truth():
 										evt.tree.truth_parent_m[evt.ievt][idvtru]
 										)
 
-		Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec )
-		self.mhnl = Mhnl.mhnl
+		try:
+			Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec )
+			self.mhnl = Mhnl.mhnl
+		except:
+			pass
 
 
 
@@ -307,9 +310,13 @@ class File_info():
 		if "r10790" in file or "mc16e" in file:
 			self.MC_campaign = "mc16e"
 		
-
-
-		self.Output_filename = "histograms_%s_%s_%s_%s.root"%(self.MC_campaign, self.mass_str, self.ctau_str, channel) 
+		# More flexibility for non-signal samples
+		self.Output_filename = "histograms"
+		if (self.MC_campaign): self.Output_filename += "_"+self.MC_campaign
+		else: self.Output_filename += "_mc"
+		if (self.mass_str): self.Output_filename += "_"+self.mass_str
+		if (self.ctau_str): self.Output_filename += "_"+self.ctau_str
+		self.Output_filename += "_"+channel+".root"
 		
 
 

@@ -1,0 +1,9 @@
+{
+   "kshort": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_2"
+      ],
+      "selections": ["CR", "alpha", "mass_window"]
+   }
+}

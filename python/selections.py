@@ -150,7 +150,7 @@ class Plepton():
 				# 			overlap = True
 
 				sintheta = np.sin(muVec_i.Theta())
-				if mud0 < 3 and muz0*sintheta < 0.5: 
+				if abs(mud0) < 3 and abs(muz0*sintheta) < 0.5: 
 					self.nPmu = self.nPmu + 1 # count the number of prompt leptons 
 				# elif overlap == False and self.lepton == "muon": 
 				# 	if (muVec_i.Pt() > self.highestpt_lep.Pt()): # get the highest pt not prompt lepton
@@ -185,7 +185,7 @@ class Plepton():
 				# 			overlap = True
 
 				sintheta = np.sin(elVec_i.Theta())
-				if eld0 < 3 and elz0*sintheta < 0.5: 
+				if abs(eld0) < 3 and abs(elz0*sintheta) < 0.5: 
 					self.nPel = self.nPel + 1 # count the number of prompt leptons 
 				# elif overlap == False and self.lepton == "electron": 
 				# 	if (elVec_i.Pt() > self.highestpt_lep.Pt()): # get the highest pt not prompt lepton
@@ -265,7 +265,29 @@ class Plepton():
 				return True
 			else: return False
 		
+class Alpha():
+	def __init__(self, evt, max_alpha=0.01):
+		self.evt = evt
+		self.max_alpha = max_alpha
+		# calculate alpha
+		# primary vertex position vector
+		pv_vector = ROOT.TVector3(evt.tree.dvx[evt.ievt][evt.idv], 
+								  evt.tree.dvy[evt.ievt][evt.idv], 
+								  evt.tree.dvz[evt.ievt][evt.idv]) 
+		# secondary vertex position vector		
+		sv_vector = ROOT.TVector3(evt.tree.pvx[evt.ievt], 
+								  evt.tree.pvy[evt.ievt], 
+								  evt.tree.pvz[evt.ievt]) 
+		# vector from pv to sv		
+		pv_sv_vector = sv_vector - pv_vector
 
+		# vector difference between momentum vector and position vector		
+		alpha = pv_sv_vector.Phi() - evt.tree.dvphi[evt.ievt][evt.idv]
+		self.alpha = (alpha + np.pi/2) % np.pi*2 - np.pi
+
+	def passes(self):
+		# pass if alpha is less than the sent cut
+		return abs(self.alpha) < self.max_alpha
 
 class nDV():
 	def __init__(self, evt):

@@ -82,6 +82,10 @@ Observable("el_pt", binning = (1000 ,0,1000), do = ['hist']).queue()
 Observable("el_eta", binning = (40 ,-10,10), do = ['hist']).queue()
 Observable("el_phi", binning = (16 ,-4,4), do = ['hist']).queue()
 
+Observable("prompt_muon", binning=(50, 0, 50), do = ['hist']).queue()
+Observable("prompt_electron", binning=(50, 0, 50), do = ['hist']).queue()
+Observable("prompt_lepton", binning=(50, 0, 50), do = ['hist']).queue()
+
 
 
 def reco_histograms(selection): 
@@ -110,7 +114,7 @@ def reco_histograms(selection):
 	Observable(selection + "_DV_r",binning = (500,0,500), do = ['hist']).queue()
 	Observable(selection + "_DV_num_trks",binning = (6,-0.5,5.5), do = ['hist']).queue()
 	Observable(selection + "_DV_distFromPV",binning = (500,0,500), do = ['hist']).queue()
-	Observable(selection + "_DV_mass",binning = (10000,0,5000), do = ['hist']).queue()
+	Observable(selection + "_DV_mass",binning = (1000000,0,5000), do = ['hist']).queue()
 	Observable(selection + "_DV_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_eta",binning = (160,-10,10),do = ['hist']).queue()
 	Observable(selection + "_DV_phi", binning = (64,-4,4), do = ['hist']).queue()
@@ -118,6 +122,7 @@ def reco_histograms(selection):
 	Observable(selection + "_DV_maxOpAng",binning = (100,0,1), do = ['hist']).queue()
 	Observable(selection + "_DV_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
 	Observable(selection + "_DV_chi2",binning = (40,0,20), do = ['hist']).queue()
+	Observable(selection + "_DV_alpha",binning = (400,-4,4), do = ['hist']).queue()
 	Observable(selection + "_mvis",binning = (10000,0,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLm",binning = (10005,-5,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLm2",binning = (10005,-5,5000), do = ['hist']).queue()

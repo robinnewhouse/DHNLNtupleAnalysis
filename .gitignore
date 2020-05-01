@@ -10,3 +10,5 @@ python/histograms
 python/plotHistograms.py
 output/
 setup.sh
+~*/.gitignore
+python/plotHistograms.py
