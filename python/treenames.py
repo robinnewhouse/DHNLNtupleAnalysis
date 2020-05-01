@@ -50,8 +50,9 @@ class Tree():
 		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() #d0 and z0 are track quantites calculated wrt IP we dont want to look at the _wrtSV variable!
 		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
 
-		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
-		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() 
+		self.trackpx = self.tree[DVprefix + "_trk_px"].array() 
+		self.trackpy = self.tree[DVprefix + "_trk_py"].array() 
+		self.trackpz = self.tree[DVprefix + "_trk_pz"].array()
 
 		# -----------------------------------------------------------------------
 		# DV reco variables
