@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os
+import os,sys
 import helpers
 import ROOT
 import csv
@@ -65,9 +65,17 @@ def main():
 
 			#blinding flag to prevent accidental unblinding in data
 			if blinded:
-				if tree.isData and "OS" in selections:
-					logger.error("You are running on data and you cannot look at OS verticies!!!")
-					exit()
+				if tree.isData: 
+					if "CR" in selections:
+						pass
+					else: 
+						if "OS" in selections:
+							logger.error("You are running on data and you cannot look at OS verticies!!!")
+							sys.exit(1)  # abort because of error
+						if ("SS" in selections) == False:
+							logger.error("You are running on data and you are not in the CR. You must only look at SS vertices!!!")
+							sys.exit(1)  # abort because of error
+
 
 			# Make instance of the analysis class
 			ana = anaClass(vtx_container, selections, outputfile,isdata=tree.isData)

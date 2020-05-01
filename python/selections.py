@@ -14,7 +14,10 @@ class Trigger():
 		apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
 		apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium", "HLT_e60_medium",
 										"HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
-
+		apiMultiMuonTriggerlist = ["HLT_2mu10",  "HLT_2mu10_nomucomb",  "HLT_2mu14",  "HLT_2mu14_nomucomb",  "HLT_mu20_nomucomb_mu6noL1_nscan03",  "HLT_mu20_mu8noL1",  "HLT_mu22_mu8noL1",  "HLT_mu22_mu8noL1_calotag_0eta010",  "HLT_3mu4",  "HLT_mu6_2mu4",  "HLT_3mu6",  "HLT_3mu6_msonly",  "HLT_mu20_2mu4noL1",  "HLT_4mu4",  "HLT_mu11_nomucomb_2mu4noL1_nscan03_L1MU11_2MU6",  "HLT_mu11_nomucomb_2mu4noL1_nscan03_L1MU11_2MU6_bTau",  "HLT_mu20_msonly_mu10noL1_msonly_nscan05_noComb",  "HLT_mu11_nomucomb_mu6noL1_nscan03_L1MU11_2MU6_bTau",  "HLT_mu6_nomucomb_2mu4_nomucomb_bTau_L1MU6_3MU4",  "HLT_2mu6_nomucomb_mu4_nomucomb_bTau_L12MU6_3MU4"]
+		apiMultiElectronTriggerlist = ["HLT_2e12_lhloose_L12EM10VH", "HLT_2e15_lhvloose_nod0_L12EM13VH", "HLT_e17_lhloose_2e9_lhloose", "HLT_e17_lhloose_nod0_2e9_lhloose_nod0", "HLT_e17_lhloose_nod0_2e10_lhloose_nod0_L1EM15VH_3EM8VH", "HLT_2e17_lhvloose_nod0", "HLT_2e17_lhvloose_nod0_L12EM15VHI", "HLT_2e24_lhvloose_nod0", "HLT_e24_lhvloose_nod0_2e12_lhvloose_nod0_L1EM20VH_3EM10VH"]
+		apiElectronMuonTriggerlist = ["HLT_e17_lhloose_mu14", "HLT_e17_lhloose_nod0_mu14", "HLT_e24_lhmedium_nod0_L1EM20VHI_mu8noL1", "HLT_e26_lhmedium_nod0_mu8noL1", "HLT_e7_lhmedium_nod0_mu24", "HLT_e12_lhloose_nod0_2mu10", "HLT_2e12_lhloose_mu10", "HLT_2e12_lhloose_nod0_mu10", "HLT_e7_lhmedium_mu24", "HLT_e12_lhloose_2mu10"]
+		
 		if trigger == "muononly":
 			self.allowed_trigger_list = apiSingleMuonTriggerlist
 		elif trigger == "electrononly":
@@ -69,11 +72,12 @@ class Filter():
 
 
 class Plepton():
-	def __init__(self, evt, lepton, quality="tight", _mindR=0.05):
+	def __init__(self, evt, lepton, quality="tight", _mindR=0.05, invert=False):
 		self.evt = evt
 		self.lepton = lepton
 		self.quality = quality 
 		self._mindR = _mindR
+		self.invert = invert
 		
 		self.plepVec = ROOT.TLorentzVector(0,0,0,0)
 		self.plepd0 = -2000
@@ -88,6 +92,8 @@ class Plepton():
 				lepquality = self.evt.tree.mediummu
 			if self.quality == "loose":
 				lepquality = self.evt.tree.loosemu
+			if self.quality == "None": 
+				lepquality = True
 
 			nleps = len(self.evt.tree.muonpt[self.evt.ievt])
 			passPfilter = self.evt.tree.muonpassPfilter
@@ -95,6 +101,8 @@ class Plepton():
 		if self.lepton == "electron":
 			if self.quality == "tight": #tight muon is requested
 				lepquality = self.evt.tree.tightel
+			if self.quality == "None": 
+				lepquality = True
 			# if self.quality == "medium":
 			# 	lepquality = self.evt.tree.mediumel
 			# if self.quality == "loose":
@@ -103,58 +111,137 @@ class Plepton():
 			nleps = len(self.evt.tree.elpt[self.evt.ievt])
 			passPfilter = self.evt.tree.elpassPfilter
 
+		# variable for the highest pt lepton				
+		self.highestpt_lep = ROOT.TLorentzVector(0,0,0,0)
+		self.highestpt_lep_d0 = -2000
+		self.highestpt_lep_z0 = -2000
+
+		self.nPlep = 0 
+		self.nPmu = 0 
+		self.nPel = 0 
+		nmuons = len(self.evt.tree.muonpt[self.evt.ievt])
+		nelectrons = len(self.evt.tree.elpt[self.evt.ievt])
+
+		if self.invert: # invert prompt lepton
+			for imu in xrange(nmuons): 
+				# overlap = False
+				muVec_i = ROOT.TLorentzVector()
+
+				mupt = self.evt.tree.muonpt[self.evt.ievt][imu]
+				mueta = self.evt.tree.muoneta[self.evt.ievt][imu]
+				muphi = self.evt.tree.muonphi[self.evt.ievt][imu]
+				mumass = self.evt.tree.muonmass[self.evt.ievt][imu]
+				muVec_i.SetPtEtaPhiM(mupt,mueta,muphi,mumass)
+
+				mud0 = self.evt.tree.muond0[self.evt.ievt][imu]
+				muz0 = self.evt.tree.muonz0[self.evt.ievt][imu]
+
+				# check for overlap with the displaced tracks 
+				# for idv in xrange(ndv):
+				# 	leptracks = helpers.Tracks()
+				# 	trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
+				# 	leptracks.getTracks(trackevt)
+				# 	dlepVec = leptracks.lepVec
+				# 	ndtracks = len(dlepVec)
 						
-		self.highestpt_plep = ROOT.TLorentzVector(0,0,0,0)
-		self.highestpt_plep_d0 = -2000
-		self.highestpt_plep_z0 = -2000
+				# 	for itr in xrange(ndtracks): # check overlap with DVs
+				# 		dR = dlepVec[itr].DeltaR(muVec_i)
+				# 		if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
+				# 			overlap = True
 
-		for ilep in xrange(nleps): 
-			overlap = False
-			plepVec_i = ROOT.TLorentzVector()
+				sintheta = np.sin(muVec_i.Theta())
+				if mud0 < 3 and muz0*sintheta < 0.5: 
+					self.nPmu = self.nPmu + 1 # count the number of prompt leptons 
+				# elif overlap == False and self.lepton == "muon": 
+				# 	if (muVec_i.Pt() > self.highestpt_lep.Pt()): # get the highest pt not prompt lepton
+				# 		self.highestpt_lep = muVec_i  #get highest pt prompt lepton!
+				# 		self.highestpt_lep_d0 = mud0
+				# 		self.highestpt_lep_z0 = muz0
 
-			if self.lepton == "muon": 
-				pt = self.evt.tree.muonpt[self.evt.ievt][ilep]
-				eta = self.evt.tree.muoneta[self.evt.ievt][ilep]
-				phi = self.evt.tree.muonphi[self.evt.ievt][ilep]
-				mass = self.evt.tree.muonmass[self.evt.ievt][ilep]
-				plepVec_i.SetPtEtaPhiM(pt,eta,phi,mass)
+			for iel in xrange(nelectrons): 
+				# overlap = False
+				elVec_i = ROOT.TLorentzVector()
 
-				lepd0 = self.evt.tree.muond0[self.evt.ievt][ilep]
-				lepz0 = self.evt.tree.muonz0[self.evt.ievt][ilep]
+				elpt = self.evt.tree.elpt[self.evt.ievt][iel]
+				eleta = self.evt.tree.eleta[self.evt.ievt][iel]
+				elphi = self.evt.tree.elphi[self.evt.ievt][iel]
+				elmass = self.evt.tree.elmass[self.evt.ievt][iel]
+				elVec_i.SetPtEtaPhiM(elpt,eleta,elphi,elmass)
 
-			if self.lepton == "electron":
-				pt = self.evt.tree.elpt[self.evt.ievt][ilep]
-				eta = self.evt.tree.eleta[self.evt.ievt][ilep]
-				phi = self.evt.tree.elphi[self.evt.ievt][ilep]
-				mass = self.evt.tree.elmass[self.evt.ievt][ilep]
-				plepVec_i.SetPtEtaPhiM(pt,eta,phi,mass)
+				eld0 = self.evt.tree.eld0[self.evt.ievt][iel]
+				elz0 = self.evt.tree.elz0[self.evt.ievt][iel]
 
-				lepd0 = self.evt.tree.eld0[self.evt.ievt][ilep]
-				lepz0 = self.evt.tree.elz0[self.evt.ievt][ilep]
-
-			if passPfilter[self.evt.ievt][ilep]:
-				for idv in xrange(ndv):
-					leptracks = helpers.Tracks()
-					trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
-					leptracks.getTracks(trackevt)
-					dlepVec = leptracks.lepVec
-					ndtracks = len(dlepVec)
+				# check for overlap with the displaced tracks 
+				# for idv in xrange(ndv):
+				# 	leptracks = helpers.Tracks()
+				# 	trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
+				# 	leptracks.getTracks(trackevt)
+				# 	dlepVec = leptracks.lepVec
+				# 	ndtracks = len(dlepVec)
 						
-					for itr in xrange(ndtracks): 
-						dR = np.sqrt((dlepVec[itr].Eta() - plepVec_i.Eta())**2 + (dlepVec[itr].Phi() - plepVec_i.Phi())**2)
+				# 	for itr in xrange(ndtracks): # check overlap with DVs
+				# 		dR = dlepVec[itr].DeltaR(elVec_i)
+				# 		if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
+				# 			overlap = True
 
-						if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
-							overlap = True
+				sintheta = np.sin(elVec_i.Theta())
+				if eld0 < 3 and elz0*sintheta < 0.5: 
+					self.nPel = self.nPel + 1 # count the number of prompt leptons 
+				# elif overlap == False and self.lepton == "electron": 
+				# 	if (elVec_i.Pt() > self.highestpt_lep.Pt()): # get the highest pt not prompt lepton
+				# 		self.highestpt_lep = elVec_i  #get highest pt prompt lepton!
+				# 		self.highestpt_lep_d0 = eld0
+				# 		self.highestpt_lep_z0 = elz0
 
+			self.nPlep = self.nPel + self.nPmu
 
-				if overlap == False:
-					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required 
+		else: #prompt lepton selection
+			for ilep in xrange(nleps): 
+				overlap = False
+				plepVec_i = ROOT.TLorentzVector()
+
+				if self.lepton == "muon": 
+					pt = self.evt.tree.muonpt[self.evt.ievt][ilep]
+					eta = self.evt.tree.muoneta[self.evt.ievt][ilep]
+					phi = self.evt.tree.muonphi[self.evt.ievt][ilep]
+					mass = self.evt.tree.muonmass[self.evt.ievt][ilep]
+					plepVec_i.SetPtEtaPhiM(pt,eta,phi,mass)
+
+					lepd0 = self.evt.tree.muond0[self.evt.ievt][ilep]
+					lepz0 = self.evt.tree.muonz0[self.evt.ievt][ilep]
+
+				if self.lepton == "electron":
+					pt = self.evt.tree.elpt[self.evt.ievt][ilep]
+					eta = self.evt.tree.eleta[self.evt.ievt][ilep]
+					phi = self.evt.tree.elphi[self.evt.ievt][ilep]
+					mass = self.evt.tree.elmass[self.evt.ievt][ilep]
+					plepVec_i.SetPtEtaPhiM(pt,eta,phi,mass)
+
+					lepd0 = self.evt.tree.eld0[self.evt.ievt][ilep]
+					lepz0 = self.evt.tree.elz0[self.evt.ievt][ilep]
+
+				# check if the plep passes the DRAW filter and passes quality before looping over tracks
+				if passPfilter[self.evt.ievt][ilep] == True and lepquality[self.evt.ievt][ilep] == True: 
+					for idv in xrange(ndv):
+						leptracks = helpers.Tracks()
+						trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
+						leptracks.getTracks(trackevt)
+						dlepVec = leptracks.lepVec
+						ndtracks = len(dlepVec)
+							
+						for itr in xrange(ndtracks): # check overlap with DVs
+							dR = dlepVec[itr].DeltaR(plepVec_i)
+							if dR < self._mindR:  # set overlap to true if muon overlaps with displaced track
+								overlap = True
+			
+					if overlap == False: # if lepton doesnt overlap with and DV tracks
 						sintheta = np.sin(plepVec_i.Theta())
-						if lepd0 < 3 and lepz0*sintheta < 0.5: # check track cuts 
-							if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
-								self.highestpt_plep = plepVec_i 
-								self.highestpt_plep_d0 = lepd0
-								self.highestpt_plep_z0 = lepz0
+						if lepd0 < 3 and lepz0*sintheta < 0.5: # if lepton pass the track significance cuts 
+							self.nPlep = self.nPlep + 1 
+							if (plepVec_i.Pt() > self.highestpt_lep.Pt()): # if pt is larger then the previous prompt lepton found 
+								self.highestpt_lep = plepVec_i  #get highest pt prompt lepton!
+								self.highestpt_lep_d0 = lepd0
+								self.highestpt_lep_z0 = lepz0
 
 							#for trigger matching
 							# if self.evt.tree.muontrigmatched[self.evt.ievt][ilep] == 0:
@@ -166,14 +253,18 @@ class Plepton():
 							# 	print "muon type: ", self.evt.tree.muontype[self.evt.ievt]
 
 	def passes(self):
-		if self.highestpt_plep.Pt() != 0:
-			self.plepVec = self.highestpt_plep
-			self.plepd0 = self.highestpt_plep_d0
-			self.plepz0 = self.highestpt_plep_z0
-			return True
-		
+		if self.invert:
+			return self.nPlep == 0
+			# 	return True
+			# else: return False
 		else:
-			return False
+			if self.nPlep > 0 and self.highestpt_lep.Pt() > 0: 
+				self.plepVec = self.highestpt_lep
+				self.plepd0 = self.highestpt_lep_d0
+				self.plepz0 = self.highestpt_lep_z0
+				return True
+			else: return False
+		
 
 
 class nDV():

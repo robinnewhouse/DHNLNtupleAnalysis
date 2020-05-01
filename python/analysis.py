@@ -90,6 +90,16 @@ class Analysis(object):
 			logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
 			self.do_prompt_lepton_cut = False
 
+		if 'CR' in self.sel: # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
+			self.do_trigger_cut = False #do not apply trigger
+			self.do_filter_cut = False #do not apply filter
+			self.do_prompt_lepton_cut = False #do not apply prompt lepton
+			self.do_invert_prompt_lepton_cut = True # invert trigger cut
+			logger.info('You are setup up to look in the inverted prompt lepton control region!')
+		else: 
+			self.do_invert_prompt_lepton_cut = False
+
+
 		# nDV cut
 		self.do_ndv_cut = ('nDV' in self.sel)
 		if not self.do_ndv_cut: logger.warn('You did not add nDV cut. Skipping nDV selection.')
@@ -164,9 +174,14 @@ class Analysis(object):
 
 
 	def check_input_consistency(self):
-		if self.do_trilepton_mass_cut and not self.do_prompt_lepton_cut:
-			logger.error("You cannot calculate mlll without selecting a prompt lepton!")
-			sys.exit(1)  # abort because of error
+		if self.do_trilepton_mass_cut or self.do_HNL_mass_cut or self.do_HNL_pt_cut:
+			if self.do_invert_prompt_lepton_cut: 
+				logger.error("You are looking in the CR without prompt leptons so you cannot cut on mll, HNLpt or HNLm!!")
+				sys.exit(1)  # abort because of error
+		
+			if not self.do_prompt_lepton_cut:
+				logger.error("You cannot calculate mlll, HNLpt or HNLm without selecting a prompt lepton!")
+				sys.exit(1)  # abort because of error
 
 		if self.do_opposite_sign_cut and self.do_same_sign_cut:
 			logger.error("These cuts are mutually exclusive. You will get zero events!")
@@ -270,6 +285,11 @@ class Analysis(object):
 		self.h["all_plep_z0"][self.ch].Fill(self.plep_sel.plepz0, evt.weight)
 		return self.plep_sel.passes()
 
+	def _invert_prompt_lepton_cut(self, evt):
+		self.lep_sel = selections.Plepton(evt=evt, lepton=self.plep, invert=True)
+		return self.lep_sel.passes()
+
+
 	def _ndv_cut(self, evt):
 		dv_sel = selections.nDV(evt=evt)
 		return dv_sel.passes()
@@ -340,6 +360,8 @@ class oldAnalysis(Analysis):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+		if self.do_invert_prompt_lepton_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
 		if self.do_ndv_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "DV")
 		if self.do_fidvol_cut:
@@ -591,6 +613,12 @@ class oldAnalysis(Analysis):
 			else:
 				return
 
+		if self.do_invert_prompt_lepton_cut:
+			if self._invert_prompt_lepton_cut(evt):
+				self.h['CutFlow'][self.ch].Fill(4)
+			else:
+				return
+
 		if self.do_ndv_cut:
 			if self._ndv_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(5)
@@ -720,6 +748,8 @@ class ToyAnalysis(Analysis):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+		if self.do_invert_prompt_lepton_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
 		if self.do_ndv_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "DV")
 		if self.do_fidvol_cut:
@@ -1081,6 +1111,12 @@ class ToyAnalysis(Analysis):
 
 		if self.do_prompt_lepton_cut:
 			if self._prompt_lepton_cut(evt):
+				self.h['CutFlow'][self.ch].Fill(4)
+			else:
+				return
+
+		if self.do_invert_prompt_lepton_cut:
+			if self._invert_prompt_lepton_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(4)
 			else:
 				return
