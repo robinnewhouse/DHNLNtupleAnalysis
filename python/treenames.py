@@ -30,7 +30,7 @@ class Tree():
 		self.elelfilter = self.tree["passesHnlElElFilter"].array(entrystop=nentries)
 		self.elmufilter = self.tree["passesHnlElMuFilter"].array(entrystop=nentries)
 
-		if "vertex_x" in self.file[treeName].keys(): 
+		if "vertex_x" in self.file[treeName]: 
 			self.pvx = self.tree["vertex_x"].array(entrystop=nentries)  
 			self.pvy = self.tree["vertex_y"].array(entrystop=nentries)  
 			self.pvz = self.tree["vertex_z"].array(entrystop=nentries) 
@@ -78,7 +78,7 @@ class Tree():
 		self.muonindex = self.tree["muon_index"].array(entrystop=nentries)
 		self.muonpt = self.tree["muon_pt"].array(entrystop=nentries) 
 		self.muoneta = self.tree["muon_eta"].array(entrystop=nentries)  
- 		self.muonphi = self.tree["muon_phi"].array(entrystop=nentries) 
+		self.muonphi = self.tree["muon_phi"].array(entrystop=nentries) 
 		self.muond0 = self.tree["muon_trkd0"].array(entrystop=nentries) 
 		self.muonz0 = self.tree["muon_trkz0"].array(entrystop=nentries)
 		self.muonpx = self.tree["muon_px"].array(entrystop=nentries) 

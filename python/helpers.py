@@ -8,7 +8,6 @@ import ast
 import os
 import re
 import subprocess
-import urlparse
 import atlas_style, selections
 
 import logging
@@ -70,7 +69,7 @@ class Truth():
 	def getTruthParticles(self, evt): 
 		ntruthDV = len(evt.tree.truth_parent_pdgId[evt.ievt])
 
-		for idvtru in xrange(ntruthDV):
+		for idvtru in range(ntruthDV):
 			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 50:  # get the DV!
 				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 3:
 
@@ -148,7 +147,7 @@ class Tracks():
 		self.evt = evt 
 		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 		# print "number of tracks: ", self.ntracks
-		for itr in xrange(self.ntracks):
+		for itr in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
 			if (self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched muon!
 				# find position of muon in the muon container that is matched to the sec vtx track (works for calibrated and uncalibrated containers)
@@ -188,7 +187,7 @@ class Tracks():
 		self.evt = evt 
 		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
-		for itr in xrange(self.ntracks):
+		for itr in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
 			
 			if (self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched electron!
@@ -236,7 +235,7 @@ class Tracks():
 		self.evt = evt
 		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
-		for itr in xrange(self.ntracks):
+		for itr in range(self.ntracks):
 			trkvec = ROOT.TLorentzVector()
 			pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
 			eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]

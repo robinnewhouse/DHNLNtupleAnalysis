@@ -136,6 +136,9 @@ def reco_histograms(selection):
 	Observable(selection + "_DV_redmassHNL",binning = (10005,-5,5000), do = ['hist']).queue()
 
 reco_histograms("all")
+reco_histograms("presel")
+reco_histograms("alpha")
+reco_histograms("mass")
 reco_histograms("charge")
 reco_histograms("DVtype")
 reco_histograms("trkqual")
@@ -207,6 +210,9 @@ def truth_histograms(selection):
 	# Observable("truth_" + selection + "_DV_redmassHNL",binning = (10005,-5,5000), do = ['hist'], need_truth = True).queue()
 
 truth_histograms("all")
+truth_histograms("presel")
+truth_histograms("alpha")
+truth_histograms("mass")
 truth_histograms("charge")
 truth_histograms("DVtype")
 truth_histograms("trkqual")

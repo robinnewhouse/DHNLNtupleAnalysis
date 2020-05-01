@@ -85,7 +85,7 @@ def main():
 
 			
 			# Loop over each event
-			for ievt in xrange(nentries):
+			for ievt in range(nentries):
 				if (ievt % 1000 == 0):
 					logger.info("Channel {}: processing event {}".format("%s_%s"%(channel,vtx_container), ievt))
 				# Create an event instance to keep track of basic event properties
@@ -96,7 +96,7 @@ def main():
 				presel = ana.preSelection(evt)
 
 				# Loop over each vertex in the event
-				for idv in xrange(ndv):
+				for idv in range(ndv):
 					DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv,mass=file_info.mass,ctau=file_info.ctau)
 					ana.DVSelection(DVevt)
 

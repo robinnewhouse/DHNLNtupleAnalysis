@@ -291,7 +291,7 @@ class Analysis(object):
 		return self.plep_sel.passes()
 
 	def _invert_prompt_lepton_cut(self, evt):
-		self.lep_sel = selections.Plepton(evt=evt, lepton=None, invert=True)
+		self.lep_sel = selections.InvertedPromptLepton(evt=evt)
 		return self.lep_sel.passes()
 
 
@@ -469,7 +469,7 @@ class oldAnalysis(Analysis):
 
 					self.h[sel + "_mvis"][self.ch].Fill(Mltt.mltt, w)
 					self.h[sel + "_HNLm"][self.ch].Fill(Mhnl.mhnl, w)
-				 	self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, w)
+					self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, w)
 					self.h[sel + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt, w)
 					self.h[sel + "_HNLeta"][self.ch].Fill(Mhnl.hnleta, w)
 					self.h[sel + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi, w)
@@ -547,7 +547,7 @@ class oldAnalysis(Analysis):
 				self.h["truth_" + sel + "_plep_eta"][self.ch].Fill(truthInfo.plep_vec.Eta(), w)
 				self.h["truth_" + sel + "_plep_phi"][self.ch].Fill(truthInfo.plep_vec.Phi(), w)
 				self.h["truth_" + sel + "_plep_mass"][self.ch].Fill(truthInfo.plep_vec.M(), w)
-				for itrk in xrange(2): 
+				for itrk in range(2): 
 					self.h["truth_" + sel + "_DV_trk_pt"][self.ch].Fill(truthInfo.trkVec[itrk].Pt(), w)
 					self.h["truth_" + sel + "_DV_trk_eta"][self.ch].Fill(truthInfo.trkVec[itrk].Eta(), w)
 					self.h["truth_" + sel + "_DV_trk_phi"][self.ch].Fill(truthInfo.trkVec[itrk].Phi(), w)
@@ -894,7 +894,7 @@ class ToyAnalysis(Analysis):
 
 					self.h[sel + "_mvis"][self.ch].Fill(Mltt.mltt, w)
 					self.h[sel + "_HNLm"][self.ch].Fill(Mhnl.mhnl, w)
-				 	self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, w)
+					self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, w)
 					self.h[sel + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt, w)
 					self.h[sel + "_HNLeta"][self.ch].Fill(Mhnl.hnleta, w)
 					self.h[sel + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi, w)
@@ -989,7 +989,7 @@ class ToyAnalysis(Analysis):
 				self.h["truth_" + sel + "_plep_eta"][self.ch].Fill(truthInfo.plep_vec.Eta(), w)
 				self.h["truth_" + sel + "_plep_phi"][self.ch].Fill(truthInfo.plep_vec.Phi(), w)
 				self.h["truth_" + sel + "_plep_mass"][self.ch].Fill(truthInfo.plep_vec.M(), w)
-				for itrk in xrange(2): 
+				for itrk in range(2): 
 					self.h["truth_" + sel + "_DV_trk_pt"][self.ch].Fill(truthInfo.trkVec[itrk].Pt(), w)
 					self.h["truth_" + sel + "_DV_trk_eta"][self.ch].Fill(truthInfo.trkVec[itrk].Eta(), w)
 					self.h["truth_" + sel + "_DV_trk_phi"][self.ch].Fill(truthInfo.trkVec[itrk].Phi(), w)
@@ -1286,10 +1286,10 @@ class KShort(Analysis):
 
 	def _fill_histos(self, evt):
 		w = evt.weight
-		prompt = selections.Plepton(evt=evt, lepton=None, invert=True)
-		self.h["prompt_muon"][self.ch].Fill(prompt.nPmu, w)
-		self.h["prompt_electron"][self.ch].Fill(prompt.nPel, w)
-		self.h["prompt_lepton"][self.ch].Fill(prompt.nPlep, w)
+		prompt = selections.InvertedPromptLepton(evt=evt)
+		self.h["prompt_muon"][self.ch].Fill(prompt.n_prompt_muons, w)
+		self.h["prompt_electron"][self.ch].Fill(prompt.n_prompt_electrons, w)
+		self.h["prompt_lepton"][self.ch].Fill(prompt.n_prompt_leptons, w)
 	# 	for imu in range(len(evt.tree.muontype[evt.ievt])):
 	# 		# print evt.tree.muonpt_wrtSV[evt.ievt][imu]
 	# 		self.h["muon_type"][self.ch].Fill(evt.tree.muontype[evt.ievt][imu], w)
