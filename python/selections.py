@@ -7,7 +7,7 @@ import logging
 
 
 class Trigger():
-	def __init__(self, evt, trigger):
+	def __init__(self, evt, trigger,invert=False):
 		self.evt = evt
 
 		# trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
@@ -29,7 +29,14 @@ class Trigger():
 		# This method checks if there is any overlap between sets a and b
 		# https://stackoverflow.com/questions/3170055/test-if-lists-share-any-items-in-python
 		event_triggers = self.evt.tree.passedtriggers[self.evt.ievt]
-		return not set(event_triggers).isdisjoint(self.allowed_trigger_list)
+
+		if self.invert: # invert trigger requirement
+			if len(event_triggers) > 0: 
+				return set(event_triggers).isdisjoint(self.allowed_trigger_list)
+			else: 
+				return False
+		else:	#default check if event_triggers includes a trigger on the allowed trigger list
+			return not set(event_triggers).isdisjoint(self.allowed_trigger_list)
 
 class Filter():
 	def __init__(self, evt, filter_type):
