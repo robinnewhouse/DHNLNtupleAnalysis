@@ -60,8 +60,11 @@ def main():
 		for vtx_container in config_file[channel]["vtx_containers"]:
 			
 			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
-			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile	
-			nentries = options.nevents or len(tree.dvx)
+			# Try to load only the number of entries of you need
+			nentries = options.nevents if options.nevents else None
+			tree = treenames.Tree(file, treename, vtx_container, nentries) # define variables in tree to be accessed from rootfile
+			if len(tree.dvmass) < nentries or nentries == None:
+					nentries = len(tree.dvmass)
 
 			#blinding flag to prevent accidental unblinding in data
 			if blinded:
