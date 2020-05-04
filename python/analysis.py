@@ -1290,17 +1290,20 @@ class KShort(Analysis):
 		self.h["prompt_muon"][self.ch].Fill(prompt.n_prompt_muons, w)
 		self.h["prompt_electron"][self.ch].Fill(prompt.n_prompt_electrons, w)
 		self.h["prompt_lepton"][self.ch].Fill(prompt.n_prompt_leptons, w)
-	# 	for imu in range(len(evt.tree.muontype[evt.ievt])):
-	# 		# print evt.tree.muonpt_wrtSV[evt.ievt][imu]
-	# 		self.h["muon_type"][self.ch].Fill(evt.tree.muontype[evt.ievt][imu], w)
-	# 		self.h["muon_pt"][self.ch].Fill(evt.tree.muonpt[evt.ievt][imu], w)
-	# 		self.h["muon_eta"][self.ch].Fill(evt.tree.muoneta[evt.ievt][imu], w)
-	# 		self.h["muon_phi"][self.ch].Fill(evt.tree.muonphi[evt.ievt][imu], w)
+		
+	def _fill_leptons(self, evt):
+		w = evt.weight
+		for imu in range(len(evt.tree.muontype[evt.ievt])):
+			# print evt.tree.muonpt_wrtSV[evt.ievt][imu]
+			self.h["muon_type"][self.ch].Fill(evt.tree.muontype[evt.ievt][imu], w)
+			self.h["muon_pt"][self.ch].Fill(evt.tree.muonpt[evt.ievt][imu], w)
+			self.h["muon_eta"][self.ch].Fill(evt.tree.muoneta[evt.ievt][imu], w)
+			self.h["muon_phi"][self.ch].Fill(evt.tree.muonphi[evt.ievt][imu], w)
 
-	# 	for iel in range(len(evt.tree.elpt[evt.ievt])):
-	# 		self.h["el_pt"][self.ch].Fill(evt.tree.elpt[evt.ievt][iel], w)
-	# 		self.h["el_eta"][self.ch].Fill(evt.tree.eleta[evt.ievt][iel], w)
-	# 		self.h["el_phi"][self.ch].Fill(evt.tree.elphi[evt.ievt][iel], w)
+		for iel in range(len(evt.tree.elpt[evt.ievt])):
+			self.h["el_pt"][self.ch].Fill(evt.tree.elpt[evt.ievt][iel], w)
+			self.h["el_eta"][self.ch].Fill(evt.tree.eleta[evt.ievt][iel], w)
+			self.h["el_phi"][self.ch].Fill(evt.tree.elphi[evt.ievt][iel], w)
 
 
 	def _fill_all_dv_histos(self, evt):
@@ -1457,7 +1460,7 @@ class KShort(Analysis):
 				return
 		
 		self.passed_preselection_cuts = True
-
+		self._fill_leptons(evt)
 
 	def _DVSelection(self, evt):
 		######################################################################################################

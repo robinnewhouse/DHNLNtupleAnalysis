@@ -80,44 +80,58 @@ class InvertedPromptLepton():
 		n_electrons = len(self.evt.tree.elpt[self.evt.ievt])
 
 		for imu in range(n_muons): 
+			# check muon pt
 			mupt = self.evt.tree.muonpt[self.evt.ievt][imu]
-			if (mupt <= pt_cut):
+			if mupt > pt_cut:
+				# muon satisfies "fast" lepton requirements
+				self.n_prompt_muons += 1
 				continue
-			mud0 = self.evt.tree.muond0[self.evt.ievt][imu]
-			if abs(mud0) >= d0_cut:
-				continue
+			
+			# check muon promptness
 			mueta = self.evt.tree.muoneta[self.evt.ievt][imu]
 			muphi = self.evt.tree.muonphi[self.evt.ievt][imu]
 			mumass = self.evt.tree.muonmass[self.evt.ievt][imu]
 			muz0 = self.evt.tree.muonz0[self.evt.ievt][imu]
+			mud0 = self.evt.tree.muond0[self.evt.ievt][imu]
 
 			muVec_i = ROOT.TLorentzVector()
 			muVec_i.SetPtEtaPhiM(mupt,mueta,muphi,mumass)
 			sintheta = np.sin(muVec_i.Theta())
-			if abs(muz0*sintheta) >= z0_sin_theta_cut:
-				continue
 			# muon satisfies prompt lepton requirements
-			self.n_prompt_muons += 1 # count the number of prompt leptons 
+			if (abs(mud0) < d0_cut) and (abs(muz0*sintheta) < z0_sin_theta_cut):
+				self.n_prompt_muons += 1
+				continue
 
 		for iel in range(n_electrons): 
+
+			# make sure the electron is at least loose
+			if  not ( (self.evt.tree.tightel[self.evt.ievt][iel]) or
+			 		  (self.evt.tree.mediumel[self.evt.ievt][iel]) or
+			 		  (self.evt.tree.looseel[self.evt.ievt][iel]) ):
+				# electron doesn't satisfy any quality, ignore it
+				continue
+			
+			# check electron pt
 			elpt = self.evt.tree.elpt[self.evt.ievt][iel]
-			if (elpt <= pt_cut):
+			if (elpt > pt_cut):
+				# electron satisfies "fast" lepton requirements
+				self.n_prompt_electrons += 1
 				continue
-			eld0 = self.evt.tree.eld0[self.evt.ievt][iel]
-			if abs(eld0) >= d0_cut:
-				continue
+			
+			# check electron promptness
 			eleta = self.evt.tree.eleta[self.evt.ievt][iel]
 			elphi = self.evt.tree.elphi[self.evt.ievt][iel]
 			elmass = self.evt.tree.elmass[self.evt.ievt][iel]
 			elz0 = self.evt.tree.elz0[self.evt.ievt][iel]
+			eld0 = self.evt.tree.eld0[self.evt.ievt][iel]
 
 			elVec_i = ROOT.TLorentzVector()
 			elVec_i.SetPtEtaPhiM(elpt,eleta,elphi,elmass)
 			sintheta = np.sin(elVec_i.Theta())
-			if abs(elz0*sintheta) >= z0_sin_theta_cut:
+			if (abs(eld0) < d0_cut) and (abs(elz0*sintheta) < z0_sin_theta_cut):
+				# electron satisfies prompt lepton requirements
+				self.n_prompt_electrons += 1
 				continue
-			# electron satisfies prompt lepton requirements
-			self.n_prompt_electrons += 1 # count the number of prompt leptons 
 
 		self.n_prompt_leptons = self.n_prompt_electrons + self.n_prompt_muons
 

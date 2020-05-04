@@ -104,6 +104,8 @@ class Tree():
 		self.elz0 = self.tree["el_trkz0"].array(entrystop=nentries)
 		self.elmass = self.tree["el_m"].array(entrystop=nentries)  
 		self.tightel = self.tree["el_LHTight"].array(entrystop=nentries)
+		self.mediumel = self.tree["el_LHMedium"].array(entrystop=nentries)
+		self.looseel = self.tree["el_LHLoose"].array(entrystop=nentries)
 		self.elpassPfilter = self.tree["el_passesPromptCuts"].array(entrystop=nentries) 
 		# -----------------------------------------------------------------------
 

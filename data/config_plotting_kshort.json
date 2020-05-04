@@ -2,7 +2,8 @@
     "dataFile": "",
     "dataLabel": "Data period B",
     "mcFile": [
-        "../output/histograms_mc_kshort.root"
+        "../output/histograms_mc_kshort.root",
+        "../output/histograms_mc_kshort_leptons.root"
     ],
     "mcLabel": [
         "Dijet JZ4W"
