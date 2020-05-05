@@ -1290,7 +1290,7 @@ class KShort(Analysis):
 		self.h["prompt_muon"][self.ch].Fill(prompt.n_prompt_muons, w)
 		self.h["prompt_electron"][self.ch].Fill(prompt.n_prompt_electrons, w)
 		self.h["prompt_lepton"][self.ch].Fill(prompt.n_prompt_leptons, w)
-		
+
 	def _fill_leptons(self, evt):
 		w = evt.weight
 		for imu in range(len(evt.tree.muontype[evt.ievt])):
@@ -1299,12 +1299,19 @@ class KShort(Analysis):
 			self.h["muon_pt"][self.ch].Fill(evt.tree.muonpt[evt.ievt][imu], w)
 			self.h["muon_eta"][self.ch].Fill(evt.tree.muoneta[evt.ievt][imu], w)
 			self.h["muon_phi"][self.ch].Fill(evt.tree.muonphi[evt.ievt][imu], w)
+			if evt.tree.tightmu[evt.ievt][imu]:  self.h["muon_quality"][self.ch].Fill(3)
+			elif evt.tree.mediummu[evt.ievt][imu]: self.h["muon_quality"][self.ch].Fill(2)
+			elif evt.tree.loosemu[evt.ievt][imu]:  self.h["muon_quality"][self.ch].Fill(1)
+			else: self.h["muon_quality"][self.ch].Fill(0)
 
 		for iel in range(len(evt.tree.elpt[evt.ievt])):
 			self.h["el_pt"][self.ch].Fill(evt.tree.elpt[evt.ievt][iel], w)
 			self.h["el_eta"][self.ch].Fill(evt.tree.eleta[evt.ievt][iel], w)
 			self.h["el_phi"][self.ch].Fill(evt.tree.elphi[evt.ievt][iel], w)
-
+			if evt.tree.tightel[evt.ievt][iel]:  self.h["el_quality"][self.ch].Fill(3)
+			elif evt.tree.mediumel[evt.ievt][iel]: self.h["el_quality"][self.ch].Fill(2)
+			elif evt.tree.looseel[evt.ievt][iel]:  self.h["el_quality"][self.ch].Fill(1)
+			else: self.h["el_quality"][self.ch].Fill(0)
 
 	def _fill_all_dv_histos(self, evt):
 		w = evt.weight
@@ -1383,36 +1390,42 @@ class KShort(Analysis):
 			self.h[sel + "_DV_maxOpAng"][self.ch].Fill(evt.tree.dvmaxOpAng[evt.ievt][evt.idv], w)
 			self.h[sel + "_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], w)
 			self.h[sel + "_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv], w)
+			# kshort
 			self.h[sel + "_DV_alpha"][self.ch].Fill(selections.Alpha(evt=evt).alpha, w)
+			track_sum = selections.SumTrack(evt=evt)
+			self.h[sel + "_DV_sum_track_pt"][self.ch].Fill(track_sum.sum_track_pt, w)
+			self.h[sel + "_DV_sum_track_pt_wrt_pv"][self.ch].Fill(track_sum.sum_track_pt_wrt_pv, w)
+			self.h[sel + "_DV_sum_track_pt_diff"][self.ch].Fill(track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt, w)
+			self.h[sel + "_DV_sum_track_charge"][self.ch].Fill(track_sum.sum_track_charge, w)
 
-			if not evt.tree.isData:
-				truthInfo = helpers.Truth()
-				truthInfo.getTruthParticles(evt)
-				self.h["truth_" + sel + "_W_pt"][self.ch].Fill(truthInfo.W_vec.Pt(), w)
-				self.h["truth_" + sel + "_W_eta"][self.ch].Fill(truthInfo.W_vec.Eta(), w)
-				self.h["truth_" + sel + "_W_phi"][self.ch].Fill(truthInfo.W_vec.Phi(), w)
-				self.h["truth_" + sel + "_W_mass"][self.ch].Fill(truthInfo.W_vec.M(), w)
-				self.h["truth_" + sel + "_HNL_pt"][self.ch].Fill(truthInfo.HNL_vec.Pt(), w)
-				self.h["truth_" + sel + "_HNL_eta"][self.ch].Fill(truthInfo.HNL_vec.Eta(), w)
-				self.h["truth_" + sel + "_HNL_phi"][self.ch].Fill(truthInfo.HNL_vec.Phi(), w)
-				self.h["truth_" + sel + "_HNL_mass"][self.ch].Fill(truthInfo.HNL_vec.M(), w)
+			# if not evt.tree.isData:
+			# 	truthInfo = helpers.Truth()
+			# 	truthInfo.getTruthParticles(evt)
+			# 	self.h["truth_" + sel + "_W_pt"][self.ch].Fill(truthInfo.W_vec.Pt(), w)
+			# 	self.h["truth_" + sel + "_W_eta"][self.ch].Fill(truthInfo.W_vec.Eta(), w)
+			# 	self.h["truth_" + sel + "_W_phi"][self.ch].Fill(truthInfo.W_vec.Phi(), w)
+			# 	self.h["truth_" + sel + "_W_mass"][self.ch].Fill(truthInfo.W_vec.M(), w)
+			# 	self.h["truth_" + sel + "_HNL_pt"][self.ch].Fill(truthInfo.HNL_vec.Pt(), w)
+			# 	self.h["truth_" + sel + "_HNL_eta"][self.ch].Fill(truthInfo.HNL_vec.Eta(), w)
+			# 	self.h["truth_" + sel + "_HNL_phi"][self.ch].Fill(truthInfo.HNL_vec.Phi(), w)
+			# 	self.h["truth_" + sel + "_HNL_mass"][self.ch].Fill(truthInfo.HNL_vec.M(), w)
 
-				self.h["truth_" + sel + "_mHNLcalc"][self.ch].Fill(truthInfo.mhnl, w)
+			# 	self.h["truth_" + sel + "_mHNLcalc"][self.ch].Fill(truthInfo.mhnl, w)
 
-				self.h["truth_" + sel + "_DV_r"][self.ch].Fill(truthInfo.truth_dvr, w)
-				self.h["truth_" + sel + "_DV_x"][self.ch].Fill(truthInfo.truth_dvx, w)
-				self.h["truth_" + sel + "_DV_y"][self.ch].Fill(truthInfo.truth_dvy, w)
-				self.h["truth_" + sel + "_DV_z"][self.ch].Fill(truthInfo.truth_dvz, w)
-				self.h["truth_" + sel + "_DV_r"][self.ch].Fill(truthInfo.truth_dvr, w)
-				self.h["truth_" + sel + "_plep_pt"][self.ch].Fill(truthInfo.plep_vec.Pt(), w)
-				self.h["truth_" + sel + "_plep_eta"][self.ch].Fill(truthInfo.plep_vec.Eta(), w)
-				self.h["truth_" + sel + "_plep_phi"][self.ch].Fill(truthInfo.plep_vec.Phi(), w)
-				self.h["truth_" + sel + "_plep_mass"][self.ch].Fill(truthInfo.plep_vec.M(), w)
-				ntracks = len(truthInfo.trkVec)
-				for itrk in range(ntracks):  # loop over tracks
-					self.h["truth_" + sel + "_DV_trk_pt"][self.ch].Fill(truthInfo.trkVec[itrk].Pt(), w)
-					self.h["truth_" + sel + "_DV_trk_eta"][self.ch].Fill(truthInfo.trkVec[itrk].Eta(), w)
-					self.h["truth_" + sel + "_DV_trk_phi"][self.ch].Fill(truthInfo.trkVec[itrk].Phi(), w)
+			# 	self.h["truth_" + sel + "_DV_r"][self.ch].Fill(truthInfo.truth_dvr, w)
+			# 	self.h["truth_" + sel + "_DV_x"][self.ch].Fill(truthInfo.truth_dvx, w)
+			# 	self.h["truth_" + sel + "_DV_y"][self.ch].Fill(truthInfo.truth_dvy, w)
+			# 	self.h["truth_" + sel + "_DV_z"][self.ch].Fill(truthInfo.truth_dvz, w)
+			# 	self.h["truth_" + sel + "_DV_r"][self.ch].Fill(truthInfo.truth_dvr, w)
+			# 	self.h["truth_" + sel + "_plep_pt"][self.ch].Fill(truthInfo.plep_vec.Pt(), w)
+			# 	self.h["truth_" + sel + "_plep_eta"][self.ch].Fill(truthInfo.plep_vec.Eta(), w)
+			# 	self.h["truth_" + sel + "_plep_phi"][self.ch].Fill(truthInfo.plep_vec.Phi(), w)
+			# 	self.h["truth_" + sel + "_plep_mass"][self.ch].Fill(truthInfo.plep_vec.M(), w)
+			# 	ntracks = len(truthInfo.trkVec)
+			# 	for itrk in range(ntracks):  # loop over tracks
+			# 		self.h["truth_" + sel + "_DV_trk_pt"][self.ch].Fill(truthInfo.trkVec[itrk].Pt(), w)
+			# 		self.h["truth_" + sel + "_DV_trk_eta"][self.ch].Fill(truthInfo.trkVec[itrk].Eta(), w)
+			# 		self.h["truth_" + sel + "_DV_trk_phi"][self.ch].Fill(truthInfo.trkVec[itrk].Phi(), w)
 			
 				
 
@@ -1475,7 +1488,7 @@ class KShort(Analysis):
 		if not self.passed_preselection_cuts:
 			return
 
-		self._fill_selected_dv_histos(evt, "presel")
+		# self._fill_selected_dv_histos(evt, "presel")
 
 		if self.do_alpha_cut:
 			if self._alpha_cut(evt):
@@ -1483,7 +1496,7 @@ class KShort(Analysis):
 				self.passed_alpha_cut = True
 			else:
 				return
-		self._fill_selected_dv_histos(evt, "alpha")
+		# self._fill_selected_dv_histos(evt, "alpha")
 		
 		if self.do_mass_window_cut:
 			if self._mass_window_cut(evt):
@@ -1491,7 +1504,7 @@ class KShort(Analysis):
 				self.passed_mass_window_cut = True
 			else:
 				return
-		self._fill_selected_dv_histos(evt, "mass")
+		# self._fill_selected_dv_histos(evt, "mass")
 
 
 		self._fill_selected_dv_histos(evt, "sel")

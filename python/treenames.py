@@ -41,6 +41,7 @@ class Tree():
 		self.trk_muonindex = self.tree[DVprefix + "_trk_muonIndex"].array(entrystop=nentries)
 		self.trk_elindex = self.tree[DVprefix + "_trk_electronIndex"].array(entrystop=nentries)
 		self.trackpt = self.tree[DVprefix + "_trk_pt_wrtSV"].array(entrystop=nentries) 
+		self.trackpt_wrt_pv = self.tree[DVprefix + "_trk_pt"].array(entrystop=nentries) 
 		self.tracketa = self.tree[DVprefix + "_trk_eta_wrtSV"].array(entrystop=nentries) 
 		self.trackphi = self.tree[DVprefix + "_trk_phi_wrtSV"].array(entrystop=nentries)
 		self.trackmass = self.tree[DVprefix + "_trk_M"].array(entrystop=nentries)
@@ -50,8 +51,8 @@ class Tree():
 		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array(entrystop=nentries) #d0 and z0 are track quantites calculated wrt IP we dont want to look at the _wrtSV variable!
 		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array(entrystop=nentries) 
 
-		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array(entrystop=nentries) 
-		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array(entrystop=nentries) 
+		# self.trackz0 = self.tree[DVprefix + "_trk_z0"].array(entrystop=nentries) 
+		# self.trackd0 = self.tree[DVprefix + "_trk_d0"].array(entrystop=nentries) 
 
 		# -----------------------------------------------------------------------
 		# DV reco variables

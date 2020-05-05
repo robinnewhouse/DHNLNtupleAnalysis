@@ -218,8 +218,8 @@ def compareN(file, hname, hlabel, savefilename, vertextype, setxrange="", scaley
     MyC01.SaveAs(outputDir + savefilename+'.png')
 
 
-def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, setlogy=False, outputDir="../output/plots/",
-            save_name="", vertical_lines=[], labels=[], norm=1, **kwargs):
+def compare(hist_channels, variable="", setrange=None, scaleymax=1.9, nRebin=1, setlogy=False, outputDir="../output/plots/",
+            save_name="", vertical_lines=[], labels=[], norm=0, **kwargs):
 
     histograms = []
     tfiles = {} # root is stupid and will close the file if you're not careful
@@ -310,9 +310,6 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
     # draw vertical lines
     lines = []
-    if 'material_layers' in kwargs and kwargs['material_layers']:
-        vertical_lines.extend([33.25, 50.5, 88.5, 122.5, 299])
-
     for i, x in enumerate(vertical_lines):
         lines.append(TLine(x, 0, x, y_max))
         lines[i].SetLineStyle(3)
@@ -321,9 +318,6 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
     if 'vertical_legend' in kwargs:
         leg01.AddEntry(lines[0], kwargs['vertical_legend'], "l")
-
-    if 'material_layers' in kwargs and kwargs['material_layers']:
-        leg01.AddEntry(lines[0], "material layers", "l")
 
     leg01.Draw()
     notes_x = 0.25

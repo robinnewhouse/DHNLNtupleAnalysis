@@ -799,6 +799,16 @@ class PV():
 			return False # no primary vertex in the event
 
 
+class SumTrack():
+	def __init__(self, evt):
+		i = evt.ievt
+		j = evt.idv
+		self.sum_track_pt = 0
+		n_tracks = len(evt.tree.trackpt[i][j])
+		self.sum_track_pt_wrt_pv = 0
+		self.sum_track_charge = 0
 
-
-
+		for k in range(n_tracks): # check overlap with DVs
+			self.sum_track_pt += evt.tree.trackpt[i][j][k]
+			self.sum_track_pt_wrt_pv += evt.tree.trackpt_wrt_pv[i][j][k]
+			self.sum_track_charge += evt.tree.trackcharge[i][j][k]

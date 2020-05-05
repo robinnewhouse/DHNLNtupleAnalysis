@@ -23,6 +23,7 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 #############################################################################################################################################
 # globals
 outputDir = '../output/plots/' # change path here to save your histograms somewhere else!
+MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 
 
 #############################################################################################################################################
@@ -749,7 +750,7 @@ def compare_histograms(config_file, hist_type="all"):
 	# hist_channels[<Legend name>] = (<filename>, <hist suffix>)
 	hist_channels["VSI"] = (config_file["mcFile"][0], "VSI", hist_type)
 	hist_channels["VSI Kaons"] = (config_file["mcFile"][0], "VSI_2", hist_type)
-	hist_channels["VSI Leptons"] = (config_file["mcFile"][1], "VSI_Leptons", hist_type)
+	# hist_channels["VSI Leptons"] = (config_file["mcFile"][1], "VSI_Leptons", hist_type)
 
 	plotting.compare(hist_channels,
 					variable = 'DV_mass',
@@ -764,12 +765,12 @@ def compare_histograms(config_file, hist_type="all"):
 					variable = 'DV_mass',
 					vertical_lines=[.4977-.01, .4977+.01],
 					save_name = "DV_mass_zoomed",
-					# scaleymax = 1.9,
-					y_max = 80,
+					scaleymax = 1.9,
 					setrange= (0.4, 0.6),					
 					norm = 0,
 					vertical_legend = "K_{S}^{0} mass cut",
 					)
+
 
 
 	hist_channels = {}
@@ -794,10 +795,57 @@ def compare_histograms(config_file, hist_type="all"):
 	plotting.compare(hist_channels,
 					variable = 'DV_r',
 					nRebin = 15,
-					# scaleymax = 2,
-					y_max = 500,
-					norm = 0,
-					material_layers = True)
+					setrange= (0, 350),							
+					vertical_lines = MATERIAL_LAYERS,
+					vertical_legend = "Material Layers",
+					)
+
+	plotting.compare(hist_channels,
+					variable = 'DV_eta',
+					setrange= (-3, 3),
+					)
+
+	plotting.compare(hist_channels,
+					variable = 'DV_trk_d0',
+					setrange= (-10, 10),							
+					)
+
+	plotting.compare(hist_channels,
+					variable = 'DV_trk_z0',
+					setrange= (-10, 10),							
+					)
+
+	plotting.compare(hist_channels,
+					variable = 'DV_trk_pt',
+					setrange= (0, 20),							
+					)
+
+	plotting.compare(hist_channels,
+					variable = 'DV_sum_track_pt',
+					setrange= (0, 20),							
+					)
+
+	plotting.compare(hist_channels,
+					variable = 'DV_sum_track_pt_wrt_pv',
+					setrange= (0, 20),							
+					)
+
+	plotting.compare(hist_channels,
+					variable = 'DV_sum_track_pt_diff',
+					#setlogy=True,
+					setrange= (0, 20),							
+					)
+
+	plotting.compare(hist_channels,
+					variable = 'DV_sum_track_charge',
+					setrange= (-10, 10),							
+					)
+
+        plotting.compare(hist_channels,
+                                        variable = 'DV_pt',
+                                        setrange= (0, 20),
+                                        )
+
 
 	hist_channels = {}
 	# hist_channels[<Legend name>] = (<filename>, <hist suffix>)
