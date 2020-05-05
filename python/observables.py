@@ -121,7 +121,7 @@ def reco_histograms(selection):
 	Observable(selection + "_DV_sum_track_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_sum_track_pt_wrt_pv",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_sum_track_pt_diff",binning = (10000,0,100), do = ['hist']).queue()
-	Observable(selection + "_DV_sum_track_charge",binning = (20,-10,10), do = ['hist']).queue()
+	Observable(selection + "_DV_sum_track_charge",binning = (4,-1.5,1.5), do = ['hist']).queue()
 	Observable(selection + "_DV_eta",binning = (160,-10,10),do = ['hist']).queue()
 	Observable(selection + "_DV_phi", binning = (64,-4,4), do = ['hist']).queue()
 	Observable(selection + "_DV_minOpAng",binning = (100,0,1), do = ['hist']).queue()

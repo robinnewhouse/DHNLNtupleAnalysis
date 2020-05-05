@@ -79,7 +79,15 @@ class InvertedPromptLepton():
 		n_muons = len(self.evt.tree.muonpt[self.evt.ievt])
 		n_electrons = len(self.evt.tree.elpt[self.evt.ievt])
 
-		for imu in range(n_muons): 
+		for imu in range(n_muons):
+
+			# make sure the muon is at least loose
+			if not ((self.evt.tree.tightmu[self.evt.ievt][imu] == 1) or
+					(self.evt.tree.mediummu[self.evt.ievt][imu] == 1) or
+					(self.evt.tree.loosemu[self.evt.ievt][imu]) == 1):
+				# muon doesn't satisfy any quality, ignore it
+				continue
+
 			# check muon pt
 			mupt = self.evt.tree.muonpt[self.evt.ievt][imu]
 			if mupt > pt_cut:
@@ -102,12 +110,12 @@ class InvertedPromptLepton():
 				self.n_prompt_muons += 1
 				continue
 
-		for iel in range(n_electrons): 
+		for iel in range(n_electrons):
 
 			# make sure the electron is at least loose
-			if  not ( (self.evt.tree.tightel[self.evt.ievt][iel]) or
-			 		  (self.evt.tree.mediumel[self.evt.ievt][iel]) or
-			 		  (self.evt.tree.looseel[self.evt.ievt][iel]) ):
+			if not ((self.evt.tree.tightel[self.evt.ievt][iel] == 1) or
+					(self.evt.tree.mediumel[self.evt.ievt][iel] == 1) or
+					(self.evt.tree.looseel[self.evt.ievt][iel]) == 1):
 				# electron doesn't satisfy any quality, ignore it
 				continue
 			

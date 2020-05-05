@@ -1299,18 +1299,18 @@ class KShort(Analysis):
 			self.h["muon_pt"][self.ch].Fill(evt.tree.muonpt[evt.ievt][imu], w)
 			self.h["muon_eta"][self.ch].Fill(evt.tree.muoneta[evt.ievt][imu], w)
 			self.h["muon_phi"][self.ch].Fill(evt.tree.muonphi[evt.ievt][imu], w)
-			if evt.tree.tightmu[evt.ievt][imu]:  self.h["muon_quality"][self.ch].Fill(3)
-			elif evt.tree.mediummu[evt.ievt][imu]: self.h["muon_quality"][self.ch].Fill(2)
-			elif evt.tree.loosemu[evt.ievt][imu]:  self.h["muon_quality"][self.ch].Fill(1)
+			if evt.tree.tightmu[evt.ievt][imu] == 1:  self.h["muon_quality"][self.ch].Fill(3)
+			elif evt.tree.mediummu[evt.ievt][imu] == 1: self.h["muon_quality"][self.ch].Fill(2)
+			elif evt.tree.loosemu[evt.ievt][imu] == 1:  self.h["muon_quality"][self.ch].Fill(1)
 			else: self.h["muon_quality"][self.ch].Fill(0)
 
 		for iel in range(len(evt.tree.elpt[evt.ievt])):
 			self.h["el_pt"][self.ch].Fill(evt.tree.elpt[evt.ievt][iel], w)
 			self.h["el_eta"][self.ch].Fill(evt.tree.eleta[evt.ievt][iel], w)
 			self.h["el_phi"][self.ch].Fill(evt.tree.elphi[evt.ievt][iel], w)
-			if evt.tree.tightel[evt.ievt][iel]:  self.h["el_quality"][self.ch].Fill(3)
-			elif evt.tree.mediumel[evt.ievt][iel]: self.h["el_quality"][self.ch].Fill(2)
-			elif evt.tree.looseel[evt.ievt][iel]:  self.h["el_quality"][self.ch].Fill(1)
+			if evt.tree.tightel[evt.ievt][iel] == 1:  self.h["el_quality"][self.ch].Fill(3)
+			elif evt.tree.mediumel[evt.ievt][iel] == 1: self.h["el_quality"][self.ch].Fill(2)
+			elif evt.tree.looseel[evt.ievt][iel] == 1:  self.h["el_quality"][self.ch].Fill(1)
 			else: self.h["el_quality"][self.ch].Fill(0)
 
 	def _fill_all_dv_histos(self, evt):

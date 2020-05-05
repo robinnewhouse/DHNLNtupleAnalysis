@@ -4,6 +4,6 @@
          "VSI",
          "VSI_2"
       ],
-      "selections": ["alpha", "mass_window"]
+      "selections": ["CR","alpha", "mass_window"]
    }
 }

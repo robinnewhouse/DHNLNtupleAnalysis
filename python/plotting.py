@@ -218,7 +218,7 @@ def compareN(file, hname, hlabel, savefilename, vertextype, setxrange="", scaley
     MyC01.SaveAs(outputDir + savefilename+'.png')
 
 
-def compare(hist_channels, variable="", setrange=None, scaleymax=1.9, nRebin=1, setlogy=False, outputDir="../output/plots/",
+def compare(hist_channels, variable="", setrange=None, scaleymax=1.9, nRebin=1, setlogy=False, outputDir="/eos/home-r/rnewhous/public/plots/DHNLNtupleAnalysis/",
             save_name="", vertical_lines=[], labels=[], norm=0, **kwargs):
 
     histograms = []
@@ -294,6 +294,10 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.9, nRebin=1, 
 
     shapelist = [22, 21, 33, 29, 30, 31, 32, 34, 35]
     for i in h_idx:
+        if 'bin_labels' in kwargs:
+            bin_labels = kwargs['bin_labels']
+            for j, label in enumerate(bin_labels):
+                histograms[i].GetXaxis().SetBinLabel(j+1, label)
         histograms[i].SetMarkerSize(1.5)
         histograms[i].SetLineColor(plotting_helpers.histColours(i))
         histograms[i].SetLineWidth(3)
@@ -302,7 +306,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.9, nRebin=1, 
         histograms[i].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
         if not variable: histograms[i].GetXaxis().SetTitle(save_name)
         histograms[i].GetYaxis().SetTitle("entries")
-        histograms[i].GetYaxis().SetRangeUser(0, y_max*scaleymax)
+        histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
         histograms[i].Draw("E0 HIST SAME")
 
     if setlogy:

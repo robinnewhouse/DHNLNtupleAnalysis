@@ -12,3 +12,4 @@ output/
 setup.sh
 ~*/.gitignore
 python/plotHistograms.py
+venv/
