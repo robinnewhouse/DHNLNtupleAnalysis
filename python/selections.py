@@ -83,7 +83,7 @@ class Plepton():
 		self.plepd0 = -2000
 		self.plepz0 = -2000
 		ndv = len(self.evt.tree.dvx[self.evt.ievt])	
-		nleps = 0
+		self.nPlep = 0
 
 		if self.lepton == "muon":
 			if self.quality == "tight": #tight muon is requested

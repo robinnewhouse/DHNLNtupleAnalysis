@@ -209,8 +209,8 @@ truth_histograms("cosmic")
 truth_histograms("mlll")
 truth_histograms("mDV")
 truth_histograms("HNLpt")
-truth_histograms("1tight")
-truth_histograms("2tight")
+truth_histograms("tight1")
+truth_histograms("tight2")
 truth_histograms("sel")
 
 
