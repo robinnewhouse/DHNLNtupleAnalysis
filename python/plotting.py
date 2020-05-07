@@ -142,17 +142,17 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 	if "data" in file: 
 		plotting_helpers.drawNotesData("data18 period B",vertextype) 
 	if "uuu" in file: 
-		plotting_helpers.drawNotes("mumu","muon",vertextype) 
+		plotting_helpers.drawNotes("uuu",vertextype) 
 	elif "ueu" in file: 
-		plotting_helpers.drawNotes("emu","muon",vertextype) 
+		plotting_helpers.drawNotes("ueu",vertextype) 
 	elif "uee" in file: 
-		plotting_helpers.drawNotes("ee","muon",vertextype) 
+		plotting_helpers.drawNotes("uee",vertextype) 
 	elif "eee" in file: 
-		plotting_helpers.drawNotes("ee","electron",vertextype) 
+		plotting_helpers.drawNotes("eee",vertextype) 
 	elif "eeu" in file: 
-		plotting_helpers.drawNotes("emu","electron",vertextype) 
+		plotting_helpers.drawNotes("eeu",vertextype) 
 	elif "euu" in file: 
-		plotting_helpers.drawNotes("mumu","electron",vertextype) 
+		plotting_helpers.drawNotes("euu",vertextype) 
 
 	if "HNLpt" in hname[0]:
 		min_HNLptcut=TLine(20,0,20,y_max)

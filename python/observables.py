@@ -86,6 +86,11 @@ Observable("el_phi", binning = (16 ,-4,4), do = ['hist']).queue()
 
 def reco_histograms(selection): 
 	# histograms after selection selection
+	Observable(selection + "_nonlep_pt",binning = (1000,0,1000), do = ['hist']).queue()
+	Observable(selection + "_nonlep_eta",binning = (40,-10,10),do = ['hist']).queue()
+	Observable(selection + "_nonlep_phi", binning = (16,-4,4), do = ['hist']).queue()
+	Observable(selection + "_nonlep_d0",binning = (2000,-1000,1000), do = ['hist']).queue()
+	Observable(selection + "_num_combmuons",binning = (14, -0.5, 13.5), do = ['hist']).queue()
 	Observable(selection + "_plep_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_plep_eta",binning = (40,-10,10),do = ['hist']).queue()
 	Observable(selection + "_plep_phi", binning = (16,-4,4), do = ['hist']).queue()

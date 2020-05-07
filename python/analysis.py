@@ -33,6 +33,7 @@ class Analysis(object):
 		self.histSuffixes = [self.ch]
 		self.h = {}
 		self.DAOD_RPVLL_triggers = []
+		self.inverted_triggers = []
 		# make histograms (common for all channels)
 		# self.add('CutFlow', 16, -0.5, 15.5)
 
@@ -92,13 +93,18 @@ class Analysis(object):
 			self.do_prompt_lepton_cut = False
 
 		if 'CR' in self.sel: # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
-			self.do_trigger_cut = False #do not apply trigger
+			self.do_CR = True
+			self.do_trigger_cut = True #do not apply trigger
+			self.trigger = 'DAOD_RPVLL'
+			self.do_invert_trigger_cut = False #do not apply trigger
 			self.do_filter_cut = False #do not apply filter
 			self.do_prompt_lepton_cut = False #do not apply prompt lepton
 			self.do_invert_prompt_lepton_cut = True # invert trigger cut
 			logger.info('You are setup up to look in the inverted prompt lepton control region!')
 		else: 
+			self.do_CR = False
 			self.do_invert_prompt_lepton_cut = False
+			self.do_invert_trigger_cut = False
 
 
 		# nDV cut
@@ -270,6 +276,21 @@ class Analysis(object):
 		trigger_sel = selections.Trigger(evt=evt, trigger=self.trigger)
 		return trigger_sel.passes()
 
+	def _invert_trigger_cut(self, evt):
+		trigger_sel = selections.Trigger(evt=evt, trigger=self.trigger, invert= True)
+		return trigger_sel.passes()
+
+	def _nmuon_cut(self, evt):
+		n_muons = len(evt.tree.muonpt[evt.ievt])
+		ncomb_muon = 0
+		for imu in range(n_muons): 
+			mutype = evt.tree.muontype[evt.ievt][imu]
+			if mutype == 0:
+				ncomb_muon +=1
+		
+		return ncomb_muon !=  3
+		# return ncomb_muon <  3
+
 	def _filter_cut(self, evt):
 		filter_sel = selections.Filter(evt=evt, filter_type=self.filter_type)
 		return filter_sel.passes()
@@ -285,10 +306,26 @@ class Analysis(object):
 			self.h["all_plep_phi"][self.ch].Fill(self.plep_sel.plepVec.Phi(), evt.weight)
 			self.h["all_plep_d0"][self.ch].Fill(self.plep_sel.plepd0, evt.weight)
 			self.h["all_plep_z0"][self.ch].Fill(self.plep_sel.plepz0, evt.weight)
+
 		return self.plep_sel.passes()
 
 	def _invert_prompt_lepton_cut(self, evt):
 		self.invt_lep = selections.InvertedPromptLepton(evt=evt)
+		if self.invt_lep.passes():
+			n_comb_muons_3 = 0 
+			for imu in xrange(len(evt.tree.muontype[evt.ievt])): 
+				if evt.tree.muontype[evt.ievt][imu] == 0: 
+					self.h["all_plep_pt"][self.ch].Fill(evt.tree.muonpt[evt.ievt][imu], evt.weight)
+					self.h["all_plep_eta"][self.ch].Fill(evt.tree.muoneta[evt.ievt][imu], evt.weight)
+					self.h["all_plep_phi"][self.ch].Fill(evt.tree.muonphi[evt.ievt][imu], evt.weight)
+					self.h["all_plep_d0"][self.ch].Fill(evt.tree.muond0[evt.ievt][imu], evt.weight)
+					self.h["all_plep_z0"][self.ch].Fill(evt.tree.muonz0[evt.ievt][imu], evt.weight)
+					n_comb_muons_3 += 1
+
+				
+				# print n_comb_muons
+
+			self.h["all_num_combmuons"][self.ch].Fill(n_comb_muons_3, evt.weight)
 		return self.invt_lep.passes()
 
 
@@ -310,7 +347,7 @@ class Analysis(object):
 		return charge_sel.passes()
 
 	def _dv_type_cut(self, evt, dv_type):
-		dv_sel = selections.DVtype(evt=evt, dv_type=dv_type)
+		dv_sel = selections.DVtype(evt=evt, dv_type=self.dv_type)
 		return dv_sel.passes()
 
 	def _track_quality_cut(self, evt):
@@ -357,7 +394,12 @@ class oldAnalysis(Analysis):
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
 		if self.do_trigger_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "trigger")
+			if self.do_CR == False:
+				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "trigger")
+			else: 
+				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "DAOD_RPVLL triggers")
+		if self.do_invert_trigger_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "invert trigger")
 		if self.do_filter_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
@@ -431,18 +473,57 @@ class oldAnalysis(Analysis):
 		else: 
 			truthInfo = helpers.Truth()
 			truthInfo.getTruthParticles(evt)
+			self.h["truth_all_W_pt"][self.ch].Fill(truthInfo.W_vec.Pt(), w)
+			self.h["truth_all_W_eta"][self.ch].Fill(truthInfo.W_vec.Eta(), w)
+			self.h["truth_all_W_phi"][self.ch].Fill(truthInfo.W_vec.Phi(), w)
+			self.h["truth_all_W_mass"][self.ch].Fill(truthInfo.W_vec.M(), w)
+			self.h["truth_all_HNL_pt"][self.ch].Fill(truthInfo.HNL_vec.Pt(), w)
+			self.h["truth_all_HNL_eta"][self.ch].Fill(truthInfo.HNL_vec.Eta(), w)
+			self.h["truth_all_HNL_phi"][self.ch].Fill(truthInfo.HNL_vec.Phi(), w)
+			self.h["truth_all_HNL_mass"][self.ch].Fill(truthInfo.HNL_vec.M(), w)
+
+			self.h["truth_all_mHNLcalc"][self.ch].Fill(truthInfo.mhnl, w)
+
 			self.h["truth_all_DV_r"][self.ch].Fill(truthInfo.truth_dvr, w)
 			self.h["truth_all_DV_x"][self.ch].Fill(truthInfo.truth_dvx, w)
 			self.h["truth_all_DV_y"][self.ch].Fill(truthInfo.truth_dvy, w)
 			self.h["truth_all_DV_z"][self.ch].Fill(truthInfo.truth_dvz, w)
 			self.h["truth_all_DV_r"][self.ch].Fill(truthInfo.truth_dvr, w)
-			
+			self.h["truth_all_plep_pt"][self.ch].Fill(truthInfo.plep_vec.Pt(), w)
+			self.h["truth_all_plep_eta"][self.ch].Fill(truthInfo.plep_vec.Eta(), w)
+			self.h["truth_all_plep_phi"][self.ch].Fill(truthInfo.plep_vec.Phi(), w)
+			self.h["truth_all_plep_mass"][self.ch].Fill(truthInfo.plep_vec.M(), w)
+			for itrk in xrange(2): 
+				self.h["truth_all_DV_trk_pt"][self.ch].Fill(truthInfo.trkVec[itrk].Pt(), w)
+				self.h["truth_all_DV_trk_eta"][self.ch].Fill(truthInfo.trkVec[itrk].Eta(), w)
+				self.h["truth_all_DV_trk_phi"][self.ch].Fill(truthInfo.trkVec[itrk].Phi(), w)
+		
 
 	def _fill_selected_dv_histos(self, evt, sel):
 		w = evt.weight
 		if self._locked < FILL_LOCKED:
 			# these are the histograms you only want to fill ONCE per DV
 			# sel refers to the last selection that was applied 
+			if self.do_invert_prompt_lepton_cut:
+				nonPlep_4vec = self.invt_lep.nonPmuons_4vec
+				nonPlep_d0= self.invt_lep.nonPmuons_d0
+				
+				for imu in xrange(len(nonPlep_4vec)):
+					self.h[sel + "_nonlep_pt"][self.ch].Fill(nonPlep_4vec[imu].Pt(), w)
+					self.h[sel + "_nonlep_eta"][self.ch].Fill(nonPlep_4vec[imu].Eta(), w)
+					self.h[sel + "_nonlep_phi"][self.ch].Fill(nonPlep_4vec[imu].Phi(), w)
+					self.h[sel + "_nonlep_d0"][self.ch].Fill(nonPlep_d0[imu], w)
+				
+				# if sel =="DVtype":
+				n_comb_muons = 0 
+				for j in xrange(len(evt.tree.muontype[evt.ievt])): 
+					if evt.tree.muontype[evt.ievt][j] == 0: 
+						n_comb_muons += 1
+				# print n_comb_muons
+				self.h[sel + "_num_combmuons"][self.ch].Fill(n_comb_muons, w)
+
+				
+
 			if self.do_prompt_lepton_cut:
 				plep_vec = self.plep_sel.plepVec
 				plepd0 = self.plep_sel.plepd0
@@ -465,7 +546,7 @@ class oldAnalysis(Analysis):
 
 					self.h[sel + "_mvis"][self.ch].Fill(Mltt.mltt, w)
 					self.h[sel + "_HNLm"][self.ch].Fill(Mhnl.mhnl, w)
-				 	self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, w)
+					self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, w)
 					self.h[sel + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt, w)
 					self.h[sel + "_HNLeta"][self.ch].Fill(Mhnl.hnleta, w)
 					self.h[sel + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi, w)
@@ -581,7 +662,17 @@ class oldAnalysis(Analysis):
 
 		self._fill_histos(evt)
 
-		
+		# triggerList = evt.tree.passedtriggers[evt.ievt]
+		# for triggerList in passedTriggers:
+		# for trigger in triggerList:
+		# 	if trigger not in self.DAOD_RPVLL_triggers:
+		# 		self.DAOD_RPVLL_triggers.append(trigger)
+		# 		# print(trigger)
+		n = len(evt.tree.passedtriggers) - 1 
+		if evt.ievt == n:
+			print(self.inverted_triggers)
+		# if evt.ievt == n:
+		# 	print(self.DAOD_RPVLL_triggers)
 		self.h['CutFlow'][self.ch].SetBinContent(1, evt.tree.allEvt)
 
 
@@ -601,6 +692,29 @@ class oldAnalysis(Analysis):
 				self.h['CutFlow'][self.ch].Fill(2)
 			else:
 				return
+
+		if self.do_invert_trigger_cut:
+			if self._invert_trigger_cut(evt):
+				# Fill the plot at the specified bin
+				self.h['CutFlow'][self.ch].Fill(2)
+				passedtriggers = evt.tree.passedtriggers[evt.ievt]
+				if "HLT_mu26_ivarmedium" in passedtriggers: 
+					print "Found passedtrigger to have HLT_mu26_ivarmedium listed as an triggers "
+					# exit()
+				for trigger in passedtriggers:
+					if trigger not in self.inverted_triggers:
+						self.inverted_triggers.append(trigger)
+						# print(trigger)
+			else:
+				return
+	
+
+		# if self.do_nmuon_cut:
+		# if self._nmuon_cut(evt):
+		# 	self.h['CutFlow'][self.ch].Fill(3)
+		# else:
+		# 	return
+
 
 		if self.do_filter_cut:
 			if self._filter_cut(evt):
@@ -677,12 +791,60 @@ class oldAnalysis(Analysis):
 		self._fill_selected_dv_histos(evt, "charge")
 
 		if self.do_dv_type_cut:
-			if self._dv_type_cut(evt, self.dv_type):
+			if self._dv_type_cut(evt, self.dv_type):	
 				if not self.passed_dv_type_cut:
 					self.h['CutFlow'][self.ch].Fill(9)
 					self.passed_dv_type_cut = True
 			else:
 				return
+
+		# n_comb_muons_2 = 0	
+		# # if evt.tree.evtNum[evt.ievt] == 33115: 
+		# print "--------- "
+		# print "evt number: ", evt.tree.evtNum[evt.ievt]
+
+
+		# for imu in xrange(len(evt.tree.muontype[evt.ievt])): 
+		# 	if evt.tree.evtNum[evt.ievt] == 33115: 
+		# 		print "muon pt", evt.tree.muonpt[evt.ievt][imu]
+		# 		print "muon eta", evt.tree.muoneta[evt.ievt][imu]
+		# 		print "muon phi", evt.tree.muonphi[evt.ievt][imu]
+		# 		print "muon type", evt.tree.muontype[evt.ievt][imu]
+		# 		print "muon tight ", evt.tree.tightmu[evt.ievt][imu]
+		# 		print "muon medium ", evt.tree.mediummu[evt.ievt][imu]
+		# 		print "muon loose ", evt.tree.loosemu[evt.ievt][imu]
+		# 		print "muon d0 ", evt.tree.loosemu[evt.ievt][imu]
+		# 		print "muon z0sintheta ", evt.tree.muonz0sintheta[evt.ievt][imu]
+		# 		if evt.tree.muontype[evt.ievt][imu] == 0: 
+		# 			n_comb_muons_2 += 1
+		# 	else: 
+		# 		if evt.tree.muontype[evt.ievt][imu] == 0: 
+		# 			print "muon pt", evt.tree.muonpt[evt.ievt][imu]
+		# 			print "muon eta", evt.tree.muoneta[evt.ievt][imu]
+		# 			print "muon phi", evt.tree.muonphi[evt.ievt][imu]
+		# 			print "muon type", evt.tree.muontype[evt.ievt][imu]
+		# 			print "muon tight ", evt.tree.tightmu[evt.ievt][imu]
+		# 			print "muon medium ", evt.tree.mediummu[evt.ievt][imu]
+		# 			print "muon loose ", evt.tree.loosemu[evt.ievt][imu]
+		# 			print "muon d0 ", evt.tree.loosemu[evt.ievt][imu]
+		# 			print "muon z0sintheta ", evt.tree.muonz0sintheta[evt.ievt][imu]
+		# 			n_comb_muons_2 += 1
+		# # if evt.tree.evtNum[evt.ievt] == 33115: 
+		# print "n_comb_muons ", n_comb_muons_2
+		# print "trk pt ", evt.tree.trackpt[evt.ievt][evt.idv]
+
+		# truthInfo = helpers.Truth()
+		# truthInfo.getTruthParticles(evt)
+		# print "truth plep pt ", truthInfo.plep_vec.Pt()
+		# print "truth plep eta  ", truthInfo.plep_vec.Eta()
+		# print "truth plep phi ", truthInfo.plep_vec.Phi()
+
+		# print "truth Disp trk pt ", truthInfo.trkVec[0].Pt(), truthInfo.trkVec[1].Pt()
+		# print "truth Disp trk eta ", truthInfo.trkVec[0].Eta(), truthInfo.trkVec[1].Eta()
+		# print "truth Disp trk phi ",truthInfo.trkVec[0].Phi(), truthInfo.trkVec[1].Phi()
+
+	
+
 		self._fill_selected_dv_histos(evt, "DVtype")
 
 		if self.do_track_quality_cut:
@@ -744,7 +906,10 @@ class ToyAnalysis(Analysis):
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
 		if self.do_trigger_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "trigger")
+			if self.do_CR == False:
+				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "trigger")
+			else: 
+				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "DAOD_RPVLL triggers")
 		if self.do_filter_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
@@ -890,7 +1055,7 @@ class ToyAnalysis(Analysis):
 
 					self.h[sel + "_mvis"][self.ch].Fill(Mltt.mltt, w)
 					self.h[sel + "_HNLm"][self.ch].Fill(Mhnl.mhnl, w)
-				 	self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, w)
+					self.h[sel + "_HNLm2"][self.ch].Fill(Mhnl.mhnl2, w)
 					self.h[sel + "_HNLpt"][self.ch].Fill(Mhnl.hnlpt, w)
 					self.h[sel + "_HNLeta"][self.ch].Fill(Mhnl.hnleta, w)
 					self.h[sel + "_HNLphi"][self.ch].Fill(Mhnl.hnlphi, w)
@@ -1189,6 +1354,7 @@ class ToyAnalysis(Analysis):
 				if not self.passed_dv_type_cut:
 					self.h['CutFlow'][self.ch].Fill(10)
 					self.passed_dv_type_cut = True
+
 			else:
 				return
 		self._fill_selected_dv_histos(evt, "DVtype")
