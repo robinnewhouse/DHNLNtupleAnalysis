@@ -90,10 +90,10 @@ class InvertedPromptLepton():
 
 			# check muon pt
 			mupt = self.evt.tree.muonpt[self.evt.ievt][imu]
-			if mupt > pt_cut:
-				# muon satisfies "fast" lepton requirements
-				self.n_prompt_muons += 1
-				continue
+			# if mupt > pt_cut:
+			# 	# muon satisfies "fast" lepton requirements
+			# 	self.n_prompt_muons += 1
+			# 	continue
 			
 			# check muon promptness
 			mueta = self.evt.tree.muoneta[self.evt.ievt][imu]
