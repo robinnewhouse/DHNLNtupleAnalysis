@@ -20,7 +20,7 @@ from pylab import *
 
 logger = helpers.getLogger('dHNLAnalysis.plotting')
 
-def plot_cutflow(file, vertextype, outputDir="../output/"):
+def plot_cutflow(file, vertextype, outputDir="/eos/home-r/rnewhous/public/plots/DHNLNtupleAnalysis/"):
 
     Tfile = ROOT.TFile(file)
     if vertextype == "VSI":
@@ -32,10 +32,10 @@ def plot_cutflow(file, vertextype, outputDir="../output/"):
 
     if not hcutflow: return
 
-    hcutflow.GetXaxis().SetBinLabel(1, "all")
-    hcutflow.GetXaxis().SetBinLabel(2, "PV")
-    hcutflow.GetXaxis().SetBinLabel(3, "Kshort mass")
-    hcutflow.GetXaxis().SetBinLabel(4, "alpha")
+    # hcutflow.GetXaxis().SetBinLabel(1, "all")
+    # hcutflow.GetXaxis().SetBinLabel(2, "PV")
+    # hcutflow.GetXaxis().SetBinLabel(3, "Kshort mass")
+    # hcutflow.GetXaxis().SetBinLabel(4, "alpha")
 
     MyC01 = ROOT.TCanvas("MyC01", "cutflow", 1200, 800)
 

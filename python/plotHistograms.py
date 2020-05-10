@@ -741,19 +741,22 @@ def compare_histograms(config_file, hist_type="all"):
                      variable='DV_mass',
                      setrange=(0, 20),
                      nRebin=100,
-                     # vertical_lines = [4],
-                     scaleymax=1,
-                     norm=0,
                      )
 
     plotting.compare(hist_channels,
                      variable='DV_mass',
                      vertical_lines=[.4977 - .01, .4977 + .01],
-                     save_name="DV_mass_zoomed",
-                     scaleymax=1.9,
+                     save_name="DV_mass_zoomed_Kshort",
                      setrange=(0.4, 0.6),
-                     norm=0,
                      vertical_legend="K_{S}^{0} mass cut",
+                     )
+
+    plotting.compare(hist_channels,
+                     variable='DV_mass',
+                     vertical_lines=[3.096 - .01, 3.096 + .01],
+                     save_name="DV_mass_zoomed_JPsi",
+                     setrange=(2.8, 3.2),
+                     vertical_legend="J/\Psi mass cut",
                      )
 
     hist_channels = {}
@@ -901,10 +904,10 @@ if __name__ == '__main__':
 
     plotting.plot_cutflow(file=config_file["mcFile"][0],
                           vertextype="VSI Kaons",
-                          outputDir=outputDir + "Cutflows/")
+                          )
     plotting.plot_cutflow(file=config_file["mcFile"][0],
-                          vertextype="VSI",
-                          outputDir=outputDir + "Cutflows/")
+                          vertextype="VSI"
+                          )
 
     # execute plotting here, comment out functions in you dont want to plot them again.
     compare_histograms(config_file, "all")
