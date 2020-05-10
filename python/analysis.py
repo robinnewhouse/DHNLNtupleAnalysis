@@ -25,15 +25,14 @@ class Analysis(object):
 	blinded = True
 	mapSel = {}
 
-	def __init__(self, channel, selections, outputFile, isdata):
+	def __init__(self, vtx_container, selections, outputFile, isdata):
+		self.ntuples = {}
 		self.sel = selections
 		self._outputFile = outputFile
 		self.fi = ROOT.TFile.Open(outputFile, 'update')
-		self.ch = channel
+		self.ch = vtx_container
 		self.histSuffixes = [self.ch]
 		self.h = {}
-		# make histograms (common for all channels)
-		# self.add('CutFlow', 16, -0.5, 15.5)
 
 		self._locked = UNLOCKED
 
@@ -196,25 +195,30 @@ class Analysis(object):
 	def unlock(self):
 		self._locked = UNLOCKED
 
+	def add_ntuple(self, branch_name, branch_array, branch_type='F'):
+		if not self.ch in self.ntuples:
+			self.ntuples[self.ch] = ROOT.TTree(self.ch, 'micro ntuples')
+		ttree = self.ntuples[self.ch]
+		ttree.Branch(branch_name, branch_array, '{}/{}'.format(branch_name, branch_type))
+
+
 	def add(self, hName, nBins, xLow, xHigh):
 		self.h[hName] = {}
-		for s in self.histSuffixes:
-			self.h[hName][s] = ROOT.TH1D(hName+"_"+s, "", nBins, xLow, xHigh)
-			self.h[hName][s].Sumw2()
-			self.h[hName][s].SetDirectory(0)
+		self.h[hName][self.ch] = ROOT.TH1D(hName+"_"+self.ch, "", nBins, xLow, xHigh)
+		self.h[hName][self.ch].Sumw2()
+		self.h[hName][self.ch].SetDirectory(0)
 
 	def add2D(self, hName, nBins, xLow, xHigh, nBinsY, yLow, yHigh):
 		self.h[hName] = {}
-		for s in self.histSuffixes:
-			self.h[hName][s] = ROOT.TH2D(hName + "_" + s, "", nBins, xLow, xHigh, nBinsY, yLow, yHigh)
-			self.h[hName][s].Sumw2()
-			self.h[hName][s].SetDirectory(0)
+		self.h[hName][self.ch] = ROOT.TH2D(hName + "_" + self.ch, "", nBins, xLow, xHigh, nBinsY, yLow, yHigh)
+		self.h[hName][self.ch].Sumw2()
+		self.h[hName][self.ch].SetDirectory(0)
 
 	def write(self):
 		self.fi.cd()
+		self.ntuples[self.ch].Write()
 		for hName in self.h:
-			for s in self.histSuffixes:
-				self.h[hName][s].Write(hName + '_' + s)
+			self.h[hName][self.ch].Write(hName + '_' + self.ch)
 		self.fi.Close()
 
 	def end(self):
@@ -230,9 +234,8 @@ class Analysis(object):
 		
 		# gives warning messages if histograms are unfilled
 		for histName in self.h:
-			for s in self.histSuffixes:
-				if self.h[histName][s].GetEntries() == 0:
-					logger.debug('\tUnfilled HIST({}<{}>)!'.format(histName, s))
+			if self.h[histName][self.ch].GetEntries() == 0:
+				logger.debug('\tUnfilled HIST({}<{}>)!'.format(histName, self.ch))
 
 		# y_err = ROOT.Double()
 		# for s in self.histSuffixes:
@@ -348,9 +351,9 @@ class Analysis(object):
 
 class oldAnalysis(Analysis):
 
-	def __init__(self, channel, selections, outputFile, isdata):
+	def __init__(self, vtx_container, selections, outputFile, isdata):
 		logger.info('Running old analysis cuts')
-		Analysis.__init__(self, channel, selections, outputFile, isdata)
+		Analysis.__init__(self, vtx_container, selections, outputFile, isdata)
 
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
@@ -738,9 +741,9 @@ class oldAnalysis(Analysis):
 
 class ToyAnalysis(Analysis):
 
-	def __init__(self, channel, selections, outputFile, isdata):
+	def __init__(self, vtx_container, selections, outputFile, isdata):
 		logger.info('Running  Toy Analysis cuts')
-		Analysis.__init__(self, channel, selections, outputFile, isdata)
+		Analysis.__init__(self, vtx_container, selections, outputFile, isdata)
 
 	
 		self.add('CutFlow', 17, -0.5, 16.5)
@@ -1261,26 +1264,30 @@ class ToyAnalysis(Analysis):
 
 
 class KShort(Analysis):
-	def __init__(self, channel, selections, outputFile, isdata):
-		Analysis.__init__(self, channel, selections, outputFile, isdata)
+	def __init__(self, vtx_container, selections, outputFile, isdata):
+		Analysis.__init__(self, vtx_container, selections, outputFile, isdata)
+		self.cutflow_bin = 0
 		logger.info('Running KShort Analysis cuts')
+		from array import array
+		sum_trk_pt = array( 'f', [0])
+		self.add_ntuple('sum_trk_pt', sum_trk_pt)
 
 		self.add('CutFlow', 17, -0.5, 16.5)
 		# Bin labels are 1 greater than histogram bins
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
-		if self.do_trigger_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "trigger")
-		if self.do_filter_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
+		# if self.do_trigger_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "trigger")
+		# if self.do_filter_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		# if self.do_prompt_lepton_cut:
 		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
 		if self.do_invert_prompt_lepton_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "invert prompt lepton")
 		if self.do_alpha_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "alpha")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "alpha")
 		if self.do_mass_window_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "K0 mass")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "K0 mass")
 		# add other histograms
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
@@ -1360,6 +1367,9 @@ class KShort(Analysis):
 			# self.h["truth_all_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], w)
 			# self.h["truth_all_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv], w)
 
+	def fill_ntuples(self):
+		self.ntuples[self.ch].Fill()
+
 	def _fill_selected_dv_histos(self, evt, sel):
 		w = evt.weight
 		if self._locked < FILL_LOCKED:
@@ -1438,8 +1448,8 @@ class KShort(Analysis):
 	# Define new cuts you want to apply here. This will overwrite whatever cuts are defined in the parent analysis class.
 	#########################################################################################################################
 	def _mass_window_cut(self, evt):
-		mass_min=.4977-.01 # kshort mass +/- epsilon
-		mass_max=.4977+.01
+		mass_min = .4977 - .01  # kshort mass +/- epsilon
+		mass_max = .4977 + .01
 		dvmass = evt.tree.dvmass[evt.ievt][evt.idv]
 		return (dvmass > mass_min) and (dvmass < mass_max)
 
@@ -1452,26 +1462,27 @@ class KShort(Analysis):
 		self.passed_alpha_cut = False
 		self.passed_mass_window_cut = False
 		self._fill_histos(evt)
-		self.h['CutFlow'][self.ch].Fill(0) # all
+		self.h['CutFlow'][self.ch].Fill(0)  # all
 
-		if self._pv_cut(evt): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
+		if self._pv_cut(
+				evt):  # Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
 			self.h['CutFlow'][self.ch].Fill(1)
 		else:
 			return
 
-		if self.do_trigger_cut:
-			if self._trigger_cut(evt):
-				# Fill the plot at the specified bin
+		# if self.do_trigger_cut:
+		# 	if self._trigger_cut(evt):
+		# 		# Fill the plot at the specified bin
+		# 		self.h['CutFlow'][self.ch].Fill(2)
+		# 	else:
+		# 		return
+
+		if self.do_invert_prompt_lepton_cut:
+			if self._invert_prompt_lepton_cut(evt):
 				self.h['CutFlow'][self.ch].Fill(2)
 			else:
 				return
 
-		if self.do_invert_prompt_lepton_cut:
-			if self._invert_prompt_lepton_cut(evt):
-				self.h['CutFlow'][self.ch].Fill(3)
-			else:
-				return
-		
 		self.passed_preselection_cuts = True
 		self._fill_leptons(evt)
 
@@ -1492,24 +1503,18 @@ class KShort(Analysis):
 
 		if self.do_alpha_cut:
 			if self._alpha_cut(evt):
-				self.h['CutFlow'][self.ch].Fill(4)
+				self.h['CutFlow'][self.ch].Fill(3)
 				self.passed_alpha_cut = True
 			else:
 				return
 		# self._fill_selected_dv_histos(evt, "alpha")
-		
+
 		if self.do_mass_window_cut:
 			if self._mass_window_cut(evt):
-				self.h['CutFlow'][self.ch].Fill(5)
+				self.h['CutFlow'][self.ch].Fill(4)
 				self.passed_mass_window_cut = True
 			else:
 				return
 		# self._fill_selected_dv_histos(evt, "mass")
 
-
 		self._fill_selected_dv_histos(evt, "sel")
-
-
-
-
-

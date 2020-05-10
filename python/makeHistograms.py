@@ -15,7 +15,7 @@ blinded = True # Dont dont change this flag! This ensures you do not accidentill
 
 def main():
 	
-	output_path ="../output/"
+	output_path ="/eos/home-r/rnewhous/HNL/"
 	if os.path.exists(output_path) == False:
 		logger.info('Making output directory')
 		os.mkdir(output_path)
@@ -36,60 +36,50 @@ def main():
 
 	#loop over all the channels in the config file
 	for channel, configs in config_file.items():
-   		
-		logger.info('Running on channel: %s'%channel)
+
+		logger.info('Running on channel: {})'.format(channel))
 		file_info = helpers.File_info(file, channel) # If you are running on MC this will give info about signal mass and lifetime
 
 		#create one output file per channel in your config file
 		if "data" in options.config.split("config")[1]:
-			outputfile = output_path + "histograms_data_%s.root"%channel
+			output_file = output_path + "histograms_data_{}.root".format(channel)
 		else:
-			outputfile = output_path + file_info.Output_filename
-		if os.path.exists(outputfile):
-			if options.force == False:
-				if "data" in options.config.split("config")[1]:
-					logger.error("Output histograms_data_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%channel)
-				else:
-					logger.error("Output %s file already exists. Either re-run with -f/--force OR choose a different output path."%file_info.Output_filename)
+			output_file = output_path + file_info.Output_filename
+		if os.path.exists(output_file):
+			if not options.force:
+				logger.error("Output {} file already exists. Either re-run with -f/--force OR choose a different output path.".format(output_file))
 				exit()
 			else:
-				logger.info('Removing %s'%outputfile)
-				os.remove(outputfile) # if force option is given then remove histrograms file that was previously created.
+				logger.info('Removing {}'.format(output_file))
+				os.remove(output_file)  # if force option is given then remove histograms file that was previously created.
 
 		# loop over the vertex containers in each channel (usually just VSI & VSI Leptons)
 		for vtx_container in config_file[channel]["vtx_containers"]:
-			
-			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
+
+			selections = config_file[channel]["selections"]  # define selections for the channel from the config file
 			# Try to load only the number of entries of you need
 			nentries = options.nevents if options.nevents else None
-			tree = treenames.Tree(file, treename, vtx_container, nentries) # define variables in tree to be accessed from rootfile
-			if len(tree.dvmass) < nentries or nentries == None:
+			tree = treenames.Tree(file, treename, vtx_container, nentries)  # define variables in tree to be accessed from rootfile
+			if len(tree.dvmass) < nentries or nentries is None:
 					nentries = len(tree.dvmass)
 
-			#blinding flag to prevent accidental unblinding in data
-			if blinded:
-				if tree.isData: 
-					if "CR" in selections:
-						pass
-					else: 
-						if "OS" in selections:
-							logger.error("You are running on data and you cannot look at OS verticies!!!")
-							sys.exit(1)  # abort because of error
-						if ("SS" in selections) == False:
-							logger.error("You are running on data and you are not in the CR. You must only look at SS vertices!!!")
-							sys.exit(1)  # abort because of error
+			# blinding flag to prevent accidental unblinding in data
+			if blinded and tree.isData and "CR" not in selections:
+				if "OS" in selections or "SS" not in selections:
+					logger.error("You are running on data and you cannot look at OS verticies!!! Please include SS, not OS in selections.")
+					sys.exit(1)  # abort because of error
 
 
 			# Make instance of the analysis class
-			ana = anaClass(vtx_container, selections, outputfile,isdata=tree.isData)
+			ana = anaClass(vtx_container, selections, output_file, isdata=tree.isData)
 
 			
 			# Loop over each event
 			for ievt in range(nentries):
 				if (ievt % 1000 == 0):
-					logger.info("Channel {}: processing event {}".format("%s_%s"%(channel,vtx_container), ievt))
+					logger.info("Channel {}_{}: processing event {}".format(channel, vtx_container, ievt))
 				# Create an event instance to keep track of basic event properties
-				evt = helpers.Event(tree=tree, ievt=ievt,mass=file_info.mass,ctau=file_info.ctau)
+				evt = helpers.Event(tree=tree, ievt=ievt, mass=file_info.mass, ctau=file_info.ctau)
 				ndv = len(tree.dvx[ievt])
 
 				# Run preselection cuts to avoid processing unnecessary events
