@@ -8,6 +8,7 @@ import selections
 import treenames
 import observables
 import logging
+import ntuples
 logger = helpers.getLogger('dHNLAnalysis.analysis',level = logging.INFO)
 
 
@@ -26,7 +27,6 @@ class Analysis(object):
 	mapSel = {}
 
 	def __init__(self, vtx_container, selections, outputFile, isdata):
-		self.ntuples = {}
 		self.sel = selections
 		self._outputFile = outputFile
 		self.fi = ROOT.TFile.Open(outputFile, 'update')
@@ -195,13 +195,6 @@ class Analysis(object):
 	def unlock(self):
 		self._locked = UNLOCKED
 
-	def add_ntuple(self, branch_name, branch_array, branch_type='F'):
-		if not self.ch in self.ntuples:
-			self.ntuples[self.ch] = ROOT.TTree(self.ch, 'micro ntuples')
-		ttree = self.ntuples[self.ch]
-		ttree.Branch(branch_name, branch_array, '{}/{}'.format(branch_name, branch_type))
-
-
 	def add(self, hName, nBins, xLow, xHigh):
 		self.h[hName] = {}
 		self.h[hName][self.ch] = ROOT.TH1D(hName+"_"+self.ch, "", nBins, xLow, xHigh)
@@ -216,7 +209,6 @@ class Analysis(object):
 
 	def write(self):
 		self.fi.cd()
-		self.ntuples[self.ch].Write()
 		for hName in self.h:
 			self.h[hName][self.ch].Write(hName + '_' + self.ch)
 		self.fi.Close()
@@ -1269,8 +1261,7 @@ class KShort(Analysis):
 		self.cutflow_bin = 0
 		logger.info('Running KShort Analysis cuts')
 		from array import array
-		sum_trk_pt = array( 'f', [0])
-		self.add_ntuple('sum_trk_pt', sum_trk_pt)
+		self.dv_ntuples = ntuples.Ntuples('dv_ntuples_'+self.ch)
 
 		self.add('CutFlow', 17, -0.5, 16.5)
 		# Bin labels are 1 greater than histogram bins
@@ -1367,9 +1358,6 @@ class KShort(Analysis):
 			# self.h["truth_all_DV_charge"][self.ch].Fill(evt.tree.dvcharge[evt.ievt][evt.idv], w)
 			# self.h["truth_all_DV_chi2"][self.ch].Fill(evt.tree.dvchi2[evt.ievt][evt.idv], w)
 
-	def fill_ntuples(self):
-		self.ntuples[self.ch].Fill()
-
 	def _fill_selected_dv_histos(self, evt, sel):
 		w = evt.weight
 		if self._locked < FILL_LOCKED:
@@ -1407,43 +1395,16 @@ class KShort(Analysis):
 			self.h[sel + "_DV_sum_track_pt_wrt_pv"][self.ch].Fill(track_sum.sum_track_pt_wrt_pv, w)
 			self.h[sel + "_DV_sum_track_pt_diff"][self.ch].Fill(track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt, w)
 			self.h[sel + "_DV_sum_track_charge"][self.ch].Fill(track_sum.sum_track_charge, w)
+			# Fill micro ntuples
+			self.dv_ntuples[sel + '_sum_track_pt'] = track_sum.sum_track_pt
 
-			# if not evt.tree.isData:
-			# 	truthInfo = helpers.Truth()
-			# 	truthInfo.getTruthParticles(evt)
-			# 	self.h["truth_" + sel + "_W_pt"][self.ch].Fill(truthInfo.W_vec.Pt(), w)
-			# 	self.h["truth_" + sel + "_W_eta"][self.ch].Fill(truthInfo.W_vec.Eta(), w)
-			# 	self.h["truth_" + sel + "_W_phi"][self.ch].Fill(truthInfo.W_vec.Phi(), w)
-			# 	self.h["truth_" + sel + "_W_mass"][self.ch].Fill(truthInfo.W_vec.M(), w)
-			# 	self.h["truth_" + sel + "_HNL_pt"][self.ch].Fill(truthInfo.HNL_vec.Pt(), w)
-			# 	self.h["truth_" + sel + "_HNL_eta"][self.ch].Fill(truthInfo.HNL_vec.Eta(), w)
-			# 	self.h["truth_" + sel + "_HNL_phi"][self.ch].Fill(truthInfo.HNL_vec.Phi(), w)
-			# 	self.h["truth_" + sel + "_HNL_mass"][self.ch].Fill(truthInfo.HNL_vec.M(), w)
+			self.dv_ntuples.fill()
 
-			# 	self.h["truth_" + sel + "_mHNLcalc"][self.ch].Fill(truthInfo.mhnl, w)
+	def write(self):
+		self.dv_ntuples.write()
+		Analysis.write(self)
 
-			# 	self.h["truth_" + sel + "_DV_r"][self.ch].Fill(truthInfo.truth_dvr, w)
-			# 	self.h["truth_" + sel + "_DV_x"][self.ch].Fill(truthInfo.truth_dvx, w)
-			# 	self.h["truth_" + sel + "_DV_y"][self.ch].Fill(truthInfo.truth_dvy, w)
-			# 	self.h["truth_" + sel + "_DV_z"][self.ch].Fill(truthInfo.truth_dvz, w)
-			# 	self.h["truth_" + sel + "_DV_r"][self.ch].Fill(truthInfo.truth_dvr, w)
-			# 	self.h["truth_" + sel + "_plep_pt"][self.ch].Fill(truthInfo.plep_vec.Pt(), w)
-			# 	self.h["truth_" + sel + "_plep_eta"][self.ch].Fill(truthInfo.plep_vec.Eta(), w)
-			# 	self.h["truth_" + sel + "_plep_phi"][self.ch].Fill(truthInfo.plep_vec.Phi(), w)
-			# 	self.h["truth_" + sel + "_plep_mass"][self.ch].Fill(truthInfo.plep_vec.M(), w)
-			# 	ntracks = len(truthInfo.trkVec)
-			# 	for itrk in range(ntracks):  # loop over tracks
-			# 		self.h["truth_" + sel + "_DV_trk_pt"][self.ch].Fill(truthInfo.trkVec[itrk].Pt(), w)
-			# 		self.h["truth_" + sel + "_DV_trk_eta"][self.ch].Fill(truthInfo.trkVec[itrk].Eta(), w)
-			# 		self.h["truth_" + sel + "_DV_trk_phi"][self.ch].Fill(truthInfo.trkVec[itrk].Phi(), w)
-			
-				
 
-			if sel == "sel":
-				pass
-				# We don't want one DV per event in kshort studies 
-				# self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
-	
 	#########################################################################################################################
 	# Define new cuts you want to apply here. This will overwrite whatever cuts are defined in the parent analysis class.
 	#########################################################################################################################
