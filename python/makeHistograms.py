@@ -11,19 +11,17 @@ import json
 
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
-blinded = True # Dont dont change this flag! This ensures you do not accidentilly unblind when looking at data. 
+blinded = True  # Dont dont change this flag! This ensures you do not accidentally unblind when looking at data.
+
 
 def main():
-	
-	output_path ="/eos/home-r/rnewhous/HNL/"
-	if os.path.exists(output_path) == False:
+	output_path = "/eos/home-r/rnewhous/HNL/"
+	if not os.path.exists(output_path):
 		logger.info('Making output directory')
 		os.mkdir(output_path)
-		
-
 
 	with open(options.config, 'r') as json_config:
-		config_file = json.load(json_config) # load JSON config file that contains a channel name mapped to a list of selections
+		config_file = json.load(json_config)  # load JSON config file that contains a channel name mapped to a list of selections
 
 
 	analysisCode = {}
@@ -62,6 +60,7 @@ def main():
 			tree = treenames.Tree(file, treename, vtx_container, nentries)  # define variables in tree to be accessed from rootfile
 			if len(tree.dvmass) < nentries or nentries is None:
 					nentries = len(tree.dvmass)
+			logger.info('Going to process {} events'.format(nentries))
 
 			# blinding flag to prevent accidental unblinding in data
 			if blinded and tree.isData and "CR" not in selections:

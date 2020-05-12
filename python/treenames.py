@@ -4,6 +4,82 @@ import helpers
 
 logger = helpers.getLogger('dHNLAnalysis.treenames')
 
+
+class NewTree:
+	def __init__(self, file_name, tree_name, vtx_container, nentries):
+		self.ievt = 0
+		self.idv = 0
+		self.nentries = nentries
+		self.arrays = {}
+		self.file = uproot.open(file_name)
+		self.tree = self.file[tree_name]
+		self.cutflow = self.file["cutflow"]
+		self.dv_prefix = "secVtx_{}".format(vtx_container)
+		# check if this tree contains data
+		self.is_data = "truthVtx_x" not in self.tree.keys()
+
+	def increment_event(self):
+		self.ievt += 1
+
+	def reset_event(self):
+		"""Sets the event index to zero."""
+		self.ievt = 0
+
+	def increment_dv(self):
+		self.idv += 1
+
+	def reset_dv(self):
+		"""Sets the displaced vertex index to zero."""
+		self.idv = 0
+
+	def add(self, key):
+		"""Loads a tree from uproot into a numpy array.
+		key is the parameter to be loaded."""
+		try:
+			self.arrays[key] = self.tree[key].array(entrystop=self.nentries)
+		except KeyError as e:
+			print("Key not found", e)
+
+	def get(self, key, dv=False):
+		"""
+		Accesses the variable and selects the value based on the current event.
+		If the variable is a DV variable, then this selects the value based on the current event and current DV.
+		Loads the tree into a numpy array if it doesn't exist already.
+		:param key: The variable to be accessed.
+		:param dv: Is this variable from a displaced vertex.
+		:return: The variable value at the current event and current dv.
+		"""
+		if key not in self.arrays:  # if exists, update array value
+			self.add(key)  # if doesn't exist
+		if dv:
+			return self.arrays[key][self.ievt][self.idv]
+		else:
+			return self.arrays[key][self.ievt]
+
+	def get_dv(self, key):
+		"""
+		A helper function for cleaner getting of DV variables
+		:param key: The variable to be accessed.
+		:return: The variable value at the current event and current dv.
+		"""
+		return self.get(key, dv=True)
+
+	def __getitem__(self, key):
+		"""
+
+		:param key: The variable to be accessed
+		:return: The variable for the event and displaced vertex
+		"""
+		if key not in self.arrays:  # if exists, update array value
+			self.add(key)  # if doesn't exist
+		return self.arrays[key]
+
+	def __setitem__(self, key, value):
+		raise AttributeError("can't set attribute")
+		# if key not in self.arrays:  # if exists, update array value
+		# 	self.add(key)  # if doesn't exist
+		# self.arrays[key][0] = value
+
 class Tree():
 	def __init__(self, fileName, treeName, vtx_container, nentries):
 		logger.info("Importing trees from ntuple for %s."%vtx_container)
