@@ -60,16 +60,16 @@ class Truth():
 		self.mhnl = -1
 		self.HNL_pdgID = 50
 
-	def getTruthParticles(self, evt): 
-		ntruthDV = len(evt.tree.truth_parent_pdgId[evt.ievt])
+	def getTruthParticles(self, tree):
+		ntruthDV = len(tree['truth_parent_pdgId'])
 
 		for idvtru in range(ntruthDV):
-			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 50:  # get the DV!
-				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 3:
+			if abs(tree['truth_parent_pdgId'][idvtru]) == 50:  # get the DV!
+				if len(tree['truth_outP_pdgId'][idvtru]) == 3:
 
-					self.truth_dvx = evt.tree.truth_x[evt.ievt][idvtru]
-					self.truth_dvy = evt.tree.truth_y[evt.ievt][idvtru]
-					self.truth_dvz = evt.tree.truth_z[evt.ievt][idvtru] 
+					self.truth_dvx = tree['truthVtx_x'][idvtru]
+					self.truth_dvy = tree['truthVtx_y'][idvtru]
+					self.truth_dvz = tree['truthVtx_z'][idvtru]
 					self.truth_dvr = np.sqrt(self.truth_dvx**2 + self.truth_dvy**2)
 					
 					trkVec0 =  ROOT.TLorentzVector()
@@ -77,51 +77,46 @@ class Truth():
 					nu_vec =  ROOT.TLorentzVector()
 
 
-					trkVec0.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
-										evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
-										evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
-										evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+					trkVec0.SetPtEtaPhiM(tree['truthVtx_outP_pt'][idvtru][0],
+										tree['truthVtx_outP_eta'][idvtru][0],
+										tree['truthVtx_outP_phi'][idvtru][0],
+										tree['truthVtx_outP_m'][idvtru][0]
 										)
-					trkVec1.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][1],
-										evt.tree.truth_outP_eta[evt.ievt][idvtru][1],
-										evt.tree.truth_outP_phi[evt.ievt][idvtru][1],
-										evt.tree.truth_outP_m[evt.ievt][idvtru][1]
+					trkVec1.SetPtEtaPhiM(tree['truthVtx_outP_pt'][idvtru][1],
+										tree['truthVtx_outP_eta'][idvtru][1],
+										tree['truthVtx_outP_phi'][idvtru][1],
+										tree['truthVtx_outP_m'][idvtru][1]
 										)
-
+					nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][idvtru][2],
+										tree['truthVtx_outP_eta'][idvtru][2],
+										tree['truthVtx_outP_phi'][idvtru][2],
+										tree['truthVtx_outP_m'][idvtru][2]
+										)
 					self.trkVec.append(trkVec0)
 					self.trkVec.append(trkVec1)
 
-
-					nu_vec.SetPtEtaPhiM(evt.tree.truth_outP_pt[evt.ievt][idvtru][2],
-										evt.tree.truth_outP_eta[evt.ievt][idvtru][2],
-										evt.tree.truth_outP_phi[evt.ievt][idvtru][2],
-										evt.tree.truth_outP_m[evt.ievt][idvtru][2]
-										)
-
-					self.HNL_vec.SetPtEtaPhiM(evt.tree.truth_parent_pt[evt.ievt][idvtru],
-										evt.tree.truth_parent_eta[evt.ievt][idvtru],
-										evt.tree.truth_parent_phi[evt.ievt][idvtru],
-										evt.tree.truth_parent_m[evt.ievt][idvtru])
-
-
-
-
-			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 24: # get the PV!
-				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 2:
-					self.plep_vec.SetPtEtaPhiM(  evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
-											evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
-											evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
-											evt.tree.truth_outP_m[evt.ievt][idvtru][0]
+					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][idvtru],
+											tree['truthVtx_parent_eta'][idvtru],
+											tree['truthVtx_parent_phi'][idvtru],
+											tree['truthVtx_parent_m'][idvtru]
 											)
-					self.W_vec.SetPtEtaPhiM( evt.tree.truth_parent_pt[evt.ievt][idvtru],
-										evt.tree.truth_parent_eta[evt.ievt][idvtru],
-										evt.tree.truth_parent_phi[evt.ievt][idvtru],
-										evt.tree.truth_parent_m[evt.ievt][idvtru]
-										)
+
+			if abs(tree['truthVtx_parent_pdgId'][idvtru]) == 24:  # get the PV!
+				if len(tree['truthVtx_outP_pdgId'][idvtru]) == 2:
+					self.plep_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][idvtru][0],
+											   tree['truthVtx_outP_eta'][idvtru][0],
+											   tree['truthVtx_outP_phi'][idvtru][0],
+											   tree['truthVtx_outP_m'][idvtru][0]
+											   )
+					self.W_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][idvtru],
+											tree['truthVtx_parent_eta'][idvtru],
+											tree['truthVtx_parent_phi'][idvtru],
+											tree['truthVtx_parent_m'][idvtru]
+											)
 
 		try:
 			import selections
-			Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec )
+			Mhnl = selections.Mhnl(tree, plep=self.plep_vec, trks=self.trkVec)
 			self.mhnl = Mhnl.mhnl
 		except:
 			pass

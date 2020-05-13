@@ -120,18 +120,18 @@ class InvertedPromptLepton():
 				continue
 			
 			# check electron pt
-			elpt = self.evt.tree.elpt[iel]
+			elpt = self.tree['el_pt'][iel]
 			# if elpt > pt_cut:
 			# 	# electron satisfies "fast" lepton requirements
 			# 	self.n_prompt_electrons += 1
 			# 	continue
 			
 			# check electron promptness
-			elmass = self.evt.tree['el_pt'][iel]
-			eleta = self.evt.tree['el_eta'][iel]
-			elphi = self.evt.tree['el_phi'][iel]
-			elz0 = self.evt.tree['el_trkz0'][iel]
-			eld0 = self.evt.tree['el_trkd0'][iel]
+			elmass = self.tree['el_pt'][iel]
+			eleta = self.tree['el_eta'][iel]
+			elphi = self.tree['el_phi'][iel]
+			elz0 = self.tree['el_trkz0'][iel]
+			eld0 = self.tree['el_trkd0'][iel]
 
 			elVec_i = ROOT.TLorentzVector()
 			elVec_i.SetPtEtaPhiM(elpt, eleta, elphi, elmass)
@@ -797,6 +797,6 @@ class SumTrack:
 		self.sum_track_charge = 0
 
 		for k in range(n_tracks):
-			self.sum_track_pt += self.tree.get_dv['trk_pt_wrtSV'][k]
-			self.sum_track_pt_wrt_pv += self.tree.get_dv['trk_pt'][k]
-			self.sum_track_charge += self.tree.get_dv['trk_charge'][k]
+			self.sum_track_pt += self.tree.get_dv('trk_pt_wrtSV')[k]
+			self.sum_track_pt_wrt_pv += self.tree.get_dv('trk_pt')[k]
+			self.sum_track_charge += self.tree.get_dv('trk_charge')[k]

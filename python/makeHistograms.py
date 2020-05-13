@@ -83,8 +83,8 @@ def main():
 			# for ievt in range(entries):
 			new_tree.reset_event()
 			while new_tree.ievt < entries:
-				if new_tree.ievt % 1000 == 0:
-					logger.info("Channel {}_{}: processing event {}".format(channel, vtx_container, new_tree.ievt))
+				if new_tree.ievt % 100 == 0:
+					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, new_tree.ievt, entries))
 				# Create an event instance to keep track of basic event properties
 				# evt = helpers.Event(tree=tree, ievt=new_tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
 

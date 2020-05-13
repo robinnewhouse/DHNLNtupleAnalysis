@@ -56,7 +56,7 @@ class NewTree:
 	def add(self, key):
 		"""Loads a tree from uproot into a numpy array.
 		key is the parameter to be loaded."""
-		logger.info("Accessing tree {} for the first time. Loading from file.".format(key))
+		logger.debug("Accessing tree {} for the first time. Loading from file.".format(key))
 		try:
 			self.arrays[key] = self.tree[key].array(entrystop=self.max_entries)
 		except KeyError as e:
@@ -91,9 +91,9 @@ class NewTree:
 			# Load the tree from uproot if it hasn't been loaded yet.
 			self.add(key)
 		val = self.arrays[key][ievt]
-		if idv:
+		if idv is not None:
 			val = val[idv]
-		if itrk:
+		if itrk is not None:
 			val = val[itrk]
 		return val
 
@@ -155,11 +155,11 @@ class NewTree:
 
 	@property
 	def ndv(self):
-		return len(self.get_dv('x'))
+		return self['n'+self.dv_prefix]
 
 	@property
 	def ntrk(self):
-		return len(self.get_at('trk_pt_wrtSV', ievt=self.ievt, idv=self.idv))
+		return len(self.get_dv('trk_pt_wrtSV'))
 
 	@property
 	def dv_prefix(self):
