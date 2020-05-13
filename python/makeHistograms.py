@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import os,sys
 import helpers
-import ROOT
-import csv
 import analysis
 import treenames
 import json
@@ -21,24 +19,24 @@ def main():
 		os.mkdir(output_path)
 
 	with open(options.config, 'r') as json_config:
-		config_file = json.load(json_config)  # load JSON config file that contains a channel name mapped to a list of selections
-
+		# load JSON config file that contains a channel name mapped to a list of selections
+		config_file = json.load(json_config)
 
 	analysisCode = {}
-	# Define that we're using a specific type of anaysis
-	# anaClass = getattr(analysis, "oldHNLanalysis")
+	# Define that we're using a specific type of analysis
 	anaClass = getattr(analysis, options.analysis)
 
-	file = options.input[0] # get file 
-	treename = "outTree" # define tree name 
+	file = options.input[0]  # get file
+	treename = "outTree"  # define tree name
 
-	#loop over all the channels in the config file
+	# loop over all the channels in the config file
 	for channel, configs in config_file.items():
 
 		logger.info('Running on channel: {})'.format(channel))
-		file_info = helpers.File_info(file, channel) # If you are running on MC this will give info about signal mass and lifetime
+		# If you are running on MC this will give info about signal mass and lifetime
+		file_info = helpers.File_info(file, channel)
 
-		#create one output file per channel in your config file
+		# create one output file per channel in your config file
 		if "data" in options.config.split("config")[1]:
 			output_file = output_path + "histograms_data_{}.root".format(channel)
 		else:
@@ -51,45 +49,58 @@ def main():
 				logger.info('Removing {}'.format(output_file))
 				os.remove(output_file)  # if force option is given then remove histograms file that was previously created.
 
+		# Try to load only the number of entries of you need
+		entries = options.nevents if options.nevents else None
+		# Create new Tree class using uproot
+		new_tree = treenames.NewTree(file, treename, entries)
+		if new_tree.numentries < entries or entries is None:
+			entries = new_tree.numentries
+			# specify this to reduce number of entries loaded in each array
+		new_tree.max_entries = entries
+		logger.info('Going to process {}  events'.format(entries))
+
 		# loop over the vertex containers in each channel (usually just VSI & VSI Leptons)
 		for vtx_container in config_file[channel]["vtx_containers"]:
 
-			selections = config_file[channel]["selections"]  # define selections for the channel from the config file
-			# Try to load only the number of entries of you need
-			nentries = options.nevents if options.nevents else None
-			tree = treenames.Tree(file, treename, vtx_container, nentries)  # define variables in tree to be accessed from rootfile
-			if len(tree.dvmass) < nentries or nentries is None:
-					nentries = len(tree.dvmass)
-			logger.info('Going to process {} events'.format(nentries))
+			# define selections for the channel from the config file
+			selections = config_file[channel]["selections"]
+
+			# define variables in tree to be accessed from root file
+			# tree = treenames.Tree(file, treename, vtx_container, entries)
+			new_tree.vtx_container = vtx_container
 
 			# blinding flag to prevent accidental unblinding in data
-			if blinded and tree.isData and "CR" not in selections:
+			if blinded and new_tree.is_data and "CR" not in selections:
 				if "OS" in selections or "SS" not in selections:
 					logger.error("You are running on data and you cannot look at OS verticies!!! Please include SS, not OS in selections.")
 					sys.exit(1)  # abort because of error
 
-
 			# Make instance of the analysis class
-			ana = anaClass(vtx_container, selections, output_file, isdata=tree.isData)
+			ana = anaClass(new_tree, vtx_container, selections, output_file)
 
-			
+
 			# Loop over each event
-			for ievt in range(nentries):
-				if (ievt % 1000 == 0):
-					logger.info("Channel {}_{}: processing event {}".format(channel, vtx_container, ievt))
+			# for ievt in range(entries):
+			new_tree.reset_event()
+			while new_tree.ievt < entries:
+				if new_tree.ievt % 1000 == 0:
+					logger.info("Channel {}_{}: processing event {}".format(channel, vtx_container, new_tree.ievt))
 				# Create an event instance to keep track of basic event properties
-				evt = helpers.Event(tree=tree, ievt=ievt, mass=file_info.mass, ctau=file_info.ctau)
-				ndv = len(tree.dvx[ievt])
+				# evt = helpers.Event(tree=tree, ievt=new_tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
 
 				# Run preselection cuts to avoid processing unnecessary events
-				presel = ana.preSelection(evt)
+				presel = ana.preSelection()
 
 				# Loop over each vertex in the event
-				for idv in range(ndv):
-					DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv,mass=file_info.mass,ctau=file_info.ctau)
-					ana.DVSelection(DVevt)
+				new_tree.reset_dv()
+				while new_tree.idv < new_tree.ndv:
+					# DVevt = helpers.Event(tree=tree, ievt=new_tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
+					ana.DVSelection()
+					new_tree.increment_dv()
 
+				new_tree.increment_event()
 				ana.unlock()
+
 			# Call functions to finalize analysis
 			ana.end()
 			# Store analysis in dictionary for possible later use

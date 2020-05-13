@@ -2,13 +2,7 @@ import ROOT
 # from ROOT import * 
 import numpy as np
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-import math
-import sys
-import ast
-import os
-import re
-import subprocess
-import atlas_style, selections
+import atlas_style
 
 import logging
 # logging.captureWarnings(True)
@@ -126,6 +120,7 @@ class Truth():
 										)
 
 		try:
+			import selections
 			Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec )
 			self.mhnl = Mhnl.mhnl
 		except:
@@ -135,7 +130,8 @@ class Truth():
 
 
 class Tracks(): 
-	def __init__(self):
+	def __init__(self, tree):
+		self.tree = tree
 		self.lepVec = []
 		self.lepIndex = []
 		self.eta = []
@@ -143,105 +139,79 @@ class Tracks():
 		self.pt = []
 		self.ntracks = -1 
 
-	def getMuons(self, evt):
-		self.evt = evt 
-		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
+	def getMuons(self):
+		self.ntracks = self.tree.ntrk
 		# print "number of tracks: ", self.ntracks
-		for itr in range(self.ntracks):
+		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
-			if (self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched muon!
-				# find position of muon in the muon container that is matched to the sec vtx track (works for calibrated and uncalibrated containers)
-				if len(self.evt.tree.muonindex[self.evt.ievt]) > 0: 
-					muon_index = np.where(self.evt.tree.muonindex[self.evt.ievt] == self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr])[0][0]
+			if self.tree.get_dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
+				# find position of muon in the muon container that is matched to the sec vtx track
+				# (works for calibrated and uncalibrated containers)
+				if len(self.tree['muon_index']) > 0:
+					muon_index = np.where(self.tree['muon_index'] == self.tree.get_dv('trk_muonIndex')[itrk])[0][0]
 					# print "muon index: ", muon_index
-					# print  "track index", self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr]
+					# print  "track index", self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itrk]
 
 					# use track quantities
-					pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-					eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-					phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
-					M = self.evt.tree.trackmass[self.evt.ievt][self.evt.idv][itr]
-					# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
-					lepVec.SetPtEtaPhiM(pt,eta, phi, M)
-
-					# use calibrated muon quantities
-					# pt = self.evt.tree.muonpt[self.evt.ievt][muon_index]
-					# eta = self.evt.tree.muoneta[self.evt.ievt][muon_index]
-					# phi = self.evt.tree.muonphi[self.evt.ievt][muon_index]
-					# M = self.evt.tree.muonmass[self.evt.ievt][muon_index]
-					# lepVec.SetPtEtaPhiM(pt,eta, phi, M)
-
+					pt = self.tree.get_dv('trk_pt_wrtSV')[itrk]
+					eta = self.tree.get_dv('trk_eta_wrtSV')[itrk]
+					phi = self.tree.get_dv('trk_phi_wrtSV')[itrk]
+					M = self.tree.get_dv('trk_M')[itrk]
+					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 					self.pt.append(pt)
 					self.eta.append(eta)
 					self.phi.append(phi)
 
-						
 					self.lepVec.append(lepVec)
 					self.lepIndex.append(muon_index)
 				else:
 					continue
-	
-	
-	def getElectrons(self, evt):
-		self.evt = evt 
-		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
-		for itr in range(self.ntracks):
+	def getElectrons(self):
+		self.ntracks = self.tree.ntrk
+
+		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
-			
-			if (self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr] >= 0): #matched electron!
-				# find position of electron in the electron container that is matched to the sec vtx track (works for calibrated and uncalibrated containers)
-				if len(self.evt.tree.elindex[self.evt.ievt]) > 0: 
-					el_index = np.where(self.evt.tree.elindex[self.evt.ievt] == self.evt.tree.trk_elindex[self.evt.ievt][self.evt.idv][itr])[0][0]
-					
 
-					if (self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr] >= 0): # remove electrons that are also matched to muons!
-						if len(self.evt.tree.muonindex[self.evt.ievt]) > 0: 
-							muon_index = np.where(self.evt.tree.muonindex[self.evt.ievt] == self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itr])[0][0]
+			if self.tree.get_dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
+				# find position of electron in the electron container that is matched to the sec vtx track
+				# (works for calibrated and uncalibrated containers)
+				if len(self.evt.tree.elindex[self.evt.ievt]) > 0:
+					el_index = np.where(self.tree['el_index'] == self.tree.get_dv('trk_electronIndex')[itrk])[0][0]
+
+					# remove electrons that are also matched to muons!
+					if self.tree.get_dv('trk_muonIndex')[itrk] >= 0:
+						if len(self.tree['muon_index']) > 0:
+							muon_index = np.where(self.tree['muon_index'] == self.tree.get_dv('trk_muonIndex')[itrk])[0][0]
 							# print muon_index
 							# print "track is matched to both muon and electron!"
 							continue
 
-					#use track quantities
-					pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-					eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-					phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
-					M = self.evt.tree.trackmass[self.evt.ievt][self.evt.idv][itr]
-					# E = self.evt.tree.tracke[self.evt.ievt][self.evt.idv][itr]
+					# use track quantities
+					pt = self.tree.get_dv('trk_pt_wrtSV')[itrk]
+					eta = self.tree.get_dv('trk_eta_wrtSV')[itrk]
+					phi = self.tree.get_dv('trk_phi_wrtSV')[itrk]
+					M = self.tree.get_dv('trk_M')[itrk]
 					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
-					# use calibrated electron quantities
-					# pt = self.evt.tree.elpt[self.evt.ievt][el_index]
-					# eta = self.evt.tree.eleta[self.evt.ievt][el_index]
-					# phi = self.evt.tree.elphi[self.evt.ievt][el_index]
-					# M = self.evt.tree.elmass[self.evt.ievt][el_index]
-					# lepVec.SetPtEtaPhiM(pt,eta, phi, M)
-					
 					self.pt.append(pt)
 					self.eta.append(eta)
 					self.phi.append(phi)
 
-
 					self.lepVec.append(lepVec)
 					self.lepIndex.append(el_index)
-				else: 
-					continue 
-	
+				else:
+					continue
 
-
-
-	def getTracks(self, evt):
-		self.evt = evt
-		self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
-
-		for itr in range(self.ntracks):
+	def getTracks(self):
+		for itrk in range(self.tree.ntrk):
 			trkvec = ROOT.TLorentzVector()
-			pt = self.evt.tree.trackpt[self.evt.ievt][self.evt.idv][itr]
-			eta = self.evt.tree.tracketa[self.evt.ievt][self.evt.idv][itr]
-			phi = self.evt.tree.trackphi[self.evt.ievt][self.evt.idv][itr]
-			M = self.evt.tree.trackmass[self.evt.ievt][self.evt.idv][itr]
-			
+			pt = self.tree.get_dv('trk_pt_wrtSV')[itrk]
+			eta = self.tree.get_dv('trk_eta_wrtSV')[itrk]
+			phi = self.tree.get_dv('trk_phi_wrtSV')[itrk]
+			M = self.tree.get_dv('trk_M')[itrk]
+
 			trkvec.SetPtEtaPhiM(pt, eta, phi, M)
 
 			self.lepVec.append(trkvec)
