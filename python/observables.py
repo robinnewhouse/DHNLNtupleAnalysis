@@ -86,11 +86,15 @@ Observable("el_phi", binning = (16 ,-4,4), do = ['hist']).queue()
 
 def reco_histograms(selection): 
 	# histograms after selection selection
+	Observable(selection + "_nonlep_pt",binning = (1000,0,1000), do = ['hist']).queue()
+	Observable(selection + "_nonlep_eta",binning = (40,-10,10),do = ['hist']).queue()
+	Observable(selection + "_nonlep_phi", binning = (16,-4,4), do = ['hist']).queue()
+	Observable(selection + "_nonlep_d0",binning = (2000,-1000,1000), do = ['hist']).queue()
 	Observable(selection + "_plep_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_plep_eta",binning = (40,-10,10),do = ['hist']).queue()
 	Observable(selection + "_plep_phi", binning = (16,-4,4), do = ['hist']).queue()
-	Observable(selection + "_plep_d0", do = ['hist']).queue()
-	Observable(selection + "_plep_z0", do = ['hist']).queue()
+	Observable(selection + "_plep_d0",binning = (2000,-1000,1000), do = ['hist']).queue()
+	Observable(selection + "_plep_z0",binning = (2000,-1000,1000), do = ['hist']).queue()
 
 	Observable(selection + "_DV_trk_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_eta",binning = (160,-10,10),do = ['hist']).queue()
@@ -138,8 +142,8 @@ reco_histograms("cosmic")
 reco_histograms("mlll")
 reco_histograms("mDV")
 reco_histograms("HNLpt")
-reco_histograms("1tight")
-reco_histograms("2tight")
+reco_histograms("tight1")
+reco_histograms("tight2")
 reco_histograms("sel")
 
 
@@ -166,6 +170,13 @@ def truth_histograms(selection):
 	Observable("truth_" + selection + "_DV_trk_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
 	Observable("truth_" + selection + "_DV_trk_eta",binning = (160,-10,10),do = ['hist'], need_truth = True).queue()
 	Observable("truth_" + selection + "_DV_trk_phi", binning =(64,-4,4), do = ['hist'], need_truth = True).queue()
+
+	Observable("truth_" + selection + "_lep1_trk_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_lep1_trk_eta",binning = (160,-10,10),do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_lep1_trk_phi", binning =(64,-4,4), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_lep2_trk_pt",binning = (1000,0,1000), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_lep2_trk_eta",binning = (160,-10,10),do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_lep2_trk_phi", binning =(64,-4,4), do = ['hist'], need_truth = True).queue()
 	# Observable("truth_" + selection + "_DV_trk_d0", do = ['hist'], need_truth = True).queue() # no d0 or z0 for truth particles
 	# Observable("truth_" + selection + "_DV_trk_z0", do = ['hist'], need_truth = True).queue()
 	# Observable("truth_" + selection + "_DV_trk_charge",binning = (11,-5.5,5.5), do = ['hist'], need_truth = True).queue()
@@ -209,8 +220,8 @@ truth_histograms("cosmic")
 truth_histograms("mlll")
 truth_histograms("mDV")
 truth_histograms("HNLpt")
-truth_histograms("1tight")
-truth_histograms("2tight")
+truth_histograms("tight1")
+truth_histograms("tight2")
 truth_histograms("sel")
 
 

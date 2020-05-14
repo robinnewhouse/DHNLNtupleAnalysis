@@ -15,32 +15,33 @@ def getNote(size=12):
 	return n
 
 	
-def drawNotes(channel,VtxConfig):
+def drawNotes(channel,VtxConfig,lumi):
 	a = getNote()
 	b = getNote()
 	c = getNote()
 	d = getNote()
 	e = getNote()
 	f = getNote()
-	ax = 0.25
+	ax = 0.22
 	ay = 0.82
 
-
+	b.DrawLatex(ax,ay,"\sqrt{s} = 13 TeV, \int Ldt = %s fb^{-1}"%lumi)
 	if  "uuu" in channel:
-		a.DrawLatex(ax,ay,'channel: \mu\mu\mu')
+		a.DrawLatex(ax,ay-0.05,'channel: \mu\mu\mu')
 	elif "ueu" in channel:
-		a.DrawLatex(ax,ay,'channel: \mue\mu')
+		a.DrawLatex(ax,ay-0.05,'channel: \mue\mu')
 	elif "uee" in channel:
-		a.DrawLatex(ax,ay,'channel: \muee')
+		a.DrawLatex(ax,ay-0.05,'channel: \muee')
 	elif "eee" in channel:
-		a.DrawLatex(ax,ay,'channel: eee')
+		a.DrawLatex(ax,ay-0.05,'channel: eee')
 	elif "eeu" in channel:
-		a.DrawLatex(ax,ay,'channel: ee\mu')
+		a.DrawLatex(ax,ay-0.05,'channel: ee\mu')
 	elif "euu" in channel:
-		a.DrawLatex(ax,ay,'channel: e\mu\mu')
+		a.DrawLatex(ax,ay-0.05,'channel: e\mu\mu')
 
 	# c.DrawLatex(ax,ay-0.15,'(m_{HNL}, c\\tau) = (10, 100)')
-	b.DrawLatex(ax,ay-0.05,'%s'%(VtxConfig))
+	
+	c.DrawLatex(ax,ay-0.1,'%s'%(VtxConfig))
 
 	# else: 
 	# 	a.DrawLatex(ax,ay,'%s'%MC_campaign) 
@@ -59,7 +60,7 @@ def drawNotes(channel,VtxConfig):
 	# 	f.DrawLatex(ax,ay-0.25,'%s'%(VtxConfig))
 	# 	# else:
 		# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
+	atlas_style.ATLASLabel(0.22,0.87,"Internal")
 
 
 def drawNotesMC(MC_campaign,Vertextype, channel,mass,lifetime):

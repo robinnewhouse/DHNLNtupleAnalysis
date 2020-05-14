@@ -75,7 +75,8 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 	#format legend
 	leg01 = ROOT.TLegend(0.58,0.65,0.91,0.92)
-	leg01.SetTextSize(0.035)
+	leg01 = ROOT.TLegend(0.58,0.75,0.91,0.92) # single entry 
+	leg01.SetTextSize(0.03)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
@@ -120,7 +121,7 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 		h[i].SetMarkerStyle(shapelist[i])
 		if i == 0:
 			h[i].GetXaxis().SetTitle(plotting_helpers.xlabelhistograms(hname[i]))
-			h[i].GetYaxis().SetTitle("entries")
+			h[i].GetYaxis().SetTitle("Events")
 			h[i].GetYaxis().SetRangeUser(0.0001,y_max*scaleymax)
 			if setxrange != "":
 				X_minmax = [item for item in setxrange.split(' ')]
@@ -137,22 +138,21 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 
 	leg01.Draw()
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 	if "data" in file: 
 		plotting_helpers.drawNotesData("data18 period B",vertextype) 
 	if "uuu" in file: 
-		plotting_helpers.drawNotes("mumu","muon",vertextype) 
+		plotting_helpers.drawNotes("uuu",vertextype,lumi) 
 	elif "ueu" in file: 
-		plotting_helpers.drawNotes("emu","muon",vertextype) 
+		plotting_helpers.drawNotes("ueu",vertextype,lumi) 
 	elif "uee" in file: 
-		plotting_helpers.drawNotes("ee","muon",vertextype) 
+		plotting_helpers.drawNotes("uee",vertextype,lumi) 
 	elif "eee" in file: 
-		plotting_helpers.drawNotes("ee","electron",vertextype) 
+		plotting_helpers.drawNotes("eee",vertextype,lumi) 
 	elif "eeu" in file: 
-		plotting_helpers.drawNotes("emu","electron",vertextype) 
+		plotting_helpers.drawNotes("eeu",vertextype,lumi) 
 	elif "euu" in file: 
-		plotting_helpers.drawNotes("mumu","electron",vertextype) 
+		plotting_helpers.drawNotes("euu",vertextype,lumi) 
 
 	if "HNLpt" in hname[0]:
 		min_HNLptcut=TLine(20,0,20,y_max)
@@ -332,6 +332,7 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	leg01.AddEntry(hdata,"","")
 	for i in range(nmc_files): 
 		leg01.AddEntry(hmc[i],"\\bf{%s}"%hmclabels[i]+ " \\bf{%s)}"%mc_yield[i],"lp")
+		# leg01.AddEntry(hmc[i],"\\bf{%s}"%hmclabels[i],"lp")
 
 
 	if setlogy: 

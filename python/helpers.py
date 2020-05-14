@@ -61,6 +61,9 @@ class Truth():
 		self.truth_dvx = -1 
 		self.truth_dvy = -1 
 		self.truth_dvz = -1 
+		self.truth_pvx = -1 
+		self.truth_pvy = -1 
+		self.truth_pvz = -1 
 		self.truth_dvr = -1 
 		self.W_vec =  ROOT.TLorentzVector()
 		self.plep_vec =  ROOT.TLorentzVector()
@@ -115,6 +118,11 @@ class Truth():
 
 			if abs(evt.tree.truth_parent_pdgId[evt.ievt][idvtru]) == 24: # get the PV!
 				if len(evt.tree.truth_outP_pdgId[evt.ievt][idvtru]) == 2:
+
+					self.truth_pvx = evt.tree.truth_x[evt.ievt][idvtru]
+					self.truth_pvy = evt.tree.truth_y[evt.ievt][idvtru]
+					self.truth_pvz = evt.tree.truth_z[evt.ievt][idvtru] 
+
 					self.plep_vec.SetPtEtaPhiM(  evt.tree.truth_outP_pt[evt.ievt][idvtru][0],
 											evt.tree.truth_outP_eta[evt.ievt][idvtru][0],
 											evt.tree.truth_outP_phi[evt.ievt][idvtru][0],
@@ -126,8 +134,8 @@ class Truth():
 										evt.tree.truth_parent_m[evt.ievt][idvtru]
 										)
 
-		Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec )
-		self.mhnl = Mhnl.mhnl
+		# Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec ) # bug need to adapt mhnl to run with truth vertices 
+		# self.mhnl = Mhnl.mhnl
 
 
 
