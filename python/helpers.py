@@ -61,11 +61,11 @@ class Truth():
 		self.HNL_pdgID = 50
 
 	def getTruthParticles(self, tree):
-		ntruthDV = len(tree['truth_parent_pdgId'])
+		ntruthDV = len(tree['truthVtx_parent_pdgId'])
 
 		for idvtru in range(ntruthDV):
-			if abs(tree['truth_parent_pdgId'][idvtru]) == 50:  # get the DV!
-				if len(tree['truth_outP_pdgId'][idvtru]) == 3:
+			if abs(tree['truthVtx_parent_pdgId'][idvtru]) == 50:  # get the DV!
+				if len(tree['truthVtx_outP_pdgId'][idvtru]) == 3:
 
 					self.truth_dvx = tree['truthVtx_x'][idvtru]
 					self.truth_dvy = tree['truthVtx_y'][idvtru]
