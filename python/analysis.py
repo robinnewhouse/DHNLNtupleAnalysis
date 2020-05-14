@@ -331,7 +331,7 @@ class Analysis(object):
 		charge_sel = selections.ChargeDV(evt=evt, sel=sign_pair)
 		return charge_sel.passes()
 
-	def _dv_type_cut(self, evt, dv_type):
+	def _dv_type_cut(self, evt):
 		dv_sel = selections.DVtype(evt=evt, dv_type=self.dv_type)
 		return dv_sel.passes()
 
@@ -668,18 +668,9 @@ class oldAnalysis(Analysis):
 
 		if self.do_invert_trigger_cut:
 			if self._invert_trigger_cut(evt):
-				# Fill the plot at the specified bin
 				self.h['CutFlow'][self.ch].Fill(2)
 			else:
 				return
-	
-
-		# if self.do_nmuon_cut:
-		# if self._nmuon_cut(evt):
-		# 	self.h['CutFlow'][self.ch].Fill(3)
-		# else:
-		# 	return
-
 
 		if self.do_filter_cut:
 			if self._filter_cut(evt):
@@ -757,7 +748,7 @@ class oldAnalysis(Analysis):
 		self._fill_selected_dv_histos(evt, "charge")
 
 		if self.do_dv_type_cut:
-			if self._dv_type_cut(evt, self.dv_type):	
+			if self._dv_type_cut(evt):	
 				if not self.passed_dv_type_cut:
 					self.h['CutFlow'][self.ch].Fill(9)
 					self.passed_dv_type_cut = True
