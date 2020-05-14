@@ -55,8 +55,6 @@ class Analysis(object):
 		# trigger cut
 		if 'alltriggers' in self.sel:
 			self.trigger = 'all'
-			self.trigger = 'leaky_triggers'
-			self.trigger = 'DAOD_RPVLL'
 			self.do_trigger_cut = True
 		else:
 			logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
