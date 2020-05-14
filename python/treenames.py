@@ -50,8 +50,9 @@ class Tree():
 		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() #d0 and z0 are track quantites calculated wrt IP we dont want to look at the _wrtSV variable!
 		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
 
-		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
-		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() 
+		self.trackpx = self.tree[DVprefix + "_trk_px"].array() 
+		self.trackpy = self.tree[DVprefix + "_trk_py"].array() 
+		self.trackpz = self.tree[DVprefix + "_trk_pz"].array()
 
 		# -----------------------------------------------------------------------
 		# DV reco variables
@@ -81,6 +82,7 @@ class Tree():
  		self.muonphi = self.tree["muon_phi"].array() 
 		self.muond0 = self.tree["muon_trkd0"].array() 
 		self.muonz0 = self.tree["muon_trkz0"].array()
+		self.muonz0sintheta = self.tree["muon_trkz0sintheta"].array()
 		self.muonpx = self.tree["muon_px"].array() 
 		self.muonpy = self.tree["muon_py"].array() 
 		self.muonpz = self.tree["muon_pz"].array() 
@@ -102,8 +104,11 @@ class Tree():
 		self.elphi = self.tree["el_phi"].array()  
 		self.eld0 = self.tree["el_trkd0"].array() 
 		self.elz0 = self.tree["el_trkz0"].array()
+		self.elz0sintheta = self.tree["el_trkz0sintheta"].array()
 		self.elmass = self.tree["el_m"].array()  
 		self.tightel = self.tree["el_LHTight"].array()
+		self.mediumel = self.tree["el_LHMedium"].array()
+		self.looseel = self.tree["el_LHLoose"].array()
 		self.elpassPfilter = self.tree["el_passesPromptCuts"].array() 
 		# -----------------------------------------------------------------------
 

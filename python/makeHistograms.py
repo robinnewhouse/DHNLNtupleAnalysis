@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os
+import os,sys
 import helpers
 import ROOT
 import csv
@@ -44,7 +44,10 @@ def main():
 		if "data" in options.config.split("config")[1]:
 			outputfile = output_path + "histograms_data_%s.root"%channel
 		else:
-			outputfile = output_path + file_info.Output_filename
+			if "CR" in config_file[channel]["selections"]: 
+				outputfile = output_path + "CR_"+file_info.Output_filename
+			else:
+				outputfile = output_path + file_info.Output_filename
 		if os.path.exists(outputfile):
 			if options.force == False:
 				if "data" in options.config.split("config")[1]:
@@ -65,9 +68,17 @@ def main():
 
 			#blinding flag to prevent accidental unblinding in data
 			if blinded:
-				if tree.isData and "OS" in selections:
-					logger.error("You are running on data and you cannot look at OS verticies!!!")
-					exit()
+				if tree.isData: 
+					if "CR" in selections:
+						pass
+					else: 
+						if "OS" in selections:
+							logger.error("You are running on data and you cannot look at OS verticies!!!")
+							sys.exit(1)  # abort because of error
+						if ("SS" in selections) == False:
+							logger.error("You are running on data and you are not in the CR. You must only look at SS vertices!!!")
+							sys.exit(1)  # abort because of error
+
 
 			# Make instance of the analysis class
 			ana = anaClass(vtx_container, selections, outputfile,isdata=tree.isData)
