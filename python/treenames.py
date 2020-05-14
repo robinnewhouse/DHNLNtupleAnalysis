@@ -62,7 +62,8 @@ class NewTree:
 		try:
 			self.arrays[key] = self.tree[key].array(entrystop=self.max_entries)
 		except KeyError as e:
-			print("Key not found", e)
+			raise KeyError("Key not found: {} Make sure this key is in your ntuple.".format(key))
+
 
 	def get(self, key):
 		return self[key]
