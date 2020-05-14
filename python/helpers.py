@@ -134,8 +134,8 @@ class Truth():
 										evt.tree.truth_parent_m[evt.ievt][idvtru]
 										)
 
-		Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec )
-		self.mhnl = Mhnl.mhnl
+		# Mhnl = selections.Mhnl(evt=evt, plep=self.plep_vec, trks =self.trkVec ) # bug need to adapt mhnl to run with truth vertices 
+		# self.mhnl = Mhnl.mhnl
 
 
 
