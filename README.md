@@ -16,7 +16,7 @@ git clone ssh://git@gitlab.cern.ch:7999/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtu
 The analysis code uses the package `uproot` to load root files. For more details see [uproot documentation](https://pypi.org/project/uproot/). To setup python to include the `uproot` package on lxplus do the following: 
 
 ```
-source /cvmfs/sft.cern.ch/lcg/views/LCG_latest/x86_64-centos7-gcc9-opt/setup.sh
+source /cvmfs/sft.cern.ch/lcg/views/LCG_96c_LS/x86_64-centos7-gcc8-opt/setup.sh
 ```
 
 If you are running on a local cluster the complier version might change (i.e. gcc9 -> gcc8). Alternatively you can setup python and install the uproot package locally yourself. 
@@ -53,14 +53,12 @@ python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.js
 
 ## A note about MC weighting
 
-Event weighting for monte carlo samples should be implmented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
+Event weighting for monte carlo samples is implmented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
 
 ```
 "Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!"
 ```
-this is becuase your file is not appropriately We are investigating how to include this information in the DHNL ntuples.
-
-For now either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
+this is becuase your file is not appropriately named.Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
 
 
 ### Running plotHistograms.py
@@ -84,9 +82,9 @@ The `makeHistogram.py` file is the steering code for making histograms. To run t
 
 To add a new channel, edit the corresponding config file and make a new channel that includes the cuts you wish to apply. 
 
-For example if you edit `../data/config_mc_all.json` and add "my_new_channel", when you run `makeHistograms.py -i inputFile --config ../data/config_mc_all.json`, a new histograms file will be created called `histograms_my_new_channel.root` in the output directory. This output file will include histograms with your new cuts. 
+For example if you edit `../data/config_mc_uuu.json` and add "my_new_channel", when you run `makeHistograms.py -i inputFile --config ../data/config_mc_uuu.json`, a new histograms file will be created called `histograms_my_new_channel.root` in the output directory. This output file will include histograms with your new cuts. 
 
-N.B If you wish to apply a new set of cuts that are not implemented you may wish to make a new analysis class. An example can be found in the comments at the end of `analysis.py`
+N.B If you wish to apply a new set of cuts that are not implemented you may wish to make a new analysis class. See Toy Analysis Class in `analysis.py` as an example.
 
 For a list of the currently implemented cuts see the Analysis class definition in `analysis.py`.
 
@@ -128,10 +126,4 @@ For comparing N histograms in the same file:
 1. open `plotHistogram.py`
 2. edit compareHistograms() following the examples provided. 
 3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/`
-
-
-
-
-
-
 
