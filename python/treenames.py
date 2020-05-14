@@ -48,6 +48,8 @@ class NewTree:
 
 	def increment_dv(self):
 		self.idv += 1
+		if self.idv > self.ndv:
+			raise IndexError("DV index is too large. Is your loop resetting it?")
 
 	def reset_dv(self):
 		"""Sets the displaced vertex index to zero."""
@@ -159,7 +161,7 @@ class NewTree:
 
 	@property
 	def ntrk(self):
-		return len(self.get_dv('trk_pt_wrtSV'))
+		return self.get_dv('ntrk')
 
 	@property
 	def dv_prefix(self):

@@ -81,7 +81,6 @@ def main():
 
 			# Loop over each event
 			# for ievt in range(entries):
-			new_tree.reset_event()
 			while new_tree.ievt < entries:
 				if new_tree.ievt % 100 == 0:
 					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, new_tree.ievt, entries))
@@ -92,19 +91,22 @@ def main():
 				presel = ana.preSelection()
 
 				# Loop over each vertex in the event
-				new_tree.reset_dv()
 				while new_tree.idv < new_tree.ndv:
 					# DVevt = helpers.Event(tree=tree, ievt=new_tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
 					ana.DVSelection()
 					new_tree.increment_dv()
 
+				new_tree.reset_dv()
 				new_tree.increment_event()
 				ana.unlock()
 
 			# Call functions to finalize analysis
+			new_tree.reset_event()
 			ana.end()
 			# Store analysis in dictionary for possible later use
-			analysisCode["%s_%s"%(channel,vtx_container)] = ana
+			# This is a huge memory hog and will likely crash if too many histograms are declared
+			# Recommended not to use unless necessary and unless a minimal number of histograms are written.
+			# analysisCode["%s_%s"%(channel,vtx_container)] = ana
 
 
 if __name__ == "__main__":

@@ -148,18 +148,18 @@ class InvertedPromptLepton():
 
 
 class Plepton():
-	def __init__(self, tree, lepton, quality="tight", mindR=0.05, invert=False):
+	def __init__(self, tree, lepton, quality="tight", mindR=0.05):
 		self.tree = tree
 		self.lepton = lepton
 		self.quality = quality 
 		self.mindR = mindR
-		self.invert = invert
 
 		self.plepVec = ROOT.TLorentzVector(0, 0, 0, 0)
 		self.plepd0 = -2000
 		self.plepz0 = -2000
 		ndv = tree.ndv
 		nleps = 0
+		self.nPlep = 0
 
 		lepquality = ""
 		passPfilter = False
@@ -176,11 +176,11 @@ class Plepton():
 
 		if self.lepton == "electron":
 			if self.quality == "tight":  # tight electron is requested
-				lepquality = self.tree['el_LHTight']
+				lepquality = 'el_LHTight'
 			if self.quality == "medium":
-				lepquality = self.tree['el_LHMedium']
+				lepquality = 'el_LHMedium'
 			if self.quality == "loose":
-				lepquality = self.tree['el_LHLoose']
+				lepquality = 'el_LHLoose'
 
 
 			nleps = len(self.tree['el_pt'])
@@ -218,7 +218,7 @@ class Plepton():
 			# check if the plep passes the DRAW filter and passes quality before looping over tracks
 			# changed to be careful with negative electron quality values # RN
 			passes_lep_quality = lepquality == "" or self.tree[lepquality][ilep] > 0
-			if passPfilter and passes_lep_quality:
+			if passPfilter[ilep] and passes_lep_quality:
 				for idv in range(ndv):
 					leptracks = helpers.Tracks(self.tree)
 					# trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
@@ -297,8 +297,8 @@ class DVradius():
 		self.tree = tree
 		self.rdv = -1
 		if self.tree.ntrk > 0:
-			dx = self.tree.get_dv['x']
-			dy = self.tree.get_dv['y']
+			dx = self.tree.get_dv('x')
+			dy = self.tree.get_dv('y')
 			self.rdv = np.sqrt(dx**2 + dy**2)
 
 	def passes(self, rdv_min=4, rdv_max=300):
@@ -342,8 +342,8 @@ class ChargeDV():
 			self.ntracks = self.tree.ntrk
 
 			if self.ntracks == 2: 
-				self.charge_trk1 = self.tree.get_dv['trk_charge'][0]
-				self.charge_trk2 = self.tree.get_dv['trk_charge'][1]
+				self.charge_trk1 = self.tree.get_dv('trk_charge')[0]
+				self.charge_trk2 = self.tree.get_dv('trk_charge')[1]
 
 	def passes(self): 
 		if self.sel == 'OS':

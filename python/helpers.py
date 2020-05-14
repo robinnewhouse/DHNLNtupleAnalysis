@@ -172,7 +172,7 @@ class Tracks():
 			if self.tree.get_dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.evt.tree.elindex[self.evt.ievt]) > 0:
+				if len(self.tree['el_index']) > 0:
 					el_index = np.where(self.tree['el_index'] == self.tree.get_dv('trk_electronIndex')[itrk])[0][0]
 
 					# remove electrons that are also matched to muons!
