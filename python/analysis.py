@@ -863,7 +863,7 @@ class ToyAnalysis(Analysis):
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(17, "2-tight")
 		
 		# 2D correlation plots after each cut in the DV
-		sel_list = ["charge", "DVtype", "mDV","mlll", "HNLpt","tight1","tight2","sel"]
+		sel_list = ["charge", "DVtype", "mDV","mlll", "HNLpt","sel"]
 		for sel in sel_list:
 			self.add2D( sel + '_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 			self.add2D( sel + '_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
@@ -910,9 +910,9 @@ class ToyAnalysis(Analysis):
 			trkVec = tracks.lepVec	
 
 			if tracks.ntracks == 2: 
-				Mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
-				Mhnl = selections.Mhnl(evt=evt, plep=plep_vec, trks =trkVec )
-				Mtrans = selections.Mtrans(plep=plep_vec, trks =trkVec )
+				Mltt = selections.Mltt(plep=self.plep_sel.plepVec, trks=trkVec)
+				Mhnl = selections.Mhnl(evt=evt, plep=self.plep_sel.plepVec, trks =trkVec )
+				Mtrans = selections.Mtrans(plep=self.plep_sel.plepVec, trks =trkVec )
 				
 				# fill 2D mass correlation plots here 
 				self.h[sel +'_DVmass_mvis'][self.ch].Fill(evt.tree.dvmass[evt.ievt][evt.idv],Mltt.mltt, w)
@@ -1175,7 +1175,6 @@ class ToyAnalysis(Analysis):
 			else:
 				return
 		self._fill_selected_dv_histos(evt, "cosmic")
-		self._fill_correlation_histos(evt, "cosmic")
 
 		if self._track_quality_cut_1tight(evt):
 			if not self.passed_track_1tight_cut:
@@ -1185,7 +1184,6 @@ class ToyAnalysis(Analysis):
 			return
 
 		self._fill_selected_dv_histos(evt, "tight1")
-		self._fill_correlation_histos(evt, "tight1")
 
 		if self._track_quality_cut_2tight(evt):
 			if not self.passed_track_2tight_cut:
@@ -1197,7 +1195,6 @@ class ToyAnalysis(Analysis):
 
 		self._fill_selected_dv_histos(evt,"sel")  # Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 		self._fill_correlation_histos(evt, "sel")
-
 
 
 
