@@ -13,7 +13,7 @@ blinded = True  # Dont dont change this flag! This ensures you do not accidental
 
 
 def main():
-	output_path = "/eos/home-r/rnewhous/HNL/"
+	output_path = options.config
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
 		os.mkdir(output_path)
@@ -66,7 +66,6 @@ def main():
 			selections = config_file[channel]["selections"]
 
 			# define variables in tree to be accessed from root file
-			# tree = treenames.Tree(file, treename, vtx_container, entries)
 			tree.vtx_container = vtx_container
 
 			# blinding flag to prevent accidental unblinding in data
@@ -78,11 +77,10 @@ def main():
 			# Make instance of the analysis class
 			ana = anaClass(tree, vtx_container, selections, output_file)
 
-
 			# Loop over each event
 			# for ievt in range(entries):
 			while tree.ievt < entries:
-				if tree.ievt % 100 == 0:
+				if tree.ievt % 1000 == 0:
 					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
 				# Create an event instance to keep track of basic event properties
 				# evt = helpers.Event(tree=tree, ievt=tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
@@ -105,7 +103,7 @@ def main():
 			ana.end()
 			# Store analysis in dictionary for possible later use
 			# This is a huge memory hog and will likely crash if too many histograms are declared
-			# Recommended not to use unless necessary and unless a minimal number of histograms are written.
+			# Recommended not to use unless necessary and unless a minimal number of histograms are written. # RN
 			# analysisCode["%s_%s"%(channel,vtx_container)] = ana
 
 
@@ -145,6 +143,12 @@ if __name__ == "__main__":
 						help="Input ntuple produced by DHNLAlgorithm.",
 						metavar="INPUT")
 
+	parser.add_argument("-o", "--output",
+						dest="output",
+						type=str,
+						default = "../output/",
+						help="Output directory to store histograms.")
+
 	parser.add_argument("-f", "--force",
 						action="store_true",
 						dest="force",
@@ -160,6 +164,7 @@ if __name__ == "__main__":
 						default = None,
 						type = int,
 						help='Number of events are going to be processed for test-only purpose.')
+
 	parser.add_argument('-a','--analysis',
 						dest="analysis",
 						default = "oldAnalysis",
