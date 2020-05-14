@@ -13,7 +13,7 @@ blinded = True  # Dont dont change this flag! This ensures you do not accidental
 
 
 def main():
-	output_path = options.config
+	output_path = options.output
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
 		os.mkdir(output_path)
