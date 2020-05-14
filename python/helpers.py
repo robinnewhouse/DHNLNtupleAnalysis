@@ -1,10 +1,11 @@
 import ROOT
-# from ROOT import * 
 import numpy as np
+
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import atlas_style
 
 import logging
+
 # logging.captureWarnings(True)
 msgfmt = '%(asctime)s %(levelname)-7s %(name)-35s %(message)s'
 datefmt = '%H:%M:%S'
@@ -19,31 +20,6 @@ def getLogger(name = None, level = logging.INFO):
         logger.setLevel(level)
     return logger
 logger = getLogger('dHNLAnalysis.helpers')
-
-
-
-class Event(): 
-	def __init__(self, tree, ievt, idv=None, mass=1.0, ctau=1.0):
-		self.tree = tree
-		self.ievt = ievt
-		self.idv = idv 
-		LNV = False
-
-		if tree.isData: # you are running on data
-			self.weight = 1
-		else: # you are running on MC file
-			if mass == -1 or ctau == -1: # MC weighting error
-				logger.debug("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
-				self.weight = 1
-			else: 
-				mW = 80.379 # mass of W boson in GeV
-				U2Gronau=4.49e-12*3e8*mass**(-5.19)/(ctau/1000) #LNC prediction	
-				if(LNV):  U2=0.5*U2
-				else: U2 =  U2Gronau
-
-				xsec = 20.6e6*U2*((1-(mass/mW)**2)**2)*(1+(mass**2)/(2*mW**2))#in fb
-				self.weight = 1*xsec/tree.allEvt #scale to 1 fb^-1  of luminosity
-
 
 
 class Truth(): 
@@ -139,19 +115,19 @@ class Tracks():
 		# print "number of tracks: ", self.ntracks
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
-			if self.tree.get_dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
+			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
 				if len(self.tree['muon_index']) > 0:
-					muon_index = np.where(self.tree['muon_index'] == self.tree.get_dv('trk_muonIndex')[itrk])[0][0]
+					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 					# print "muon index: ", muon_index
 					# print  "track index", self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itrk]
 
 					# use track quantities
-					pt = self.tree.get_dv('trk_pt_wrtSV')[itrk]
-					eta = self.tree.get_dv('trk_eta_wrtSV')[itrk]
-					phi = self.tree.get_dv('trk_phi_wrtSV')[itrk]
-					M = self.tree.get_dv('trk_M')[itrk]
+					pt = self.tree.dv('trk_pt_wrtSV')[itrk]
+					eta = self.tree.dv('trk_eta_wrtSV')[itrk]
+					phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+					M = self.tree.dv('trk_M')[itrk]
 					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 					self.pt.append(pt)
@@ -169,25 +145,25 @@ class Tracks():
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
 
-			if self.tree.get_dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
+			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
 				if len(self.tree['el_index']) > 0:
-					el_index = np.where(self.tree['el_index'] == self.tree.get_dv('trk_electronIndex')[itrk])[0][0]
+					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
 
 					# remove electrons that are also matched to muons!
-					if self.tree.get_dv('trk_muonIndex')[itrk] >= 0:
+					if self.tree.dv('trk_muonIndex')[itrk] >= 0:
 						if len(self.tree['muon_index']) > 0:
-							muon_index = np.where(self.tree['muon_index'] == self.tree.get_dv('trk_muonIndex')[itrk])[0][0]
+							muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 							# print muon_index
 							# print "track is matched to both muon and electron!"
 							continue
 
 					# use track quantities
-					pt = self.tree.get_dv('trk_pt_wrtSV')[itrk]
-					eta = self.tree.get_dv('trk_eta_wrtSV')[itrk]
-					phi = self.tree.get_dv('trk_phi_wrtSV')[itrk]
-					M = self.tree.get_dv('trk_M')[itrk]
+					pt = self.tree.dv('trk_pt_wrtSV')[itrk]
+					eta = self.tree.dv('trk_eta_wrtSV')[itrk]
+					phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+					M = self.tree.dv('trk_M')[itrk]
 					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 					self.pt.append(pt)
@@ -202,10 +178,10 @@ class Tracks():
 	def getTracks(self):
 		for itrk in range(self.tree.ntrk):
 			trkvec = ROOT.TLorentzVector()
-			pt = self.tree.get_dv('trk_pt_wrtSV')[itrk]
-			eta = self.tree.get_dv('trk_eta_wrtSV')[itrk]
-			phi = self.tree.get_dv('trk_phi_wrtSV')[itrk]
-			M = self.tree.get_dv('trk_M')[itrk]
+			pt = self.tree.dv('trk_pt_wrtSV')[itrk]
+			eta = self.tree.dv('trk_eta_wrtSV')[itrk]
+			phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+			M = self.tree.dv('trk_M')[itrk]
 
 			trkvec.SetPtEtaPhiM(pt, eta, phi, M)
 
@@ -214,24 +190,25 @@ class Tracks():
 			self.phi.append(phi)
 			self.pt.append(pt)
 
+
 class File_info():
 
-	def __init__(self,file, channel):
+	def __init__(self, file, channel):
 		self.Output_filename = "histograms.root"
-		self.mass = -1 # signal mass of HNL in GeV
-		self.ctau = -1 # in mm
+		self.mass = -1  # signal mass of HNL in GeV
+		self.ctau = -1  # in mm
 
-		self.MC_campaign =""
+		self.MC_campaign = ""
 		self.ctau_str = ""
 		self.mass_str = ""
 
 		if "lt1dd" in file or "1mm" in file:
 			self.ctau = 1.0
 			self.ctau_str = "1mm"
-		elif "lt10dd" in file  or "10mm" in file:
+		elif "lt10dd" in file or "10mm" in file:
 			self.ctau = 10.0
 			self.ctau_str = "10mm"
-		elif "lt100dd" in file  or "100mm" in file:
+		elif "lt100dd" in file or "100mm" in file:
 			self.ctau = 100.0
 			self.ctau_str = "100mm"
 
@@ -252,7 +229,7 @@ class File_info():
 			self.mass_str = "7p5G"
 		elif "10G" in file:
 			self.mass = 10.0
-			self.mass_str = "10G" 
+			self.mass_str = "10G"
 		elif "12p5G" in file:
 			self.mass = 12.5
 			self.mass_str = "12p5G"
@@ -265,7 +242,6 @@ class File_info():
 		elif "20G" in file:
 			self.mass = 20.0
 			self.mass_str = "20G"
-		
 
 		if "r10740" in file or "mc16a" in file:
 			self.MC_campaign = "mc16a"
@@ -273,32 +249,13 @@ class File_info():
 			self.MC_campaign = "mc16d"
 		if "r10790" in file or "mc16e" in file:
 			self.MC_campaign = "mc16e"
-		
+
 		# More flexibility for non-signal samples
 		self.Output_filename = "histograms"
-		if (self.MC_campaign): self.Output_filename += "_"+self.MC_campaign
-		else: self.Output_filename += "_mc"
-		if (self.mass_str): self.Output_filename += "_"+self.mass_str
-		if (self.ctau_str): self.Output_filename += "_"+self.ctau_str
-		self.Output_filename += "_"+channel+".root"
-		
-
-
-
-
-			
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
+		if (self.MC_campaign):
+			self.Output_filename += "_" + self.MC_campaign
+		else:
+			self.Output_filename += "_mc"
+		if (self.mass_str): self.Output_filename += "_" + self.mass_str
+		if (self.ctau_str): self.Output_filename += "_" + self.ctau_str
+		self.Output_filename += "_" + channel + ".root"

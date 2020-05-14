@@ -264,9 +264,9 @@ class Alpha():
 		self.max_alpha = max_alpha
 		# calculate alpha
 		# secondary vertex position vector
-		sv_vector = ROOT.TVector3(self.tree.get_dv('x'),
-								  self.tree.get_dv('y'),
-								  self.tree.get_dv('z'))
+		sv_vector = ROOT.TVector3(self.tree.dv('x'),
+								  self.tree.dv('y'),
+								  self.tree.dv('z'))
 		# primary vertex position vector
 		pv_vector = ROOT.TVector3(self.tree['vertex_x'],
 								  self.tree['vertex_y'],
@@ -275,7 +275,7 @@ class Alpha():
 		pv_sv_vector = sv_vector - pv_vector
 
 		# vector difference between momentum vector and position vector		
-		alpha = pv_sv_vector.Phi() - self.tree.get_dv('phi')
+		alpha = pv_sv_vector.Phi() - self.tree.dv('phi')
 		# put in -pi to pi range
 		self.alpha = (alpha + np.pi/2) % np.pi*2 - np.pi
 
@@ -297,8 +297,8 @@ class DVradius():
 		self.tree = tree
 		self.rdv = -1
 		if self.tree.ntrk > 0:
-			dx = self.tree.get_dv('x')
-			dy = self.tree.get_dv('y')
+			dx = self.tree.dv('x')
+			dy = self.tree.dv('y')
 			self.rdv = np.sqrt(dx**2 + dy**2)
 
 	def passes(self, rdv_min=4, rdv_max=300):
@@ -342,8 +342,8 @@ class ChargeDV():
 			self.ntracks = self.tree.ntrk
 
 			if self.ntracks == 2: 
-				self.charge_trk1 = self.tree.get_dv('trk_charge')[0]
-				self.charge_trk2 = self.tree.get_dv('trk_charge')[1]
+				self.charge_trk1 = self.tree.dv('trk_charge')[0]
+				self.charge_trk2 = self.tree.dv('trk_charge')[1]
 
 	def passes(self): 
 		if self.sel == 'OS':
@@ -490,8 +490,8 @@ class Cosmicveto():
 		if self.decaymode == "leptonic":
 			ntracks = self.tree.ntrk
 			if ntracks == 2:
-				sumeta = self.tree.get_dv('trk_eta_wrtSV')[0] + self.tree.get_dv('trk_eta_wrtSV')[1]
-				dphi = abs(self.tree.get_dv('trk_phi_wrtSV')[0] - self.tree.get_dv('trk_phi_wrtSV')[1])
+				sumeta = self.tree.dv('trk_eta_wrtSV')[0] + self.tree.dv('trk_eta_wrtSV')[1]
+				dphi = abs(self.tree.dv('trk_phi_wrtSV')[0] - self.tree.dv('trk_phi_wrtSV')[1])
 
 				self.separation = np.sqrt(sumeta ** 2 + (np.pi - dphi) ** 2)
 
@@ -594,7 +594,7 @@ class DVmass():
 		self.tree = tree
 		self.decaymode = decaymode
 		self.dvmasscut = dvmasscut
-		self.dvmass = self.tree.get_dv('mass')
+		self.dvmass = self.tree.dv('mass')
 
 	def passes(self):
 		if self.dvmass > self.dvmasscut:
@@ -648,9 +648,9 @@ class Mhnl():
 			return r_new
 
 		# primary vertex vector
-		dv_vec = ROOT.TVector3(self.tree.get_dv('x'),
-							   self.tree.get_dv('y'),
-							   self.tree.get_dv('z'))
+		dv_vec = ROOT.TVector3(self.tree.dv('x'),
+							   self.tree.dv('y'),
+							   self.tree.dv('z'))
 		# primary vertex position vector
 		pv_vec = ROOT.TVector3(self.tree['vertex_x'],
 							   self.tree['vertex_y'],
@@ -797,6 +797,6 @@ class SumTrack:
 		self.sum_track_charge = 0
 
 		for k in range(n_tracks):
-			self.sum_track_pt += self.tree.get_dv('trk_pt_wrtSV')[k]
-			self.sum_track_pt_wrt_pv += self.tree.get_dv('trk_pt')[k]
-			self.sum_track_charge += self.tree.get_dv('trk_charge')[k]
+			self.sum_track_pt += self.tree.dv('trk_pt_wrtSV')[k]
+			self.sum_track_pt_wrt_pv += self.tree.dv('trk_pt')[k]
+			self.sum_track_charge += self.tree.dv('trk_charge')[k]

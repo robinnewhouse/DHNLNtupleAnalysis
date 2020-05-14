@@ -5,7 +5,6 @@ import os
 import sys
 import helpers
 import selections
-import treenames
 import observables
 import logging
 import ntuples
@@ -388,31 +387,31 @@ class Analysis(object):
 
 	def _fill_all_dv_histos(self):
 		w = self.tree.weight
-		self.h["charge_ntrk"][self.ch].Fill(self.tree.get_dv('charge'), self.tree.get_dv('ntrk'), w)
+		self.h["charge_ntrk"][self.ch].Fill(self.tree.dv('charge'), self.tree.dv('ntrk'), w)
 		ntracks = self.tree.ntrk
 		for itrk in range(ntracks):  # loop over tracks
-			self.h["all_DV_trk_pt"][self.ch].Fill(self.tree.get_dv('trk_pt_wrtSV')[itrk], w)
-			self.h["all_DV_trk_eta"][self.ch].Fill(self.tree.get_dv('trk_eta_wrtSV')[itrk], w)
-			self.h["all_DV_trk_phi"][self.ch].Fill(self.tree.get_dv('trk_phi_wrtSV')[itrk], w)
-			self.h["all_DV_trk_d0"][self.ch].Fill(self.tree.get_dv('trk_d0')[itrk], w)
-			self.h["all_DV_trk_z0"][self.ch].Fill(self.tree.get_dv('trk_z0')[itrk], w)
-			self.h["all_DV_trk_charge"][self.ch].Fill(self.tree.get_dv('trk_charge')[itrk], w)
-			self.h["all_DV_trk_chi2"][self.ch].Fill(self.tree.get_dv('trk_chi2_toSV')[itrk], w)
+			self.h["all_DV_trk_pt"][self.ch].Fill(self.tree.dv('trk_pt_wrtSV')[itrk], w)
+			self.h["all_DV_trk_eta"][self.ch].Fill(self.tree.dv('trk_eta_wrtSV')[itrk], w)
+			self.h["all_DV_trk_phi"][self.ch].Fill(self.tree.dv('trk_phi_wrtSV')[itrk], w)
+			self.h["all_DV_trk_d0"][self.ch].Fill(self.tree.dv('trk_d0')[itrk], w)
+			self.h["all_DV_trk_z0"][self.ch].Fill(self.tree.dv('trk_z0')[itrk], w)
+			self.h["all_DV_trk_charge"][self.ch].Fill(self.tree.dv('trk_charge')[itrk], w)
+			self.h["all_DV_trk_chi2"][self.ch].Fill(self.tree.dv('trk_chi2_toSV')[itrk], w)
 
-		self.h["all_DV_num_trks"][self.ch].Fill(self.tree.get_dv('ntrk'), w)
-		self.h["all_DV_x"][self.ch].Fill(self.tree.get_dv('x'), w)
-		self.h["all_DV_y"][self.ch].Fill(self.tree.get_dv('y'), w)
-		self.h["all_DV_z"][self.ch].Fill(self.tree.get_dv('z'), w)
-		self.h["all_DV_r"][self.ch].Fill(self.tree.get_dv('r'), w)
-		self.h["all_DV_distFromPV"][self.ch].Fill(self.tree.get_dv('distFromPV'), w)
-		self.h["all_DV_mass"][self.ch].Fill(self.tree.get_dv('mass'), w)
-		self.h["all_DV_pt"][self.ch].Fill(self.tree.get_dv('pt'), w)
-		self.h["all_DV_eta"][self.ch].Fill(self.tree.get_dv('eta'), w)
-		self.h["all_DV_phi"][self.ch].Fill(self.tree.get_dv('phi'), w)
-		self.h["all_DV_minOpAng"][self.ch].Fill(self.tree.get_dv('minOpAng'), w)
-		self.h["all_DV_maxOpAng"][self.ch].Fill(self.tree.get_dv('maxOpAng'), w)
-		self.h["all_DV_charge"][self.ch].Fill(self.tree.get_dv('charge'), w)
-		self.h["all_DV_chi2"][self.ch].Fill(self.tree.get_dv('chi2'), w)
+		self.h["all_DV_num_trks"][self.ch].Fill(self.tree.dv('ntrk'), w)
+		self.h["all_DV_x"][self.ch].Fill(self.tree.dv('x'), w)
+		self.h["all_DV_y"][self.ch].Fill(self.tree.dv('y'), w)
+		self.h["all_DV_z"][self.ch].Fill(self.tree.dv('z'), w)
+		self.h["all_DV_r"][self.ch].Fill(self.tree.dv('r'), w)
+		self.h["all_DV_distFromPV"][self.ch].Fill(self.tree.dv('distFromPV'), w)
+		self.h["all_DV_mass"][self.ch].Fill(self.tree.dv('mass'), w)
+		self.h["all_DV_pt"][self.ch].Fill(self.tree.dv('pt'), w)
+		self.h["all_DV_eta"][self.ch].Fill(self.tree.dv('eta'), w)
+		self.h["all_DV_phi"][self.ch].Fill(self.tree.dv('phi'), w)
+		self.h["all_DV_minOpAng"][self.ch].Fill(self.tree.dv('minOpAng'), w)
+		self.h["all_DV_maxOpAng"][self.ch].Fill(self.tree.dv('maxOpAng'), w)
+		self.h["all_DV_charge"][self.ch].Fill(self.tree.dv('charge'), w)
+		self.h["all_DV_chi2"][self.ch].Fill(self.tree.dv('chi2'), w)
 
 		if self.tree.is_data:
 			pass
@@ -460,10 +459,10 @@ class Analysis(object):
 					self.h[sel + "_mtrans_rot"][self.ch].Fill(Mhnl.mtrans_rot, w)
 
 					# fill 2D mass correlation plots here
-					self.h[sel +'_DVmass_mvis'][self.ch].Fill(self.get_dv('mass'), Mltt.mltt, w)
-					self.h[sel +'_DVmass_mhnl'][self.ch].Fill(self.get_dv('mass'), Mhnl.mhnl, w)
-					self.h[sel +'_DVmass_mtrans'][self.ch].Fill(self.get_dv('mass'), Mtrans.mtrans, w)
-					self.h[sel +'_DVmass_hnlpt'][self.ch].Fill(self.get_dv('mass'), Mhnl.hnlpt, w)
+					self.h[sel +'_DVmass_mvis'][self.ch].Fill(self.tree.dv('mass'), Mltt.mltt, w)
+					self.h[sel +'_DVmass_mhnl'][self.ch].Fill(self.tree.dv('mass'), Mhnl.mhnl, w)
+					self.h[sel +'_DVmass_mtrans'][self.ch].Fill(self.tree.dv('mass'), Mtrans.mtrans, w)
+					self.h[sel +'_DVmass_hnlpt'][self.ch].Fill(self.tree.dv('mass'), Mhnl.hnlpt, w)
 					self.h[sel +'_mvis_mhnl'][self.ch].Fill(Mltt.mltt,Mhnl.mhnl, w)
 					self.h[sel +'_mvis_mtrans'][self.ch].Fill(Mltt.mltt,Mtrans.mtrans, w)
 					self.h[sel +'_mvis_hnlpt'][self.ch].Fill(Mltt.mltt,Mhnl.hnlpt, w)
@@ -487,7 +486,7 @@ class Analysis(object):
 						self.h[sel + "_DV_redmassvis"][self.ch].Fill(-1, w)
 						self.h[sel + "_DV_redmassHNL"][self.ch].Fill(-1, w)
 					else:
-						self.h[sel + "_DV_redmass"][self.ch].Fill(self.get_dv('mass')/dR, w)
+						self.h[sel + "_DV_redmass"][self.ch].Fill(self.tree.dv('mass')/dR, w)
 						self.h[sel + "_DV_redmassvis"][self.ch].Fill(Mltt.mltt/dR, w)
 						self.h[sel + "_DV_redmassHNL"][self.ch].Fill(Mltt.mltt/dR, w)
 
@@ -498,28 +497,28 @@ class Analysis(object):
 
 			ntracks = self.tree.ntrk
 			for itrk in range(ntracks):  # loop over tracks
-				self.h[sel+"_DV_trk_pt"][self.ch].Fill(self.tree.get_dv('trk_pt_wrtSV')[itrk], w)
-				self.h[sel+"_DV_trk_eta"][self.ch].Fill(self.tree.get_dv('trk_eta_wrtSV')[itrk], w)
-				self.h[sel+"_DV_trk_phi"][self.ch].Fill(self.tree.get_dv('trk_phi_wrtSV')[itrk], w)
-				self.h[sel+"_DV_trk_d0"][self.ch].Fill(self.tree.get_dv('trk_d0')[itrk], w)
-				self.h[sel+"_DV_trk_z0"][self.ch].Fill(self.tree.get_dv('trk_z0')[itrk], w)
-				self.h[sel+"_DV_trk_charge"][self.ch].Fill(self.tree.get_dv('trk_charge')[itrk], w)
-				self.h[sel+"_DV_trk_chi2"][self.ch].Fill(self.tree.get_dv('trk_chi2_toSV')[itrk], w)
+				self.h[sel+"_DV_trk_pt"][self.ch].Fill(self.tree.dv('trk_pt_wrtSV')[itrk], w)
+				self.h[sel+"_DV_trk_eta"][self.ch].Fill(self.tree.dv('trk_eta_wrtSV')[itrk], w)
+				self.h[sel+"_DV_trk_phi"][self.ch].Fill(self.tree.dv('trk_phi_wrtSV')[itrk], w)
+				self.h[sel+"_DV_trk_d0"][self.ch].Fill(self.tree.dv('trk_d0')[itrk], w)
+				self.h[sel+"_DV_trk_z0"][self.ch].Fill(self.tree.dv('trk_z0')[itrk], w)
+				self.h[sel+"_DV_trk_charge"][self.ch].Fill(self.tree.dv('trk_charge')[itrk], w)
+				self.h[sel+"_DV_trk_chi2"][self.ch].Fill(self.tree.dv('trk_chi2_toSV')[itrk], w)
 
-			self.h[sel+"_DV_num_trks"][self.ch].Fill(self.tree.get_dv('ntrk'), w)
-			self.h[sel+"_DV_x"][self.ch].Fill(self.tree.get_dv('x'), w)
-			self.h[sel+"_DV_y"][self.ch].Fill(self.tree.get_dv('y'), w)
-			self.h[sel+"_DV_z"][self.ch].Fill(self.tree.get_dv('z'), w)
-			self.h[sel+"_DV_r"][self.ch].Fill(self.tree.get_dv('r'), w)
-			self.h[sel+"_DV_distFromPV"][self.ch].Fill(self.tree.get_dv('distFromPV'), w)
-			self.h[sel+"_DV_mass"][self.ch].Fill(self.tree.get_dv('mass'), w)
-			self.h[sel+"_DV_pt"][self.ch].Fill(self.tree.get_dv('pt'), w)
-			self.h[sel+"_DV_eta"][self.ch].Fill(self.tree.get_dv('eta'), w)
-			self.h[sel+"_DV_phi"][self.ch].Fill(self.tree.get_dv('phi'), w)
-			self.h[sel+"_DV_minOpAng"][self.ch].Fill(self.tree.get_dv('minOpAng'), w)
-			self.h[sel+"_DV_maxOpAng"][self.ch].Fill(self.tree.get_dv('maxOpAng'), w)
-			self.h[sel+"_DV_charge"][self.ch].Fill(self.tree.get_dv('charge'), w)
-			self.h[sel+"_DV_chi2"][self.ch].Fill(self.tree.get_dv('chi2'), w)
+			self.h[sel+"_DV_num_trks"][self.ch].Fill(self.tree.dv('ntrk'), w)
+			self.h[sel+"_DV_x"][self.ch].Fill(self.tree.dv('x'), w)
+			self.h[sel+"_DV_y"][self.ch].Fill(self.tree.dv('y'), w)
+			self.h[sel+"_DV_z"][self.ch].Fill(self.tree.dv('z'), w)
+			self.h[sel+"_DV_r"][self.ch].Fill(self.tree.dv('r'), w)
+			self.h[sel+"_DV_distFromPV"][self.ch].Fill(self.tree.dv('distFromPV'), w)
+			self.h[sel+"_DV_mass"][self.ch].Fill(self.tree.dv('mass'), w)
+			self.h[sel+"_DV_pt"][self.ch].Fill(self.tree.dv('pt'), w)
+			self.h[sel+"_DV_eta"][self.ch].Fill(self.tree.dv('eta'), w)
+			self.h[sel+"_DV_phi"][self.ch].Fill(self.tree.dv('phi'), w)
+			self.h[sel+"_DV_minOpAng"][self.ch].Fill(self.tree.dv('minOpAng'), w)
+			self.h[sel+"_DV_maxOpAng"][self.ch].Fill(self.tree.dv('maxOpAng'), w)
+			self.h[sel+"_DV_charge"][self.ch].Fill(self.tree.dv('charge'), w)
+			self.h[sel+"_DV_chi2"][self.ch].Fill(self.tree.dv('chi2'), w)
 
 
 			if self.tree.is_data:
@@ -1149,30 +1148,30 @@ class KShort(Analysis):
 			# these are the histograms you only want to fill ONCE per DV
 
 			# sel refers to the last selection that was applied
-			self.fill_hist(None, 'charge_ntrk', self.tree.get_dv('charge'), self.tree.get_dv('ntrk'))
+			self.fill_hist(None, 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
 			for itrk in range(self.tree.ntrk):  # loop over tracks
-				self.fill_hist(sel, 'DV_trk_pt', self.tree.get_dv('trk_pt_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_eta', self.tree.get_dv('trk_eta_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_phi', self.tree.get_dv('trk_phi_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_d0', self.tree.get_dv('trk_d0')[itrk])
-				self.fill_hist(sel, 'DV_trk_z0', self.tree.get_dv('trk_z0')[itrk])
-				self.fill_hist(sel, 'DV_trk_charge', self.tree.get_dv('trk_charge')[itrk])
-				self.fill_hist(sel, 'DV_trk_chi2', self.tree.get_dv('trk_chi2_toSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk])
+				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk])
+				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk])
+				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk])
 
-			self.fill_hist(sel, 'DV_num_trks', self.tree.get_dv('ntrk'))
-			self.fill_hist(sel, 'DV_x', self.tree.get_dv('x'))
-			self.fill_hist(sel, 'DV_y', self.tree.get_dv('y'))
-			self.fill_hist(sel, 'DV_z', self.tree.get_dv('z'))
-			self.fill_hist(sel, 'DV_r', self.tree.get_dv('r'))
-			self.fill_hist(sel, 'DV_distFromPV', self.tree.get_dv('distFromPV'))
-			self.fill_hist(sel, 'DV_mass', self.tree.get_dv('mass'))
-			self.fill_hist(sel, 'DV_pt', self.tree.get_dv('pt'))
-			self.fill_hist(sel, 'DV_eta', self.tree.get_dv('eta'))
-			self.fill_hist(sel, 'DV_phi', self.tree.get_dv('phi'))
-			self.fill_hist(sel, 'DV_minOpAng', self.tree.get_dv('minOpAng'))
-			self.fill_hist(sel, 'DV_maxOpAng', self.tree.get_dv('maxOpAng'))
-			self.fill_hist(sel, 'DV_charge', self.tree.get_dv('charge'))
-			self.fill_hist(sel, 'DV_chi2', self.tree.get_dv('chi2'))
+			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
+			self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
+			self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
+			self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
+			self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
+			self.fill_hist(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
+			self.fill_hist(sel, 'DV_mass', self.tree.dv('mass'))
+			self.fill_hist(sel, 'DV_pt', self.tree.dv('pt'))
+			self.fill_hist(sel, 'DV_eta', self.tree.dv('eta'))
+			self.fill_hist(sel, 'DV_phi', self.tree.dv('phi'))
+			self.fill_hist(sel, 'DV_minOpAng', self.tree.dv('minOpAng'))
+			self.fill_hist(sel, 'DV_maxOpAng', self.tree.dv('maxOpAng'))
+			self.fill_hist(sel, 'DV_charge', self.tree.dv('charge'))
+			self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
 			self.fill_hist(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
 
 			# kshort stuff
@@ -1197,7 +1196,7 @@ class KShort(Analysis):
 	def _mass_window_cut(self):
 		mass_min = .4977 - .01  # kshort mass +/- epsilon
 		mass_max = .4977 + .01
-		dv_mass = self.get_dv('mass')
+		dv_mass = self.tree.dv('mass')
 		return (dv_mass > mass_min) and (dv_mass < mass_max)
 
 	def _alpha_cut(self):

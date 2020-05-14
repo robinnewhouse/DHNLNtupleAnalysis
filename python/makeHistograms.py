@@ -2,7 +2,7 @@
 import os,sys
 import helpers
 import analysis
-import treenames
+import trees
 import json
 # import reweighting
 # import systematics
@@ -52,11 +52,11 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		new_tree = treenames.NewTree(file, treename, entries)
-		if new_tree.numentries < entries or entries is None:
-			entries = new_tree.numentries
+		tree = trees.Tree(file, treename, entries, mass=file_info.mass, ctau=file_info.ctau)
+		if tree.numentries < entries or entries is None:
+			entries = tree.numentries
 			# specify this to reduce number of entries loaded in each array
-		new_tree.max_entries = entries
+		tree.max_entries = entries
 		logger.info('Going to process {}  events'.format(entries))
 
 		# loop over the vertex containers in each channel (usually just VSI & VSI Leptons)
@@ -67,41 +67,41 @@ def main():
 
 			# define variables in tree to be accessed from root file
 			# tree = treenames.Tree(file, treename, vtx_container, entries)
-			new_tree.vtx_container = vtx_container
+			tree.vtx_container = vtx_container
 
 			# blinding flag to prevent accidental unblinding in data
-			if blinded and new_tree.is_data and "CR" not in selections:
+			if blinded and tree.is_data and "CR" not in selections:
 				if "OS" in selections or "SS" not in selections:
 					logger.error("You are running on data and you cannot look at OS verticies!!! Please include SS, not OS in selections.")
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
-			ana = anaClass(new_tree, vtx_container, selections, output_file)
+			ana = anaClass(tree, vtx_container, selections, output_file)
 
 
 			# Loop over each event
 			# for ievt in range(entries):
-			while new_tree.ievt < entries:
-				if new_tree.ievt % 100 == 0:
-					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, new_tree.ievt, entries))
+			while tree.ievt < entries:
+				if tree.ievt % 100 == 0:
+					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
 				# Create an event instance to keep track of basic event properties
-				# evt = helpers.Event(tree=tree, ievt=new_tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
+				# evt = helpers.Event(tree=tree, ievt=tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
 
 				# Run preselection cuts to avoid processing unnecessary events
 				presel = ana.preSelection()
 
 				# Loop over each vertex in the event
-				while new_tree.idv < new_tree.ndv:
-					# DVevt = helpers.Event(tree=tree, ievt=new_tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
+				while tree.idv < tree.ndv:
+					# DVevt = helpers.Event(tree=tree, ievt=tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
 					ana.DVSelection()
-					new_tree.increment_dv()
+					tree.increment_dv()
 
-				new_tree.reset_dv()
-				new_tree.increment_event()
+				tree.reset_dv()
+				tree.increment_event()
 				ana.unlock()
 
 			# Call functions to finalize analysis
-			new_tree.reset_event()
+			tree.reset_event()
 			ana.end()
 			# Store analysis in dictionary for possible later use
 			# This is a huge memory hog and will likely crash if too many histograms are declared
