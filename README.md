@@ -60,6 +60,9 @@ Event weighting for monte carlo samples is implmented in the framework. In order
 ```
 this is becuase your file is not appropriately named.Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
 
+## Inverted Prompt Lepton Control Region
+To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
+
 
 ### Running plotHistograms.py
 
