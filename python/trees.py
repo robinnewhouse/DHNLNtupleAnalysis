@@ -5,7 +5,7 @@ logger = helpers.getLogger('dHNLAnalysis.treenames')
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, mass=1.0, ctau=1.0):
+	def __init__(self, file_name, tree_name, max_entries, mass=1.0, ctau=1.0, weight_override=None):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -22,6 +22,7 @@ class Tree:
 		:param max_entries: The maximum number of entries to load when reading a tree from the file.
 		:param mass: The HNL mass of the sample
 		:param ctau: The mean lifetime of the sample
+		:param weight_override: Use this if you want to override the weight calculation.
 		"""
 		# Set class attributes
 		self.ievt = 0
@@ -36,7 +37,7 @@ class Tree:
 		self.tree = self.file[tree_name]
 		self.cutflow = self.file["cutflow"]
 		self.vtx_container = ""
-		self.weight = self.get_weight(mass, ctau)
+		self.weight = self.get_weight(mass, ctau) if not weight_override else weight_override
 
 	def increment_event(self):
 		self.ievt += 1
@@ -126,7 +127,7 @@ class Tree:
 		:param mass: HNL sample mass
 		:param ctau: HNL sample lifetime
 		:param lnv: Use Lepton Number Violating calculation
-		:return:
+		:return: calculated weight.
 		"""
 		if self.is_data:  # you are running on data
 			self.weight = 1

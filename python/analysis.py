@@ -1185,10 +1185,27 @@ class KShort(Analysis):
 		if self._locked < FILL_LOCKED or not do_lock:
 
 			# Fill micro ntuples
+			self.fill_ntuple(sel, 'DV_num_trks', self.tree.dv('ntrk'))
+			self.fill_ntuple(sel, 'DV_x', self.tree.dv('x'))
+			self.fill_ntuple(sel, 'DV_y', self.tree.dv('y'))
+			self.fill_ntuple(sel, 'DV_z', self.tree.dv('z'))
+			self.fill_ntuple(sel, 'DV_r', self.tree.dv('r'))
+			self.fill_ntuple(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
+			self.fill_ntuple(sel, 'DV_mass', self.tree.dv('mass'))
+			self.fill_ntuple(sel, 'DV_pt', self.tree.dv('pt'))
+			self.fill_ntuple(sel, 'DV_eta', self.tree.dv('eta'))
+			self.fill_ntuple(sel, 'DV_phi', self.tree.dv('phi'))
+			self.fill_ntuple(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
+
 			track_sum = selections.SumTrack(self.tree)
 			self.fill_ntuple(sel, 'sum_track_pt', track_sum.sum_track_pt)
+			self.fill_ntuple(sel, 'DV_sum_track_pt', track_sum.sum_track_pt)
+			self.fill_ntuple(sel, 'DV_sum_track_pt_wrt_pv', track_sum.sum_track_pt_wrt_pv)
+			self.fill_ntuple(sel, 'DV_sum_track_pt_diff', track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt)
+			self.fill_ntuple(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
 
 			self.micro_ntuples.fill()
+			self.micro_ntuples.reset()
 
 	#########################################################################################################################
 	# Define new cuts you want to apply here. This will overwrite whatever cuts are defined in the parent analysis class.

@@ -9,7 +9,7 @@ logger = helpers.getLogger('dHNLAnalysis.selections', level=logging.WARNING)
 
 class Trigger():
 	def __init__(self, tree, trigger):
-		self.tree = tree
+		self.event_triggers = tree['passedTriggers']
 
 		# trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
 		apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
@@ -32,76 +32,75 @@ class Trigger():
 		# evaluate whether the event passed the trigger
 		# This method checks if there is any overlap between sets a and b
 		# https://stackoverflow.com/questions/3170055/test-if-lists-share-any-items-in-python
-		event_triggers = self.tree['passedTriggers']
-		return not set(event_triggers).isdisjoint(self.allowed_trigger_list)
+		return not set(self.event_triggers).isdisjoint(self.allowed_trigger_list)
 
 
 class Filter():
 	def __init__(self, tree, filter_type):
-		self.tree = tree
-		self.filter_type = filter_type
+		self.passes_filter = False
+
+		if filter_type == "mu-mu":
+			self.passes_filter = tree['passesHnlMuMuFilter']
+
+		if filter_type == "mu-el":
+			self.passes_filter = tree['passesHnlMuElFilter']
+
+		if filter_type == "el-mu":
+			self.passes_filter = tree['passesHnlElMuFilter']
+
+		if filter_type == "el-el":
+			self.passes_filter = tree['passesHnlElElFilter']
+
+		if filter_type == "4-filter":
+			self.passes_filter = (tree['passesHnlMuMuFilter']
+					or tree['passesHnlElMuFilter']
+					or tree['passesHnlElElFilter']
+					or tree['passesHnlMuElFilter'])
+
+		if filter_type == "3-filter":
+			self.passes_filter = (tree['passesHnlMuMuFilter']
+					or tree['passesHnlElMuFilter']
+					or tree['passesHnlElElFilter'])
+
+		if filter_type == "2-filter":
+			self.passes_filter = (tree['passesHnlMuMuFilter']
+					or tree['passesHnlElMuFilter'])
+
+		if filter_type == "1-filter":
+			self.passes_filter = tree['passesHnlMuMuFilter']
 
 	def passes(self):
-		if self.filter_type == "mu-mu":
-			return self.tree['passesHnlMuMuFilter']
-
-		if self.filter_type == "mu-el":
-			return self.tree['passesHnlMuElFilter']
-
-		if self.filter_type == "el-mu":
-			return self.tree['passesHnlElMuFilter']
-
-		if self.filter_type == "el-el":
-			return self.tree['passesHnlElElFilter']
-
-		if self.filter_type == "4-filter":
-			return (self.tree['passesHnlMuMuFilter']
-					or self.tree['passesHnlElMuFilter']
-					or self.tree['passesHnlElElFilter']
-					or self.tree['passesHnlMuElFilter'])
-
-		if self.filter_type == "3-filter":
-			return (self.tree['passesHnlMuMuFilter']
-					or self.tree['passesHnlElMuFilter']
-					or self.tree['passesHnlElElFilter'])
-
-		if self.filter_type == "2-filter":
-			return (self.tree['passesHnlMuMuFilter']
-					or self.tree['passesHnlElMuFilter'])
-
-		if self.filter_type == "1-filter":
-			return self.tree['passesHnlMuMuFilter']
+		return self.passes_filter
 
 class InvertedPromptLepton():
 	def __init__(self, tree, d0_cut=3.0, z0_sin_theta_cut=0.5, pt_cut=25.0):
-		self.tree = tree
-		self.n_prompt_leptons = 0 
+		self.n_prompt_leptons = 0
 		self.n_prompt_muons = 0 
 		self.n_prompt_electrons = 0 
-		n_muons = len(self.tree['muon_pt'])
-		n_electrons = len(self.tree['el_pt'])
+		n_muons = len(tree['muon_pt'])
+		n_electrons = len(tree['el_pt'])
 
 		for imu in range(n_muons):
 			# make sure the muon is at least loose
-			if not ((self.tree['muon_isTight'][imu] == 1) or
-					(self.tree['muon_isMedium'][imu] == 1) or
-					(self.tree['muon_isLoose'][imu]) == 1):
+			if not ((tree['muon_isTight'][imu] == 1) or
+					(tree['muon_isMedium'][imu] == 1) or
+					(tree['muon_isLoose'][imu]) == 1):
 				# muon doesn't satisfy any quality, ignore it
 				continue
 
 			# check muon pt
-			mupt = self.tree['muon_pt'][imu]
+			mupt = tree['muon_pt'][imu]
 			# if mupt > pt_cut:
 			# 	# muon satisfies "fast" lepton requirements
 			# 	self.n_prompt_muons += 1
 			# 	continue
 			
 			# check muon promptness
-			mumass = self.tree['muon_m'][imu]
-			mueta = self.tree['muon_eta'][imu]
-			muphi = self.tree['muon_phi'][imu]
-			muz0 = self.tree['muon_trkz0'][imu]
-			mud0 = self.tree['muon_trkd0'][imu]
+			mumass = tree['muon_m'][imu]
+			mueta = tree['muon_eta'][imu]
+			muphi = tree['muon_phi'][imu]
+			muz0 = tree['muon_trkz0'][imu]
+			mud0 = tree['muon_trkd0'][imu]
 
 			muVec_i = ROOT.TLorentzVector()
 			muVec_i.SetPtEtaPhiM(mupt, mueta, muphi, mumass)
@@ -113,25 +112,25 @@ class InvertedPromptLepton():
 
 		for iel in range(n_electrons):
 			# make sure the electron is at least loose
-			if not ((self.tree['el_LHTight'][iel] == 1) or
-					(self.tree['el_LHMedium'][iel] == 1) or
-					(self.tree['el_LHLoose'][iel]) == 1):
+			if not ((tree['el_LHTight'][iel] == 1) or
+					(tree['el_LHMedium'][iel] == 1) or
+					(tree['el_LHLoose'][iel]) == 1):
 				# electron doesn't satisfy any quality, ignore it
 				continue
 			
 			# check electron pt
-			elpt = self.tree['el_pt'][iel]
+			elpt = tree['el_pt'][iel]
 			# if elpt > pt_cut:
 			# 	# electron satisfies "fast" lepton requirements
 			# 	self.n_prompt_electrons += 1
 			# 	continue
 			
 			# check electron promptness
-			elmass = self.tree['el_pt'][iel]
-			eleta = self.tree['el_eta'][iel]
-			elphi = self.tree['el_phi'][iel]
-			elz0 = self.tree['el_trkz0'][iel]
-			eld0 = self.tree['el_trkd0'][iel]
+			elmass = tree['el_pt'][iel]
+			eleta = tree['el_eta'][iel]
+			elphi = tree['el_phi'][iel]
+			elz0 = tree['el_trkz0'][iel]
+			eld0 = tree['el_trkd0'][iel]
 
 			elVec_i = ROOT.TLorentzVector()
 			elVec_i.SetPtEtaPhiM(elpt, eleta, elphi, elmass)
@@ -149,7 +148,6 @@ class InvertedPromptLepton():
 
 class Plepton():
 	def __init__(self, tree, lepton, quality="tight", mindR=0.05):
-		self.tree = tree
 		self.lepton = lepton
 		self.quality = quality 
 		self.mindR = mindR
@@ -171,8 +169,8 @@ class Plepton():
 			if self.quality == "loose":
 				lepquality = 'muon_isLoose'
 
-			nleps = len(self.tree['muon_pt'])
-			passPfilter = self.tree['muon_passesPromptCuts']
+			nleps = len(tree['muon_pt'])
+			passPfilter = tree['muon_passesPromptCuts']
 
 		if self.lepton == "electron":
 			if self.quality == "tight":  # tight electron is requested
@@ -183,8 +181,8 @@ class Plepton():
 				lepquality = 'el_LHLoose'
 
 
-			nleps = len(self.tree['el_pt'])
-			passPfilter = self.tree['el_passesPromptCuts']
+			nleps = len(tree['el_pt'])
+			passPfilter = tree['el_passesPromptCuts']
 
 		# variable for the highest pt lepton				
 		self.highestpt_lep = ROOT.TLorentzVector(0, 0, 0, 0)
@@ -196,31 +194,31 @@ class Plepton():
 			plepVec_i = ROOT.TLorentzVector()
 
 			if self.lepton == "muon": 
-				pt = self.tree['muon_pt'][ilep]
-				eta = self.tree['muon_eta'][ilep]
-				phi = self.tree['muon_phi'][ilep]
-				mass = self.tree['muon_m'][ilep]
+				pt = tree['muon_pt'][ilep]
+				eta = tree['muon_eta'][ilep]
+				phi = tree['muon_phi'][ilep]
+				mass = tree['muon_m'][ilep]
 				plepVec_i.SetPtEtaPhiM(pt, eta, phi, mass)
 
-				lepd0 = self.tree['muon_trkd0'][ilep]
-				lepz0 = self.tree['muon_trkz0'][ilep]
+				lepd0 = tree['muon_trkd0'][ilep]
+				lepz0 = tree['muon_trkz0'][ilep]
 
 			if self.lepton == "electron":
-				pt = self.tree['el_pt'][ilep]
-				eta = self.tree['el_eta'][ilep]
-				phi = self.tree['el_phi'][ilep]
-				mass = self.tree['el_m'][ilep]
+				pt = tree['el_pt'][ilep]
+				eta = tree['el_eta'][ilep]
+				phi = tree['el_phi'][ilep]
+				mass = tree['el_m'][ilep]
 				plepVec_i.SetPtEtaPhiM(pt, eta, phi, mass)
 
-				lepd0 = self.tree['el_trkd0'][ilep]
-				lepz0 = self.tree['el_trkz0'][ilep]
+				lepd0 = tree['el_trkd0'][ilep]
+				lepz0 = tree['el_trkz0'][ilep]
 
 			# check if the plep passes the DRAW filter and passes quality before looping over tracks
 			# changed to be careful with negative electron quality values # RN
-			passes_lep_quality = lepquality == "" or self.tree[lepquality][ilep] > 0
+			passes_lep_quality = lepquality == "" or tree[lepquality][ilep] > 0
 			if passPfilter[ilep] and passes_lep_quality:
 				for idv in range(ndv):
-					leptracks = helpers.Tracks(self.tree)
+					leptracks = helpers.Tracks(tree)
 					# trackevt = helpers.Event(self.evt.tree, self.evt.ievt, idv)
 					leptracks.getTracks()
 					dlepVec = leptracks.lepVec
@@ -260,22 +258,21 @@ class Plepton():
 		
 class Alpha():
 	def __init__(self, tree, max_alpha=0.01):
-		self.tree = tree
 		self.max_alpha = max_alpha
 		# calculate alpha
 		# secondary vertex position vector
-		sv_vector = ROOT.TVector3(self.tree.dv('x'),
-								  self.tree.dv('y'),
-								  self.tree.dv('z'))
+		sv_vector = ROOT.TVector3(tree.dv('x'),
+								  tree.dv('y'),
+								  tree.dv('z'))
 		# primary vertex position vector
-		pv_vector = ROOT.TVector3(self.tree['vertex_x'],
-								  self.tree['vertex_y'],
-								  self.tree['vertex_z'])
+		pv_vector = ROOT.TVector3(tree['vertex_x'],
+								  tree['vertex_y'],
+								  tree['vertex_z'])
 		# vector from pv to sv
 		pv_sv_vector = sv_vector - pv_vector
 
 		# vector difference between momentum vector and position vector		
-		alpha = pv_sv_vector.Phi() - self.tree.dv('phi')
+		alpha = pv_sv_vector.Phi() - tree.dv('phi')
 		# put in -pi to pi range
 		self.alpha = (alpha + np.pi/2) % np.pi*2 - np.pi
 
@@ -283,22 +280,13 @@ class Alpha():
 		# pass if alpha is less than the sent cut
 		return abs(self.alpha) < self.max_alpha
 
-# class nDV():
-# 	def __init__(self, evt):
-# 		self.evt = evt
-#
-# 	def passes(self):
-# 		return len(self.evt.tree.dvx[self.evt.ievt]) > 0
-#
-
 
 class DVradius():
 	def __init__(self, tree):
-		self.tree = tree
 		self.rdv = -1
-		if self.tree.ntrk > 0:
-			dx = self.tree.dv('x')
-			dy = self.tree.dv('y')
+		if tree.ntrk > 0:
+			dx = tree.dv('x')
+			dy = tree.dv('y')
 			self.rdv = np.sqrt(dx**2 + dy**2)
 
 	def passes(self, rdv_min=4, rdv_max=300):
@@ -308,18 +296,15 @@ class DVradius():
 			return False
 
 
-
-
 class DVntracks():
 	def __init__(self, tree, ntrk=2, decaymode="leptonic"):
-		self.tree = tree
 		self.ntrk = ntrk
 		self.decaymode = decaymode
 
 		self.ntracks = -1 
 
 		if self.decaymode == "leptonic":
-			self.ntracks = self.tree.ntrk
+			self.ntracks = tree.ntrk
 
 	def passes(self):
 		if self.ntracks == self.ntrk:
@@ -330,7 +315,6 @@ class DVntracks():
 
 class ChargeDV():
 	def __init__(self, tree, sel="OS", decaymode="leptonic"):
-		self.tree = tree
 		self.decaymode = decaymode
 		self.sel = sel
 		self.ntracks = -1
@@ -339,11 +323,11 @@ class ChargeDV():
 		# also, don't make the same since the equality is checked later
 
 		if self.decaymode == "leptonic":
-			self.ntracks = self.tree.ntrk
+			self.ntracks = tree.ntrk
 
 			if self.ntracks == 2: 
-				self.charge_trk1 = self.tree.dv('trk_charge')[0]
-				self.charge_trk2 = self.tree.dv('trk_charge')[1]
+				self.charge_trk1 = tree.dv('trk_charge')[0]
+				self.charge_trk2 = tree.dv('trk_charge')[1]
 
 	def passes(self): 
 		if self.sel == 'OS':
@@ -390,7 +374,6 @@ class DVtype():
 			else:
 				return False
 
-
 		elif self.dv_type == "mumu":
 			if self.nmu == 2: 
 				mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
@@ -429,20 +412,20 @@ class DVtype():
 
 class Trackqual():
 	def __init__(self, tree, decaymode="leptonic", quality="2-tight"):
-		self.tree = tree
+
 		self.decaymode = decaymode
 		self.quality = quality 
 
 		if self.decaymode == "leptonic": 
-			self.ntracks = self.tree.ntrk
+			self.ntracks = tree.ntrk
 			self.ntight = 0
 			self.DVmuons = []
 			self.DVelectrons = []
 
-			muons = helpers.Tracks(self.tree)
+			muons = helpers.Tracks(tree)
 			muons.getMuons()
 
-			electrons = helpers.Tracks(self.tree)
+			electrons = helpers.Tracks(tree)
 			electrons.getElectrons()
 			self.nel = len(electrons.lepVec)
 
@@ -454,13 +437,13 @@ class Trackqual():
 		
 			for imu in range(self.ndvmu):
 				muindex = muons.lepIndex[imu]
-				muisTight = self.tree['muon_isTight'][muindex]
+				muisTight = tree['muon_isTight'][muindex]
 				if muisTight: 
 					self.nmu_tight = self.nmu_tight + 1
 
 			for iel in range(self.ndvel):
 				elindex = electrons.lepIndex[iel]
-				elisTight = self.tree['el_LHTight'][elindex]
+				elisTight = tree['el_LHTight'][elindex]
 				if elisTight:
 					self.nel_tight = self.nel_tight + 1
 
@@ -481,17 +464,17 @@ class Trackqual():
 
 class Cosmicveto():
 	def __init__(self, tree, decaymode="leptonic", cosmicvetocut=0.05):
-		self.tree = tree
+
 		self.decaymode = decaymode
 		self.cosmicvetocut = cosmicvetocut
 
 		self.separation = -1
 
 		if self.decaymode == "leptonic":
-			ntracks = self.tree.ntrk
+			ntracks = tree.ntrk
 			if ntracks == 2:
-				sumeta = self.tree.dv('trk_eta_wrtSV')[0] + self.tree.dv('trk_eta_wrtSV')[1]
-				dphi = abs(self.tree.dv('trk_phi_wrtSV')[0] - self.tree.dv('trk_phi_wrtSV')[1])
+				sumeta = tree.dv('trk_eta_wrtSV')[0] + tree.dv('trk_eta_wrtSV')[1]
+				dphi = abs(tree.dv('trk_phi_wrtSV')[0] - tree.dv('trk_phi_wrtSV')[1])
 
 				self.separation = np.sqrt(sumeta ** 2 + (np.pi - dphi) ** 2)
 
@@ -591,10 +574,10 @@ class Mtrans():
 
 class DVmass():
 	def __init__(self, tree, decaymode="leptonic", dvmasscut=4):
-		self.tree = tree
+
 		self.decaymode = decaymode
 		self.dvmasscut = dvmasscut
-		self.dvmass = self.tree.dv('mass')
+		self.dvmass = tree.dv('mass')
 
 	def passes(self):
 		if self.dvmass > self.dvmasscut:
@@ -605,7 +588,7 @@ class DVmass():
 
 class Mhnl():
 	def __init__(self, tree, plep, trks, hnlmasscut=4):
-		self.tree = tree
+
 		self.plep = plep
 		self.trks = trks
 		self.hnlmasscut = hnlmasscut
@@ -648,13 +631,13 @@ class Mhnl():
 			return r_new
 
 		# primary vertex vector
-		dv_vec = ROOT.TVector3(self.tree.dv('x'),
-							   self.tree.dv('y'),
-							   self.tree.dv('z'))
+		dv_vec = ROOT.TVector3(tree.dv('x'),
+							   tree.dv('y'),
+							   tree.dv('z'))
 		# primary vertex position vector
-		pv_vec = ROOT.TVector3(self.tree['vertex_x'],
-							   self.tree['vertex_y'],
-							   self.tree['vertex_z'])
+		pv_vec = ROOT.TVector3(tree['vertex_x'],
+							   tree['vertex_y'],
+							   tree['vertex_z'])
 
 		# vector defining direction hnl trajectory
 		hnl_vec =  dv_vec- pv_vec
@@ -772,13 +755,12 @@ class Mhnl():
 			return False
 
 
-
 class PV():
 	def __init__(self, tree):
-		self.tree = tree
-		self.pv_x = self.tree['vertex_x']
-		self.pv_y = self.tree['vertex_y']
-		self.pv_z = self.tree['vertex_z']
+
+		self.pv_x = tree['vertex_x']
+		self.pv_y = tree['vertex_y']
+		self.pv_z = tree['vertex_z']
 
 	def passes(self):
 		
@@ -790,13 +772,13 @@ class PV():
 
 class SumTrack:
 	def __init__(self, tree):
-		self.tree = tree
+
 		self.sum_track_pt = 0
-		n_tracks = self.tree.ntrk
+		n_tracks = tree.ntrk
 		self.sum_track_pt_wrt_pv = 0
 		self.sum_track_charge = 0
 
 		for k in range(n_tracks):
-			self.sum_track_pt += self.tree.dv('trk_pt_wrtSV')[k]
-			self.sum_track_pt_wrt_pv += self.tree.dv('trk_pt')[k]
-			self.sum_track_charge += self.tree.dv('trk_charge')[k]
+			self.sum_track_pt += tree.dv('trk_pt_wrtSV')[k]
+			self.sum_track_pt_wrt_pv += tree.dv('trk_pt')[k]
+			self.sum_track_charge += tree.dv('trk_charge')[k]

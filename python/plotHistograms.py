@@ -733,9 +733,10 @@ def compareHistograms(config_file):
 def compare_histograms(config_file, hist_type="all"):
     hist_channels = {}
     # hist_channels[<Legend name>] = (<filename>, <hist suffix>)
-    hist_channels["VSI"] = (config_file["mcFile"][0], "VSI", hist_type)
-    hist_channels["VSI Kaons"] = (config_file["mcFile"][0], "VSI_2", hist_type)
-    # hist_channels["VSI Leptons"] = (config_file["mcFile"][1], "VSI_Leptons", hist_type)
+    hist_channels["MC VSI"] = (config_file["mcFile"][0], "VSI", hist_type)
+    hist_channels["Data VSI"] = (config_file["dataFile"], "VSI", hist_type)
+    hist_channels["MC VSI Kaons"] = (config_file["mcFile"][0], "VSI_2", hist_type)
+    hist_channels["Data VSI Kaons"] = (config_file["dataFile"], "VSI_2", hist_type)
 
     plotting.compare(hist_channels,
                      variable='DV_mass',
@@ -774,8 +775,10 @@ def compare_histograms(config_file, hist_type="all"):
 
     hist_channels = {}
     # hist_channels[<Legend name>] = (<filename>, <hist suffix>)
-    hist_channels["VSI"] = (config_file["mcFile"][0], "VSI", hist_type)
-    hist_channels["VSI Kaons"] = (config_file["mcFile"][0], "VSI_2", hist_type)
+    hist_channels["MC VSI"] = (config_file["mcFile"][0], "VSI", hist_type)
+    hist_channels["Data VSI"] = (config_file["dataFile"], "VSI", hist_type)
+    hist_channels["MC VSI Kaons"] = (config_file["mcFile"][0], "VSI_2", hist_type)
+    hist_channels["Data VSI Kaons"] = (config_file["dataFile"], "VSI_2", hist_type)
 
     plotting.compare(hist_channels,
                      variable='DV_r',
@@ -834,7 +837,8 @@ def compare_histograms(config_file, hist_type="all"):
     hist_channels = {}
     # hist_channels[<Legend name>] = (<filename>, <hist suffix>)
     # hist_channels["VSI"] = (config_file["mcFile"][0], "VSI", '')
-    hist_channels["VSI Kaons"] = (config_file["mcFile"][0], "VSI_2", '')
+    hist_channels["MC VSI Kaons"] = (config_file["mcFile"][0], "VSI_2", '')
+    hist_channels["Data VSI Kaons"] = (config_file["dataFile"], "VSI_2", '')
 
     plotting.compare(hist_channels,
                      variable='muon_pt',
@@ -906,6 +910,12 @@ if __name__ == '__main__':
                           vertextype="VSI Kaons",
                           )
     plotting.plot_cutflow(file=config_file["mcFile"][0],
+                          vertextype="VSI"
+                          )
+    plotting.plot_cutflow(file=config_file["dataFile"],
+                          vertextype="VSI Kaons",
+                          )
+    plotting.plot_cutflow(file=config_file["dataFile"],
                           vertextype="VSI"
                           )
 

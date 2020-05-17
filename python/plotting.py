@@ -49,7 +49,7 @@ def plot_cutflow(file, vertextype, outputDir="/eos/home-r/rnewhous/public/plots/
     hcutflow.Draw("HIST TEXT0 SAME")
 
     if "data" in file:
-        plotting_helpers.drawNotesData("data18 period B", vertextype)
+        plotting_helpers.drawNotesData("data18 period B", vertextype, 1, 'KShort')
     if "uuu" in file:
         plotting_helpers.drawNotes("mumu", "muon", vertextype)
     elif "ueu" in file:
@@ -335,6 +335,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.9, nRebin=1, 
     # plotting_helpers.getNote(35).DrawLatex(notes_x, notes_y-.05, vertextype)
 
     save_file_name = "{}_{}".format(val[2], variable if save_name == "" else save_name)
+    if not os.path.exists(outputDir): os.mkdir(outputDir)
     # MyC01.SaveAs(outputDir +savefilename+'.pdf')
     MyC01.SaveAs(outputDir + save_file_name + '.png')
 

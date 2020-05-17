@@ -52,10 +52,10 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(file, treename, entries, mass=file_info.mass, ctau=file_info.ctau)
+		tree = trees.Tree(file, treename, entries, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
 		if tree.numentries < entries or entries is None:
 			entries = tree.numentries
-			# specify this to reduce number of entries loaded in each array
+		# specify this to reduce number of entries loaded in each array
 		tree.max_entries = entries
 		logger.info('Going to process {}  events'.format(entries))
 
@@ -164,6 +164,11 @@ if __name__ == "__main__":
 						default = None,
 						type = int,
 						help='Number of events are going to be processed for test-only purpose.')
+
+	parser.add_argument('--weight',
+						default = None,
+						type = float,
+						help='Use this flag if you want to override the weight calculation for this sample.')
 
 	parser.add_argument('-a','--analysis',
 						dest="analysis",
