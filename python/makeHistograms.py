@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,sys
+import os, sys
 import helpers
 import analysis
 import trees
@@ -13,7 +13,7 @@ blinded = True  # Dont dont change this flag! This ensures you do not accidental
 
 
 def main():
-	output_path = options.output
+	output_path = os.path.abspath(options.output)
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
 		os.mkdir(output_path)
@@ -26,7 +26,7 @@ def main():
 	# Define that we're using a specific type of analysis
 	anaClass = getattr(analysis, options.analysis)
 
-	file = options.input[0]  # get file
+	input_file = options.input[0]  # get file
 	treename = "outTree"  # define tree name
 
 	# loop over all the channels in the config file
@@ -34,13 +34,16 @@ def main():
 
 		logger.info('Running on channel: {})'.format(channel))
 		# If you are running on MC this will give info about signal mass and lifetime
-		file_info = helpers.File_info(file, channel)
+		file_info = helpers.FileInfo(input_file, channel)
 
 		# create one output file per channel in your config file
 		if "data" in options.config.split("config")[1]:
 			output_file = output_path + "histograms_data_{}.root".format(channel)
 		else:
-			output_file = output_path + file_info.Output_filename
+			if "CR" in config_file[channel]["selections"]:
+				output_file = output_path + "CR_" + file_info.output_filename
+			else:
+				output_file = output_path + file_info.output_filename
 		if os.path.exists(output_file):
 			if not options.force:
 				logger.error("Output {} file already exists. Either re-run with -f/--force OR choose a different output path.".format(output_file))
@@ -52,7 +55,7 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(file, treename, entries, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
+		tree = trees.Tree(input_file, treename, entries, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
 		if tree.numentries < entries or entries is None:
 			entries = tree.numentries
 		# specify this to reduce number of entries loaded in each array
@@ -71,7 +74,8 @@ def main():
 			# blinding flag to prevent accidental unblinding in data
 			if blinded and tree.is_data and "CR" not in selections:
 				if "OS" in selections or "SS" not in selections:
-					logger.error("You are running on data and you cannot look at OS verticies!!! Please include SS, not OS in selections.")
+					logger.error("You are running on data and you cannot look at OS vertices!!! "
+								 "Please include SS, not OS in selections.")
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
