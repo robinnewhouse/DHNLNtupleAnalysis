@@ -3,7 +3,7 @@ import ROOT
 import numpy as np
 import helpers
 import logging
-logger = helpers.getLogger('dHNLAnalysis.selections',level = logging.WARNING)
+# logger = helpers.getLogger('dHNLAnalysis.selections',level = logging.WARNING)
 
 
 class Trigger():
@@ -150,14 +150,13 @@ class Plepton():
 
 
 				if overlap == False:
-					# if self.evt.ievt == 424:
-					# 	print self.evt.ievt
-					# 	print plepVec_i.Pt(),plepVec_i.Eta(),plepVec_i.Phi()
 					if lepquality[self.evt.ievt][ilep] == True or self.quality =="None": # if lepton qulaity requirement is met or no lepton quality is required 
-						if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
-							self.highestpt_plep = plepVec_i 
-							self.highestpt_plep_d0 = lepd0
-							self.highestpt_plep_z0 = lepz0
+						sintheta = np.sin(plepVec_i.Theta())
+						if lepd0 < 3 and lepz0*sintheta < 0.5: # check track cuts 
+							if (plepVec_i.Pt() > self.highestpt_plep.Pt()): # update highestpt_plep vector to find the largest pt prompt lepton
+								self.highestpt_plep = plepVec_i 
+								self.highestpt_plep_d0 = lepd0
+								self.highestpt_plep_z0 = lepz0
 
 							#for trigger matching
 							# if self.evt.tree.muontrigmatched[self.evt.ievt][ilep] == 0:
@@ -174,6 +173,7 @@ class Plepton():
 			self.plepd0 = self.highestpt_plep_d0
 			self.plepz0 = self.highestpt_plep_z0
 			return True
+		
 		else:
 			return False
 
@@ -219,7 +219,6 @@ class DVntracks():
 		self.ntracks = -1 
 
 		if self.decaymode == "leptonic":
-			# print "track pt:", self.evt.tree.trackpt[self.evt.ievt][self.evt.idv]
 			self.ntracks = len(self.evt.tree.trackpt[self.evt.ievt][self.evt.idv])
 
 	def passes(self):
@@ -400,28 +399,6 @@ class Trackqual():
 				elisVeryLoose = self.evt.tree.verylooseel[self.evt.ievt][elindex]
  				if elisVeryLoose: 
  					self.nel_veryloose = self.nel_veryloose + 1
-
-			# print self.nmu_tight
-
-			# if (self.evt.ievt == 875) or (self.evt.ievt == 2115) or (self.evt.ievt == 2995) or (self.evt.ievt == 44464) or (self.evt.ievt == 339):
-			# print "----------"
-			# print self.evt.ievt
-			# print "track 1: ", electrons.lepVec[0].Pt(), electrons.lepVec[0].Eta(), electrons.lepVec[0].Phi()
-			# print "el 1: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepIndex[0]], self.evt.tree.eleta[self.evt.ievt][electrons.lepIndex[0]], self.evt.tree.elphi[self.evt.ievt][electrons.lepIndex[0]]
-			# print "el 1 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepIndex[0]]
-			# print ""
-			# print "track 2: ", electrons.lepVec[1].Pt(), electrons.lepVec[1].Eta(), electrons.lepVec[1].Phi()	
-			# print "el 2: ", self.evt.tree.elpt[self.evt.ievt][electrons.lepIndex[1]], self.evt.tree.eleta[self.evt.ievt][electrons.lepIndex[1]], self.evt.tree.elphi[self.evt.ievt][electrons.lepIndex[1]]
-			# print "el 2 quality: ", self.evt.tree.tightmu[self.evt.ievt][electrons.lepIndex[1]]
-
-			# print "number of tight electrons",self.nel_tight
-
-
-			# for iel in range(self.ndvel): 
-			# 	elindex = electrons.lepIndex[iel]
-			# 	elisTight = self.evt.tree.tightel[self.evt.ievt][elindex]
-			# 	if elisTight:
-			# 		self.nel_tight = self.nel_tight + 1
 
 
 	def passes(self):
@@ -607,10 +584,20 @@ class Mhnl():
 
 		self.mvis = -1 
 		self.mhnl = -1
+		self.mhnl2 = -1
 		self.hnlpt = -1
 		self.hnleta = -99
 		self.hnlphi = -99
 		self.mtrans_rot = -1 
+		self.neg_mhnl12 = -1
+		self.neg_mhnl13 = -1
+		self.neg_mhnl23 = -1
+		self.pos_mhnl12 = -1
+		self.pos_mhnl13 = -1
+		self.pos_mhnl23 = -1
+
+		self.nu_vec = ROOT.TLorentzVector()
+		self.nu_vec2 = ROOT.TLorentzVector()
 
 		def rotate_vector(r,v):
 			r_new = ROOT.TVector3(v)
@@ -624,16 +611,12 @@ class Mhnl():
 			return r_new
 
 		def unrotate_vector(r,v):
-			# r_new = ROOT.TVector3(v)
 			r_new = v
 
 			rotation_axis = ROOT.TVector3(-1*r.Y(),r.X(),0.0)
 			rotation_angle = r.Theta() 
 			r_new.Rotate(rotation_angle,rotation_axis)
-			
-			# if (r== v and r_new.X() > 0.001): 
-			# 	#if r=v then you should end up with a vector all in the z component
-			# 	print logger.ERROR("Roatating vectors did not work!! Check HNL mass calculation.")
+		
 			return r_new
 
 		#primary vertex vector
@@ -708,14 +691,34 @@ class Mhnl():
 			pnu_rot2 = ROOT.TLorentzVector(pnu_rot2_vec,pnu_rot2_vec.Mag())
 
 			# 2 solutions for HNL 4-vector
-			pHNL_1 = ptk1_rot + ptk2_rot + pnu_rot1
-			pHNL_2 = ptk1_rot + ptk2_rot + pnu_rot2
+			pHNL_1 = ptk1_rot + ptk2_rot + pnu_rot1 # postive root
+			pHNL_2 = ptk1_rot + ptk2_rot + pnu_rot2 # negative root
+						#1        #2          #3
+			
+			neg_mhnl12_vec = ptk1_rot + ptk2_rot
+			neg_mhnl13_vec = ptk1_rot + pnu_rot2
+			neg_mhnl23_vec = ptk2_rot + pnu_rot2
+
+
+			pos_mhnl12_vec = ptk1_rot + ptk2_rot
+			pos_mhnl13_vec = ptk1_rot + pnu_rot1
+			pos_mhnl23_vec = ptk2_rot + pnu_rot1
+
+
 
 			# truth studies show pHNL_2 is the solution that gets us the HNL mass
+			self.mhnl2 = pHNL_1.M()
 			self.mhnl = pHNL_2.M()
 
 			pHNL_2_lab = unrotate_vector(hnl_vec,pHNL_2)
 			hnl_vec_unrot = unrotate_vector(hnl_vec,hnl_vec_rot)
+
+			nu_vec_unrot2 = unrotate_vector(hnl_vec,pnu_rot1)
+
+			nu_vec_unrot = unrotate_vector(hnl_vec,pnu_rot2)
+
+			self.nu_vec = nu_vec_unrot
+			self.nu_vec2 = nu_vec_unrot2
 
 			# check that you rotated back to the original reference frame
 			#print "Unrotated DV vector: (", hnl_vec_unrot.X(),",", hnl_vec_unrot.Y(),",",hnl_vec_unrot.Z() , ")"
@@ -723,6 +726,15 @@ class Mhnl():
 			self.hnlpt = pHNL_2_lab.Pt()
 			self.hnleta = pHNL_2_lab.Eta()
 			self.hnlphi = pHNL_2_lab.Phi()
+
+
+			self.neg_mhnl12 = neg_mhnl12_vec.M()
+			self.neg_mhnl13 = neg_mhnl13_vec.M()
+			self.neg_mhnl23 = neg_mhnl23_vec.M()
+
+			self.pos_mhnl12 = pos_mhnl12_vec.M()
+			self.pos_mhnl13 = pos_mhnl13_vec.M()
+			self.pos_mhnl23 = pos_mhnl23_vec.M()
 
 	def passes(self):
 		

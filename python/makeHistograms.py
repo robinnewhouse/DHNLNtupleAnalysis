@@ -19,11 +19,8 @@ def main():
 	if os.path.exists(output_path) == False:
 		logger.info('Making output directory')
 		os.mkdir(output_path)
+		
 
-	# if options.update == False:
-	# 	if os.path.exists(output_path +"histograms.root"):
-	# 		logger.info('Removing histograms.root')
-	# 		os.remove(output_path + "histograms.root") # by default remove histrogram file that if you previously created it.
 
 	with open(options.config, 'r') as json_config:
 		config_file = json.load(json_config) # load JSON config file that contains a channel name mapped to a list of selections
@@ -31,25 +28,29 @@ def main():
 
 	analysisCode = {}
 	# Define that we're using a specific type of anaysis
-	anaClass = getattr(analysis, "WmuHNL")
+	# anaClass = getattr(analysis, "oldHNLanalysis")
+	anaClass = getattr(analysis, options.analysis)
 
-	file = options.input[0]
-	treename = "outTree"
+	file = options.input[0] # get file 
+	treename = "outTree" # define tree name 
 
 	#loop over all the channels in the config file
 	for channel, configs in config_file.items():
-		
-
+   		
 		logger.info('Running on channel: %s'%channel)
+		file_info = helpers.File_info(file, channel) # If you are running on MC this will give info about signal mass and lifetime
+
 		#create one output file per channel in your config file
 		if "data" in options.config.split("config")[1]:
 			outputfile = output_path + "histograms_data_%s.root"%channel
 		else:
-			outputfile = output_path + "histograms_mc_%s.root"%channel
-
+			outputfile = output_path + file_info.Output_filename
 		if os.path.exists(outputfile):
 			if options.force == False:
-				logger.error("Output histograms_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%channel)
+				if "data" in options.config.split("config")[1]:
+					logger.error("Output histograms_data_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%channel)
+				else:
+					logger.error("Output %s file already exists. Either re-run with -f/--force OR choose a different output path."%file_info.Output_filename)
 				exit()
 			else:
 				logger.info('Removing %s'%outputfile)
@@ -59,9 +60,9 @@ def main():
 		for vtx_container in config_file[channel]["vtx_containers"]:
 			
 			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
-			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile
-			nentries = options.nevents or len(tree.dvmass)
-			
+			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile	
+			nentries = options.nevents or len(tree.dvx)
+
 			#blinding flag to prevent accidental unblinding in data
 			if blinded:
 				if tree.isData and "OS" in selections:
@@ -69,14 +70,15 @@ def main():
 					exit()
 
 			# Make instance of the analysis class
-			ana = anaClass(vtx_container, selections, outputfile)
+			ana = anaClass(vtx_container, selections, outputfile,isdata=tree.isData)
+
 			
 			# Loop over each event
 			for ievt in xrange(nentries):
 				if (ievt % 1000 == 0):
 					logger.info("Channel {}: processing event {}".format("%s_%s"%(channel,vtx_container), ievt))
 				# Create an event instance to keep track of basic event properties
-				evt = helpers.Event(tree=tree, ievt=ievt, idv=None)
+				evt = helpers.Event(tree=tree, ievt=ievt,mass=file_info.mass,ctau=file_info.ctau)
 				ndv = len(tree.dvx[ievt])
 
 				# Run preselection cuts to avoid processing unnecessary events
@@ -84,7 +86,7 @@ def main():
 
 				# Loop over each vertex in the event
 				for idv in xrange(ndv):
-					DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv)
+					DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv,mass=file_info.mass,ctau=file_info.ctau)
 					ana.DVSelection(DVevt)
 
 				ana.unlock()
@@ -145,6 +147,11 @@ if __name__ == "__main__":
 						default = None,
 						type = int,
 						help='Number of events are going to be processed for test-only purpose.')
+	parser.add_argument('-a','--analysis',
+						dest="analysis",
+						default = "oldAnalysis",
+						type = str,
+						help='Name of the analysis you want to run. Default is the old 36fb dHNL analysis')
 
 	# parser.add_argument("-u", "--update",
 	# 					action="store_true",

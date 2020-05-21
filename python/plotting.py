@@ -4,6 +4,7 @@ import argparse, os, math, ROOT, glob, uproot, time, json
 import atlas_style
 import numpy as np
 import helpers
+import plotting_helpers
 from ROOT import *
 from ROOT import gPad
 from pylab import *
@@ -18,35 +19,29 @@ def plot_cutflow(file, vertextype, outputDir="../output/"):
 	if vertextype == "VSI":
 		hcutflow = Tfile.Get('CutFlow_VSI')
 	elif vertextype == "VSI Leptons":
-		hcutflow = Tfile.Get('CutFlow_VSI')
+		hcutflow = Tfile.Get('CutFlow_VSI_Leptons')
 
-	MyC01= ROOT.TCanvas("MyC01","cutflow",600,400)
+	MyC01= ROOT.TCanvas("MyC01","cutflow",1200,400)
 
-
+	gPad.SetLogy()
 	ymax_cutflow = hcutflow.GetMaximum()
-	hcutflow.GetYaxis().SetRangeUser(0,ymax_cutflow*1.05)
+	hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow*1000)
+	# hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow)
 	hcutflow.SetFillColor(kAzure-4)
 	hcutflow.SetLineWidth(0)
-	hcutflow.Draw("HIST TEXT0 SAME")
+	hcutflow.GetYaxis().SetTickLength(0.)
+	hcutflow.SetMarkerSize(2.2)
+	hcutflow.Draw("HIST TEXT35 SAME")
 
+
+	channel = file.split("histograms_")[1].split(".")[0]
+
+	fileInfo = helpers.File_info(file,channel)
 	if "data" in file: 
-		helpers.drawNotesData("data18 period B",vertextype) 
-	if "uuu" in file: 
-		helpers.drawNotes("mumu","muon",vertextype) 
-	elif "ueu" in file: 
-		helpers.drawNotes("emu","muon",vertextype) 
-	elif "uee" in file: 
-		helpers.drawNotes("ee","muon",vertextype) 
-	elif "eee" in file: 
-		helpers.drawNotes("ee","electron",vertextype) 
-	elif "eeu" in file: 
-		helpers.drawNotes("emu","electron",vertextype) 
-	elif "euu" in file: 
-		helpers.drawNotes("mumu","electron",vertextype) 
+		plotting_helpers.drawNotesData("data 2018",vertextype,lumi=60,channel=channel) 
 	else: 
-		helpers.drawNotesVertextype(vertextype)
+		plotting_helpers.drawNotesMC(fileInfo.MC_campaign,vertextype,channel,fileInfo.mass_str,fileInfo.ctau_str) 
 
-	channel = file.split("_")[1].split(".")[0]
 
 	if vertextype == "VSI":
 		savefilename= "CutFlow_VSI_" + channel
@@ -59,12 +54,7 @@ def plot_cutflow(file, vertextype, outputDir="../output/"):
 
 
 
-def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=1,nRebin=1,setlogy=False,outputDir="../output/"):
-	############################################################################
-	# nRebin = 5 # set to 1 if you dont want to rebin.
-	# scaleymax = 1.6 # use this to scale height of y axis for asthetics
-	############################################################################
-
+def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=1,nRebin=1,setlogy=False,outputDir="../output/",normalize=False,lumi=1):
 
 	# get multiple histograms from input file
 	nhist = len(hname)
@@ -78,47 +68,60 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 	for i in xrange(nhist): 
 		h[i] = f.Get(hname[i]+vertexSuffix)
-	# exit()
 
 
 	#define your canvas
 	MyC01= ROOT.TCanvas("MyC01","",600,400)
-	# MyC01.Divide(1,1)
-	# MyC01.cd(1)
 
 	#format legend
-	leg01 = ROOT.TLegend(0.60,0.7,0.91,0.92)
+	leg01 = ROOT.TLegend(0.58,0.65,0.91,0.92)
 	leg01.SetTextSize(0.035)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
 
 
-	ymax_list = []
 	h_binxmax_list = []
 	h_binxmin_list = []
 	for i in xrange(nhist):
 		leg01.AddEntry(h[i],hlabel[i],"lp")
 		h[i].Rebin(nRebin)
-
-		ymax_list.append(h[i].GetMaximum())
 		h_binxmax_list.append(h[i].FindLastBinAbove(0,1))
 		h_binxmin_list.append(h[i].FindFirstBinAbove(0,1))
 
-	y_max = max(ymax_list)
 	bin_xmax = max(h_binxmax_list)
 	bin_xmin = min(h_binxmin_list)
 
 	shapelist = [20,22,21,33,29]
+
+	# normalize the histograms
+	if normalize: 
+		norm = 1
+		for i in range(nhist):
+			if (h[i].Integral() != 0):
+				scale_mc = norm/(h[i].Integral(bin_xmin, bin_xmax))
+			else:
+				scale_mc = norm
+			h[i].Scale(scale_mc)
+
+	else: # use MC scaling to compare with data
+		for i in range(nhist):
+			h[i].Scale(lumi) # scale mc to a given luminosity in inverse fb
+
+	# find the common min and max for y axis
+	y_max = h[0].GetMaximum()
+	for i in xrange(nhist):
+		if h[i].GetMaximum() > y_max: y_max = h[i].GetMaximum()
+
 	for i in xrange(nhist): 
-		h[i].SetLineColor(helpers.histColours(i))
-		h[i].SetMarkerColor(helpers.histColours(i))
+		h[i].SetLineColor(plotting_helpers.histColours(i))
+		h[i].SetMarkerColor(plotting_helpers.histColours(i))
 		h[i].SetMarkerSize(0.7)
 		h[i].SetMarkerStyle(shapelist[i])
 		if i == 0:
-			h[i].GetXaxis().SetTitle(helpers.xlabelhistograms(hname[i]))
+			h[i].GetXaxis().SetTitle(plotting_helpers.xlabelhistograms(hname[i]))
 			h[i].GetYaxis().SetTitle("entries")
-			h[i].GetYaxis().SetRangeUser(0,y_max*scaleymax)
+			h[i].GetYaxis().SetRangeUser(0.0001,y_max*scaleymax)
 			if setxrange != "":
 				X_minmax = [item for item in setxrange.split(' ')]
 				h[i].GetXaxis().SetRangeUser(int(X_minmax[0]),int(X_minmax[1]))
@@ -136,31 +139,29 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 	leg01.Draw()
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
-	# if "pmu" in hname[0]: 
-	# 	if "mumu" in hname[0]:
-	# 		helpers.drawNotesMC("",vertextype, "mumumu","10","10")
-	# 	# if "mumu" in hname[0]:
-	# 	# 	helpers.drawNotesMC("",vertextype, "mumu","10","10")
-	# 	if "emu" in hname[0]:
-	# 		helpers.drawNotesMC("",vertextype, "emumu","10","10")
-
 	if "data" in file: 
-		helpers.drawNotesData("data18 period B",vertextype) 
+		plotting_helpers.drawNotesData("data18 period B",vertextype) 
 	if "uuu" in file: 
-		helpers.drawNotes("mumu","muon",vertextype) 
+		plotting_helpers.drawNotes("mumu","muon",vertextype) 
 	elif "ueu" in file: 
-		helpers.drawNotes("emu","muon",vertextype) 
+		plotting_helpers.drawNotes("emu","muon",vertextype) 
 	elif "uee" in file: 
-		helpers.drawNotes("ee","muon",vertextype) 
+		plotting_helpers.drawNotes("ee","muon",vertextype) 
 	elif "eee" in file: 
-		helpers.drawNotes("ee","electron",vertextype) 
+		plotting_helpers.drawNotes("ee","electron",vertextype) 
 	elif "eeu" in file: 
-		helpers.drawNotes("emu","electron",vertextype) 
+		plotting_helpers.drawNotes("emu","electron",vertextype) 
 	elif "euu" in file: 
-		helpers.drawNotes("mumu","electron",vertextype) 
-	else: 
-		helpers.drawNotesVertextype(vertextype)
+		plotting_helpers.drawNotes("mumu","electron",vertextype) 
 
+	if "HNLpt" in hname[0]:
+		min_HNLptcut=TLine(20,0,20,y_max)
+		min_HNLptcut.SetLineStyle(3)
+		min_HNLptcut.Draw("SAME")
+
+		max_HNLptcut=TLine(60,0,60,y_max)
+		max_HNLptcut.SetLineStyle(3)
+		max_HNLptcut.Draw("SAME")
 
 	if "DV_mass" in hname[0]:
 		mDVcut=TLine(4,0,4,y_max)
@@ -204,36 +205,41 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 
 
-def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, setrange = "", scaleymax=1.2, nRebin=1,setlogy=False,outputDir="../output/"):
-
-	# get 2 histograms from input file
-
+def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, setrange = "", 
+                   scaleymax=1.2, nRebin=1, setlogy=False, outputDir="../output/", save_name = "",
+                   normalize=True, lumi=1):
+	
+	if setlogy: 
+		scaleymax = scaleymax*150 #change default scale if log scale to give room for text & legend
+	
+	# get data histograms from input file
+	
 	data = ROOT.TFile(datafile)
-	if vertextype == "VSI":
-		hdata = data.Get(hname + "_VSI") # need to remake histograms with new format ;) 
-		# hdata = data.Get(hname + "_pmu_mumu_VSI") # need to remake histograms with new format ;) 
-	elif vertextype == "VSI Leptons": 
-		hdata = data.Get(hname + "_VSI_Leptons") # need to fix this ;) 
-		# hdata = data.Get(hname + "_pmu_mumu_VSILep") # need to fix this ;) 
-	else: 
-		logger.error("Couldn't find the data  histogram you requested!")
-		logger.error("Check file %s has the histogram you are looking for!"%datafile)
-		exit() 
 
+	if vertextype == "VSI" and data.GetListOfKeys().Contains(hname + "_VSI"):
+		hdata = data.Get(hname + "_VSI") 
+	elif vertextype == "VSI Leptons" and data.GetListOfKeys().Contains(hname + "_VSI_Leptons"): 
+		hdata = data.Get(hname + "_VSI_Leptons") 
+	else: 
+		logger.error("Couldn't find histogram: %s with vertextype: %s that you requested!"%(hname, vertextype ) ) 
+		logger.error("Check that file %s has the histogram you are looking for!"%datafile)
+		exit() 
 	
 	nmc_files = len(mcfiles)
 	hmc ={}
 	mc = {}
 
+	# get MC histograms from input file
+
 	for i in range(nmc_files): 
 		mc[i] = ROOT.TFile(mcfiles[i])
-		if vertextype == "VSI":
+		if vertextype == "VSI"and mc[i].GetListOfKeys().Contains(hname + "_VSI"):
 			hmc[i] = mc[i].Get(hname + "_VSI")
-		elif vertextype == "VSI Leptons":
+		elif vertextype == "VSI Leptons" and mc[i].GetListOfKeys().Contains(hname + "_VSI_Leptons"):
 			hmc[i] = mc[i].Get(hname + "_VSI_Leptons")
 		else: 
-			logger.error("Couldn't find the mc histogram you requested!")
-			logger.error("Check file %s has the histogram you are looking for!"%mcfiles[i])
+			logger.error("Couldn't find histogram: %s with vertextype: %s that you requested!"%(hname, vertextype ))
+			logger.error("Check that file %s has the histogram you are looking for!"%mcfiles[i])
 			exit() 
 
 
@@ -241,82 +247,112 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 	MyC01= ROOT.TCanvas("MyC01","",600,400)
 
 	#format legend
-	leg01 = ROOT.TLegend(0.50,0.7,0.91,0.92)
+	leg01 = ROOT.TLegend(0.57,0.71,0.92,0.92)
 	leg01.SetTextSize(0.035)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
 
-	leg01.AddEntry(hdata,hdatalabel,"lp")
 
-	#rebin histograms
+	#rebin histograms (if rebin =1 (default) it will not rebin the histogram)
 	hdata.Rebin(nRebin)
-
 	for i in range(nmc_files): 
-		leg01.AddEntry(hmc[i],hmclabels[i],"lp")
 		hmc[i].Rebin(nRebin)
 
-	norm = 1
-	scale_data = norm/(hdata.Integral())
-	hdata.Scale(scale_data)
 
-	for i in range(nmc_files): 
-		scale_mc = norm/(hmc[i].Integral())
-		hmc[i].Scale(scale_mc)	
-
-	# find the max of the n histograms
-	ydata_max = hdata.GetMaximum()
-	hdata_binxmax = hdata.FindLastBinAbove(0,1)
-	hdata_binxmin = hdata.FindFirstBinAbove(0,1)
-
-	ymax_list = []
-	h_binxmax_list = []
-	h_binxmin_list = []
-
-	ymax_list.append(ydata_max)
-	h_binxmax_list.append(hdata_binxmax)
-	h_binxmin_list.append(hdata_binxmin)
-
+	# find the common min and max for x axis and calculate yields
+	bin_xmax = hdata.FindLastBinAbove(0,1)
+	bin_xmin = hdata.FindFirstBinAbove(0,1)
+	data_yield = round(hdata.Integral(bin_xmin,bin_xmax), 2)
+	mc_yield = {}
 	for i in xrange(nmc_files):
-		ymax_list.append(hmc[i].GetMaximum())
-		h_binxmax_list.append(hmc[i].FindLastBinAbove(0,1))
-		h_binxmin_list.append(hmc[i].FindFirstBinAbove(0,1))
-
-	y_max = max(ymax_list)
-	bin_xmax = max(h_binxmax_list)
-	bin_xmin = min(h_binxmin_list)
-
-	hdata.SetLineColor(kBlack)
-	hdata.GetXaxis().SetTitle(helpers.xlabelhistograms(hname))
-	hdata.GetYaxis().SetTitle("entries")
-	hdata.GetYaxis().SetRangeUser(0,y_max*scaleymax)
-	hdata.SetMarkerSize(0.7)
+		mc_yield[i] = lumi*round(hmc[i].Integral(hmc[i].FindFirstBinAbove(0,1), hmc[i].FindLastBinAbove(0,1)),2)
+		if  hmc[i].FindLastBinAbove(0,1) > bin_xmax: bin_xmax = hmc[i].FindLastBinAbove(0,1) # update bin_xmax to find hist with largest xrange
+		if hmc[i].FindFirstBinAbove(0,1) > bin_xmin: bin_xmin = hmc[i].FindFirstBinAbove(0,1) # update bin_xmin to find hist with largest xrange
 	
 	if setrange == "":
-		hdata.GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
-	else: 
+		x_min = bin_xmin-1
+		x_max = bin_xmax+1
+	else:  #if xrange is specifed then aujust xmin and xmax
+		x_min, x_max = [float(item) for item in setrange.split(' ')]
+		bin_xmax = hdata.GetXaxis().FindBin(x_max)
+		bin_xmin = hdata.GetXaxis().FindBin(x_min)
+		hdata.GetXaxis().SetRangeUser(x_min, x_max)
+	for i in xrange(nmc_files):
+		hmc[i].GetXaxis().SetRangeUser(x_min, x_max)
 
-		minmax = [item for item in setrange.split(' ')]
-		hdata.GetXaxis().SetRangeUser(int(minmax[0]),int(minmax[1]))
+	# normalize the histograms
+	if normalize: 
+		norm = 1
+		if (hdata.Integral() != 0):
+			# Normalize in specified range
+			scale_data = norm/(hdata.Integral(bin_xmin, bin_xmax)) 
+		else:
+			scale_data = norm
+		hdata.Scale(scale_data)
+
+		for i in range(nmc_files):
+			if (hmc[i].Integral() != 0):
+				scale_mc = norm/(hmc[i].Integral(bin_xmin, bin_xmax))
+			else:
+				scale_mc = norm
+			hmc[i].Scale(scale_mc)
+
+	else: # use MC scaling to compare with data
+		for i in range(nmc_files):
+			hmc[i].Scale(lumi) # scale mc to a given luminosity in inverse fb
+
+	# find the common min and max for y axis
+	y_max = hdata.GetMaximum()
+	for i in xrange(nmc_files):
+		if hmc[i].GetMaximum() > y_max: y_max = hmc[i].GetMaximum()
+
+
+	hdata.SetLineColor(kBlack)
+	hdata.GetXaxis().SetTitle(plotting_helpers.xlabelhistograms(hname))
+	hdata.GetYaxis().SetTitle("events")
+	hdata.GetYaxis().SetRangeUser(0.0001,y_max*scaleymax)
+	# hdata.GetYaxis().SetRangeUser(0.0001,100)
+	hdata.SetMarkerSize(0.7)
 
 	hdata.Draw("E0 HIST")
 
 	shapelist = [22,21,33,29]
 	for i in xrange(nmc_files): 
 		hmc[i].SetMarkerSize(0.7)
-		hmc[i].SetLineColor(helpers.histColours(i))
-		hmc[i].SetMarkerColor(helpers.histColours(i))
+		hmc[i].SetLineColor(plotting_helpers.histColours(i))
+		hmc[i].SetMarkerColor(plotting_helpers.histColours(i))
 		hmc[i].SetMarkerStyle(shapelist[i])
 		hmc[i].Draw("E0 HIST SAME")
+
+	
+	# add data entry to legend 
+	leg01.AddEntry(hdata,"\\bf{%s}"%hdatalabel + "  \\bf{%s)}"%data_yield,"lp")
+	leg01.AddEntry(hdata,"","")
+	leg01.AddEntry(hdata,"","")
+	for i in range(nmc_files): 
+		leg01.AddEntry(hmc[i],"\\bf{%s}"%hmclabels[i]+ " \\bf{%s)}"%mc_yield[i],"lp")
 
 
 	if setlogy: 
 		gPad.SetLogy()
+		gPad.Update()
 
+	# draw some lines 
 	if "DV_mass" in hname:
 		mDVcut=TLine(4,0,4,y_max)
 		mDVcut.SetLineStyle(3)
 		mDVcut.Draw("SAME")
+
+
+	if "HNLpt" in hname:
+		min_HNLptcut=TLine(20,0,20,y_max)
+		min_HNLptcut.SetLineStyle(3)
+		min_HNLptcut.Draw("SAME")
+
+		max_HNLptcut=TLine(60,0,60,y_max)
+		max_HNLptcut.SetLineStyle(3)
+		max_HNLptcut.Draw("SAME")
 
 	if "mvis" in hname:
 		min_mlll=TLine(50,0,50,y_max)
@@ -341,27 +377,41 @@ def compare_dataMC(datafile, mcfiles, hname, hdatalabel, hmclabels, vertextype, 
 			leg01.AddEntry(matlay[0],"material layers","l")
 
 	leg01.Draw()
+	l = ROOT.TLatex()
+	l.SetNDC()
+	l.SetTextFont(43)
+	l.SetTextColor(1)
+	l.SetTextSize(12)
+ 	l.DrawLatex(0.65,0.855,"(   m_{HNL},    c\\tau,    chan.,    yield)")
+ 	# l.DrawLatex(0.65,0.78,"(   m_{HNL},    c\\tau,    chan.,    yield)")
+
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
-	helpers.drawNotesVertextype(vertextype)
 	
-	if vertextype == "VSI":
-		savefilename= hname + "_compare_dataMC_VSI"
-	elif vertextype == "VSI Leptons":
-		savefilename= hname + "_compare_dataMC_VSILep"
+
+	if normalize: 
+		plotting_helpers.drawNotesVertextype(vertextype, "")
 	else: 
-		savefilename= hname + "_compare_dataMC_VSILep"
+		plotting_helpers.drawNotesVertextype(vertextype, lumi)
+
+	
+	save_name = hname if save_name == "" else save_name
+	if vertextype == "VSI":
+		savefilename= save_name + "_compare_dataMC_VSI"
+	elif vertextype == "VSI Leptons":
+		savefilename= save_name + "_compare_dataMC_VSILep"
+	else: 
+		savefilename= save_name + "_compare_dataMC_VSILep"
 
 	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
 
 
 
-def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,savefilename):
+def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,savefilename,outputDir):
 	############################################################################
 	nRebin = 10 # set to 1 if you dont want to rebin.
-	scaleymax = 1.1 # use this to scale height of y axis for asthetics
+	scaleymax = 1.6 # use this to scale height of y axis for asthetics
 	############################################################################
-
 
 	# get 2 histograms from the file 
 	file1 = ROOT.TFile(histos1)
@@ -369,18 +419,12 @@ def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,s
 	h1 = file1.Get(h1name)
 	h2 = file2.Get(h2name)
 
-
-	print h1.GetEntries()
-	print h2.GetEntries()
-
 	#define your canvas
-	# MyC01 = ROOT.TCanvas("MyC01","",600,400)
 	MyC01 = ROOT.TCanvas("MyC01", "canvas", 800, 800)
 	MyC01.Divide(1,1)
 	MyC01.cd(1)
 	pad1 = ROOT.TPad("pad1", "pad1", 0, 0.3, 1, 1.0)
 	pad1.SetBottomMargin(0)
-	pad1.SetGridx()
 	pad1.Draw()
 	pad1.cd() 
 
@@ -414,34 +458,49 @@ def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,s
 	h2_binxmin = h2.FindFirstBinAbove(0,1)
 	bin_xmin = min(h1_binxmin,h2_binxmin)
 
-
-	h1.SetLineColor(kAzure+6)
+	shapelist = [22,21,33,29]
+	h1.SetLineColor(plotting_helpers.histColours(0))
+	h1.SetMarkerSize(0.9)
+	h1.SetLineColor(plotting_helpers.histColours(0))
+	h1.SetMarkerColor(plotting_helpers.histColours(0))
+	h1.SetMarkerStyle(shapelist[0])
 	h1.GetXaxis().SetTitle(xlabel)
 	h1.GetYaxis().SetTitle("entries")
 	h1.GetYaxis().SetRangeUser(0,y_max*scaleymax)
-	# h1.GetXaxis().SetRangeUser(0,5)
 	h1.GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
 	h1.Draw("HIST")
 
+
 	
-	h2.SetLineColor(kViolet+8)
-	h2.SetLineStyle(3)
+	h2.SetLineColor(plotting_helpers.histColours(1))
+	h2.SetMarkerSize(0.9)
+	h2.SetLineColor(plotting_helpers.histColours(1))
+	h2.SetMarkerColor(plotting_helpers.histColours(1))
+	h2.SetMarkerStyle(shapelist[1])
+	h2.SetLineStyle(2)
 	h2.Draw("HIST SAME")
 
-	# h1.GetYaxis().SetLabelSize(0.)
-	# axis = ROOT.TGaxis( -5, 20, -5, 220, 20,220,510,"")
-	# axis.SetLabelFont(43) # Absolute font size in pixel (precision 3)
-	# axis.SetLabelSize(15)
-	# axis.Draw()
+	if "DV_r" in h1name or "DV_r" in h2name:
+		if  "redmass" in h1name or "redmass" in h2name:
+			pass
+		else: 
+			matlayers = [33.25,50.5,88.5,122.5,299]
+			nmatlayers = len(matlayers)
+			matlay={}
+			for i in range(nmatlayers):
+				matlay[i]=TLine(matlayers[i],0,matlayers[i],y_max*1.05)
+				matlay[i].SetLineStyle(3)
+				matlay[i].Draw("SAME")
+			leg01.AddEntry(matlay[0],"material layers","l")
+
 
 	leg01.Draw()
-	atlas_style.ATLASLabel(0.25,0.87,"Internal")
+	plotting_helpers.drawNotesVertextype("VSI")
 
 	MyC01.cd(1)
 	pad2 = ROOT.TPad("pad2", "pad2", 0, 0.05, 1, 0.3)
 	pad2.SetTopMargin(0)
 	pad2.SetBottomMargin(0.2)
-	pad2.SetGridx() 
 	pad2.Draw()
 	pad2.cd() 
 
@@ -465,15 +524,36 @@ def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,s
 	hratio.GetXaxis().SetTitleOffset(4.)
 	hratio.GetXaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
 	hratio.GetXaxis().SetLabelSize(15)
+	hratio.GetYaxis().SetRangeUser(0.8,1.23)
+	# line1=TLine(0,1,500,1)
+	# line1.SetLineStyle(1)
+
+	hratio.SetMarkerColor(plotting_helpers.histColours("ratio"))
+
+	hratio.GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
 
 
 	hratio.Draw("ep")
+	# line1.Draw("SAME")
+
+	if "DV_r" in h1name or "DV_r" in h2name:
+		if  "redmass" in h1name or "redmass" in h2name:
+			pass
+		else: 
+			matlayers_ratio = [33.25,50.5,88.5,122.5,299]
+			nmatlayers_ratio = len(matlayers_ratio)
+			matlay_ratio={}
+			for i in range(nmatlayers):
+				matlay_ratio[i]=TLine(matlayers_ratio[i],0.8,matlayers_ratio[i],y_max)
+				matlay_ratio[i].SetLineStyle(3)
+				matlay_ratio[i].Draw("SAME")
+
 
 	
-	MyC01.SaveAs(histos_savepath +savefilename+'.pdf')
+	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
 
-def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=1,rebiny=1, outputDir="../output/"):
+def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=1,rebiny=1, lumi=1, outputDir="../output/"):
 
 	f = ROOT.TFile(file)
 	if "data" in file:
@@ -496,13 +576,17 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 
 
 	#format legend
-	leg01 = ROOT.TLegend(0.550,0.8,0.89,0.92)
+	leg01 = ROOT.TLegend(0.65,0.82,0.82,0.86)
 	leg01.SetTextSize(0.035)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
-	leg01.AddEntry(h,hlabel,"")
+	leg01.AddEntry(h,"\\bf{%s  ) }"%hlabel,"")
 
+	if "data" in file: 
+		pass
+	else: 
+		h.Scale(lumi)
 
 	# Rebin 2D histogram!
 	hold = h.Clone()
@@ -555,18 +639,32 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 	if "DVmass_mhnl" in hname: 
 		h.GetXaxis().SetTitle("DV mass [GeV]")
 		h.GetYaxis().SetTitle("HNL Mass [GeV]")
+	if "DVmass_hnlpt" in hname: 
+		h.GetXaxis().SetTitle("DV mass [GeV]")
+		h.GetYaxis().SetTitle("HNL p_{T} [GeV]")
 	if "DVmass_mtrans" in hname: 
 		h.GetXaxis().SetTitle("DV mass [GeV]")
 		h.GetYaxis().SetTitle("Visible m_{T} [GeV]")
 	if "mvis_mhnl" in hname: 
-		h.GetXaxis().SetTitle("Visible mass [GeV]")
+		h.GetXaxis().SetTitle("Visible mass (m_{lll}) [GeV]")
 		h.GetYaxis().SetTitle("HNL mass [GeV]")
 	if "mvis_mtrans" in hname: 
-		h.GetXaxis().SetTitle("Visible Mass [GeV]")
+		h.GetXaxis().SetTitle("Visible Mass (m_{lll}) [GeV]")
 		h.GetYaxis().SetTitle("Visible m_{T} [GeV]")
+	if "mvis_hnlpt" in hname: 
+		h.GetXaxis().SetTitle("Visible Mass (m_{lll}) [GeV]")
+		h.GetYaxis().SetTitle("HNL p_{T} [GeV]")
 	if "mhnl_mtrans" in hname: 
 		h.GetXaxis().SetTitle("HNL mass [GeV]")
 		h.GetYaxis().SetTitle("Visible m_{T} [GeV]")
+	if "mhnl_hnlpt" in hname:
+		h.GetXaxis().SetTitle("HNL mass [GeV]")
+		h.GetYaxis().SetTitle("HNL p_{T} [GeV]")
+	if "mhnl2D" in hname:
+		h.GetXaxis().SetTitle("HNL mass (negative root) [GeV]")
+		h.GetYaxis().SetTitle("HNL mass (postive root) [GeV]")
+
+
 
 	h.GetZaxis().SetTitleOffset(-1.5)
 	h.Draw("colz")
@@ -575,20 +673,22 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 	leg01.Draw()
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 	
-	if "uuu" in file: 
-		helpers.drawNotes("mumu","muon",vertextype) 
-	elif "ueu" in file: 
-		helpers.drawNotes("emu","muon",vertextype) 
-	elif "uee" in file: 
-		helpers.drawNotes("ee","muon",vertextype) 
-	elif "eee" in file: 
-		helpers.drawNotes("ee","electron",vertextype) 
-	elif "eeu" in file: 
-		helpers.drawNotes("emu","electron",vertextype) 
-	elif "euu" in file: 
-		helpers.drawNotes("mumu","electron",vertextype) 
+	channel = file.split("histograms_")[1].split(".")[0]
+
+	if "data" in file: 
+		plotting_helpers.drawNotesVertextype(vertextype,lumi=60)
 	else: 
-		helpers.drawNotesVertextype(vertextype)
+		plotting_helpers.drawNotesVertextype(vertextype,lumi=lumi)
+
+	l = ROOT.TLatex()
+	l.SetNDC()
+	l.SetTextFont(43)
+	l.SetTextColor(1)
+	l.SetTextSize(14)
+	l.DrawLatex(0.69,0.88,"(  m_{HNL},    c\\tau,    chan.  )")
+
+	
+
 
 	if vertextype == "VSI":
 		savefilename = hname + "_2Dmass_VSI"
@@ -598,3 +698,6 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 		savefilename = hname + "_2Dmass_VSILep"
 
 	MyC01.SaveAs(outputDir +savefilename+'.pdf')
+
+
+	
