@@ -50,24 +50,14 @@ class Tree():
 		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() #d0 and z0 are track quantites calculated wrt IP we dont want to look at the _wrtSV variable!
 		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
 
-		self.trackz0 = self.tree[DVprefix + "_trk_z0"].array() 
-		self.trackd0 = self.tree[DVprefix + "_trk_d0"].array() 
-
-                self.trackd0_pv = self.tree[DVprefix + "_trk_d0"].array() 
-		self.trackz0_pv = self.tree[DVprefix + "_trk_z0"].array() 
+		self.trackpx = self.tree[DVprefix + "_trk_px"].array() 
+		self.trackpy = self.tree[DVprefix + "_trk_py"].array() 
+		self.trackpz = self.tree[DVprefix + "_trk_pz"].array()
 
                 self.tracknpixB = self.tree[DVprefix + "_trk_nPixelBarrelLayers"].array()
-                self.tracknpixEC = self.tree[DVprefix + "_trk_nPixelEndCapLayers"].array()
+                self.tracknpixEC = self.tree[DVprefix + "_trk_nPixelEndCapLayers"].array()                 
                 self.tracknsctB = self.tree[DVprefix + "_trk_nSCTBarrelLayers"].array()
                 self.tracknsctEC = self.tree[DVprefix + "_trk_nSCTEndCapLayers"].array()
-
-                if self.isData == False:
-                        self.linkedtruthX = self.tree[DVprefix + "_maxlinkTruth_x"].array()
-                        self.linkedtruthY = self.tree[DVprefix + "_maxlinkTruth_y"].array()
-                        self.linkedtruthZ = self.tree[DVprefix + "_maxlinkTruth_z"].array()
-                        self.linkedtruthR = self.tree[DVprefix + "_maxlinkTruth_r"].array()
-                        self.linkedtruthscore = self.tree[DVprefix + "_maxlinkTruth_score"].array()
-                        self.linkedtruthParentPdgId = self.tree[DVprefix + "_maxlinkTruth_parent_pdgId"].array()
 
 
 		# -----------------------------------------------------------------------
@@ -87,6 +77,20 @@ class Tree():
 		self.dvdistFromPV = self.tree[DVprefix + "_distFromPV"].array() 
 		self.dvcharge = self.tree[DVprefix + "_charge"].array() 
 		self.dvchi2 = self.tree[DVprefix + "_chi2"].array() 
+
+
+		# -----------------------------------------------------------------------
+		# DV matching variables
+		# -----------------------------------------------------------------------
+
+                if self.isData == False:
+                        self.linkedtruthX = self.tree[DVprefix + "_maxlinkTruth_x"].array()
+                        self.linkedtruthY = self.tree[DVprefix + "_maxlinkTruth_y"].array()
+                        self.linkedtruthZ = self.tree[DVprefix + "_maxlinkTruth_z"].array()
+                        self.linkedtruthR = self.tree[DVprefix + "_maxlinkTruth_r"].array()
+                        self.linkedtruthscore = self.tree[DVprefix + "_maxlinkTruth_score"].array()
+                        self.linkedtruthParentPdgId = self.tree[DVprefix + "_maxlinkTruth_parent_pdgId"].array()
+
 		# -----------------------------------------------------------------------
 		
 		# -----------------------------------------------------------------------
@@ -97,8 +101,8 @@ class Tree():
 		self.muoneta = self.tree["muon_eta"].array()  
  		self.muonphi = self.tree["muon_phi"].array() 
 		self.muond0 = self.tree["muon_trkd0"].array() 
-		self.muond0sig = self.tree["muon_trkd0sig"].array() 
 		self.muonz0 = self.tree["muon_trkz0"].array()
+		self.muonz0sintheta = self.tree["muon_trkz0sintheta"].array()
 		self.muonpx = self.tree["muon_px"].array() 
 		self.muonpy = self.tree["muon_py"].array() 
 		self.muonpz = self.tree["muon_pz"].array() 
@@ -107,12 +111,6 @@ class Tree():
 		self.mediummu = self.tree["muon_isMedium"].array()
 		self.loosemu = self.tree["muon_isLoose"].array()
 		self.muontype = self.tree["muon_type"].array()
- #               self.muon_npix = self.tree["muon_trknPixHits"].array()
-  #              self.muon_npixhole = self.tree["muon_trknPixHoles"].array()
-   #             self.muon_nsct = self.tree["muon_trknSCTHits"].array()
-    #            self.muon_nscthole = self.tree["muon_trknSCTHoles"].array()
-     #           self.muon_ntrt = self.tree["muon_trknTRTHits"].array()
-      #          self.muon_ntrthole = self.tree["muon_trknTRTHoles"].array()
 		self.muonpassPfilter = self.tree["muon_passesPromptCuts"].array() 
 		self.muontrigmatched = self.tree["muon_isTrigMatched"].array()
 		# -----------------------------------------------------------------------
@@ -126,9 +124,11 @@ class Tree():
 		self.elphi = self.tree["el_phi"].array()  
 		self.eld0 = self.tree["el_trkd0"].array() 
 		self.elz0 = self.tree["el_trkz0"].array()
+		self.elz0sintheta = self.tree["el_trkz0sintheta"].array()
 		self.elmass = self.tree["el_m"].array()  
 		self.tightel = self.tree["el_LHTight"].array()
 		self.mediumel = self.tree["el_LHMedium"].array()
+		self.looseel = self.tree["el_LHLoose"].array()
 		self.looseel = self.tree["el_LHLoose"].array()
 		if(self.isData):
                         self.verylooseel = self.tree["el_LHLoose"].array()
@@ -151,7 +151,6 @@ class Tree():
 			self.truth_dvpt = self.tree["truthVtx_pt"].array()
 			self.truth_dveta = self.tree["truthVtx_eta"].array()  
 			self.truth_dvphi = self.tree["truthVtx_phi"].array() 
-			self.truth_noutP = self.tree["truthVtx_nOutP"].array()
 			self.truth_outP_pdgId = self.tree["truthVtx_outP_pdgId"].array()
 			self.truth_outP_pt = self.tree["truthVtx_outP_pt"].array()
 			self.truth_outP_eta = self.tree["truthVtx_outP_eta"].array()
