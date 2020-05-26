@@ -1,110 +1,115 @@
 #!/usr/bin/env python
-import os,sys
+import os, sys
 import helpers
-import ROOT
-import csv
 import analysis
-import treenames
+import trees
 import json
 # import reweighting
 # import systematics
 
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
 
-blinded = True # Dont dont change this flag! This ensures you do not accidentilly unblind when looking at data. 
+blinded = True  # Dont dont change this flag! This ensures you do not accidentally unblind when looking at data.
+
 
 def main():
-	
-	output_path ="../output/"
-	if os.path.exists(output_path) == False:
+	output_path = os.path.join(os.path.abspath(options.output), '')
+	if not os.path.exists(output_path):
 		logger.info('Making output directory')
 		os.mkdir(output_path)
-		
-
 
 	with open(options.config, 'r') as json_config:
-		config_file = json.load(json_config) # load JSON config file that contains a channel name mapped to a list of selections
-
+		# load JSON config file that contains a channel name mapped to a list of selections
+		config_file = json.load(json_config)
 
 	analysisCode = {}
-	# Define that we're using a specific type of anaysis
-	# anaClass = getattr(analysis, "oldHNLanalysis")
+	# Define that we're using a specific type of analysis
 	anaClass = getattr(analysis, options.analysis)
 
-	file = options.input[0] # get file 
-	treename = "outTree" # define tree name 
+	input_file = options.input[0]  # get file
+	treename = "outTree"  # define tree name
 
-	#loop over all the channels in the config file
+	# loop over all the channels in the config file
 	for channel, configs in config_file.items():
-   		
-		logger.info('Running on channel: %s'%channel)
-		file_info = helpers.File_info(file, channel) # If you are running on MC this will give info about signal mass and lifetime
 
-		#create one output file per channel in your config file
+		logger.info('Running on channel: {}'.format(channel))
+		# If you are running on MC this will give info about signal mass and lifetime
+		file_info = helpers.FileInfo(input_file, channel)
+
+		# create one output file per channel in your config file
 		if "data" in options.config.split("config")[1]:
-			outputfile = output_path + "histograms_data_%s.root"%channel
+			output_file = output_path + "histograms_data_{}.root".format(channel)
 		else:
-			if "CR" in config_file[channel]["selections"]: 
-				outputfile = output_path + "CR_"+file_info.Output_filename
+			if "CR" in config_file[channel]["selections"]:
+				output_file = output_path + "CR_" + file_info.output_filename
 			else:
-				outputfile = output_path + file_info.Output_filename
-		if os.path.exists(outputfile):
-			if options.force == False:
-				if "data" in options.config.split("config")[1]:
-					logger.error("Output histograms_data_%s.root file already exists. Either re-run with -f/--force OR choose a different output path."%channel)
-				else:
-					logger.error("Output %s file already exists. Either re-run with -f/--force OR choose a different output path."%file_info.Output_filename)
+				output_file = output_path + file_info.output_filename
+		if os.path.exists(output_file):
+			if not options.force:
+				logger.error("Output {} file already exists. Either re-run with -f/--force OR choose a different output path.".format(output_file))
 				exit()
 			else:
-				logger.info('Removing %s'%outputfile)
-				os.remove(outputfile) # if force option is given then remove histrograms file that was previously created.
+				logger.info('Removing {}'.format(output_file))
+				os.remove(output_file)  # if force option is given then remove histograms file that was previously created.
+
+		# Try to load only the number of entries of you need
+		entries = options.nevents if options.nevents else None
+		# Create new Tree class using uproot
+		tree = trees.Tree(input_file, treename, entries, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
+		if tree.numentries < entries or entries is None:
+			entries = tree.numentries
+		# specify this to reduce number of entries loaded in each array
+		tree.max_entries = entries
+		logger.info('Going to process {}  events'.format(entries))
 
 		# loop over the vertex containers in each channel (usually just VSI & VSI Leptons)
 		for vtx_container in config_file[channel]["vtx_containers"]:
-			
-			selections =  config_file[channel]["selections"] # define selections for the channel from the config file
-			tree = treenames.Tree(file, treename, vtx_container) # define variables in tree to be accessed from rootfile	
-			nentries = options.nevents or len(tree.dvx)
 
-			#blinding flag to prevent accidental unblinding in data
-			if blinded:
-				if tree.isData: 
-					if "CR" in selections:
-						pass
-					else: 
-						if "OS" in selections:
-							logger.error("You are running on data and you cannot look at OS verticies!!!")
-							sys.exit(1)  # abort because of error
-						if ("SS" in selections) == False:
-							logger.error("You are running on data and you are not in the CR. You must only look at SS vertices!!!")
-							sys.exit(1)  # abort because of error
+			# define selections for the channel from the config file
+			selections = config_file[channel]["selections"]
 
+			# define variables in tree to be accessed from root file
+			tree.vtx_container = vtx_container
+
+			# blinding flag to prevent accidental unblinding in data
+			if blinded and tree.is_data and "CR" not in selections:
+				if "OS" in selections or "SS" not in selections:
+					logger.error("You are running on data and you cannot look at OS vertices!!! "
+								 "Please include SS, not OS in selections, "
+								 "or add CD if you are trying to look in the control region.")
+					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
-			ana = anaClass(vtx_container, selections, outputfile,isdata=tree.isData)
+			ana = anaClass(tree, vtx_container, selections, output_file)
 
-			
 			# Loop over each event
-			for ievt in xrange(nentries):
-				if (ievt % 1000 == 0):
-					logger.info("Channel {}: processing event {}".format("%s_%s"%(channel,vtx_container), ievt))
+			# for ievt in range(entries):
+			while tree.ievt < entries:
+				if tree.ievt % 1000 == 0:
+					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
 				# Create an event instance to keep track of basic event properties
-				evt = helpers.Event(tree=tree, ievt=ievt,mass=file_info.mass,ctau=file_info.ctau)
-				ndv = len(tree.dvx[ievt])
+				# evt = helpers.Event(tree=tree, ievt=tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
 
 				# Run preselection cuts to avoid processing unnecessary events
-				presel = ana.preSelection(evt)
+				presel = ana.preSelection()
 
 				# Loop over each vertex in the event
-				for idv in xrange(ndv):
-					DVevt = helpers.Event(tree=tree, ievt=ievt, idv=idv,mass=file_info.mass,ctau=file_info.ctau)
-					ana.DVSelection(DVevt)
+				while tree.idv < tree.ndv:
+					# DVevt = helpers.Event(tree=tree, ievt=tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
+					ana.DVSelection()
+					tree.increment_dv()
 
+				tree.reset_dv()
+				tree.increment_event()
 				ana.unlock()
+
 			# Call functions to finalize analysis
+			tree.reset_event()
 			ana.end()
 			# Store analysis in dictionary for possible later use
-			analysisCode["%s_%s"%(channel,vtx_container)] = ana
+			# This is a huge memory hog and will likely crash if too many histograms are declared
+			# Recommended not to use unless necessary and unless a minimal number of histograms are written. # RN
+			# analysisCode["%s_%s"%(channel,vtx_container)] = ana
 
 
 if __name__ == "__main__":
@@ -143,6 +148,12 @@ if __name__ == "__main__":
 						help="Input ntuple produced by DHNLAlgorithm.",
 						metavar="INPUT")
 
+	parser.add_argument("-o", "--output",
+						dest="output",
+						type=str,
+						default = "../output/",
+						help="Output directory to store histograms.")
+
 	parser.add_argument("-f", "--force",
 						action="store_true",
 						dest="force",
@@ -158,6 +169,12 @@ if __name__ == "__main__":
 						default = None,
 						type = int,
 						help='Number of events are going to be processed for test-only purpose.')
+
+	parser.add_argument('--weight',
+						default = None,
+						type = float,
+						help='Use this flag if you want to override the weight calculation for this sample.')
+
 	parser.add_argument('-a','--analysis',
 						dest="analysis",
 						default = "oldAnalysis",

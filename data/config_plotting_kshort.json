@@ -1,0 +1,10 @@
+{
+    "dataFile": "/eos/home-r/rnewhous/HNL/histograms_data_kshort.root",
+    "dataLabel": "Data period B",
+    "mcFile": [
+        "/eos/home-r/rnewhous/HNL/histograms_mc_kshort.root"
+    ],
+    "mcLabel": [
+        "Dijet JZ4W"
+    ]
+}
