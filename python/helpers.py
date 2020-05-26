@@ -58,17 +58,17 @@ class Truth():
 					trkVec0.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][0],
 										tree['truthVtx_outP_eta'][ivx][0],
 										tree['truthVtx_outP_phi'][ivx][0],
-										tree['truthVtx_outP_m'][ivx][0]
+										tree['truthVtx_outP_M'][ivx][0]
 										)
 					trkVec1.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][1],
 										tree['truthVtx_outP_eta'][ivx][1],
 										tree['truthVtx_outP_phi'][ivx][1],
-										tree['truthVtx_outP_m'][ivx][1]
+										tree['truthVtx_outP_M'][ivx][1]
 										)
 					nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][2],
 										tree['truthVtx_outP_eta'][ivx][2],
 										tree['truthVtx_outP_phi'][ivx][2],
-										tree['truthVtx_outP_m'][ivx][2]
+										tree['truthVtx_outP_M'][ivx][2]
 										)
 					self.trkVec.append(trkVec0)
 					self.trkVec.append(trkVec1)
@@ -76,7 +76,7 @@ class Truth():
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],
 											tree['truthVtx_parent_phi'][ivx],
-											tree['truthVtx_parent_m'][ivx]
+											tree['truthVtx_parent_M'][ivx]
 											)
 
 			# get the primary vertex
@@ -90,12 +90,12 @@ class Truth():
 					self.plep_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][0],
 											   tree['truthVtx_outP_eta'][ivx][0],
 											   tree['truthVtx_outP_phi'][ivx][0],
-											   tree['truthVtx_outP_m'][ivx][0]
+											   tree['truthVtx_outP_M'][ivx][0]
 											   )
 					self.W_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],
 											tree['truthVtx_parent_phi'][ivx],
-											tree['truthVtx_parent_m'][ivx]
+											tree['truthVtx_parent_M'][ivx]
 											)
 
 		# try:
