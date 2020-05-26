@@ -10,3 +10,4 @@ python/histograms
 python/plotHistograms.py
 output/
 setup.sh
+venv/
