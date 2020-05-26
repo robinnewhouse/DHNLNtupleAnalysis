@@ -119,7 +119,7 @@ def reco_histograms(selection):
 	Observable(selection + "_DV_r",binning = (500,0,500), do = ['hist']).queue()
 	Observable(selection + "_DV_num_trks",binning = (6,-0.5,5.5), do = ['hist']).queue()
 	Observable(selection + "_DV_distFromPV",binning = (500,0,500), do = ['hist']).queue()
-	Observable(selection + "_DV_mass",binning = (1000000,0,5000), do = ['hist']).queue()
+	Observable(selection + "_DV_mass", binning=(2000, 0, 1000), do=['hist']).queue()
 	Observable(selection + "_DV_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_sum_track_pt",binning = (1000,0,1000), do = ['hist']).queue()
 	Observable(selection + "_DV_sum_track_pt_wrt_pv",binning = (1000,0,1000), do = ['hist']).queue()
