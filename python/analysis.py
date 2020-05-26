@@ -24,7 +24,7 @@ class Analysis(object):
 		self.ch = vtx_container
 		self.histSuffixes = [self.ch]
 		self.h = {}
-		self.micro_ntuples = ntuples.Ntuples('ntuples_'+self.ch)
+		self.micro_ntuples = {}
 		self.tree = tree
 
 		self._locked = UNLOCKED
@@ -208,7 +208,8 @@ class Analysis(object):
 		# Will not fill variables from 2D histograms to prevent double-counting
 		if fill_ntuple and variable_2 is None:
 			# Note: selection and hist_name will be overridden by full_name
-			self.fill_ntuple(None, None, variable_1, full_name='ntup_'+full_name)
+			# Need selection to define ntuple tree
+			self.fill_ntuple(selection, hist_name, variable_1, full_name='ntup_'+full_name)
 
 	def add(self, hName, nBins, xLow, xHigh):
 		self.h[hName] = {}
@@ -233,12 +234,15 @@ class Analysis(object):
 		:param full_name: override the automatic naming of the ntuple.
 		:return:
 		"""
+		if not selection:
+			raise ValueError("You must indicate a selection in order to store the ntuple. Use 'all' if no selection.")
+		# Retrieve the ntuple for this selection. If it doesn't exist, create it.
+		if selection not in self.micro_ntuples:
+			self.micro_ntuples[selection] = ntuples.Ntuples('ntuples_{}_{}'.format(selection, self.ch))
+		# The name of the ntuple
 		if not full_name:
-			if selection:
-				full_name = 'ntup_{}_{}_{}'.format(selection, ntuple_name, self.ch)
-			else:
-				full_name = 'ntup_{}_{}'.format(ntuple_name, self.ch)
-		self.micro_ntuples[full_name] = variable
+			full_name = 'ntup_{}_{}_{}'.format(selection, ntuple_name, self.ch)
+		self.micro_ntuples[selection][full_name] = variable
 
 	def check_input_consistency(self):
 		if self.do_trilepton_mass_cut or self.do_HNL_mass_cut or self.do_HNL_pt_cut:
@@ -259,7 +263,7 @@ class Analysis(object):
 
 	def write(self):
 		self.fi.cd()
-		self.micro_ntuples.write()
+		[ntuple.write() for key, ntuple in self.micro_ntuples.items()]
 		for hName in self.h:
 			self.h[hName][self.ch].Write(hName + '_' + self.ch)
 		logger.info("Histograms written to {}".format(self.output_file))
@@ -399,50 +403,56 @@ class Analysis(object):
 
 	# Common histograms to fill
 	def _fill_leptons(self):
+		sel = 'all'
 		for imu in range(len(self.tree['muon_type'])):
-			self.fill_hist(None, 'muon_type', self.tree['muon_type'][imu])
-			self.fill_hist(None, 'muon_pt', self.tree['muon_pt'][imu])
-			self.fill_hist(None, 'muon_eta', self.tree['muon_eta'][imu])
-			self.fill_hist(None, 'muon_phi', self.tree['muon_phi'][imu])
-			if self.tree['muon_isTight'][imu] == 1:  self.fill_hist(None, 'muon_quality', 3)
-			elif self.tree['muon_isMedium'][imu] == 1: self.fill_hist(None, 'muon_quality', 2)
-			elif self.tree['muon_isLoose'][imu] == 1:  self.fill_hist(None, 'muon_quality', 1)
-			else: self.fill_hist(None, 'muon_quality', 0)
+			self.fill_hist(sel, 'muon_type', self.tree['muon_type'][imu])
+			self.fill_hist(sel, 'muon_pt', self.tree['muon_pt'][imu])
+			self.fill_hist(sel, 'muon_eta', self.tree['muon_eta'][imu])
+			self.fill_hist(sel, 'muon_phi', self.tree['muon_phi'][imu])
+			if self.tree['muon_isTight'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 3)
+			elif self.tree['muon_isMedium'][imu] == 1: self.fill_hist(sel, 'muon_quality', 2)
+			elif self.tree['muon_isLoose'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 1)
+			else: self.fill_hist(sel, 'muon_quality', 0)
 
 		for iel in range(len(self.tree['el_pt'])):
-			self.fill_hist(None, 'el_pt', self.tree['el_pt'][iel])
-			self.fill_hist(None, 'el_eta', self.tree['el_eta'][iel])
-			self.fill_hist(None, 'el_phi', self.tree['el_phi'][iel])
-			if self.tree['el_LHTight'][iel] == 1:  self.fill_hist(None, 'el_quality', 3)
-			elif self.tree['el_LHMedium'][iel] == 1: self.fill_hist(None, 'el_quality', 2)
-			elif self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(None, 'el_quality', 1)
-			else: self.fill_hist(None, 'el_quality', 0)
+			self.fill_hist(sel, 'el_pt', self.tree['el_pt'][iel])
+			self.fill_hist(sel, 'el_eta', self.tree['el_eta'][iel])
+			self.fill_hist(sel, 'el_phi', self.tree['el_phi'][iel])
+			if self.tree['el_LHTight'][iel] == 1:  self.fill_hist(sel, 'el_quality', 3)
+			elif self.tree['el_LHMedium'][iel] == 1: self.fill_hist(sel, 'el_quality', 2)
+			elif self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(sel, 'el_quality', 1)
+			else: self.fill_hist(sel, 'el_quality', 0)
 
 	def _fill_all_dv_histos(self):
-		self.fill_hist('all', 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
+		sel = 'all'
+		# self.fill_hist(sel, 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
 		for itrk in range(self.tree.ntrk):  # loop over tracks
-			self.fill_hist('all', 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk])
-			self.fill_hist('all', 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk])
-			self.fill_hist('all', 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk])
-			self.fill_hist('all', 'DV_trk_d0', self.tree.dv('trk_d0')[itrk])
-			self.fill_hist('all', 'DV_trk_z0', self.tree.dv('trk_z0')[itrk])
-			self.fill_hist('all', 'DV_trk_charge', self.tree.dv('trk_charge')[itrk])
-			self.fill_hist('all', 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk])
+			self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
 
-		self.fill_hist('all', 'DV_num_trks', self.tree.dv('ntrk'))
-		self.fill_hist('all', 'DV_x', self.tree.dv('x'))
-		self.fill_hist('all', 'DV_y', self.tree.dv('y'))
-		self.fill_hist('all', 'DV_z', self.tree.dv('z'))
-		self.fill_hist('all', 'DV_r', self.tree.dv('r'))
-		self.fill_hist('all', 'DV_distFromPV', self.tree.dv('distFromPV'))
-		self.fill_hist('all', 'DV_mass', self.tree.dv('mass'))
-		self.fill_hist('all', 'DV_pt', self.tree.dv('pt'))
-		self.fill_hist('all', 'DV_eta', self.tree.dv('eta'))
-		self.fill_hist('all', 'DV_phi', self.tree.dv('phi'))
-		self.fill_hist('all', 'DV_minOpAng', self.tree.dv('minOpAng'))
-		self.fill_hist('all', 'DV_maxOpAng', self.tree.dv('maxOpAng'))
-		self.fill_hist('all', 'DV_charge', self.tree.dv('charge'))
-		self.fill_hist('all', 'DV_chi2', self.tree.dv('chi2'))
+			# self.micro_ntuples[sel].fill()
+
+		self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
+		self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
+		self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
+		self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
+		self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
+		self.fill_hist(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
+		self.fill_hist(sel, 'DV_mass', self.tree.dv('mass'))
+		self.fill_hist(sel, 'DV_pt', self.tree.dv('pt'))
+		self.fill_hist(sel, 'DV_eta', self.tree.dv('eta'))
+		self.fill_hist(sel, 'DV_phi', self.tree.dv('phi'))
+		self.fill_hist(sel, 'DV_minOpAng', self.tree.dv('minOpAng'))
+		self.fill_hist(sel, 'DV_maxOpAng', self.tree.dv('maxOpAng'))
+		self.fill_hist(sel, 'DV_charge', self.tree.dv('charge'))
+		self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
+
+		self.micro_ntuples[sel].fill()
 
 	def _fill_truth_histos(self, sel='truth_all'):
 		truth_info = helpers.Truth()
@@ -474,9 +484,13 @@ class Analysis(object):
 		self.fill_hist(sel, 'lep2_trk_phi', truth_info.trkVec[1].Phi())
 
 		for itrk in range(2):
-			self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt())
-			self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta())
-			self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi())
+			self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
+			# TODO: figure out a ntuple scheme that can store these variables as well
+
+		self.micro_ntuples[sel].fill()
+
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
 		if self._locked < FILL_LOCKED and do_lock:
@@ -551,13 +565,13 @@ class Analysis(object):
 
 			ntracks = self.tree.ntrk
 			for itrk in range(ntracks):  # loop over tracks
-				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk])
-				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk])
-				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk])
-				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
 
 			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
 			self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
@@ -575,9 +589,7 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
 
 			# better to fill truth matched DVs... need to fix this -DT
-			if self.tree.is_data:
-				pass
-			else:
+			if not self.tree.is_data:
 				truthInfo = helpers.Truth()
 				truthInfo.getTruthParticles(self.tree)
 				self.fill_hist('truth_'+sel, 'W_pt', truthInfo.W_vec.Pt())
@@ -608,9 +620,12 @@ class Analysis(object):
 				self.fill_hist('truth_'+sel, 'lep2_trk_eta', truthInfo.trkVec[1].Eta())
 				self.fill_hist('truth_'+sel, 'lep2_trk_phi', truthInfo.trkVec[1].Phi())
 				for itrk in range(2):
-					self.fill_hist('truth_'+sel, 'DV_trk_pt', truthInfo.trkVec[itrk].Pt())
-					self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta())
-					self.fill_hist('truth_'+sel, 'DV_trk_phi', truthInfo.trkVec[itrk].Phi())
+					self.fill_hist('truth_'+sel, 'DV_trk_pt', truthInfo.trkVec[itrk].Pt(), fill_ntuple=False)
+					self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta(), fill_ntuple=False)
+					self.fill_hist('truth_'+sel, 'DV_trk_phi', truthInfo.trkVec[itrk].Phi(), fill_ntuple=False)
+
+			self.micro_ntuples[sel].fill()
+			self.micro_ntuples['truth_'+sel].fill()
 
 			if sel == "sel":
 				self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
@@ -1224,28 +1239,29 @@ class KShort(Analysis):
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
 	def _fill_leptons(self):
+		sel = 'all_lep'
 		prompt = selections.InvertedPromptLepton(self.tree)
-		self.fill_hist(None, 'prompt_muon', prompt.n_prompt_muons)
-		self.fill_hist(None, 'prompt_electron', prompt.n_prompt_electrons)
-		self.fill_hist(None, 'prompt_lepton', prompt.n_prompt_leptons)
+		self.fill_hist(sel, 'prompt_muon', prompt.n_prompt_muons)
+		self.fill_hist(sel, 'prompt_electron', prompt.n_prompt_electrons)
+		self.fill_hist(sel, 'prompt_lepton', prompt.n_prompt_leptons)
 		for imu in range(len(self.tree['muon_type'])):
-			self.fill_hist(None, 'muon_type', self.tree['muon_type'][imu])
-			self.fill_hist(None, 'muon_pt', self.tree['muon_pt'][imu])
-			self.fill_hist(None, 'muon_eta', self.tree['muon_eta'][imu])
-			self.fill_hist(None, 'muon_phi', self.tree['muon_phi'][imu])
-			if self.tree['muon_isTight'][imu] == 1:  self.fill_hist(None, 'muon_quality', 3)
-			elif self.tree['muon_isMedium'][imu] == 1: self.fill_hist(None, 'muon_quality', 2)
-			elif self.tree['muon_isLoose'][imu] == 1:  self.fill_hist(None, 'muon_quality', 1)
-			else: self.fill_hist(None, 'muon_quality', 0)
+			self.fill_hist(sel, 'muon_type', self.tree['muon_type'][imu])
+			self.fill_hist(sel, 'muon_pt', self.tree['muon_pt'][imu])
+			self.fill_hist(sel, 'muon_eta', self.tree['muon_eta'][imu])
+			self.fill_hist(sel, 'muon_phi', self.tree['muon_phi'][imu])
+			if self.tree['muon_isTight'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 3)
+			elif self.tree['muon_isMedium'][imu] == 1: self.fill_hist(sel, 'muon_quality', 2)
+			elif self.tree['muon_isLoose'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 1)
+			else: self.fill_hist(sel, 'muon_quality', 0)
 
 		for iel in range(len(self.tree['el_pt'])):
-			self.fill_hist(None, 'el_pt', self.tree['el_pt'][iel])
-			self.fill_hist(None, 'el_eta', self.tree['el_eta'][iel])
-			self.fill_hist(None, 'el_phi', self.tree['el_phi'][iel])
-			if self.tree['el_LHTight'][iel] == 1:  self.fill_hist(None, 'el_quality', 3)
-			elif self.tree['el_LHMedium'][iel] == 1: self.fill_hist(None, 'el_quality', 2)
-			elif self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(None, 'el_quality', 1)
-			else: self.fill_hist(None, 'el_quality', 0)
+			self.fill_hist(sel, 'el_pt', self.tree['el_pt'][iel])
+			self.fill_hist(sel, 'el_eta', self.tree['el_eta'][iel])
+			self.fill_hist(sel, 'el_phi', self.tree['el_phi'][iel])
+			if self.tree['el_LHTight'][iel] == 1:  self.fill_hist(sel, 'el_quality', 3)
+			elif self.tree['el_LHMedium'][iel] == 1: self.fill_hist(sel, 'el_quality', 2)
+			elif self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(sel, 'el_quality', 1)
+			else: self.fill_hist(sel, 'el_quality', 0)
 
 	def _fill_truth_dv_histos(self):
 		if not self.tree.is_data:
@@ -1256,20 +1272,22 @@ class KShort(Analysis):
 			self.fill_hist('truth_all', 'DV_y', truthInfo.truth_dvy)
 			self.fill_hist('truth_all', 'DV_z', truthInfo.truth_dvz)
 
+			self.micro_ntuples['truth_all'].fill()
+
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
 		if self._locked < FILL_LOCKED or not do_lock:
 			# these are the histograms you only want to fill ONCE per DV
 
 			# sel refers to the last selection that was applied
-			self.fill_hist(None, 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
+			# self.fill_hist(sel, 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
 			for itrk in range(self.tree.ntrk):  # loop over tracks
-				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk])
-				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk])
-				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk])
-				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk])
-				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
 
 			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
 			self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
@@ -1294,31 +1312,31 @@ class KShort(Analysis):
 			self.fill_hist(sel, 'DV_sum_track_pt_diff', track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt)
 			self.fill_hist(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
 
-	def _fill_selected_dv_ntuples(self, sel, do_lock=True):
-		if self._locked < FILL_LOCKED or not do_lock:
+			self.micro_ntuples[sel].fill()
 
-			# Fill micro ntuples
-			self.fill_ntuple(sel, 'DV_num_trks', self.tree.dv('ntrk'))
-			self.fill_ntuple(sel, 'DV_x', self.tree.dv('x'))
-			self.fill_ntuple(sel, 'DV_y', self.tree.dv('y'))
-			self.fill_ntuple(sel, 'DV_z', self.tree.dv('z'))
-			self.fill_ntuple(sel, 'DV_r', self.tree.dv('r'))
-			self.fill_ntuple(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
-			self.fill_ntuple(sel, 'DV_mass', self.tree.dv('mass'))
-			self.fill_ntuple(sel, 'DV_pt', self.tree.dv('pt'))
-			self.fill_ntuple(sel, 'DV_eta', self.tree.dv('eta'))
-			self.fill_ntuple(sel, 'DV_phi', self.tree.dv('phi'))
-			self.fill_ntuple(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
+	# def _fill_selected_dv_ntuples(self, sel, do_lock=True):
+	# 	if self._locked < FILL_LOCKED or not do_lock:
+	#
+	# 		# Fill micro ntuples
+	# 		self.fill_ntuple(sel, 'DV_num_trks', self.tree.dv('ntrk'))
+	# 		self.fill_ntuple(sel, 'DV_x', self.tree.dv('x'))
+	# 		self.fill_ntuple(sel, 'DV_y', self.tree.dv('y'))
+	# 		self.fill_ntuple(sel, 'DV_z', self.tree.dv('z'))
+	# 		self.fill_ntuple(sel, 'DV_r', self.tree.dv('r'))
+	# 		self.fill_ntuple(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
+	# 		self.fill_ntuple(sel, 'DV_mass', self.tree.dv('mass'))
+	# 		self.fill_ntuple(sel, 'DV_pt', self.tree.dv('pt'))
+	# 		self.fill_ntuple(sel, 'DV_eta', self.tree.dv('eta'))
+	# 		self.fill_ntuple(sel, 'DV_phi', self.tree.dv('phi'))
+	# 		self.fill_ntuple(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
+	#
+	# 		track_sum = selections.SumTrack(self.tree)
+	# 		self.fill_ntuple(sel, 'sum_track_pt', track_sum.sum_track_pt)
+	# 		self.fill_ntuple(sel, 'DV_sum_track_pt', track_sum.sum_track_pt)
+	# 		self.fill_ntuple(sel, 'DV_sum_track_pt_wrt_pv', track_sum.sum_track_pt_wrt_pv)
+	# 		self.fill_ntuple(sel, 'DV_sum_track_pt_diff', track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt)
+	# 		self.fill_ntuple(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
 
-			track_sum = selections.SumTrack(self.tree)
-			self.fill_ntuple(sel, 'sum_track_pt', track_sum.sum_track_pt)
-			self.fill_ntuple(sel, 'DV_sum_track_pt', track_sum.sum_track_pt)
-			self.fill_ntuple(sel, 'DV_sum_track_pt_wrt_pv', track_sum.sum_track_pt_wrt_pv)
-			self.fill_ntuple(sel, 'DV_sum_track_pt_diff', track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt)
-			self.fill_ntuple(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
-
-			self.micro_ntuples.fill()
-			self.micro_ntuples.reset()
 
 	#########################################################################################################################
 	# Define new cuts you want to apply here. This will overwrite whatever cuts are defined in the parent analysis class.
@@ -1393,4 +1411,4 @@ class KShort(Analysis):
 		# self._fill_selected_dv_histos("mass", do_lock=False)
 
 		self._fill_selected_dv_histos("sel", do_lock=False)
-		self._fill_selected_dv_ntuples("sel", do_lock=False)
+		# self._fill_selected_dv_ntuples("sel", do_lock=False)

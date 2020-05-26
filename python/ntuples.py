@@ -6,13 +6,14 @@ import ROOT
 data_type = {'c': 'C', 'b': 'B', 'B': 'b', 'u': 'python unicode', 'h': 'I',
              'H': 'i', 'i': 'I', 'I': 'i', 'l': 'L', 'L': 'l', 'f': 'F', 'd': 'D',
              }
+NON_PHYSICAL = -999
 
 class Ntuples:
     def __init__(self, tree_name='ntuple', *args, **kwargs):
         """
         This is a simple class to handle the creation and filling of micro-ntuples
         to give more flexibility in plotting later on.
-        Trees will be added automicticall when using the [] operator.
+        Trees will be added automatically when using the [] operator.
         e.g. micro_ntuples['secVtx_VSI_ntrk'] = n_tracks
         will create the tree and fill the associated array with the n_tracks value.
         micro_ntuples.fill() will write all current values to each root tree.
@@ -23,6 +24,7 @@ class Ntuples:
     def fill(self):
         """Fills root ntuple"""
         self.ttree.Fill()
+        self.reset()
 
     def write(self):
         """Writes root ntuple to currently open file"""
@@ -31,8 +33,8 @@ class Ntuples:
     def reset(self):
         """Resets ntuple values to non-physical numbers (i.e. not zero)"""
         # TODO test if this is necessary
-        # TODO implement this function
-        pass
+        for key in self.arrays.keys():
+            self.arrays[key][0] = NON_PHYSICAL
 
     def add(self, name, dtype='d'):
         """
@@ -59,7 +61,7 @@ class Ntuples:
 
 if __name__ == '__main__':
     """Run this file individually for testing"""
-    file = ROOT.TFile.Open('testing.root', 'RECREATE')
+    test_file = ROOT.TFile.Open('testing.root', 'RECREATE')
     ntuples = Ntuples('testing')
     ntuples.add(name='ints', dtype='i')  # Specify signed int
     ntuples.add(name='nothings', dtype='i')  # this will be filled with zeros
@@ -69,7 +71,7 @@ if __name__ == '__main__':
         ntuples['some_ints'] = -i * 3
         ntuples.fill()
     ntuples.write()
-    file.Close()
+    test_file.Close()
 
     # open and read to see what's filled
     import uproot

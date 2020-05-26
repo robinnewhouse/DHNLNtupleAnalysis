@@ -70,23 +70,24 @@ class _Observable(object):
     #         else:
     #             return ret
 
-Observable("sel_plep_z0", do = ['hist']).queue()
 
-Observable("nmuon", binning=(50, 0, 50), do=['hist']).queue()
-Observable("nel", binning=(50, 0, 50), do=['hist']).queue()
-Observable("muon_type", binning = (6 ,-0.5,5.5), do = ['hist']).queue()
-Observable("muon_pt", binning = (1000 ,0,1000), do = ['hist']).queue()
-Observable("muon_eta", binning = (40 ,-10,10), do = ['hist']).queue()
-Observable("muon_phi", binning = (16 ,-4,4), do = ['hist']).queue()
-Observable("muon_quality", binning = (4 ,-.5,3.5), do = ['hist']).queue()
-Observable("el_pt", binning = (1000 ,0,1000), do = ['hist']).queue()
-Observable("el_eta", binning = (40 ,-10,10), do = ['hist']).queue()
-Observable("el_phi", binning = (16 ,-4,4), do = ['hist']).queue()
-Observable("el_quality", binning = (4 ,-.5,3.5), do = ['hist']).queue()
+Observable("sel_plep_z0", do=['hist']).queue()
 
-Observable("prompt_muon", binning=(50, 0, 50), do = ['hist']).queue()
-Observable("prompt_electron", binning=(50, 0, 50), do = ['hist']).queue()
-Observable("prompt_lepton", binning=(50, 0, 50), do = ['hist']).queue()
+Observable("all_nmuon", binning=(50, 0, 50), do=['hist']).queue()
+Observable("all_nel", binning=(50, 0, 50), do=['hist']).queue()
+Observable("all_muon_type", binning=(6, -0.5, 5.5), do=['hist']).queue()
+Observable("all_muon_pt", binning=(1000, 0, 1000), do=['hist']).queue()
+Observable("all_muon_eta", binning=(40, -10, 10), do=['hist']).queue()
+Observable("all_muon_phi", binning=(16, -4, 4), do=['hist']).queue()
+Observable("all_muon_quality", binning=(4, -.5, 3.5), do=['hist']).queue()
+Observable("all_el_pt", binning=(1000, 0, 1000), do=['hist']).queue()
+Observable("all_el_eta", binning=(40, -10, 10), do=['hist']).queue()
+Observable("all_el_phi", binning=(16, -4, 4), do=['hist']).queue()
+Observable("all_el_quality", binning=(4, -.5, 3.5), do=['hist']).queue()
+
+Observable("all_prompt_muon", binning=(50, 0, 50), do=['hist']).queue()
+Observable("all_prompt_electron", binning=(50, 0, 50), do=['hist']).queue()
+Observable("all_prompt_lepton", binning=(50, 0, 50), do=['hist']).queue()
 
 
 def reco_histograms(selection):
