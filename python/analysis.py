@@ -641,8 +641,8 @@ class Analysis(object):
 					self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta(), fill_ntuple=False)
 					self.fill_hist('truth_'+sel, 'DV_trk_phi', truthInfo.trkVec[itrk].Phi(), fill_ntuple=False)
 
+				self.micro_ntuples['truth_'+sel].fill()
 			self.micro_ntuples[sel].fill()
-			self.micro_ntuples['truth_'+sel].fill()
 
 			if sel == "sel":
 				self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
@@ -1002,17 +1002,17 @@ class ToyAnalysis(Analysis):
 		return mlll_sel.passes()
 
 	def _dv_mass_cut(self):
-		dv_mass_sel = selections.DVmass(dvmasscut=2) # changed the dvmass cut to 2 GeV
+		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=2)  # changed the dvmass cut to 2 GeV
 		return dv_mass_sel.passes()
 
-	def _HNL_mass_cut(self): # not used
+	def _HNL_mass_cut(self):  # not used
 		tracks = helpers.Tracks(self.tree)
 		tracks.getTracks()
 
 		plep_vec = self.plep_sel.plepVec
 		tracks_vec = tracks.lepVec
 
-		mHNL_sel = selections.Mhnl(plep=plep_vec,trks=tracks_vec,hnlmasscut=3)
+		mHNL_sel = selections.Mhnl(self.tree, plep=plep_vec, trks=tracks_vec, hnlmasscut=3)
 
 		return mHNL_sel.passes()
 
