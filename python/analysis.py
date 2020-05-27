@@ -262,10 +262,27 @@ class Analysis(object):
 		self._locked = UNLOCKED
 
 	def write(self):
+		# Move ROOT toe base directory
 		self.fi.cd()
+		# Make a subdirectory for vertex type. May be other channels in the future.
+		if not self.fi.FindObject(self.ch):
+			self.fi.mkdir(self.ch, "Analysis Channel " + self.ch)
+		# Move ROOT to the channel subdirectory
+		self.fi.cd(self.ch)
+
+		# Store saved ntuple values to file
 		[ntuple.write() for key, ntuple in self.micro_ntuples.items()]
-		for hName in self.h:
-			self.h[hName][self.ch].Write(hName + '_' + self.ch)
+
+		# Store saved histograms to file
+		# TODO: this should be saved in a different way. e.g. another level of dictionary. Parsing strings for variable names is not good.
+		for h_name in self.h:
+			selection = h_name.split('_')[0]  # get selection
+			sel_dir = self.ch + '/' + selection
+			base_name = '_'.join(h_name.split('_')[1:])  # get base name
+			if not self.fi.GetDirectory(sel_dir):  # make TDirectory if necessary
+				self.fi.mkdir(sel_dir, "Analysis Selection " + selection)
+			self.fi.cd(sel_dir)  # change to TDirectory
+			self.h[h_name][self.ch].Write(base_name)  # save only the base name
 		logger.info("Histograms written to {}".format(self.output_file))
 		self.fi.Close()
 
@@ -1239,7 +1256,7 @@ class KShort(Analysis):
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
 	def _fill_leptons(self):
-		sel = 'all_lep'
+		sel = 'all'
 		prompt = selections.InvertedPromptLepton(self.tree)
 		self.fill_hist(sel, 'prompt_muon', prompt.n_prompt_muons)
 		self.fill_hist(sel, 'prompt_electron', prompt.n_prompt_electrons)
