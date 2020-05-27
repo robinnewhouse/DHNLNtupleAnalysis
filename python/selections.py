@@ -194,7 +194,7 @@ class PromptLepton():
 			passes_lep_quality = lepquality == "" or tree[lepquality][ilep] > 0
 			if passPfilter[ilep] and passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
 				# Check the overlap between the prompt lepton and every displaced vertex track
-				for idv in range(tree.ndv()):
+				for idv in range(tree.ndv):
 					prefix = tree.dv_prefix + '_'
 					ntrks = tree.get_at(prefix+'ntrk', tree.ievt, idv)
 					for itrk in range(ntrks):
@@ -205,7 +205,7 @@ class PromptLepton():
 						M = tree.get_at(prefix + 'trk_M', tree.ievt, idv, itrk)
 						track_vector = ROOT.TLorentzVector(pt, eta, phi, M)
 
-						dR = track_vector[itrk].DeltaR(plepVec_i)
+						dR = track_vector.DeltaR(plepVec_i)
 						if dR < min_dR:  # set overlap to true if muon overlaps with displaced track
 							overlap = True
 		
