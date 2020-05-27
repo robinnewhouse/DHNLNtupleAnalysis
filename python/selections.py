@@ -199,11 +199,13 @@ class PromptLepton():
 					ntrks = tree.get_at(prefix+'ntrk', tree.ievt, idv)
 					for itrk in range(ntrks):
 						# Currently the only live example of get_at() which gives full control over the tree access.
+						# Should we check trk_pt for trk_pt_wrtSV etc. when we check overlap with the prompt lepton ? DT
 						pt = tree.get_at(prefix + 'trk_pt_wrtSV', tree.ievt, idv, itrk)
 						eta = tree.get_at(prefix + 'trk_eta_wrtSV', tree.ievt, idv, itrk)
 						phi = tree.get_at(prefix + 'trk_phi_wrtSV', tree.ievt, idv, itrk)
 						M = tree.get_at(prefix + 'trk_M', tree.ievt, idv, itrk)
-						track_vector = ROOT.TLorentzVector(pt, eta, phi, M)
+						track_vector = ROOT.TLorentzVector()
+						track_vector.SetPtEtaPhiM(pt, eta, phi, M)
 
 						dR = track_vector.DeltaR(plepVec_i)
 						if dR < min_dR:  # set overlap to true if muon overlaps with displaced track
