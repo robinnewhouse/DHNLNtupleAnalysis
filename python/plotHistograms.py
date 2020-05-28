@@ -1,12 +1,11 @@
 # Plotting Script
-import argparse, os, math, ROOT, glob, uproot, time, json
-import numpy as np
+import ROOT
+import json
 import helpers
-from ROOT import *
-from ROOT import gPad
+import os
+from ROOT import gROOT
 from pylab import *
 import plotting
-import atlas_style
 
 ROOT.gROOT.SetBatch(True)
 
@@ -23,6 +22,7 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 #############################################################################################################################################
 # globals
 outputDir = '../output/plots/' # change path here to save your histograms somewhere else!
+MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 
 
 #############################################################################################################################################
@@ -810,8 +810,42 @@ def compareHistograms(config_file):
 			savefilename="selMC_mass",
 			outputDir=outputDir)
 
+def compare_histograms(config_file, selection):
+	# Example: comparing data and MC for VSI and VSI_Leptons
+	hist_channels = {}
+	# hist_channels[<Legend name>] = (<filename>, <vertex directory>, <selection directory>)
+	hist_channels["MC VSI"] = (config_file["mcFile"][0], "VSI", selection)
+	hist_channels["Data VSI"] = (config_file["dataFile"], "VSI", selection)
+	hist_channels["MC VSI Leptons"] = (config_file["mcFile"][0], "VSI_Leptons", selection)
+	hist_channels["Data VSI Leptons"] = (config_file["dataFile"], "VSI_Leptons", selection)
 
+	plotting.compare(hist_channels,
+					 variable='DV_r',
+					 nRebin=15,
+					 setrange=(0, 350),
+					 vertical_lines=MATERIAL_LAYERS,
+					 vertical_legend="Material Layers",
+					 )
 
+	plotting.compare(hist_channels,
+					 variable='DV_eta',
+					 setrange=(-3, 3),
+					 )
+
+	plotting.compare(hist_channels,
+					 variable='DV_trk_d0',
+					 setrange=(-10, 10),
+					 )
+
+	plotting.compare(hist_channels,
+					 variable='DV_trk_z0',
+					 setrange=(-10, 10),
+					 )
+
+	plotting.compare(hist_channels,
+					 variable='DV_trk_pt',
+					 setrange=(0, 20),
+					 )
 
 
 if __name__ == '__main__':
@@ -857,10 +891,11 @@ if __name__ == '__main__':
 
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
-	compareMCdata(config_file)
-	makeCutflows(config_file)
-	compareHistograms(config_file)
-	make2Dmassplots(config_file)
+	# compareMCdata(config_file)
+	# makeCutflows(config_file)
+	# compareHistograms(config_file)
+	# make2Dmassplots(config_file)
+	compare_histograms(config_file, 'all')
 
 	
 	
