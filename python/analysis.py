@@ -202,7 +202,12 @@ class Analysis(object):
 			else:
 				self.h[full_name][self.ch].Fill(variable_1, variable_2, self.tree.weight)
 		except KeyError as e:
-			logger.error("Histogram {} not registered. Please add it to observables.".format(full_name))
+			logger.error("Histogram {} not registered. Automatically adding with default binning.".format(full_name))
+			observable = observables.Observable(full_name)
+			observable.queue()
+			self.add(observable.name, *observable.binning)
+			self.fill_hist(selection, hist_name, variable_1, variable_2=variable_2, fill_ntuple=fill_ntuple)
+
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
