@@ -139,8 +139,8 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 
 	leg01.Draw()
 
-	if "data" in file: 
-		plotting_helpers.drawNotesData("data18 period B",vertextype) 
+	# if "data" in file: 
+	# 	plotting_helpers.drawNotesData("data18 period B",vertextype, lumi, "uuu") 
 	if "uuu" in file: 
 		plotting_helpers.drawNotes("uuu",vertextype,lumi) 
 	elif "ueu" in file: 

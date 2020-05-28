@@ -515,34 +515,17 @@ class Analysis(object):
 				if tracks.ntracks == 2:
 					Mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
 					Mhnl = selections.Mhnl(self.tree, plep=plep_vec, trks=trkVec)
+					Mhnl_new = selections.new_Mhnl(self.tree, plep=plep_vec, trks=trkVec)
 					Mtrans = selections.Mtrans(plep=plep_vec, trks=trkVec)
 
 					self.fill_hist(sel, 'mvis', Mltt.mltt)
 					self.fill_hist(sel, 'HNLm', Mhnl.mhnl)
-					self.fill_hist(sel, 'HNLm2', Mhnl.mhnl2)
+					self.fill_hist(sel, 'HNLm2', Mhnl_new.mhnl)
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
 					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
 					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
 					self.fill_hist(sel, 'mtrans', Mtrans.mtrans)
 					self.fill_hist(sel, 'mtrans_rot', Mhnl.mtrans_rot)
-
-					# fill 2D mass correlation plots here
-					self.fill_hist(sel, 'DVmass_mvis', self.tree.dv('mass'), Mltt.mltt)
-					self.fill_hist(sel, 'DVmass_mhnl', self.tree.dv('mass'), Mhnl.mhnl)
-					self.fill_hist(sel, 'DVmass_mtrans', self.tree.dv('mass'), Mtrans.mtrans)
-					self.fill_hist(sel, 'DVmass_hnlpt', self.tree.dv('mass'), Mhnl.hnlpt)
-					self.fill_hist(sel, 'mvis_mhnl', Mltt.mltt, Mhnl.mhnl)
-					self.fill_hist(sel, 'mvis_mtrans', Mltt.mltt, Mtrans.mtrans)
-					self.fill_hist(sel, 'mvis_hnlpt', Mltt.mltt, Mhnl.hnlpt)
-					self.fill_hist(sel, 'mhnl_mtrans', Mhnl.mhnl, Mtrans.mtrans)
-					self.fill_hist(sel, 'mhnl_hnlpt', Mhnl.mhnl, Mhnl.hnlpt)
-					self.fill_hist(sel, 'mhnl2D', Mhnl.mhnl, Mhnl.mhnl2)
-					self.fill_hist(sel, 'neg_mhnl12_13', Mhnl.neg_mhnl12, Mhnl.neg_mhnl13)
-					self.fill_hist(sel, 'neg_mhnl23_12', Mhnl.neg_mhnl23, Mhnl.neg_mhnl12)
-					self.fill_hist(sel, 'neg_mhnl13_23', Mhnl.neg_mhnl13, Mhnl.neg_mhnl23)
-					self.fill_hist(sel, 'pos_mhnl12_13', Mhnl.pos_mhnl12, Mhnl.pos_mhnl13)
-					self.fill_hist(sel, 'pos_mhnl23_12', Mhnl.pos_mhnl23, Mhnl.pos_mhnl12)
-					self.fill_hist(sel, 'pos_mhnl13_23', Mhnl.pos_mhnl13, Mhnl.pos_mhnl23)
 
 					deta = abs(tracks.eta[0] - tracks.eta[1])
 					dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
@@ -624,8 +607,8 @@ class Analysis(object):
 					self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta(), fill_ntuple=False)
 					self.fill_hist('truth_'+sel, 'DV_trk_phi', truthInfo.trkVec[itrk].Phi(), fill_ntuple=False)
 
+				self.micro_ntuples['truth_'+sel].fill()
 			self.micro_ntuples[sel].fill()
-			self.micro_ntuples['truth_'+sel].fill()
 
 			if sel == "sel":
 				self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
@@ -700,7 +683,9 @@ class oldAnalysis(Analysis):
 		self.passed_HNL_pt_cut = False
 
 		self._fill_leptons()
-		self._fill_truth_histos(sel='truth_all')
+
+		if not self.tree.is_data:
+			self._fill_truth_histos(sel='truth_all')
 
 		self.h['CutFlow'][self.ch].SetBinContent(1, self.tree.cutflow[1])  # all events
 
