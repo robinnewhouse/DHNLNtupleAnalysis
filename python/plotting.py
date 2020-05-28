@@ -265,23 +265,20 @@ def compareN(file, hname, hlabel,savefilename,vertextype,setxrange="",scaleymax=
 		gPad.SetLogy()
 
 
-
 	leg01.Draw()
 
-	if "data" in file:
-		plotting_helpers.drawNotesData("data18 period B",vertextype)
-	if "uuu" in file:
-		plotting_helpers.drawNotes("uuu",vertextype,lumi)
-	elif "ueu" in file:
-		plotting_helpers.drawNotes("ueu",vertextype,lumi)
-	elif "uee" in file:
-		plotting_helpers.drawNotes("uee",vertextype,lumi)
-	elif "eee" in file:
-		plotting_helpers.drawNotes("eee",vertextype,lumi)
-	elif "eeu" in file:
-		plotting_helpers.drawNotes("eeu",vertextype,lumi)
-	elif "euu" in file:
-		plotting_helpers.drawNotes("euu",vertextype,lumi)
+	if "uuu" in file: 
+		plotting_helpers.drawNotes("uuu",vertextype,lumi) 
+	elif "ueu" in file: 
+		plotting_helpers.drawNotes("ueu",vertextype,lumi) 
+	elif "uee" in file: 
+		plotting_helpers.drawNotes("uee",vertextype,lumi) 
+	elif "eee" in file: 
+		plotting_helpers.drawNotes("eee",vertextype,lumi) 
+	elif "eeu" in file: 
+		plotting_helpers.drawNotes("eeu",vertextype,lumi) 
+	elif "euu" in file: 
+		plotting_helpers.drawNotes("euu",vertextype,lumi) 
 
 	if "HNLpt" in hname[0]:
 		min_HNLptcut=TLine(20,0,20,y_max)

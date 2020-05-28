@@ -98,12 +98,12 @@ class Truth():
 											tree['truthVtx_parent_M'][ivx]
 											)
 
-		# try:
-		# 	import selections
-		# 	Mhnl = selections.Mhnl(tree, plep=self.plep_vec, trks=self.trkVec)
-		# 	self.mhnl = Mhnl.mhnl
-		# except:
-		# 	pass
+		try:
+			import selections
+			Mhnl = selections.new_Mhnl(tree, plep=self.plep_vec, trks=self.trkVec,MW=self.W_vec.M(),fixWMass=True)
+			self.mhnl = Mhnl.mhnl
+		except:
+			pass
 
 
 
@@ -189,6 +189,7 @@ class Tracks():
 		at_idv = self.tree.idv if idv < 0 else idv
 		at_ievt = self.tree.ievt
 		prefix = self.tree.dv_prefix+'_'
+		self.ntracks = self.tree.ntrk
 		for itrk in range(self.tree.ntrk):
 			trkvec = ROOT.TLorentzVector()
 			pt = self.tree.get_at(prefix+'trk_pt_wrtSV', at_ievt, at_idv, itrk)

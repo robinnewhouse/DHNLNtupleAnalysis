@@ -738,6 +738,147 @@ class Mhnl():
 		else: 
 			return False
 
+class new_Mhnl():
+	def __init__(self, tree, plep, trks, MW = 80.379,fixWMass=False):
+		# Global W pole mass
+		MW = 80.379
+		MW2 = MW**2
+		WGamma = 2.085
+
+		self.mhnl1 = -1
+		self.mhnl2 = -1
+		self.mhnl = -1
+		def findMass(pv, dv, p0, d0, d1, MW2, fixWMass):
+		    # Choose z direction to be along decay
+		    decayV = dv-pv
+		    z = decayV*(1.0/decayV.Mag())
+		    
+		    # Visible (2 decay lepton) system
+		    dvis = d0+d1
+		    mvis2 = 2*(d0.Mag()*d1.Mag() - d0.Dot(d1))
+		    
+		    # Define plane perpendicular to direction of decay
+		    x = dvis.Cross(z)
+		    qperp = x.Mag()
+		    qperp2 = qperp*qperp
+		    
+		    # x and y unit vectors
+		    x = x*(1.0/qperp)
+		    y = z.Cross(x)
+
+		    # Visible momentum in the (x,y,z) coordinates
+		    qv = ROOT.TVector3( 0., qperp, dvis.Dot(z) )
+		    Ev = np.sqrt(mvis2 + qv.Dot(qv))
+		    # qperp3 = np.array([0., qperp, 0]) #not needed, just for checking
+		    qperp3 = ROOT.TVector3( 0., qperp, 0 )  #not needed, just for checking
+		    # Prompt lepton in new (x,y,z) coordinates
+		    pp = ROOT.TVector3(  p0.Dot(x), p0.Dot(y), p0.Dot(z) ) 
+		    Ep = np.sqrt(pp.Dot(pp))
+
+		    # Terms from conservation of 4 momentum that involve various powers of the neutrino z momentum
+		#    A = (MW2 - mvis2)/2. - Ep*Ev - qperp2 + pp[2]*qv[2] 
+		    B = (pp[2] + qv[2])
+		    E = Ep + Ev
+		#    A = A/E
+		    B = B/E
+		    
+		    # Min W mass possible
+		    alpha = qperp * B / np.sqrt(1-B**2)
+		    qn1 = ROOT.TVector3(  0, -qperp, alpha )
+		    En1 = qn1.Mag()
+		    qtot1 = pp + qv + qn1
+		    Etot1 = Ep + Ev + En1
+		    mWMin2 = Etot1**2 - qtot1.Dot(qtot1)
+		    mWMin = np.sqrt(mWMin2)
+
+		    cdVal = 0.5 + np.arctan((mWMin2-MW2)/MW/WGamma)/np.pi
+		    cdMed = (1+cdVal)/2
+		#   invert to get mass of median allowed range
+		    mMed2 = MW2 + MW*WGamma*np.tan(np.pi*(cdMed-0.5))
+		#    mMed = MW + WGamma*np.tan(np.pi*(cdMed-0.5))
+
+		    mMed = np.sqrt(mMed2)
+		    
+		#    MW2fit = max(MW2, mWMin2+1)
+		    if fixWMass:
+		        MW2fit = MW2
+		    else:
+		        MW2fit = mMed2
+		    
+		    #    MW2fit = MW2
+		    A = (MW2fit - mvis2)/2. - Ep*Ev - qperp2 + pp[2]*qv[2] 
+		    A = A/E
+
+		    # Coefficients of the quadratic to solve
+		    b = 2*A*B/(B*B-1)
+		    c = (A*A - qperp2)/(B*B-1)
+		    
+		    arg = b*b - 4*c
+		    # protect against imaginary solutions (investigate any of these)
+		    noSol = 0
+		    if arg>0:
+		        rad = np.sqrt(arg)
+		    else:
+		        rad = -1000
+		        noSol = 1
+		        
+		    # These are the possible z momenta for the neutrino
+		    sol1 = (-b + rad)/2
+		    sol2 = (-b - rad)/2
+		    
+		    # Make vectors of the two z-momentum solutions for the neutrino
+		    qn1 = ROOT.TVector3(0, -qperp, sol1 )
+		    En1 = qn1.Mag()
+		    qn2 = ROOT.TVector3(0, -qperp, sol2 )
+		    En2 = qn2.Mag()
+
+		    # Total momentum of the decaying system
+		    qtot1 = qv + qn1
+		    qtot2 = qv + qn2
+		    
+		    # neutrino momentum in original coordinates (not needed, for study)
+		    dn1 = y*(-1*qperp) + z*sol1
+		    dn2 = y*(-1*qperp) + z*sol2
+		    
+		    # mass of nuetrino+d0 lepton
+		    qn0 = dn1+d0
+		    mn01 = np.sqrt( (d0.Mag()+En1)**2 - qn0.Dot(qn0))
+		    qn0 = dn2+d0
+		    mn02 = np.sqrt( (d0.Mag()+En2)**2 - qn0.Dot(qn0))
+
+		    # And the mass of the N
+		    mN21 = (Ev+En1)**2 - qtot1.Dot(qtot1)
+		    mN22 = (Ev+En2)**2 - qtot2.Dot(qtot2)
+		    
+		#  Calculate the dependence of the mass solutions on the W mass
+		    dmN1dMW = (Ev*sol1/np.sqrt(qperp2+sol1**2) - qv[2])/np.sqrt(mN21) * (A + B*sol1) * np.sqrt(MW2) / \
+		    (((B**2-1)*sol1 + A*B)*E)
+		    
+		    dmN2dMW = (Ev*sol2/np.sqrt(qperp2+sol2**2) - qv[2])/np.sqrt(mN22) * (A + B*sol2) * np.sqrt(MW2) / \
+		    (((B**2-1)*sol2 + A*B)*E)
+
+		    self.mhnl1 = np.sqrt(mN21)
+		    self.mhnl2 = np.sqrt(mN22)
+		    self.mhnl = np.sqrt(mN22)
+
+	
+			
+		# pv = np.array([tree.dv('x'), tree.dv('y'),  tree.dv('z')])
+		# dv = np.array([tree['vertex_x'], tree['vertex_y'],  tree['vertex_z']])
+
+		# p0 = np.array([plep.Px(),plep.Py(),plep.Pz()]) 
+		# d0 = np.array ([trks[0].Px(),trks[0].Py(),trks[0].Pz()])
+		# d1 = np.array ([trks[1].Px(),trks[1].Py(),trks[1].Pz()])
+
+		pv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
+		dv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
+
+		p0 = ROOT.TVector3( plep.Px(), plep.Py(), plep.Pz() )
+		d0 = ROOT.TVector3( trks[0].Px(), trks[0].Py(), trks[0].Pz() )
+		d1 = ROOT.TVector3( trks[1].Px(), trks[1].Py(), trks[1].Pz() )
+
+		findMass(pv, dv, p0, d0, d1, MW2,fixWMass)
+		# print "new HNL mass", self.mhnl2,  self.mhnl1
 
 class PV():
 	def __init__(self, tree):
