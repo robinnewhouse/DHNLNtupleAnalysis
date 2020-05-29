@@ -98,12 +98,12 @@ class Truth():
 											tree['truthVtx_parent_M'][ivx]
 											)
 
-		try:
-			import selections
-			Mhnl = selections.new_Mhnl(tree, plep=self.plep_vec, trks=self.trkVec,MW=self.W_vec.M(),fixWMass=True)
-			self.mhnl = Mhnl.mhnl
-		except:
-			pass
+		# try:
+		# 	import selections
+		# 	Mhnl = selections.new_Mhnl(tree, plep=self.plep_vec, trks=self.trkVec,MW=self.W_vec.M(),fixWMass=True)
+		# 	self.mhnl = Mhnl.mhnl
+		# except:
+		# 	pass
 
 
 

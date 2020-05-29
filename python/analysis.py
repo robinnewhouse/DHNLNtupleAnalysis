@@ -537,17 +537,17 @@ class Analysis(object):
 				if tracks.ntracks == 2:
 					Mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
 					Mhnl = selections.Mhnl(self.tree, plep=plep_vec, trks=trkVec)
-					Mhnl_new = selections.new_Mhnl(self.tree, plep=plep_vec, trks=trkVec)
+					Mhnl_fixWmass = selections.Mhnl(self.tree, plep=plep_vec, trks=trkVec,fixWMass=True)
 					Mtrans = selections.Mtrans(plep=plep_vec, trks=trkVec)
 
 					self.fill_hist(sel, 'mvis', Mltt.mltt)
 					self.fill_hist(sel, 'HNLm', Mhnl.mhnl)
-					self.fill_hist(sel, 'HNLm2', Mhnl_new.mhnl)
+					self.fill_hist(sel, 'alt_HNLm', Mhnl.alt_mhnl)
+					self.fill_hist(sel, 'HNLm_fixWmass', Mhnl_fixWmass.mhnl)
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
 					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
 					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
 					self.fill_hist(sel, 'mtrans', Mtrans.mtrans)
-					self.fill_hist(sel, 'mtrans_rot', Mhnl.mtrans_rot)
 
 					deta = abs(tracks.eta[0] - tracks.eta[1])
 					dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
@@ -561,7 +561,7 @@ class Analysis(object):
 					else:
 						self.fill_hist(sel, 'DV_redmass', self.tree.dv('mass')/dR)
 						self.fill_hist(sel, 'DV_redmassvis', Mltt.mltt/dR)
-						self.fill_hist(sel, 'DV_redmassHNL', Mltt.mltt/dR)
+						self.fill_hist(sel, 'DV_redmassHNL', Mhnl.mhnl/dR)
 
 					self.fill_hist(sel, 'DV_trk_deta', deta)
 					self.fill_hist(sel, 'DV_trk_dphi', dphi)
@@ -630,6 +630,7 @@ class Analysis(object):
 					self.fill_hist('truth_'+sel, 'DV_trk_phi', truthInfo.trkVec[itrk].Phi(), fill_ntuple=False)
 
 				self.micro_ntuples['truth_'+sel].fill()
+
 			self.micro_ntuples[sel].fill()
 
 			if sel == "sel":
