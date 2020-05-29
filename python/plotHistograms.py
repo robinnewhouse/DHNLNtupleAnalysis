@@ -15,12 +15,12 @@ ROOT.gROOT.SetBatch(True)
 
 
 #trying to  set ATLAS style a million different ways
-# gROOT.SetStyle("ATLAS") #might have to change how you set atlas style like this, depends how you have setup python
+gROOT.SetStyle("ATLAS") #might have to change how you set atlas style like this, depends how you have setup python
 # atlas_style.AtlasStyle()	
-gROOT.LoadMacro("AtlasStyle.C")
-gROOT.LoadMacro("AtlasUtils.C")
-gROOT.LoadMacro("AtlasLabels.C")
-SetAtlasStyle()
+# gROOT.LoadMacro("AtlasStyle.C")
+# gROOT.LoadMacro("AtlasUtils.C")
+# gROOT.LoadMacro("AtlasLabels.C")
+# SetAtlasStyle()
 
 logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
