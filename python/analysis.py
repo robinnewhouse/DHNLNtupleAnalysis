@@ -17,16 +17,16 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, tree, vtx_container, sel, output_file):
-		self.sel = sel
-		self.output_file = output_file
-		self.fi = ROOT.TFile.Open(output_file, 'update')
+	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
+		self.sel = selections
+		self.outputFile = outputFile
+		self.fi = ROOT.TFile.Open(outputFile, 'update')
 		self.ch = vtx_container
 		self.histSuffixes = [self.ch]
 		self.h = {}
 		self.micro_ntuples = {}
 		self.tree = tree
-
+		self.saveNtuples = saveNtuples
 		self._locked = UNLOCKED
 
 		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
@@ -211,7 +211,8 @@ class Analysis(object):
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
-		if fill_ntuple and variable_2 is None:
+		save_sel = self.saveNtuples == selection or 'truth_'+self.saveNtuples == selection or self.saveNtuples == 'allcuts'
+		if fill_ntuple and variable_2 is None and save_sel:
 			# Note: selection and hist_name will be overridden by full_name
 			# Need selection to define ntuple tree
 			self.fill_ntuple(selection, hist_name, variable_1, full_name='ntup_'+full_name)
@@ -288,7 +289,7 @@ class Analysis(object):
 				self.fi.mkdir(sel_dir, "Analysis Selection " + selection)
 			self.fi.cd(sel_dir)  # change to TDirectory
 			self.h[h_name][self.ch].Write(base_name)  # save only the base name
-		logger.info("Histograms written to {}".format(self.output_file))
+		logger.info("Histograms written to {}".format(self.outputFile))
 		self.fi.Close()
 
 	def end(self):
@@ -457,8 +458,6 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
 			self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
 
-			# self.micro_ntuples[sel].fill()
-
 		self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
 		self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
 		self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
@@ -473,8 +472,9 @@ class Analysis(object):
 		self.fill_hist(sel, 'DV_maxOpAng', self.tree.dv('maxOpAng'))
 		self.fill_hist(sel, 'DV_charge', self.tree.dv('charge'))
 		self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
-
-		self.micro_ntuples[sel].fill()
+		
+		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
+			self.micro_ntuples[sel].fill()
 
 	def _fill_truth_histos(self, sel='truth_all'):
 		truth_info = helpers.Truth()
@@ -510,8 +510,8 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
 			self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
 			# TODO: figure out a ntuple scheme that can store these variables as well
-
-		self.micro_ntuples[sel].fill()
+		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
+			self.micro_ntuples[sel].fill()
 
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
@@ -628,18 +628,22 @@ class Analysis(object):
 					self.fill_hist('truth_'+sel, 'DV_trk_pt', truthInfo.trkVec[itrk].Pt(), fill_ntuple=False)
 					self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta(), fill_ntuple=False)
 					self.fill_hist('truth_'+sel, 'DV_trk_phi', truthInfo.trkVec[itrk].Phi(), fill_ntuple=False)
-
-				self.micro_ntuples['truth_'+sel].fill()
-			self.micro_ntuples[sel].fill()
+				
+				#BUG here to add truth micro ntuples
+				if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
+					self.micro_ntuples['truth_'+sel].fill()
+			
+			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':  
+				self.micro_ntuples[sel].fill()
 
 			if sel == "sel":
 				self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
 
 
 class oldAnalysis(Analysis):
-	def __init__(self, tree, vtx_container, selections, outputFile):
+	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
 		logger.info('Running  Old Analysis cuts')
-		Analysis.__init__(self, tree, vtx_container, selections, outputFile)
+		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
 
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
@@ -861,9 +865,9 @@ class oldAnalysis(Analysis):
 
 
 class ToyAnalysis(Analysis):
-	def __init__(self, tree, vtx_container, selections, outputFile):
+	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
 		logger.info('Running  Toy Analysis cuts')
-		Analysis.__init__(self, tree, vtx_container, selections, outputFile)
+		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
 
 		self.add('CutFlow', 17, -0.5, 16.5)
 		# Bin labels are 1 greater than histogram bins
@@ -1222,8 +1226,8 @@ class ToyAnalysis(Analysis):
 
 
 class KShort(Analysis):
-	def __init__(self, tree, vtx_container, selections, outputFile):
-		Analysis.__init__(self, tree, vtx_container, selections, outputFile)
+	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
+		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
 		logger.info('Running KShort Analysis cuts')
 
 		self.add('CutFlow', 17, -0.5, 16.5)
@@ -1270,16 +1274,17 @@ class KShort(Analysis):
 			elif self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(sel, 'el_quality', 1)
 			else: self.fill_hist(sel, 'el_quality', 0)
 
-	def _fill_truth_dv_histos(self):
-		if not self.tree.is_data:
-			truthInfo = helpers.Truth()
-			truthInfo.getTruthParticles(self.tree)
-			self.fill_hist('truth_all', 'DV_r', truthInfo.truth_dvr)
-			self.fill_hist('truth_all', 'DV_x', truthInfo.truth_dvx)
-			self.fill_hist('truth_all', 'DV_y', truthInfo.truth_dvy)
-			self.fill_hist('truth_all', 'DV_z', truthInfo.truth_dvz)
-
-			self.micro_ntuples['truth_all'].fill()
+	# def _fill_truth_dv_histos(self,sel):
+	# 	if not self.tree.is_data:
+	# 		truthInfo = helpers.Truth()
+	# 		truthInfo.getTruthParticles(self.tree)
+	# 		self.fill_hist('truth_all', 'DV_r', truthInfo.truth_dvr)
+	# 		self.fill_hist('truth_all', 'DV_x', truthInfo.truth_dvx)
+	# 		self.fill_hist('truth_all', 'DV_y', truthInfo.truth_dvy)
+	# 		self.fill_hist('truth_all', 'DV_z', truthInfo.truth_dvz)
+			
+	# 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
+	# 			self.micro_ntuples['truth_all'].fill()
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
 		if self._locked < FILL_LOCKED or not do_lock:
@@ -1319,7 +1324,8 @@ class KShort(Analysis):
 			self.fill_hist(sel, 'DV_sum_track_pt_diff', track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt)
 			self.fill_hist(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
 
-			self.micro_ntuples[sel].fill()
+			if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
+				self.micro_ntuples[sel].fill()
 
 	# def _fill_selected_dv_ntuples(self, sel, do_lock=True):
 	# 	if self._locked < FILL_LOCKED or not do_lock:
