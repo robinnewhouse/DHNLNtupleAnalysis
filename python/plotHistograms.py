@@ -26,7 +26,7 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
 #############################################################################################################################################
 # globals
-outputDir = '../output/plots/newframework_test/' # change path here to save your histograms somewhere else!
+outputDir = '../output/' # change path here to save your histograms somewhere else!
 MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 lumi = 60
 normalize = False
@@ -42,22 +42,25 @@ def makeCutflows(config_file):
 							  vertextype= vtx_channel,
 							  output_dir=outputDir + "Cutflows/")
 
-		plotting.plot_cutflow(file = config_file["mcFile"][0],
+		plotting.plot_cutflow(file = config_file["mcFiles"][0],
 							  vertextype= vtx_channel,
 							  output_dir=outputDir + "Cutflows/")
 
-		plotting.plot_cutflow(file = config_file["mcFile"][1],
+		plotting.plot_cutflow(file = config_file["mcFiles"][1],
 							  vertextype= vtx_channel,
 							  output_dir=outputDir + "Cutflows/")
 
-def compare_histograms_VSI(config_file, selection):
+def compare_histograms(config_file, selection):
 	vtx_channels = ["VSI", "VSI_Leptons"]
 	for vtx_channel in vtx_channels:
-		hist_channels = {}
-		# hist_channels[<Legend name>] = (<filename>, <vertex directory>, <selection directory>)
-		hist_channels[config_file["mcLabel"][0]] = (config_file["mcFile"][0], vtx_channel, selection)
-		hist_channels[config_file["mcLabel"][1]] = (config_file["mcFile"][1], vtx_channel, selection)
-		hist_channels[config_file["dataLabel"]] = (config_file["dataFile"], vtx_channel, selection)
+		hist_channels = []
+		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>)
+		hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
+		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
+		hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
+		
+		#get integrated luminosity corresponding to the data file
+		lumi = config_file["dataLumi"]
 
 		# DV Variables
 		plotting.compare(hist_channels,
@@ -206,15 +209,6 @@ def compare_histograms_VSI(config_file, selection):
 						 )
 
 		plotting.compare(hist_channels,
-						 variable='HNLm2',
-						 setrange=(0, 30),
-						 setlogy = setlogy,
-						 lumi = lumi,
-						 normalize = normalize,
-						 output_dir= outputDir
-						 )
-
-		plotting.compare(hist_channels,
 						 variable='DV_redmass',
 						 setrange=(0, 50),
 						 setlogy = setlogy,
@@ -319,7 +313,7 @@ if __name__ == '__main__':
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
 	makeCutflows(config_file)
-	compare_histograms_VSI(config_file, 'DVtype')
+	compare_histograms(config_file, 'DVtype')
 
 	
 	

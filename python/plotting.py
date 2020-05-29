@@ -23,7 +23,7 @@ logger = helpers.getLogger('dHNLAnalysis.plotting')
 
 
 def plot_cutflow(file, vertextype, output_dir="../output/"):
-
+	print file
 	Tfile = ROOT.TFile(file)
 	hcutflow = Tfile.Get('{}/CutFlow/CutFlow_{}'.format(vertextype,vertextype))
 
@@ -62,23 +62,30 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
 	histograms = []
 	filenames = []
+	labels = []
 	channels = []
-	tfiles = {}  # root is stupid and will close the file if you're not careful
-	for key, val in hist_channels.items():
-		filename, vtx_alg, selection = val  # unpack
-		if 'data' in filename: 
-			channel = filename.split("data_")[1].split(".")[0] 
-		else:
-			channel = filename.split("mm_")[1].split(".")[0] 
-		tfiles[key] = ROOT.TFile(filename)  # get file
-		hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
-		histogram = tfiles[key].Get(hist_path)
-		if not histogram:  # no histogram object. don't even try
-			print("cannot find {}. Exiting".format(variable))
-			return
-		histograms.append(histogram)  # get variable with suffix
-		channels.append(channel)
-		filenames.append(filename)
+	tfiles = []  # root is stupid and will close the file if you're not careful
+	# for key, val in hist_channels.items():
+	for nhist in range(len(hist_channels)):
+			filename = hist_channels[nhist][0]
+			label = hist_channels[nhist][1]
+			vtx_alg = hist_channels[nhist][2]
+			selection = hist_channels[nhist][3]
+
+			if 'data' in filename: 
+				channel = filename.split("data_")[1].split(".")[0] 
+			else:
+				channel = filename.split("mm_")[1].split(".")[0] 
+			tfiles.append(ROOT.TFile(filename) )  # get file
+			hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
+			histogram = tfiles[nhist].Get(hist_path)
+			if not histogram:  # no histogram object. don't even try
+				print("cannot find {}. Exiting".format(variable))
+				return
+			histograms.append(histogram)  # get variable with suffix
+			channels.append(channel)
+			filenames.append(filename)
+			labels.append(label)
 
 	n_h = len(histograms)
 	h_idx = range(len(histograms))
@@ -131,7 +138,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	#default scale historams to a given luminosity 
 	else: 
 		for i in h_idx:
-			if 'data' in hist_channels.keys()[i]: 
+			if 'data' in labels[i]: 
 				# don't scale data histograms!
 				pass
 			else:
@@ -142,19 +149,19 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	for i in h_idx:
 		mc_yield[i] = round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), histograms[i].FindLastBinAbove(0,1)),2)
 		# if data in list, add it to the legend first
-		if 'data' in hist_channels.keys()[i]: 
+		if 'data' in labels[i]: 
 			if normalize:
-				leg01.AddEntry(histograms[i],"\\bf{%s} )"%(hist_channels.keys()[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s} )"%(labels[i]),"lp")
 			else: 
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(hist_channels.keys()[i],mc_yield[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],mc_yield[i]),"lp")
 	#add non-data histograms to legend 
 	leg01.AddEntry(histograms[0],"","")
 	for i in h_idx:
-		if 'data' not in hist_channels.keys()[i]: 
+		if 'data' not in labels[i]: 
 			if normalize: 
-				leg01.AddEntry(histograms[i],"\\bf{%s} )"%(hist_channels.keys()[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s} )"%(labels[i]),"lp")
 			else:
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(hist_channels.keys()[i],mc_yield[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],mc_yield[i]),"lp")
 		
 
 	# set the common x limits for all histograms
@@ -177,11 +184,13 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			for j, label in enumerate(bin_labels):
 				histograms[i].GetXaxis().SetBinLabel(j+1, label)
 		histograms[i].SetMarkerSize(1.5)
-		if 'data' in hist_channels.keys()[i]: 
+		if 'data' in labels[i]: 
 			histograms[i].SetLineColor(kBlack)
 			histograms[i].SetMarkerColor(kBlack)
 			histograms[i].SetMarkerStyle(20)
+			histograms[i].SetLineWidth(2)
 		else: 
+			histograms[i].SetLineWidth(2)
 			histograms[i].SetLineColor(plotting_helpers.histColours(i))
 			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
 			histograms[i].SetMarkerStyle(shapelist[i])
@@ -230,7 +239,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
 	# plotting_helpers.getNote(35).DrawLatex(notes_x, notes_y-.05, vertextype)
 
-	save_file_name = "{}_{}".format(val[2], variable if save_name == "" else save_name)
+	save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
 	# Clean output directory
 	if vtx_alg == "VSI": 
 		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI/')
