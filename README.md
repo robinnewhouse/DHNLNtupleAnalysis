@@ -61,21 +61,7 @@ python plotHistograms.py --config ../data/config_plotting.json
 
 The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting functions in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
 
-
-## A note about MC weighting
-
-Event weighting for monte carlo samples is implmented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
-
-```
-"Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!"
-```
-this is becuase your file is not appropriately named.Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
-
-## Inverted Prompt Lepton Control Region
-To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
-
-
-#Quick Start Guide
+## Quick Start Guide
 
 This ntuple analysis code is designed to output histograms for analysis selection variables in the dHNL analysis. 
 
@@ -94,8 +80,20 @@ To add new histograms, add a new observable to the list in `observables.py`. The
 To add a new selection, make a new class in `selections.py`.
 
 
+## A note about MC weighting
 
-# Quick guide to using the micro-ntuples
+Event weighting for monte carlo samples is implemented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
+
+```
+"Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!"
+```
+this is becuase your file is not appropriately named. Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
+
+## Inverted Prompt Lepton Control Region
+To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
+
+
+## Quick guide to using the micro-ntuples
 Micro-ntuples are saved to the output file when you run `makeHistograms.py`. Micro-ntuples are designed to store the full tree information (not just the binned histogram) for each variable. Having access to a micro-ntuple means you can quickly re-bin or plot correlations after some selections are applied. By default the micro-ntuples are saved after the DV type cut (2-muon DV, 2-electron DV or 1-electron and 1-muon DV). 
 
 Inside of the histogram output file you will find the micro-ntuple trees in: 
@@ -127,7 +125,7 @@ Here is a list of cuts that you can update the code using the --saveNtuples opti
 - sel
 
 
-# List of configuration files
+## List of configuration files
 
 The following are the default channels that have corresponding config files in DHNLNtupleAnalysis/data: 
 - uuu: Prompt muon, 2-displaced muons
@@ -139,7 +137,7 @@ The following are the default channels that have corresponding config files in D
 
 
 
-# Making Pretty Plots
+## Making Pretty Plots
 
 Plotting functions are defined in `plotting.py`. The steering code `plotHistograms.py` defines what kinds of plots to save in the default output directory `DHNLNtupleAnalysis/output/plots/`. Running plotHistograms.py you can plot different distribtions on the same canvas and save them to the output directory.
 
