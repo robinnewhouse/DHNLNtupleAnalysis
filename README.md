@@ -50,6 +50,17 @@ If you would like to run over a different set of analysis cuts (e.g using the To
 ```
 python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json --analysis ToyAnalysis
 ```
+### Running plotHistograms.py
+
+Once you have run makeHistograms.py edit `../data/config_plotting.json` to include a path to the histogram files you want to plot, as well as an identifying label for each file.
+
+Then run:
+```
+python plotHistograms.py --config ../data/config_plotting.json
+```
+
+The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting functions in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
+
 
 ## A note about MC weighting
 
@@ -64,19 +75,7 @@ this is becuase your file is not appropriately named.Either rename your ntuple f
 To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
 
 
-### Running plotHistograms.py
-
-Once you have run makeHistograms.py edit `../data/config_plotting.json` to include a path to the histogram files you want to plot, as well as an identifying label for each file.
-
-Then run:
-```
-python plotHistograms.py --config ../data/config_plotting.json
-```
-
-The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting functions in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
-
-
-## Quick Start Guide
+#Quick Start Guide
 
 This ntuple analysis code is designed to output histograms for analysis selection variables in the dHNL analysis. 
 
@@ -96,7 +95,7 @@ To add a new selection, make a new class in `selections.py`.
 
 
 
-## Quick guide to using the micro-ntuples
+# Quick guide to using the micro-ntuples
 Micro-ntuples are saved to the output file when you run `makeHistograms.py`. Micro-ntuples are designed to store the full tree information (not just the binned histogram) for each variable. Having access to a micro-ntuple means you can quickly re-bin or plot correlations after some selections are applied. By default the micro-ntuples are saved after the DV type cut (2-muon DV, 2-electron DV or 1-electron and 1-muon DV). 
 
 Inside of the histogram output file you will find the micro-ntuple trees in: 
@@ -128,7 +127,7 @@ Here is a list of cuts that you can update the code using the --saveNtuples opti
 - sel
 
 
-## List of configuration files
+# List of configuration files
 
 The following are the default channels that have corresponding config files in DHNLNtupleAnalysis/data: 
 - uuu: Prompt muon, 2-displaced muons
@@ -140,7 +139,7 @@ The following are the default channels that have corresponding config files in D
 
 
 
-## Making Pretty Plots
+# Making Pretty Plots
 
 Plotting functions are defined in `plotting.py`. The steering code `plotHistograms.py` defines what kinds of plots to save in the default output directory `DHNLNtupleAnalysis/output/plots/`. Running plotHistograms.py you can plot different distribtions on the same canvas and save them to the output directory.
 
