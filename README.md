@@ -50,20 +50,6 @@ If you would like to run over a different set of analysis cuts (e.g using the To
 ```
 python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json --analysis ToyAnalysis
 ```
-
-## A note about MC weighting
-
-Event weighting for monte carlo samples is implmented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
-
-```
-"Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!"
-```
-this is becuase your file is not appropriately named.Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
-
-## Inverted Prompt Lepton Control Region
-To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
-
-
 ### Running plotHistograms.py
 
 Once you have run makeHistograms.py edit `../data/config_plotting.json` to include a path to the histogram files you want to plot, as well as an identifying label for each file.
@@ -74,8 +60,6 @@ python plotHistograms.py --config ../data/config_plotting.json
 ```
 
 The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting functions in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
-
-
 
 ## Quick Start Guide
 
@@ -94,6 +78,51 @@ For a list of the currently implemented cuts see the Analysis class definition i
 To add new histograms, add a new observable to the list in `observables.py`. Then fill the histogram in the corresponding function in `analysis.py`.
 
 To add a new selection, make a new class in `selections.py`.
+
+
+## A note about MC weighting
+
+Event weighting for monte carlo samples is implemented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
+
+```
+"Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!"
+```
+this is becuase your file is not appropriately named. Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
+
+## Inverted Prompt Lepton Control Region
+To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
+
+
+## Quick guide to using the micro-ntuples
+Micro-ntuples are saved to the output file when you run `makeHistograms.py`. Micro-ntuples are designed to store the full tree information (not just the binned histogram) for each variable. Having access to a micro-ntuple means you can quickly re-bin or plot correlations after some selections are applied. By default the micro-ntuples are saved after the DV type cut (2-muon DV, 2-electron DV or 1-electron and 1-muon DV). 
+
+Inside of the histogram output file you will find the micro-ntuple trees in: 
+- VSI/ntuples_DVtype_VSI
+- VSI_Leptons/ntuples_DVtype_VSI_Leptons
+
+To change the cut where the micro-ntuples are saved (e.g. save ntuples after the trkqual cut), you can run: 
+
+```
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json --saveNtuples trkqual
+```
+
+Or if you want to save them after EVERY cut: 
+
+```
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json --saveNtuples allcuts
+```
+
+N.B This "allcuts" option makes the histogram output files much larger, especially when running on data. But the feature if available if you would like to use it. 
+
+Here is a list of cuts that you can update the code using the --saveNtuples option: 
+
+- all 
+- charge
+- DVtype
+- trkqual
+- cosmic
+- mlll
+- sel
 
 
 ## List of configuration files
@@ -118,15 +147,12 @@ For making cutflow plots:
 
 1. open `plotHistogram.py`
 2. edit the function makeCutflows() following the example provided. 
-3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/Cutflows`
+3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/Cutflows`
 
-For comparing data and MC distributions: 
+For comparing histograms: 
 1. open `plotHistogram.py`
-2. edit compareMCdata() following the examples provided. 
+2. edit compare_histograms() following the examples provided.
 3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/`
 
-For comparing N histograms in the same file: 
-1. open `plotHistogram.py`
-2. edit compareHistograms() following the examples provided. 
-3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/`
+
 
