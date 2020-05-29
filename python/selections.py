@@ -485,6 +485,7 @@ class Mlll():
 		self.maxmlll = maxmlll
 
 		self.mlll = -1
+		self.mtrans = -1
 		self.plll = ROOT.TLorentzVector(0, 0, 0, 0)
 
 		if self.decaymode == "leptonic":
@@ -499,6 +500,7 @@ class Mlll():
 				self.plll = self.plep + self.dEl[0] + self.dEl[1]
 
 			self.mlll = self.plll.M()
+			self.mtrans = self.plll.Perp()
 
 	def passes(self):
 
@@ -740,7 +742,7 @@ class Mhnl_old():
 			return False
 
 class Mhnl():
-	def __init__(self, tree, plep, trks, MW = 80.379,fixWMass=False, hnlmasscut = 4):
+	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 4):
 		# Global W pole mass
 		MW = 80.379
 		MW2 = MW**2
@@ -751,6 +753,28 @@ class Mhnl():
 		self.hnlpt = -1
 		self.hnleta = -99
 		self.hnlphi = -99
+		self.mlll = -1
+
+		dtrks = []
+		if dv_type == "emu":
+			dtrks.append(dEl[0])
+			dtrks.append(dMu[0])
+
+		if dv_type == "mumu":
+			dtrks.append(dMu[0])
+			dtrks.append(dMu[1])
+
+		if dv_type == "ee":
+			dtrks.append(dEl[0])
+			dtrks.append(dEl[1])
+
+		# Get 3 vectors
+		pv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
+		dv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
+
+		p0 = ROOT.TVector3( plep.Px(), plep.Py(), plep.Pz() )
+		d0 = ROOT.TVector3( dtrks[0].Px(), dtrks[0].Py(), dtrks[0].Pz() )
+		d1 = ROOT.TVector3( dtrks[1].Px(), dtrks[1].Py(), dtrks[1].Pz() )
 
 		def findMass(pv, dv, p0, d0, d1, MW2, fixWMass):
 			# Choose z direction to be along decay
@@ -864,28 +888,33 @@ class Mhnl():
 			# make 4-vectors in original coordinates 
 			pnu2 = ROOT.TLorentzVector(dn2,dn2.Mag())
 			pnu1 = ROOT.TLorentzVector(dn1,dn1.Mag())
-			ptrk0 = ROOT.TLorentzVector( d0 ,d0.Mag())
-			ptrk1 = ROOT.TLorentzVector( d1,d1.Mag())
+			pion_mass = 0.139 # GeV
+			plep0 = ROOT.TLorentzVector()
+			ptrk0 = ROOT.TLorentzVector()
+			ptrk1 = ROOT.TLorentzVector()
+			# using tracking assumption of pion mass for consistency with trk quantities  
+			plep0.SetPxPyPzE( p0.X(), p0.Y() , p0.Z(), np.sqrt(p0.Mag()**2 +pion_mass**2) )
+			ptrk0.SetPxPyPzE( d0.X(), d0.Y() , d0.Z(), np.sqrt(d0.Mag()**2 +pion_mass**2) )
+			ptrk1.SetPxPyPzE( d1.X(), d1.Y() , d1.Z(), np.sqrt(d1.Mag()**2 +pion_mass**2) )
+
+			# assume massless tracks 
+			# plep0 = ROOT.TLorentzVector( p0 ,p0.Mag())
+			# ptrk0 = ROOT.TLorentzVector( d0 ,d0.Mag())
+			# ptrk0 = ROOT.TLorentzVector( d1,d1.Mag())
 
 			pHNL1 = pnu1 + ptrk0 + ptrk1
 			pHNL2 = pnu2 + ptrk0 + ptrk1
 
+			plll = plep0 + ptrk0 + ptrk1
 		   
 			# set the attributes of the class
 			self.mhnl =pHNL2.M()
 			self.hnlpt =pHNL2.Pt()
 			self.hnleta =pHNL2.Eta()
 			self.hnlphi =pHNL2.Phi()
+			self.mlll = plll.M()
 		  
 			self.alt_mhnl = pHNL1.M()
-
-		# Get 3 vectors
-		pv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
-		dv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
-
-		p0 = ROOT.TVector3( plep.Px(), plep.Py(), plep.Pz() )
-		d0 = ROOT.TVector3( trks[0].Px(), trks[0].Py(), trks[0].Pz() )
-		d1 = ROOT.TVector3( trks[1].Px(), trks[1].Py(), trks[1].Pz() )
 
 		findMass(pv, dv, p0, d0, d1, MW2,fixWMass)
 
