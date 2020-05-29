@@ -724,7 +724,7 @@ class Mhnl_old():
 			self.hnleta = pHNL_2_lab.Eta()
 			self.hnlphi = pHNL_2_lab.Phi()
 
-			print self.mhnl, " ", self.hnlpt, " ", self.hnleta, " ",self.hnlphi
+			# print self.mhnl, " ", self.hnlpt, " ", self.hnleta, " ",self.hnlphi
 
 			self.neg_mhnl12 = neg_mhnl12_vec.M()
 			self.neg_mhnl13 = neg_mhnl13_vec.M()
