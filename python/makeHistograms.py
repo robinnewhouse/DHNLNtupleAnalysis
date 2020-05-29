@@ -80,10 +80,9 @@ def main():
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
-			ana = anaClass(tree, vtx_container, selections, output_file)
+			ana = anaClass(tree, vtx_container, selections, output_file,options.saveNtuples)
 
 			# Loop over each event
-			# for ievt in range(entries):
 			while tree.ievt < entries:
 				if tree.ievt % 1000 == 0:
 					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
@@ -180,6 +179,12 @@ if __name__ == "__main__":
 						default = "oldAnalysis",
 						type = str,
 						help='Name of the analysis you want to run. Default is the old 36fb dHNL analysis')
+
+	parser.add_argument('-s','--saveNtuples',
+						dest="saveNtuples",
+						default = "DVtype",
+						type = str,
+						help='Name of cut after which you want to save the micro-ntuples. Default is the save them after DV type cut')
 
 	# parser.add_argument("-u", "--update",
 	# 					action="store_true",

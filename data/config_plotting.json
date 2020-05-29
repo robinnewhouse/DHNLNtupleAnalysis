@@ -1,14 +1,17 @@
 {
    
             "dataFile": "../output/histograms_data_uuu.root",
-            "dataLabel":"data 2018 period B" ,
+            "dataLabel":"data 2018 ( \\mu\\mu\\mu" ,
+            "dataLumi": 60,
             
-            "mcFile":["../output/histograms_mc_uuu.root",
-            	      "../output/histograms_mc_ueu.root",
-            	      "../output/histograms_mc_eee.root"],
-            "mcLabel":["(m_{HNL}, c\\tau, chan.) = (10, 10, \\mu\\mu\\mu)", 
-            		   "(m_{HNL}, c\\tau, chan.) = (10, 10, \\mue\\mu)", 
-            		   "(m_{HNL}, c\\tau, chan.) = (10, 10, eee)" ]
+            "mcFiles":[  "../output/histograms_mc16e_4G_10mm_uuu.root",
+                        "../output/histograms_mc16e_10G_10mm_uuu.root",
+            	      "../output/histograms_mc16e_20G_10mm_uuu.root"],
+            "mcLabels":["(    4,    10,  \\mu\\mu\\mu",
+            		    "(   10,    10,  \\mu\\mu\\mu", 
+            		    "(   20,    10,  \\mu\\mu\\mu" ]
+
 
 
 }
+

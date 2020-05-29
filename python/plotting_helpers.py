@@ -14,52 +14,34 @@ def getNote(size=12):
 	n.SetTextSize(size)
 	return n
 
+def drawNote(note, size=14, ax=0.25, ay=0.82):
+	a = getNote(size)
+	a.DrawLatex(ax,ay,note)
 	
-def drawNotes(channel,VtxConfig,lumi):
-	a = getNote()
-	b = getNote()
-	c = getNote()
-	d = getNote()
-	e = getNote()
-	f = getNote()
+def drawNotes(VtxConfig,lumi,channel=None):
+	a = getNote(size=20)
+	b = getNote(size=20)
+	c = getNote(size=20)
+	
 	ax = 0.22
 	ay = 0.82
 
-	b.DrawLatex(ax,ay,"\sqrt{s} = 13 TeV, \int Ldt = %s fb^{-1}"%lumi)
-	if  "uuu" in channel:
-		a.DrawLatex(ax,ay-0.05,'channel: \mu\mu\mu')
-	elif "ueu" in channel:
-		a.DrawLatex(ax,ay-0.05,'channel: \mue\mu')
-	elif "uee" in channel:
-		a.DrawLatex(ax,ay-0.05,'channel: \muee')
-	elif "eee" in channel:
-		a.DrawLatex(ax,ay-0.05,'channel: eee')
-	elif "eeu" in channel:
-		a.DrawLatex(ax,ay-0.05,'channel: ee\mu')
-	elif "euu" in channel:
-		a.DrawLatex(ax,ay-0.05,'channel: e\mu\mu')
+	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%lumi)
+	b.DrawLatex(ax,ay-0.05,'%s'%(VtxConfig))
+	if channel != None:
+		if  "uuu" in channel:
+			c.DrawLatex(ax,ay-0.1,'channel: \mu\mu\mu')
+		elif "ueu" in channel:
+			c.DrawLatex(ax,ay-0.1,'channel: \mue\mu')
+		elif "uee" in channel:
+			c.DrawLatex(ax,ay-0.1,'channel: \muee')
+		elif "eee" in channel:
+			c.DrawLatex(ax,ay-0.1,'channel: eee')
+		elif "eeu" in channel:
+			c.DrawLatex(ax,ay-0.1,'channel: ee\mu')
+		elif "euu" in channel:
+			c.DrawLatex(ax,ay-0.1,'channel: e\mu\mu')
 
-	# c.DrawLatex(ax,ay-0.15,'(m_{HNL}, c\\tau) = (10, 100)')
-	
-	c.DrawLatex(ax,ay-0.1,'%s'%(VtxConfig))
-
-	# else: 
-	# 	a.DrawLatex(ax,ay,'%s'%MC_campaign) 
-	# 	b.DrawLatex(ax,ay-0.05,'mass: %s GeV'%mass)
-	# 	c.DrawLatex(ax,ay-0.10,'lifetime: %s mm'%lifetime)
-	# 	if plepton == "muon":
-	# 		d.DrawLatex(ax,ay-0.15,'Prompt muon')
-	# 	if plepton == "electron":
-	# 		d.DrawLatex(ax,ay-0.15,'Prompt electron')
-	# 	if DV_type == "mumu":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: \mu\mu\\nu')
-	# 	if DV_type == "emu":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: e\mu\\nu')
-	# 	if DV_type == "ee":
-	# 		e.DrawLatex(ax,ay-0.20,'DV type: ee\\nu')
-	# 	f.DrawLatex(ax,ay-0.25,'%s'%(VtxConfig))
-	# 	# else:
-		# 	e.DrawLatex(ax,ay-0.20,'VSI Leptons')
 	atlas_style.ATLASLabel(0.22,0.87,"Internal")
 
 
@@ -129,7 +111,36 @@ def drawNotesVertextype(Vertextype, lumi=1):
 	atlas_style.ATLASLabel(0.25,0.87,"Internal")
 
 
-def xlabelhistograms(hist): 
+x_label_names = {
+	"DV_mass": "DV mass [GeV]",
+	"trk_pt": "track p_{T} [GeV]",
+	"trk_eta": "track \eta",
+	"trk_phi": "track \phi",
+	"trk_d0": "track d_{0}",
+	"mvis": "Visible mass (m_{lll}) [GeV]",
+	"dpt": "\Deltap_{T} between tracks in DV [GeV]",
+	"deta": "\Delta\eta between tracks in DV",
+	"dphi": "\Delta\phi between tracks in DV",
+	"dR": "\DeltaR between tracks in DV",
+	"mtrans": "m_{T} [GeV]",
+	"HNLm": "HNL mass [GeV]",
+	"HNLpt": "HNL p_{T} [GeV]",
+	"HNLphi": "HNL \phi",
+	"HNLeta": "HNL \eta",
+	"DV_r": "DV r [mm]",
+	"redmass": "reduced DV mass [GeV]",
+	"redmassvis": "reduced visible mass [GeV]",
+	"redmassHNL": "reduced HNL mass [GeV]",
+}
+
+
+def get_x_label(hist_name):
+	if hist_name in x_label_names:
+		return x_label_names[hist_name]
+	else:
+		return hist_name
+
+def xlabelhistograms(hist):
 	if "DV_r" in hist:
 		if  ("redmassvis" in hist):
 			return "reduced visible mass [GeV]"
@@ -138,9 +149,9 @@ def xlabelhistograms(hist):
 				return "reduced HNL mass [GeV]"
 			else:
 				return "reduced DV mass [GeV]"
-		else: 
+		else:
 			return "DV r [mm]"
-	if "DV_mass" in hist: 
+	if "DV_mass" in hist:
 		return "DV mass [GeV]"
 	if "trk_pt" in hist:
 		return "track p_{T} [GeV]"
@@ -152,39 +163,38 @@ def xlabelhistograms(hist):
 		return "track d_{0}"
 	if "mvis" in hist:
 		return "Visible mass (m_{lll}) [GeV]"
-	if "dpt" in hist: 
+	if "dpt" in hist:
 		return "\Deltap_{T} between tracks in DV [GeV]"
-	if "deta" in hist: 
+	if "deta" in hist:
 		return "\Delta\eta between tracks in DV"
-	if "dphi" in hist: 
+	if "dphi" in hist:
 		return "\Delta\phi between tracks in DV"
-	if "dR" in hist: 
+	if "dR" in hist:
 		return "\DeltaR between tracks in DV"
 	if "mtrans" in hist:
 		return "m_{T} [GeV]"
-	if "HNLm" in hist: 
+	if "HNLm" in hist:
 		return "HNL mass [GeV]"
-	if "HNLpt" in hist: 
+	if "HNLpt" in hist:
 		return "HNL p_{T} [GeV]"
-	if "HNLphi" in hist: 
+	if "HNLphi" in hist:
 		return "HNL \phi"
-	if "HNLeta" in hist: 
+	if "HNLeta" in hist:
 		return "HNL \eta"
-	else: 
+	else:
 		return ""
-
 
 def histColours(nhist): 
 	if nhist== 0:
-		return kAzure+6
+		return ROOT.kAzure+6
 	if nhist== 1:
-		return kViolet+8
+		return ROOT.kViolet+8
 	if nhist== 2:
-		return kRed
+		return ROOT.kRed
 	if nhist== 3:
-		return kGreen+1
+		return ROOT.kGreen+1
 	if nhist== 4:
-		return kOrange -3
+		return ROOT.kOrange -3
 	else: 
-		return kBlack
+		return ROOT.kBlack
 

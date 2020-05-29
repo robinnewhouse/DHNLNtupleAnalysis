@@ -1,14 +1,18 @@
 # Plotting Script
-import argparse, os, math, ROOT, glob, uproot, time, json
+import os, math, ROOT, json,sys
 import numpy as np
-import helpers
+import commentjson
 from ROOT import *
 from ROOT import gPad
 from pylab import *
+sys.path.append('../python/')
+# Considering your module contains a function called my_func, you could import it:
 import plotting
+import helpers
 import atlas_style
 
 ROOT.gROOT.SetBatch(True)
+
 
 #trying to  set ATLAS style a million different ways
 gROOT.SetStyle("ATLAS") #might have to change how you set atlas style like this, depends how you have setup python
@@ -22,794 +26,244 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
 #############################################################################################################################################
 # globals
-outputDir = '../output/plots/' # change path here to save your histograms somewhere else!
-
+outputDir = '../output/' # change path here to save your histograms somewhere else!
+MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
+lumi = 60
+normalize = False
+setlogy = False
 
 #############################################################################################################################################
 
 
-
-
-def compareMCdata(config_file):
-	# configs for all plots!
-	histcut = "DVtype"
-	setlogy = True
-	normalize = False
-	lumi = 60
-
-	#add plots here if you want to compare different distributions with with data & MC
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel=  config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_mass", 
-							setlogy = setlogy,
-							scaleymax = 100,
-							setrange= "0 20",					
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir=outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel=  config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],				
-							hname = histcut + "_DV_mass",
-							scaleymax = 2.2, 
-						    setlogy = setlogy,
-						    setrange= "0 20",
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir=outputDir)
-	
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_r",
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 300", 						
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_r", 
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 300", 
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_pt",
-							setlogy = setlogy,
-							nRebin = 2, 
-							setrange= "0 100",					
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_pt",
-							setlogy = setlogy,
-							nRebin = 2, 
-							setrange= "0 100",
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_phi", 
-							setlogy = setlogy,
-							scaleymax = 2.2,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_phi", 
-							setlogy = setlogy,
-							scaleymax = 2.2,
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_eta", 
-							setlogy = setlogy,
-							scaleymax = 2.2*100,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"],
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"], 
-							hname = histcut + "_DV_trk_eta", 
-							setlogy = setlogy,
-							scaleymax = 2.2*100,
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_d0",
-							setlogy = setlogy,
-							scaleymax = 1.5,
-							setrange= "-100 100",
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_d0", 
-							setlogy = setlogy,
-							scaleymax = 1.5,
-							setrange= "-100 100",							
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_dpt",
-							setlogy = setlogy,
-							nRebin = 2, 
-							setrange= "0 20",
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_dpt",
-							setlogy = setlogy,
-							nRebin = 2, 
-							setrange= "0 20",						
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_deta", 
-							setlogy = setlogy,
-							nRebin = 2, 
-							setrange= "0 4",
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-						  	mcfiles=config_file["mcFile"],
-						  	hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"], 
-							hname = histcut + "_DV_trk_deta", 
-							setlogy = setlogy,
-							nRebin = 2, 
-							setrange= "0 4",
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_dphi",
-							setlogy = setlogy,
-							setrange= "0 3.2",
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_dphi",  
-							setlogy = setlogy,
-							setrange= "0 3.2",	
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_dR", 
-							setlogy = setlogy,
-							nRebin = 10, 
-							setrange= "0 5",							
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_trk_dR", 
-							setlogy = setlogy,
-							nRebin = 10, 
-							setrange= "0 10",
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_mvis", 
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 200",
-							scaleymax = 1.5,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_mvis", 
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 200",
-							scaleymax = 1.5,							
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_mtrans",
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 200",
-							scaleymax = 1.5,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_mtrans", 
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 200",
-							scaleymax = 1.5,
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"],
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_redmass",  
-							setlogy = setlogy,					
-							setrange= "0 50",
-							scaleymax = 1.5,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-	 						outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"],
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_redmass", 
-							setlogy = setlogy,						
-							setrange= "0 50",
-							scaleymax = 1.5,
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_redmassvis",
-							setlogy = setlogy,						
-							nRebin = 5, 
-							setrange= "0 200",
-							scaleymax = 1.5,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_redmassvis", 
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 200",
-							scaleymax = 1.5,
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
- 							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_HNLm",
-							setlogy = setlogy,
-							setrange= "0 30",
-							scaleymax = 1.2,							 							
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_HNLm", 
-							setlogy = setlogy,
-							setrange= "0 30",
-							scaleymax = 1.2,
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"],
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"], 
-							hname = histcut + "_DV_redmassHNL",
-							setlogy = setlogy,						
-							setrange= "0 50",
-							scaleymax = 1.5,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-						
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_DV_redmassHNL", 
-							setlogy = setlogy,						
-							nRebin = 1, 
-							setrange= "0 50",
-							scaleymax = 1.5,				
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-	
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_HNLpt",
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 200",
-							scaleymax = 1.5,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_HNLpt",
-							setlogy = setlogy,
-							nRebin = 5, 
-							setrange= "0 200",
-							scaleymax = 1.5,
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_HNLphi", 
-							setlogy = setlogy,
-							setrange= "-4 4",
-							scaleymax = 1.5,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_HNLphi", 
-							setlogy = setlogy,
-							setrange= "-4 4",
-							scaleymax = 1.5,
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_HNLeta",
-							setlogy = setlogy,
-							setrange= "-3 3",
-							scaleymax = 1.5,
-							vertextype = "VSI Leptons",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-	plotting.compare_dataMC(datafile=config_file["dataFile"],
-							mcfiles=config_file["mcFile"], 
-							hdatalabel= config_file["dataLabel"],
-							hmclabels = config_file["mcLabel"],
-							hname = histcut + "_HNLeta",
-							setlogy = setlogy,
-							setrange= "-3 3",
-							scaleymax = 1.5,			
-							vertextype = "VSI",
-							normalize = normalize,
-							lumi = lumi,
-							outputDir= outputDir)
-
-
-
-
-
-def make2Dmassplots(config_file):
-
-	# MC FILES
-	plotting.CorrPlot2D( file= config_file["mcFile"][0], 
-				hname="charge_DVmass_mvis", 
-				hlabel=config_file["mcLabel"][0],
-				rebinx=2,
-				rebiny=5,
-				vertextype="VSI",
-				setxrange="0 30",
-				setyrange="0 300",
-				outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D( file= config_file["mcFile"][0], 
-				hlabel=config_file["mcLabel"][0],
-				hname="charge_DVmass_mvis",
-				rebinx=2,
-				rebiny=5,
-				vertextype="VSI Leptons",
-				setxrange="0 30",
-				setyrange="0 300",
-				outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			rebinx=2,
-			rebiny=5,
-			hname="charge_DVmass_mtrans", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI",
-			setxrange="0 30",
-			setyrange="0 300",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			rebinx=2,
-			rebiny=5,
-			hname="charge_DVmass_mtrans", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI Leptons",
-			setxrange="0 30",
-			setyrange="0 300",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			rebinx=5,
-			rebiny=5,
-			hname="charge_mvis_mtrans", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI",
-			setxrange="0 100",
-			setyrange="0 300",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			rebinx=5,
-			rebiny=5,
-			hname="charge_mvis_mtrans", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI Leptons",
-			setxrange="0 100",
-			setyrange="0 300",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			hname="charge_DVmass_mhnl", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI",
-			setxrange="0 50",
-			setyrange="0 50",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			hname="charge_DVmass_mhnl", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI Leptons",
-			setxrange="0 50",
-			setyrange="0 50",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			rebinx=5,
-			rebiny=1,
-			hname="charge_mvis_mhnl", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI",
-			setxrange="0 300",
-			setyrange="0 50",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			rebinx=5,
-			rebiny=1,
-			hname="charge_mvis_mhnl", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI Leptons",
-			setxrange="0 300",
-			setyrange="0 50",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			rebinx=1,
-			rebiny=5,
-			hname="charge_mhnl_mtrans", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI",
-			setxrange="0 50",
-			setyrange="0 300",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-	plotting.CorrPlot2D(file= config_file["mcFile"][0], 
-			rebinx=1,
-			rebiny=5,
-			hname="charge_mhnl_mtrans", 
-			hlabel=config_file["mcLabel"][0],
-			vertextype="VSI Leptons",
-			setxrange="0 50",
-			setyrange="0 300",
-			outputDir=outputDir + "2Dmassplots/mc/")
-
-	# DATA FILES
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			hname="charge_DVmass_mvis", 
-			hlabel=config_file["dataLabel"],
-			rebinx=2,
-			rebiny=5,
-			vertextype="VSI",
-			setxrange="0 30",
-			setyrange="0 300",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			hname="charge_DVmass_mvis", 
-			hlabel=config_file["dataLabel"],
-			rebinx=2,
-			rebiny=5,
-			vertextype="VSI Leptons",
-			setxrange="0 30",
-			setyrange="0 300",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			rebinx=2,
-			rebiny=5,
-			hname="charge_DVmass_mtrans", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI",
-			setxrange="0 30",
-			setyrange="0 300",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			rebinx=2,
-			rebiny=5,
-			hname="charge_DVmass_mtrans", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI Leptons",
-			setxrange="0 30",
-			setyrange="0 300",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			rebinx=5,
-			rebiny=5,
-			hname="charge_mvis_mtrans", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI",
-			setxrange="0 100",
-			setyrange="0 300",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			rebinx=5,
-			rebiny=5,
-			hname="charge_mvis_mtrans", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI Leptons",
-			setxrange="0 100",
-			setyrange="0 300",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			hname="charge_DVmass_mhnl", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI",
-			setxrange="0 50",
-			setyrange="0 50",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			hname="charge_DVmass_mhnl", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI Leptons",
-			setxrange="0 50",
-			setyrange="0 50",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			rebinx=5,
-			rebiny=1,
-			hname="charge_mvis_mhnl", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI",
-			setxrange="0 300",
-			setyrange="0 50",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			rebinx=5,
-			rebiny=1,
-			hname="charge_mvis_mhnl", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI Leptons",
-			setxrange="0 300",
-			setyrange="0 50",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			rebinx=1,
-			rebiny=5,
-			hname="charge_mhnl_mtrans", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI",
-			setxrange="0 50",
-			setyrange="0 300",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-	plotting.CorrPlot2D(config_file["dataFile"], 
-			rebinx=1,
-			rebiny=5,
-			hname="charge_mhnl_mtrans", 
-			hlabel=config_file["dataLabel"],
-			vertextype="VSI Leptons",
-			setxrange="0 50",
-			setyrange="0 300",
-			outputDir=outputDir +"2Dmassplots/data/")
-
-
 def makeCutflows(config_file):
-	# make Cutflow plots here
-	plotting.plot_cutflow(file = config_file["mcFile"][0],
-						  vertextype= "VSI Leptons",
-						  outputDir=outputDir + "Cutflows/")
+	vtx_channels = ["VSI", "VSI_Leptons"]
+	for vtx_channel in vtx_channels:
+		plotting.plot_cutflow(file = config_file["dataFile"],
+							  vertextype= vtx_channel,
+							  output_dir=outputDir + "Cutflows/")
 
-def compareHistograms(config_file):
-	# compare different histograms from the same file here
-	plotting.compareN(file=config_file["mcFile"][0],
-			hname = ["sel_DV_mass","sel_mvis","sel_HNLm","sel_mtrans","sel_DV_redmass"],
-			hlabel = ["DV mass","Visible mass","m_{HNL}", "m_{T}","Reduced mass"], 
-			setxrange= "0 100",
-			scaleymax=1.5,
-			nRebin=5,
-			vertextype= "VSI Leptons",
-			savefilename="selMC_mass",
-			outputDir=outputDir)
+		plotting.plot_cutflow(file = config_file["mcFiles"][0],
+							  vertextype= vtx_channel,
+							  output_dir=outputDir + "Cutflows/")
 
+		plotting.plot_cutflow(file = config_file["mcFiles"][1],
+							  vertextype= vtx_channel,
+							  output_dir=outputDir + "Cutflows/")
+
+def compare_histograms(config_file, selection):
+	vtx_channels = ["VSI", "VSI_Leptons"]
+	for vtx_channel in vtx_channels:
+		hist_channels = []
+		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>)
+		hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
+		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
+		hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
+		
+		#get integrated luminosity corresponding to the data file
+		lumi = config_file["dataLumi"]
+
+		# DV Variables
+		plotting.compare(hist_channels,
+						 variable='DV_r',
+						 nRebin=10,
+						 setrange=(0, 350),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 vertical_lines=MATERIAL_LAYERS,
+						 vertical_legend="Material Layers",
+						 output_dir= outputDir
+						 )
+
+		# DV Track Variables 
+		plotting.compare(hist_channels,
+						 variable='DV_trk_pt',
+						 setrange=(0, 100),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_trk_eta',
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_trk_phi',
+						 nRebin = 2, 
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_eta',
+						 setrange=(-3, 3),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_trk_d0',
+						 setrange=(-10, 10),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_trk_z0',
+						 setrange=(-10, 10),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_trk_dpt',
+						 setrange=(0, 20),
+						 nRebin = 2, 
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_trk_deta',
+						 setrange=(0, 3.2),
+						 nRebin = 2, 
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_trk_dphi',
+						 setrange=(0, 3.2),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_trk_dR',
+						 setrange=(0, 10),
+						 nRebin = 10, 
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir = outputDir
+						 )
+
+		# Mass Variables 
+		plotting.compare(hist_channels,
+						 variable='DV_mass',
+						 setrange=(0, 20),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 vertical_lines=[4],
+						 vertical_legend="DV mass cut",
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='mvis',
+						 nRebin=5,
+						 setrange=(0, 200),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='mtrans',
+						 nRebin=5,
+						 setrange=(0, 200),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
+		plotting.compare(hist_channels,
+						 variable='HNLm',
+						 setrange=(0, 30),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_redmass',
+						 setrange=(0, 50),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='DV_redmassvis',
+						 setrange=(0, 200),
+						 nRebin=5,
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
+		plotting.compare(hist_channels,
+						 variable='DV_redmassHNL',
+						 setrange=(0, 50),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
+
+		# HNL quantities
+		plotting.compare(hist_channels,
+						 variable='HNLpt',
+						 setrange=(0, 50),
+						 nRebin=5,
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='HNLeta',
+						 setrange=(0, 50),
+						 nRebin=5,
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='HNLphi',
+						 setrange=(-3,3),
+						 setlogy = setlogy,
+						 lumi = lumi,
+						 normalize = normalize,
+						 output_dir= outputDir
+						 )
 
 
 
@@ -845,6 +299,7 @@ if __name__ == '__main__':
 	else: 
 		logger.info('Making output directories...')
 		os.mkdir(outputDir)
+		os.mkdir(outputDir + "plots/")
 		os.mkdir(outputDir + "Cutflows/")
 		os.mkdir(outputDir + "2Dmassplots")
 		os.mkdir(outputDir + "2Dmassplots/data/")
@@ -857,10 +312,8 @@ if __name__ == '__main__':
 
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
-	compareMCdata(config_file)
 	makeCutflows(config_file)
-	compareHistograms(config_file)
-	make2Dmassplots(config_file)
+	compare_histograms(config_file, 'DVtype')
 
 	
 	
