@@ -26,9 +26,12 @@ class Ntuples:
         self.ttree.Fill()
         self.reset()
 
-    def write(self):
-        """Writes root ntuple to currently open file"""
-        self.ttree.Write()
+    def write(self, name=''):
+        """
+        Writes root ntuple to currently open file
+        :param name: The name to write the root ntuple. If empty string, ntuples self.tree_name is used by default.
+        """
+        self.ttree.Write(name)
 
     def reset(self):
         """Resets ntuple values to non-physical numbers (i.e. not zero)"""
