@@ -1,7 +1,6 @@
 # Plotting Script
 import os, math, ROOT, json,sys
 import numpy as np
-import commentjson
 from ROOT import *
 from ROOT import gPad
 from pylab import *
@@ -51,14 +50,14 @@ def makeCutflows(config_file):
 							  output_dir=outputDir + "Cutflows/")
 
 def compare_histograms(config_file, selection):
-	vtx_channels = ["VSI", "VSI_Leptons"]
+	vtx_channels = ["VSI_Leptons"]
 	for vtx_channel in vtx_channels:
 		hist_channels = []
 		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>)
 		hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
 		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
 		hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
-		
+
 		#get integrated luminosity corresponding to the data file
 		lumi = config_file["dataLumi"]
 
@@ -72,7 +71,9 @@ def compare_histograms(config_file, selection):
 						 normalize = normalize,
 						 vertical_lines=MATERIAL_LAYERS,
 						 vertical_legend="Material Layers",
-						 output_dir= outputDir
+						 output_dir= outputDir,
+						 use_ntuple = True,
+						 ntup_nbins=100
 						 )
 
 		# DV Track Variables 

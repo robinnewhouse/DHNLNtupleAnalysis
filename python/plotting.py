@@ -52,40 +52,54 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 	savefilename= "CutFlow_" + channel
 
 	output_dir = os.path.join(os.path.abspath(output_dir), '{}/'.format(vertextype))
-	if not os.path.exists(output_dir): os.mkdir(output_dir)
+	if not os.path.exists(output_dir):
+		os.makedirs(output_dir)
 
 	MyC01.SaveAs(output_dir +savefilename+'.pdf')
 
 
 def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, setlogy=False, output_dir="../output",
 			save_name="", vertical_lines=[], labels=[], normalize=True, lumi=1, **kwargs):
-
 	histograms = []
 	filenames = []
 	labels = []
-	channels = []
+	channels = []  # TODO: Why do we need channels? It seems to be never used.
 	tfiles = []  # root is stupid and will close the file if you're not careful
 	# for key, val in hist_channels.items():
 	for nhist in range(len(hist_channels)):
-			filename = hist_channels[nhist][0]
-			label = hist_channels[nhist][1]
-			vtx_alg = hist_channels[nhist][2]
-			selection = hist_channels[nhist][3]
+		filename = hist_channels[nhist][0]
+		label = hist_channels[nhist][1]
+		vtx_alg = hist_channels[nhist][2]
+		selection = hist_channels[nhist][3]
 
-			if 'data' in filename: 
-				channel = filename.split("data_")[1].split(".")[0] 
-			else:
-				channel = filename.split("mm_")[1].split(".")[0] 
-			tfiles.append(ROOT.TFile(filename) )  # get file
+		if 'data' in filename:
+			channel = filename.split("data_")[1].split(".")[0]
+		else:
+			channel = filename.split("mm_")[1].split(".")[0]
+		tfiles.append(ROOT.TFile(filename))  # get file
+
+		if 'use_ntuple' in kwargs and kwargs['use_ntuple']:
+			print('Using ntuple')
+			if setrange is None or 'ntup_nbins' not in kwargs:
+				raise ValueError('to use the ntuple, you must supply the range (e.g. setrange=(0,1000) '
+								 'and the number of bins (e.g. ntup_nbins=40) in the arguments)')
+			tmp_hist_name = "{}_{}_{}".format(vtx_alg, selection, variable)
+			ntup_hist = ROOT.TH1D(tmp_hist_name, tmp_hist_name, kwargs['ntup_nbins'], setrange[0], setrange[1])  # create empty histogram
+			ttree = tfiles[nhist].Get("{}/ntuples/{}".format(vtx_alg, selection))  # get TTree
+			if not ttree:
+				raise KeyError('Cannot find {}/ntuples/{}'.format(vtx_alg, selection))
+			ttree.Draw(tmp_hist_name)  # fill histogram with data from ttree
+			histograms.append(ntup_hist)
+		else:
 			hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
 			histogram = tfiles[nhist].Get(hist_path)
 			if not histogram:  # no histogram object. don't even try
 				print("cannot find {}. Exiting".format(variable))
 				return
 			histograms.append(histogram)  # get variable with suffix
-			channels.append(channel)
-			filenames.append(filename)
-			labels.append(label)
+		channels.append(channel)
+		filenames.append(filename)
+		labels.append(label)
 
 	n_h = len(histograms)
 	h_idx = range(len(histograms))
@@ -100,13 +114,13 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
 
-	#rebin histograms
+	# rebin histograms
 	if nRebin != 1:
 		for i in h_idx:
 			histograms[i].Rebin(nRebin)
 
 	# find the common min and max for x axis	
-	if setrange is None:
+	if setrange is None: # if the range is not defined by the user
 		bin_xmin, bin_xmax = (np.inf, -np.inf)
 		for i in h_idx:
 			if histograms[i].FindFirstBinAbove(0, 1) > bin_xmin:
@@ -115,33 +129,28 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 				bin_xmax = histograms[i].FindLastBinAbove(0, 1)
 		x_min = bin_xmin-1
 		x_max = bin_xmax+1
-	else:
+	else: # if the range is designed by the user
 		x_min, x_max = setrange
 		bin_xmax = histograms[0].GetXaxis().FindBin(x_max)
 		bin_xmin = histograms[0].GetXaxis().FindBin(x_min)
 
-
 	# normalize the histograms
 	if normalize:
+		norm = 1
 		if 'norm' in kwargs:
 			norm = kwargs['norm']
-		else: 
-			norm = 1
 
 		for i in h_idx:
-			if (histograms[i].Integral() != 0):
-				scale_mc = norm/(histograms[i].Integral(bin_xmin, bin_xmax))
+			if histograms[i].Integral() != 0:
+				scale_mc = norm / (histograms[i].Integral(bin_xmin, bin_xmax))
 			else:
 				scale_mc = norm
 			histograms[i].Scale(scale_mc)
 
-	#default scale historams to a given luminosity 
-	else: 
+	# default scale histograms to a given luminosity
+	else:
 		for i in h_idx:
-			if 'data' in labels[i]: 
-				# don't scale data histograms!
-				pass
-			else:
+			if 'data' not in labels[i]:  # don't scale data histograms!
 				histograms[i].Scale(lumi)
 
 	# calculate yields
@@ -149,12 +158,12 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	for i in h_idx:
 		mc_yield[i] = round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), histograms[i].FindLastBinAbove(0,1)),2)
 		# if data in list, add it to the legend first
-		if 'data' in labels[i]: 
+		if 'data' in labels[i]:
 			if normalize:
 				leg01.AddEntry(histograms[i],"\\bf{%s} )"%(labels[i]),"lp")
-			else: 
+			else:
 				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],mc_yield[i]),"lp")
-	#add non-data histograms to legend 
+	#add non-data histograms to legend
 	leg01.AddEntry(histograms[0],"","")
 	for i in h_idx:
 		if 'data' not in labels[i]: 
@@ -199,7 +208,6 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		histograms[i].GetYaxis().SetTitle("entries")
 		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
 		histograms[i].Draw("E0 HIST SAME")
-
 	
 	if setlogy:
 		gPad.SetLogy()
@@ -239,16 +247,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
 	# plotting_helpers.getNote(35).DrawLatex(notes_x, notes_y-.05, vertextype)
 
-	save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
-	# Clean output directory
-	if vtx_alg == "VSI": 
-		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI/')
-	elif vtx_alg == "VSI_Leptons": 
-		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI_Leptons/')
-	else:
-		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/')
-	
-	
+	save_file_name = variable if save_name == "" else save_name
+	output_dir = os.path.join(os.path.abspath(output_dir), 'plots/{}/{}/'.format(vtx_alg, selection))
+
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
 	c.SaveAs(output_dir + save_file_name + '.pdf')
 	# c.SaveAs(output_dir + save_file_name + '.eps')
