@@ -48,7 +48,6 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 	else:
 		plotting_helpers.drawNotesMC(fileInfo.MC_campaign,vertextype,channel,fileInfo.mass_str,fileInfo.ctau_str)
 
-
 	savefilename= "CutFlow_" + channel
 
 	output_dir = os.path.join(os.path.abspath(output_dir), '{}/'.format(vertextype))
