@@ -98,12 +98,12 @@ class Truth():
 											tree['truthVtx_parent_M'][ivx]
 											)
 
-		try:
-			import selections
-			Mhnl = selections.new_Mhnl(tree, plep=self.plep_vec, trks=self.trkVec,MW=self.W_vec.M(),fixWMass=True)
-			self.mhnl = Mhnl.mhnl
-		except:
-			pass
+		# try:
+		# 	import selections
+		# 	Mhnl = selections.new_Mhnl(tree, plep=self.plep_vec, trks=self.trkVec,MW=self.W_vec.M(),fixWMass=True)
+		# 	self.mhnl = Mhnl.mhnl
+		# except:
+		# 	pass
 
 
 
@@ -128,14 +128,19 @@ class Tracks():
 				# (works for calibrated and uncalibrated containers)
 				if len(self.tree['muon_index']) > 0:
 					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-					# print "muon index: ", muon_index
-					# print  "track index", self.evt.tree.trk_muonindex[self.evt.ievt][self.evt.idv][itrk]
 
 					# use track quantities
 					pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 					eta = self.tree.dv('trk_eta_wrtSV')[itrk]
 					phi = self.tree.dv('trk_phi_wrtSV')[itrk]
 					M = self.tree.dv('trk_M')[itrk]
+
+					# use calibrated muon quantities (not calculated wrt DV!)
+					# pt = self.tree['muon_pt'][muon_index]
+					# eta = self.tree['muon_eta'][muon_index]
+					# phi = self.tree['muon_phi'][muon_index]
+					# M = self.tree.dv('trk_M')[itrk]
+
 					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 					self.pt.append(pt)
@@ -172,6 +177,13 @@ class Tracks():
 					eta = self.tree.dv('trk_eta_wrtSV')[itrk]
 					phi = self.tree.dv('trk_phi_wrtSV')[itrk]
 					M = self.tree.dv('trk_M')[itrk]
+
+					# use calibrated muon quantities (not calculated wrt DV!)
+					# pt = self.tree['el_pt'][el_index]
+					# eta = self.tree['el_eta'][el_index]
+					# phi = self.tree['el_phi'][el_index]
+					# M = self.tree.dv('trk_M')[itrk]
+
 					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 					self.pt.append(pt)

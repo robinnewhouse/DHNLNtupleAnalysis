@@ -289,7 +289,9 @@ class Analysis(object):
 				self.fi.mkdir(sel_dir, "Analysis Selection " + selection)
 			self.fi.cd(sel_dir)  # change to TDirectory
 			self.h[h_name][self.ch].Write(base_name)  # save only the base name
+
 		logger.info("Histograms written to {}".format(self.outputFile))
+
 		self.fi.Close()
 
 	def end(self):
@@ -535,20 +537,29 @@ class Analysis(object):
 				tracks.getTracks()
 				trkVec = tracks.lepVec
 
-				if tracks.ntracks == 2:
-					Mltt = selections.Mltt(plep=plep_vec, trks=trkVec)
-					Mhnl = selections.Mhnl(self.tree, plep=plep_vec, trks=trkVec)
-					Mhnl_new = selections.new_Mhnl(self.tree, plep=plep_vec, trks=trkVec)
-					Mtrans = selections.Mtrans(plep=plep_vec, trks=trkVec)
+				muons = helpers.Tracks(self.tree)
+				muons.getMuons()
+				muVec = muons.lepVec
 
-					self.fill_hist(sel, 'mvis', Mltt.mltt)
+				electrons = helpers.Tracks(self.tree)
+				electrons.getElectrons()
+				elVec = electrons.lepVec
+
+				if tracks.ntracks == 2:
+					Mlll = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
+					Mhnl = selections.Mhnl(self.tree, self.dv_type, plep=plep_vec, dMu=muVec,dEl=elVec)
+					# Mhnl_old = selections.Mhnl_old(self.tree, plep=plep_vec, trks=trkVec)
+					Mhnl_fixWmass = selections.Mhnl(self.tree, self.dv_type, plep=plep_vec, dMu=muVec,dEl=elVec,fixWMass=True)
+
+					self.fill_hist(sel, 'mvis', Mlll.mlll )
+					self.fill_hist(sel, 'mtrans', Mlll.mtrans)
 					self.fill_hist(sel, 'HNLm', Mhnl.mhnl)
-					self.fill_hist(sel, 'HNLm2', Mhnl_new.mhnl)
+					self.fill_hist(sel, 'alt_HNLm', Mhnl.alt_mhnl)
+					self.fill_hist(sel, 'HNLm_fixWmass', Mhnl_fixWmass.mhnl)
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
 					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
 					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
-					self.fill_hist(sel, 'mtrans', Mtrans.mtrans)
-					self.fill_hist(sel, 'mtrans_rot', Mhnl.mtrans_rot)
+					
 
 					deta = abs(tracks.eta[0] - tracks.eta[1])
 					dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
@@ -561,8 +572,8 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_redmassHNL', -1)
 					else:
 						self.fill_hist(sel, 'DV_redmass', self.tree.dv('mass')/dR)
-						self.fill_hist(sel, 'DV_redmassvis', Mltt.mltt/dR)
-						self.fill_hist(sel, 'DV_redmassHNL', Mltt.mltt/dR)
+						self.fill_hist(sel, 'DV_redmassvis', Mlll.mlll/dR)
+						self.fill_hist(sel, 'DV_redmassHNL', Mhnl.mhnl/dR)
 
 					self.fill_hist(sel, 'DV_trk_deta', deta)
 					self.fill_hist(sel, 'DV_trk_dphi', dphi)
@@ -617,7 +628,6 @@ class Analysis(object):
 				self.fill_hist('truth_'+sel, 'plep_eta', truthInfo.plep_vec.Eta())
 				self.fill_hist('truth_'+sel, 'plep_phi', truthInfo.plep_vec.Phi())
 				self.fill_hist('truth_'+sel, 'plep_mass', truthInfo.plep_vec.M())
-
 				if len(truthInfo.trkVec) == 2: 
 					self.fill_hist('truth_'+sel, 'lep1_trk_pt', truthInfo.trkVec[0].Pt())
 					self.fill_hist('truth_'+sel, 'lep1_trk_eta', truthInfo.trkVec[0].Eta())
@@ -812,7 +822,7 @@ class oldAnalysis(Analysis):
 			else:
 				return
 
-		self._fill_selected_dv_histos("charge")
+		# self._fill_selected_dv_histos("charge")
 
 		if self.do_dv_type_cut:
 			if self._dv_type_cut():
@@ -925,12 +935,6 @@ class ToyAnalysis(Analysis):
 			self.add2D( sel + '_mhnl_hnlpt', 1010, -5, 500, 1010, -5, 500)
 			self.add2D( sel + '_mhnl_mtrans', 1010, -5, 500, 1000, 0, 500)
 			self.add2D( sel + '_mhnl2D', 1010, -5, 500, 1000, 0, 500)
-			self.add2D( sel + '_pos_mhnl12_13', 1000, 0, 500, 1000, 0, 500)
-			self.add2D( sel + '_pos_mhnl23_12', 1000, 0, 500, 1000, 0, 500)
-			self.add2D( sel + '_pos_mhnl13_23', 1000, 0, 500, 1000, 0, 500)
-			self.add2D( sel + '_neg_mhnl12_13', 1000, 0, 500, 1000, 0, 500)
-			self.add2D( sel + '_neg_mhnl23_12', 1000, 0, 500, 1000, 0, 500)
-			self.add2D( sel + '_neg_mhnl13_23', 1000, 0, 500, 1000, 0, 500)
 
 	def _fill_correlation_histos(self, sel):
 		w = self.tree.weight
@@ -942,28 +946,35 @@ class ToyAnalysis(Analysis):
 			tracks.getTracks()
 			trkVec = tracks.lepVec
 
+			muons = helpers.Tracks(self.tree)
+			muons.getMuons()
+			muVec = muons.lepVec
+
+			electrons = helpers.Tracks(self.tree)
+			electrons.getElectrons()
+			elVec = electrons.lepVec
+
 			if tracks.ntracks == 2:
-				Mltt = selections.Mltt(plep=self.plep_sel.plepVec, trks=trkVec)
-				Mhnl = selections.Mhnl(self.tree, plep=self.plep_sel.plepVec, trks=trkVec)
-				Mtrans = selections.Mtrans(plep=self.plep_sel.plepVec, trks=trkVec)
+				plep_vec = self.plep_sel.plepVec
+				Mlll = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
+				Mhnl = selections.Mhnl(self.tree, self.dv_type, plep=plep_vec, dMu=muVec,dEl=elVec)
+
+			# if tracks.ntracks == 2:
+			# 	Mltt = selections.Mltt(plep=self.plep_sel.plepVec, trks=trkVec)
+			# 	Mhnl = selections.Mhnl(self.tree, plep=self.plep_sel.plepVec, trks=trkVec)
+			# 	Mtrans = selections.Mtrans(plep=self.plep_sel.plepVec, trks=trkVec)
 
 				# fill 2D mass correlation plots here
-				self.fill_hist(sel, 'DVmass_mvis', self.tree.dv('mass'), Mltt.mltt)
+				self.fill_hist(sel, 'DVmass_mvis', self.tree.dv('mass'), Mlll.mlll)
 				self.fill_hist(sel, 'DVmass_mhnl', self.tree.dv('mass'), Mhnl.mhnl)
-				self.fill_hist(sel, 'DVmass_mtrans', self.tree.dv('mass'), Mtrans.mtrans)
+				self.fill_hist(sel, 'DVmass_mtrans', self.tree.dv('mass'), Mlll.mtrans)
 				self.fill_hist(sel, 'DVmass_hnlpt', self.tree.dv('mass'), Mhnl.hnlpt)
-				self.fill_hist(sel, 'mvis_mhnl', Mltt.mltt, Mhnl.mhnl)
-				self.fill_hist(sel, 'mvis_mtrans', Mltt.mltt, Mtrans.mtrans)
-				self.fill_hist(sel, 'mvis_hnlpt', Mltt.mltt, Mhnl.hnlpt)
-				self.fill_hist(sel, 'mhnl_mtrans', Mhnl.mhnl, Mtrans.mtrans)
+				self.fill_hist(sel, 'mvis_mhnl', Mlll.mlll, Mhnl.mhnl)
+				self.fill_hist(sel, 'mvis_mtrans', Mlll.mlll, Mlll.mtrans)
+				self.fill_hist(sel, 'mvis_hnlpt', Mlll.mlll, Mhnl.hnlpt)
+				self.fill_hist(sel, 'mhnl_mtrans', Mhnl.mhnl, Mlll.mtrans)
 				self.fill_hist(sel, 'mhnl_hnlpt', Mhnl.mhnl, Mhnl.hnlpt)
-				self.fill_hist(sel, 'mhnl2D', Mhnl.mhnl, Mhnl.mhnl2)
-				self.fill_hist(sel, 'neg_mhnl12_13', Mhnl.neg_mhnl12, Mhnl.neg_mhnl13)
-				self.fill_hist(sel, 'neg_mhnl23_12', Mhnl.neg_mhnl23, Mhnl.neg_mhnl12)
-				self.fill_hist(sel, 'neg_mhnl13_23', Mhnl.neg_mhnl13, Mhnl.neg_mhnl23)
-				self.fill_hist(sel, 'pos_mhnl12_13', Mhnl.pos_mhnl12, Mhnl.pos_mhnl13)
-				self.fill_hist(sel, 'pos_mhnl23_12', Mhnl.pos_mhnl23, Mhnl.pos_mhnl12)
-				self.fill_hist(sel, 'pos_mhnl13_23', Mhnl.pos_mhnl13, Mhnl.pos_mhnl23)
+				self.fill_hist(sel, 'mhnl2D', Mhnl.mhnl, Mhnl.alt_mhnl)
 
 	#########################################################################################################################
 	# Define new cuts you want to apply here. This will overwrite whatever cuts are defined in the parent analysis class.
@@ -1151,8 +1162,8 @@ class ToyAnalysis(Analysis):
 			else:
 				return
 
-		self._fill_selected_dv_histos("charge")
-		self._fill_correlation_histos("charge")
+		# self._fill_selected_dv_histos("charge")
+		# self._fill_correlation_histos("charge")
 
 		if self.do_dv_type_cut:
 			if self._dv_type_cut():
