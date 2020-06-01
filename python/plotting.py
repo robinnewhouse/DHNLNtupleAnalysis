@@ -40,7 +40,7 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 	hcutflow.Draw("HIST TEXT35 SAME")
 
 
-	channel = file.split("histograms_")[1].split(".")[0]
+	channel = filename.split(".root")[0].split("_")[len(filename.split(".root")[0].split("_")) - 1]
 
 	fileInfo = helpers.FileInfo(file,channel)
 	if "data" in file:
@@ -71,11 +71,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			label = hist_channels[nhist][1]
 			vtx_alg = hist_channels[nhist][2]
 			selection = hist_channels[nhist][3]
-
-			if 'data' in filename: 
-				channel = filename.split("data_")[1].split(".")[0] 
-			else:
-				channel = filename.split("mm_")[1].split(".")[0] 
+			channel = filename.split(".root")[0].split("_")[len(filename.split(".root")[0].split("_")) - 1]
 			tfiles.append(ROOT.TFile(filename) )  # get file
 			hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
 			histogram = tfiles[nhist].Get(hist_path)
@@ -151,7 +147,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		# if data in list, add it to the legend first
 		if 'data' in labels[i]: 
 			if normalize:
-				leg01.AddEntry(histograms[i],"\\bf{%s} )"%(labels[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
 			else: 
 				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],mc_yield[i]),"lp")
 	#add non-data histograms to legend 
@@ -222,7 +218,8 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	l.SetTextFont(43)
 	l.SetTextColor(1)
 	l.SetTextSize(20)
- 	l.DrawLatex(0.65,0.855,"(     m_{HNL},      c\\tau,      chan.,      yield)")
+	if not normalize: 
+ 		l.DrawLatex(0.65,0.855,"(     m_{HNL},      c\\tau,      chan.,      yield)")
 
 	notes_x = 0.25
 	notes_y = 0.87

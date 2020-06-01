@@ -50,6 +50,28 @@ def makeCutflows(config_file):
 							  vertextype= vtx_channel,
 							  output_dir=outputDir + "Cutflows/")
 
+
+def check_rerunningVSI(config_file, selection):
+	hist_channels = []
+	# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>)
+	hist_channels.append([config_file["rerunVSIfile"],"VSI", "VSI", selection])
+	hist_channels.append([config_file["rerunVSIfile"],"VSI_2", "VSI_2", selection])
+
+	plotting.compare(hist_channels,
+						 variable='DV_r',
+						 nRebin=10,
+						 setrange=(0, 350),
+						 setlogy = setlogy,
+						 scaleymax=2.5,
+						 lumi = lumi,
+						 normalize = True,
+						 vertical_lines=MATERIAL_LAYERS,
+						 vertical_legend="Material Layers",
+						 output_dir= outputDir
+						 )
+
+
+
 def compare_histograms(config_file, selection):
 	vtx_channels = ["VSI", "VSI_Leptons"]
 	for vtx_channel in vtx_channels:
@@ -312,8 +334,9 @@ if __name__ == '__main__':
 
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
-	makeCutflows(config_file)
-	compare_histograms(config_file, 'DVtype')
+	# makeCutflows(config_file)
+	# compare_histograms(config_file, 'DVtype')
+	check_rerunningVSI(config_file,"all")
 
 	
 	
