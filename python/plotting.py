@@ -155,7 +155,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	for i in h_idx:
 		if 'data' not in labels[i]: 
 			if normalize: 
-				leg01.AddEntry(histograms[i],"\\bf{%s} )"%(labels[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
 			else:
 				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],mc_yield[i]),"lp")
 		
