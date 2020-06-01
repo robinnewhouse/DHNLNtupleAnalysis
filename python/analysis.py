@@ -500,17 +500,18 @@ class Analysis(object):
 		self.fill_hist(sel, 'plep_eta', truth_info.plep_vec.Eta())
 		self.fill_hist(sel, 'plep_phi', truth_info.plep_vec.Phi())
 		self.fill_hist(sel, 'plep_mass', truth_info.plep_vec.M())
-		self.fill_hist(sel, 'lep1_trk_pt', truth_info.trkVec[0].Pt())
-		self.fill_hist(sel, 'lep1_trk_eta', truth_info.trkVec[0].Eta())
-		self.fill_hist(sel, 'lep1_trk_phi', truth_info.trkVec[0].Phi())
-		self.fill_hist(sel, 'lep2_trk_pt', truth_info.trkVec[1].Pt())
-		self.fill_hist(sel, 'lep2_trk_eta', truth_info.trkVec[1].Eta())
-		self.fill_hist(sel, 'lep2_trk_phi', truth_info.trkVec[1].Phi())
+		if len(truth_info.trkVec) == 2: 
+			self.fill_hist(sel, 'lep1_trk_pt', truth_info.trkVec[0].Pt())
+			self.fill_hist(sel, 'lep1_trk_eta', truth_info.trkVec[0].Eta())
+			self.fill_hist(sel, 'lep1_trk_phi', truth_info.trkVec[0].Phi())
+			self.fill_hist(sel, 'lep2_trk_pt', truth_info.trkVec[1].Pt())
+			self.fill_hist(sel, 'lep2_trk_eta', truth_info.trkVec[1].Eta())
+			self.fill_hist(sel, 'lep2_trk_phi', truth_info.trkVec[1].Phi())
 
-		for itrk in range(2):
-			self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False)
-			self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
-			self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
+			for itrk in range(2):
+				self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
 			# TODO: figure out a ntuple scheme that can store these variables as well
 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
 			self.micro_ntuples[sel].fill()
@@ -627,19 +628,20 @@ class Analysis(object):
 				self.fill_hist('truth_'+sel, 'plep_eta', truthInfo.plep_vec.Eta())
 				self.fill_hist('truth_'+sel, 'plep_phi', truthInfo.plep_vec.Phi())
 				self.fill_hist('truth_'+sel, 'plep_mass', truthInfo.plep_vec.M())
+				if len(truthInfo.trkVec) == 2: 
+					self.fill_hist('truth_'+sel, 'lep1_trk_pt', truthInfo.trkVec[0].Pt())
+					self.fill_hist('truth_'+sel, 'lep1_trk_eta', truthInfo.trkVec[0].Eta())
+					self.fill_hist('truth_'+sel, 'lep1_trk_phi', truthInfo.trkVec[0].Phi())
 
-				self.fill_hist('truth_'+sel, 'lep1_trk_pt', truthInfo.trkVec[0].Pt())
-				self.fill_hist('truth_'+sel, 'lep1_trk_eta', truthInfo.trkVec[0].Eta())
-				self.fill_hist('truth_'+sel, 'lep1_trk_phi', truthInfo.trkVec[0].Phi())
-
-				self.fill_hist('truth_'+sel, 'lep2_trk_pt', truthInfo.trkVec[1].Pt())
-				self.fill_hist('truth_'+sel, 'lep2_trk_eta', truthInfo.trkVec[1].Eta())
-				self.fill_hist('truth_'+sel, 'lep2_trk_phi', truthInfo.trkVec[1].Phi())
-				for itrk in range(2):
-					self.fill_hist('truth_'+sel, 'DV_trk_pt', truthInfo.trkVec[itrk].Pt(), fill_ntuple=False)
-					self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta(), fill_ntuple=False)
-					self.fill_hist('truth_'+sel, 'DV_trk_phi', truthInfo.trkVec[itrk].Phi(), fill_ntuple=False)
-
+					self.fill_hist('truth_'+sel, 'lep2_trk_pt', truthInfo.trkVec[1].Pt())
+					self.fill_hist('truth_'+sel, 'lep2_trk_eta', truthInfo.trkVec[1].Eta())
+					self.fill_hist('truth_'+sel, 'lep2_trk_phi', truthInfo.trkVec[1].Phi())
+					for itrk in range(2):
+						self.fill_hist('truth_'+sel, 'DV_trk_pt', truthInfo.trkVec[itrk].Pt(), fill_ntuple=False)
+						self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta(), fill_ntuple=False)
+						self.fill_hist('truth_'+sel, 'DV_trk_phi', truthInfo.trkVec[itrk].Phi(), fill_ntuple=False)
+				
+				#BUG here to add truth micro ntuples
 				if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
 					self.micro_ntuples['truth_'+sel].fill()
 			
