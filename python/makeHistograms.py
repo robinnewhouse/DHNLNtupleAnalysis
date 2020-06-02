@@ -53,7 +53,7 @@ def main():
 				os.remove(output_file)  # if force option is given then remove histograms file that was previously created.
 
 		# Try to load only the number of entries of you need
-		entries = options.nevents if options.nevents else None
+		entries = options.nevents + options.skip_events if options.nevents else None
 		# Create new Tree class using uproot
 		tree = trees.Tree(input_file, treename, entries, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
 		if tree.numentries < entries or entries is None:
@@ -83,6 +83,9 @@ def main():
 			ana = anaClass(tree, vtx_container, selections, output_file,options.saveNtuples)
 
 			# Loop over each event
+			if options.skip_events > 0:
+				logger.info("skipping {} events.".format(options.skip_events))
+				tree.ievt = options.skip_events
 			while tree.ievt < entries:
 				if tree.ievt % 1000 == 0:
 					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
@@ -185,6 +188,12 @@ if __name__ == "__main__":
 						default = "DVtype",
 						type = str,
 						help='Name of cut after which you want to save the micro-ntuples. Default is the save them after DV type cut')
+
+	parser.add_argument('-k','--skip_events',
+						dest="skip_events",
+						default = 0,
+						type = int,
+						help='Number of events you want to skip')
 
 	# parser.add_argument("-u", "--update",
 	# 					action="store_true",
