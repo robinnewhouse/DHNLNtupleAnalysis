@@ -329,15 +329,9 @@ class Analysis(object):
 		# except OSError as e:
 		# 	logger.error(e, exc_info=True)
 
-	def preSelection(self):
-		raise NotImplementedError("Please implement this method in your own Analysis subclass")
-
-	def DVSelection(self):
-		raise NotImplementedError("Please implement this method in your own Analysis subclass")
 
 	# Protected function to create the selection object and return its success
 	# The selection object may be used to fill additional histograms (see _prompt_lepton_cut)
-
 	def _pv_cut(self):
 		pv_sel = selections.PV(self.tree)
 		return pv_sel.passes()
@@ -425,6 +419,99 @@ class Analysis(object):
 	def _dv_mass_cut(self):
 		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=4)
 		return dv_mass_sel.passes()
+
+
+	def initialize_cut_bools(self):
+		###########################################################################################################################
+		# Cut bools that will be intialized in the pre selection for every event. These bools tell the code if the cutflow has already been filled for this event.
+		# Default is to select the first event that passes the selection.
+		###########################################################################################################################
+		self.passed_preselection_cuts = False
+		self.passed_fidvol_cut = False
+		self.passed_ntrk_cut = False
+		self.passed_charge_cut = False
+		self.passed_dv_type_cut = False
+		self.passed_track_quality_cut = False
+		self.passed_cosmic_veto_cut = False
+		self.passed_trilepton_mass_cut = False
+		self.passed_dv_mass_cut = False
+		self.passed_HNL_mass_cut = False
+		self.passed_HNL_pt_cut = False
+
+
+	def preSelection(self):
+		######################################################################################################
+		# Preselection are all the cuts that are requied per event
+		# Current cuts include: trigger, filter, plepton, DV cut
+		######################################################################################################
+
+		#initialize the cut bools for every event
+		self.initialize_cut_bools()
+
+		self._fill_leptons()
+
+		if not self.tree.is_data:
+			self._fill_truth_histos(sel='truth_all')
+
+		self.h['CutFlow'][self.ch].SetBinContent(1, self.tree.cutflow[1])  # all events
+
+		######################################################################################################
+		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
+		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
+		######################################################################################################
+
+		if self._pv_cut(): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
+			self.h['CutFlow'][self.ch].Fill(1)
+		else:
+			return
+
+		if self.do_trigger_cut:
+			if self._trigger_cut():
+				# Fill the plot at the specified bin
+				self.h['CutFlow'][self.ch].Fill(2)
+			else:
+				return
+
+		if self.do_invert_trigger_cut:
+			if self._invert_trigger_cut():
+				self.h['CutFlow'][self.ch].Fill(2)
+			else:
+				return
+
+		if self.do_filter_cut:
+			if self._filter_cut():
+				self.h['CutFlow'][self.ch].Fill(3)
+			else:
+				return
+
+		if self.do_prompt_lepton_cut:
+			if self._prompt_lepton_cut():
+				self.h['CutFlow'][self.ch].Fill(4)
+			else:
+				return
+
+		if self.do_invert_prompt_lepton_cut:
+			if self._invert_prompt_lepton_cut():
+				self.h['CutFlow'][self.ch].Fill(4)
+			else:
+				return
+
+		if self.do_ndv_cut:
+			if self._ndv_cut():
+				self.h['CutFlow'][self.ch].Fill(5)
+			else:
+				return
+
+		# If you've made it here, preselection is passed
+		self.passed_preselection_cuts = True
+		if not self.tree.is_data:
+			self._fill_truth_histos(sel='truth_presel')
+
+	# def preSelection(self):
+	# 	raise NotImplementedError("Please implement this method in your own Analysis subclass")
+
+	def DVSelection(self):
+		raise NotImplementedError("Please implement this method in your own Analysis subclass")
 
 	# Common histograms to fill
 	def _fill_leptons(self):
@@ -697,86 +784,7 @@ class oldAnalysis(Analysis):
 		if self.do_dv_mass_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
 
-	def preSelection(self):
-		######################################################################################################
-		# Preselection are all the cuts that are requied per event
-		# Current cuts include: trigger, filter, plepton, DV cut
-		######################################################################################################
-
-
-		###########################################################################################################################
-		# Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event.
-		# Default is to select the first event that passes the selection
-		###########################################################################################################################
-		self.passed_preselection_cuts = False
-		self.passed_fidvol_cut = False
-		self.passed_ntrk_cut = False
-		self.passed_charge_cut = False
-		self.passed_dv_type_cut = False
-		self.passed_track_quality_cut = False
-		self.passed_cosmic_veto_cut = False
-		self.passed_trilepton_mass_cut = False
-		self.passed_dv_mass_cut = False
-		self.passed_HNL_mass_cut = False
-		self.passed_HNL_pt_cut = False
-
-		self._fill_leptons()
-
-		if not self.tree.is_data:
-			self._fill_truth_histos(sel='truth_all')
-
-		self.h['CutFlow'][self.ch].SetBinContent(1, self.tree.cutflow[1])  # all events
-
-		######################################################################################################
-		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
-		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
-		######################################################################################################
-
-		if self._pv_cut(): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
-			self.h['CutFlow'][self.ch].Fill(1)
-		else:
-			return
-
-		if self.do_trigger_cut:
-			if self._trigger_cut():
-				# Fill the plot at the specified bin
-				self.h['CutFlow'][self.ch].Fill(2)
-			else:
-				return
-
-		if self.do_invert_trigger_cut:
-			if self._invert_trigger_cut():
-				self.h['CutFlow'][self.ch].Fill(2)
-			else:
-				return
-
-		if self.do_filter_cut:
-			if self._filter_cut():
-				self.h['CutFlow'][self.ch].Fill(3)
-			else:
-				return
-
-		if self.do_prompt_lepton_cut:
-			if self._prompt_lepton_cut():
-				self.h['CutFlow'][self.ch].Fill(4)
-			else:
-				return
-
-		if self.do_invert_prompt_lepton_cut:
-			if self._invert_prompt_lepton_cut():
-				self.h['CutFlow'][self.ch].Fill(4)
-			else:
-				return
-
-		if self.do_ndv_cut:
-			if self._ndv_cut():
-				self.h['CutFlow'][self.ch].Fill(5)
-			else:
-				return
-
-		# If you've made it here, preselection is passed
-		self.passed_preselection_cuts = True
-
+	
 	def DVSelection(self):
 
 		######################################################################################################
@@ -1035,14 +1043,7 @@ class ToyAnalysis(Analysis):
 
 		return (mHNL_sel.hnlpt > 20 and mHNL_sel.hnlpt < 60)
 
-
-	def preSelection(self):
-		######################################################################################################
-		# Preselection are all the cuts that are requied per event
-		# Current cuts include: trigger, filter, plepton, DV cut
-		######################################################################################################
-
-
+	def initialize_cut_bools(self):
 		###########################################################################################################################
 		# Initialize the cut bools every event. These bools tell the code if the cutflow has already been filled for this event.
 		# Default is to select the first event that passes the selection
@@ -1062,53 +1063,6 @@ class ToyAnalysis(Analysis):
 		self.passed_HNL_mass_cut = False
 		self.passed_HNL_pt_cut = False
 
-		self._fill_leptons()
-
-		self.h['CutFlow'][self.ch].SetBinContent(1, self.tree.cutflow[1])  # all events
-
-		######################################################################################################
-		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
-		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
-		######################################################################################################
-
-		if self._pv_cut(): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
-			self.h['CutFlow'][self.ch].Fill(1)
-		else:
-			return
-
-		if self.do_trigger_cut:
-			if self._trigger_cut():
-				# Fill the plot at the specified bin
-				self.h['CutFlow'][self.ch].Fill(2)
-			else:
-				return
-
-		if self.do_filter_cut:
-			if self._filter_cut():
-				self.h['CutFlow'][self.ch].Fill(3)
-			else:
-				return
-
-		if self.do_prompt_lepton_cut:
-			if self._prompt_lepton_cut():
-				self.h['CutFlow'][self.ch].Fill(4)
-			else:
-				return
-
-		if self.do_invert_prompt_lepton_cut:
-			if self._invert_prompt_lepton_cut():
-				self.h['CutFlow'][self.ch].Fill(4)
-			else:
-				return
-
-		if self.do_ndv_cut:
-			if self._ndv_cut():
-				self.h['CutFlow'][self.ch].Fill(5)
-			else:
-				return
-
-		# If you've made it here, preselection is passed
-		self.passed_preselection_cuts = True
 
 	def DVSelection(self):
 
