@@ -31,6 +31,8 @@ MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 lumi = 60
 normalize = False
 setlogy = False
+draw_channel_info = True
+do_cut_significane = True
 
 #############################################################################################################################################
 
@@ -88,11 +90,14 @@ def compare_histograms(config_file, selection):
 		plotting.compare(hist_channels,
 						 variable='DV_r',
 						 nRebin=10,
-						 setrange=(0, 350),
+						 # setrange=(0, 350),
+						 setrange=(0, 10),
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 vertical_lines=MATERIAL_LAYERS,
+						 do_cut_significane= do_cut_significane,
 						 vertical_legend="Material Layers",
 						 output_dir= outputDir
 						 )
@@ -104,6 +109,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -112,6 +118,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -121,6 +128,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -130,6 +138,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -139,6 +148,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -148,6 +158,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -158,6 +169,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -168,6 +180,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -177,6 +190,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -187,6 +201,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -197,6 +212,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 vertical_lines=[4],
 						 vertical_legend="DV mass cut",
 						 output_dir= outputDir
@@ -209,6 +225,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -219,6 +236,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 		plotting.compare(hist_channels,
@@ -227,6 +245,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -236,6 +255,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -246,6 +266,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 		plotting.compare(hist_channels,
@@ -254,6 +275,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -265,6 +287,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -275,6 +298,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -284,6 +308,7 @@ def compare_histograms(config_file, selection):
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -335,8 +360,8 @@ if __name__ == '__main__':
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
 	# makeCutflows(config_file)
-	# compare_histograms(config_file, 'DVtype')
-	check_rerunningVSI(config_file,"all")
+	compare_histograms(config_file, 'DVtype')
+	# check_rerunningVSI(config_file,"all")
 
 	
 	

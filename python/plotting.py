@@ -22,7 +22,7 @@ from pylab import *
 logger = helpers.getLogger('dHNLAnalysis.plotting')
 
 
-def plot_cutflow(file, vertextype, output_dir="../output/"):
+def plot_cutflow(file, vertextype, output_dir="../output/cut_significance/"):
 	print file
 	Tfile = ROOT.TFile(file)
 	hcutflow = Tfile.Get('{}/CutFlow/CutFlow_{}'.format(vertextype,vertextype))
@@ -56,8 +56,37 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 	MyC01.SaveAs(output_dir +savefilename+'.pdf')
 
 
+def cut_significance(histograms,labels, x_min,x_max, ncuts):
+	# define your canvas
+	c = ROOT.TCanvas("canvas", "", 1200, 800)
+
+	# format legend
+	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
+	leg01.SetTextSize(0.035)
+	leg01.SetBorderSize(0)
+	leg01.SetFillColor(kWhite)
+	leg01.SetShadowColor(kWhite)
+
+	# leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
+
+	h_idx = range(len(histograms))
+	step_size = (x_max- x_min) / ncuts 
+
+
+	for i in h_idx:
+		for j in range(0,ncuts+1):
+			cut = x_min + j*step_size
+			cut_yield =round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), histograms[i].FindLastBinAbove(0,1)),2)
+			print cut
+
+		# histograms[i].h_idx = range(len(histograms))
+	exit()
+	mc_yield[i] = round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), histograms[i].FindLastBinAbove(0,1)),2)
+
+
+
 def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, setlogy=False, output_dir="../output",
-			save_name="", vertical_lines=[], labels=[], normalize=True, lumi=1, **kwargs):
+			save_name="", vertical_lines=[], labels=[], normalize=True, lumi=1, do_cut_significane=False, **kwargs):
 
 	histograms = []
 	filenames = []
@@ -217,8 +246,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	l.SetTextFont(43)
 	l.SetTextColor(1)
 	l.SetTextSize(20)
-	if not normalize: 
- 		l.DrawLatex(0.65,0.855,"(     m_{HNL},      c\\tau,      chan.,      yield)")
+	if 'draw_channel_info' in kwargs:
+		if kwargs['draw_channel_info']:
+ 			l.DrawLatex(0.65,0.855,"(     m_{HNL},      c\\tau,      chan.,      yield)")
 
 	notes_x = 0.25
 	notes_y = 0.87
@@ -233,7 +263,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			notes_y -= 0.07
 			plotting_helpers.drawNote(note, size=40, ax=notes_x, ay=notes_y)
 
-	# plotting_helpers.getNote(35).DrawLatex(notes_x, notes_y-.05, vertextype)
+	if do_cut_significane: 
+		cut_significance(histograms,labels,x_min,x_max, ncuts = 5)
+
 
 	save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
 	# Clean output directory
@@ -244,10 +276,11 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	else:
 		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/')
 	
-	
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
 	c.SaveAs(output_dir + save_file_name + '.pdf')
 	# c.SaveAs(output_dir + save_file_name + '.eps')
+
+
 
 
 def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,savefilename,outputDir):
