@@ -20,7 +20,7 @@ from pylab import *
 
 
 logger = helpers.getLogger('dHNLAnalysis.plotting')
-
+shapelist = [22, 21, 33, 29, 30, 31, 32, 34, 35]
 
 def plot_cutflow(file, vertextype, output_dir="../output/cut_significance/"):
 	print file
@@ -56,32 +56,84 @@ def plot_cutflow(file, vertextype, output_dir="../output/cut_significance/"):
 	MyC01.SaveAs(output_dir +savefilename+'.pdf')
 
 
-def cut_significance(histograms,labels, x_min,x_max, ncuts):
+def cut_significance(variable,vtx_alg,lumi,histograms,labels, x_min,x_max, output_dir, savefilename, ncuts=0):
 	# define your canvas
-	c = ROOT.TCanvas("canvas", "", 1200, 800)
+	
 
-	# format legend
-	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
-	leg01.SetTextSize(0.035)
-	leg01.SetBorderSize(0)
-	leg01.SetFillColor(kWhite)
-	leg01.SetShadowColor(kWhite)
-
-	# leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
-
+	
 	h_idx = range(len(histograms))
-	step_size = (x_max- x_min) / ncuts 
+	if ncuts == 0: 
+		nbins = histograms[0].GetNbinsX()
+		step_size = (x_max- x_min) / nbins 
+	else: 
+		nbins = ncuts
+		step_size = (x_max- x_min) / nbins 
 
-
-	for i in h_idx:
-		for j in range(0,ncuts+1):
+	b = []
+	s = {}
+	cut_list = []
+	for i in h_idx: 
+		for j in range(0,nbins+1):
 			cut = x_min + j*step_size
-			cut_yield =round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), histograms[i].FindLastBinAbove(0,1)),2)
-			print cut
+			cut_list.append(cut)
+			cut_yield = histograms[i].Integral(histograms[i].FindFixBin(cut), histograms[i].FindLastBinAbove(0,1))
+			full_yield = histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), histograms[i].FindLastBinAbove(0,1))
+			if 'data' in labels[i]:
+				b.append(cut_yield)
+			else: 
+				if j == 0:
+					s[labels[i]] = [cut_yield]
+				else:
+					s[labels[i]].append(cut_yield)
+	
+	n_signals = len(s)
+	g_sig = {}
+	pads = {}
+	c2 = {}
+	leg = {}
+	for key in s:
+		g_sig[key] = ROOT.TGraph()
+		n_cuts = len(s[key])
+		yvals = []
+		for npoint in range(n_cuts):
+			if b[npoint] != 0: 
+				significance_bkgONLY = s[key][npoint]/np.sqrt(b[npoint])
+				significance_sPLUSb = s[key][npoint]/np.sqrt(s[key][npoint] + b[npoint])
+				g_sig[key].SetPoint(npoint, cut_list[npoint], significance_bkgONLY)
+				yvals.append(significance_bkgONLY)
+
+
+		index = list(s).index(key)
+		g_sig[key].SetLineColor(plotting_helpers.histColours(index))
+		g_sig[key].SetMarkerColor(plotting_helpers.histColours(index))
+		g_sig[key].GetYaxis().SetTitle("s/\surdb")
+		g_sig[key].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
+		g_sig[key].SetLineWidth(2)
+		y_max = max(yvals)
+		g_sig[key].GetYaxis().SetRangeUser(0.00001, y_max*1.5)
+		c2[key] = ROOT.TCanvas("sig_canvas_{}".format(index), "", 1200, 800)
+		# format legend
+		leg[key] = ROOT.TLegend(0.65, 0.71, 0.92, 0.92)
+		leg[key].SetTextSize(0.035)
+		leg[key].SetBorderSize(0)
+		leg[key].SetFillColor(kWhite)
+		leg[key].SetShadowColor(kWhite)
+
+		leg[key].AddEntry(g_sig[key],"\\bf{%s}  )"%(key),"l")
+		g_sig[key].Draw("AL")
+		leg[key].Draw()
+		
+		plotting_helpers.drawNotes(vtx_alg, lumi)
+
+		# gPad.SetLogy()
+		output_path = output_dir +"Cut_significance/"
+		if not os.path.exists(output_path): os.mkdir(output_path)
+		c2[key].SaveAs(output_path + savefilename + "_{}".format(index) + '.pdf')
+	# exit()
+	# g_temp.SetPoint(i,)
+
 
 		# histograms[i].h_idx = range(len(histograms))
-	exit()
-	mc_yield[i] = round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), histograms[i].FindLastBinAbove(0,1)),2)
 
 
 
@@ -201,7 +253,6 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			if histograms[i].GetMaximum() > y_max:
 				y_max = histograms[i].GetMaximum()
 
-	shapelist = [22, 21, 33, 29, 30, 31, 32, 34, 35]
 	for i in h_idx:
 		if 'bin_labels' in kwargs:
 			bin_labels = kwargs['bin_labels']
@@ -215,8 +266,8 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			histograms[i].SetLineWidth(2)
 		else: 
 			histograms[i].SetLineWidth(2)
-			histograms[i].SetLineColor(plotting_helpers.histColours(i))
-			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
+			histograms[i].SetLineColor(plotting_helpers.histColours(i-1))
+			histograms[i].SetMarkerColor(plotting_helpers.histColours(i-1))
 			histograms[i].SetMarkerStyle(shapelist[i])
 		histograms[i].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
 		if not variable: histograms[i].GetXaxis().SetTitle(save_name)
@@ -263,11 +314,10 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			notes_y -= 0.07
 			plotting_helpers.drawNote(note, size=40, ax=notes_x, ay=notes_y)
 
-	if do_cut_significane: 
-		cut_significance(histograms,labels,x_min,x_max, ncuts = 5)
 
 
 	save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
+
 	# Clean output directory
 	if vtx_alg == "VSI": 
 		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI/')
@@ -278,6 +328,14 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
 	c.SaveAs(output_dir + save_file_name + '.pdf')
+
+	if do_cut_significane: 
+		if 'ncuts' in kwargs:
+			ncuts = kwargs['ncuts']
+			cut_significance(variable,vtx_alg,lumi,histograms,labels,x_min,x_max, ncuts = ncuts)
+		else:
+			cut_significance(variable,vtx_alg,lumi,histograms,labels,x_min,x_max,output_dir,save_file_name)
+
 	# c.SaveAs(output_dir + save_file_name + '.eps')
 
 

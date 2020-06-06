@@ -80,8 +80,9 @@ def compare_histograms(config_file, selection):
 		hist_channels = []
 		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>)
 		hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
+		# hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
+		# hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
+		hist_channels.append([config_file["mcFiles"][2], config_file["mcLabels"][2], vtx_channel, selection])
 		
 		#get integrated luminosity corresponding to the data file
 		lumi = config_file["dataLumi"]
@@ -90,14 +91,13 @@ def compare_histograms(config_file, selection):
 		plotting.compare(hist_channels,
 						 variable='DV_r',
 						 nRebin=10,
-						 # setrange=(0, 350),
-						 setrange=(0, 10),
+						 setrange=(0, 350),
+						 # setrange=(0, 10),
 						 setlogy = setlogy,
 						 lumi = lumi,
 						 normalize = normalize,
 						 draw_channel_info= draw_channel_info,
 						 vertical_lines=MATERIAL_LAYERS,
-						 do_cut_significane= do_cut_significane,
 						 vertical_legend="Material Layers",
 						 output_dir= outputDir
 						 )
@@ -242,10 +242,11 @@ def compare_histograms(config_file, selection):
 		plotting.compare(hist_channels,
 						 variable='HNLm',
 						 setrange=(0, 30),
-						 setlogy = setlogy,
+						 setlogy = False,
 						 lumi = lumi,
 						 normalize = normalize,
 						 draw_channel_info= draw_channel_info,
+						 do_cut_significane= do_cut_significane,
 						 output_dir= outputDir
 						 )
 
