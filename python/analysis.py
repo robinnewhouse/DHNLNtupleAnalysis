@@ -192,6 +192,7 @@ class Analysis(object):
 		:param hist_name: base name of the histogram. When saved, a prefix and suffix will be appended.
 		:param variable_1: variable you want to fill the histogram with.
 		:param variable_2: if histogram is 2d, variable you want to fill the second axis of the histogram with
+		:param fill_ntuple: set to True if you want to simultaneously fill an ntuple with this variable
 		:return:
 		"""
 		if selection: full_name = selection + '_' + hist_name
@@ -208,14 +209,13 @@ class Analysis(object):
 			self.add(observable.name, *observable.binning)
 			self.fill_hist(selection, hist_name, variable_1, variable_2=variable_2, fill_ntuple=fill_ntuple)
 
-
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
 		save_sel = self.saveNtuples == selection or 'truth_'+self.saveNtuples == selection or self.saveNtuples == 'allcuts'
 		if fill_ntuple and variable_2 is None and save_sel:
 			# Note: selection and hist_name will be overridden by full_name
 			# Need selection to define ntuple tree
-			self.fill_ntuple(selection, hist_name, variable_1, full_name='ntup_'+full_name)
+			self.fill_ntuple(selection, hist_name, variable_1)
 
 	def add(self, hName, nBins, xLow, xHigh):
 		self.h[hName] = {}
@@ -244,10 +244,10 @@ class Analysis(object):
 			raise ValueError("You must indicate a selection in order to store the ntuple. Use 'all' if no selection.")
 		# Retrieve the ntuple for this selection. If it doesn't exist, create it.
 		if selection not in self.micro_ntuples:
-			self.micro_ntuples[selection] = ntuples.Ntuples('ntuples_{}_{}'.format(selection, self.ch))
+			self.micro_ntuples[selection] = ntuples.Ntuples('ntuples_{}_{}'.format(selection, self.ch))  # temp name. not written
 		# The name of the ntuple
 		if not full_name:
-			full_name = 'ntup_{}_{}_{}'.format(selection, ntuple_name, self.ch)
+			full_name = ntuple_name
 		self.micro_ntuples[selection][full_name] = variable
 
 	def check_input_consistency(self):
@@ -277,7 +277,9 @@ class Analysis(object):
 		self.fi.cd(self.ch)
 
 		# Store saved ntuple values to file
-		[ntuple.write() for key, ntuple in self.micro_ntuples.items()]
+		self.fi.mkdir(self.ch+'/ntuples', "Micro Ntuples " + self.ch)
+		self.fi.cd(self.ch+'/ntuples')
+		[ntuple.write(key) for key, ntuple in self.micro_ntuples.items()]
 
 		# Store saved histograms to file
 		# TODO: this should be saved in a different way. e.g. another level of dictionary. Parsing strings for variable names is not good.
@@ -320,6 +322,8 @@ class Analysis(object):
 
 		# Clean up memory
 		del self.h
+		del self.micro_ntuples
+
 
 		# head, sep, tail = self._outputFile.partition('file://')
 		# f = tail if head == '' else self._outputFile
