@@ -424,6 +424,12 @@ class Analysis(object):
 		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=4)
 		return dv_mass_sel.passes()
 
+	def _truth_match(self):
+		"""Truth matching function for displaced vertices.
+		linkTruth_score is calculated using DVAnalysisBase.
+		pdgId 50 signifies a heavy neutral lepton parent particle."""
+		return self.tree.dv('maxlinkTruth_score') > 0.75 and \
+			   abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
 
 	def initialize_cut_bools(self):
 		###########################################################################################################################
@@ -884,6 +890,12 @@ class oldAnalysis(Analysis):
 			else:
 				return
 
+		# Fill histos of truth-matched DVs
+		if not self.tree.is_data:
+			if self._truth_match():
+				self.h['CutFlow'][self.ch].Fill(14)
+				self._fill_selected_dv_histos("match")
+
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 		self._fill_selected_dv_histos("sel")
 
@@ -1190,6 +1202,12 @@ class ToyAnalysis(Analysis):
 				self.passed_track_2tight_cut = True
 		else:
 			return
+
+		# Fill histos of truth-matched DVs
+		if not self.tree.is_data:
+			if self._truth_match():
+				self.h['CutFlow'][self.ch].Fill(17)
+				self._fill_selected_dv_histos("match")
 
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 		self._fill_selected_dv_histos("sel")
