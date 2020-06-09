@@ -268,11 +268,15 @@ class FileInfo:
 			self.mass = 20.0
 			self.mass_str = "20G"
 
-		if "r10740" in infile or "mc16a" in infile:
+		# two rtags for different reconstruction of our signal samples 
+		# r11915,r11916,r11891 are the latest ones
+		# r10740,r10740,r10740 are the original ones
+		
+		if "r11915" in infile or "mc16a" in infile or "r10740" in infile:
 			self.MC_campaign = "mc16a"
-		if "r10739" in infile or "mc16d" in infile:
+		if "r11916" in infile or "mc16d" in infile or "r10740" in infile:
 			self.MC_campaign = "mc16d"
-		if "r10790" in infile or "mc16e" in infile:
+		if "r11891" in infile or "mc16e" in infile or "r10740" in infile:
 			self.MC_campaign = "mc16e"
 
 		# More flexibility for non-signal samples
