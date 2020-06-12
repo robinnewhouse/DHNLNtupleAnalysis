@@ -202,10 +202,9 @@ class PromptLepton():
 					ntrks = tree.get_at(prefix+'ntrk', tree.ievt, idv)
 					for itrk in range(ntrks):
 						# Currently the only live example of get_at() which gives full control over the tree access.
-						# Should we check trk_pt for trk_pt_wrtSV etc. when we check overlap with the prompt lepton ? DT
-						pt = tree.get_at(prefix + 'trk_pt_wrtSV', tree.ievt, idv, itrk)
-						eta = tree.get_at(prefix + 'trk_eta_wrtSV', tree.ievt, idv, itrk)
-						phi = tree.get_at(prefix + 'trk_phi_wrtSV', tree.ievt, idv, itrk)
+						pt = tree.get_at(prefix + 'trk_pt', tree.ievt, idv, itrk)
+						eta = tree.get_at(prefix + 'trk_eta', tree.ievt, idv, itrk)
+						phi = tree.get_at(prefix + 'trk_phi', tree.ievt, idv, itrk)
 						M = tree.get_at(prefix + 'trk_M', tree.ievt, idv, itrk)
 						track_vector = ROOT.TLorentzVector()
 						track_vector.SetPtEtaPhiM(pt, eta, phi, M)
@@ -225,11 +224,11 @@ class PromptLepton():
 						self.highestpt_lep_z0sintheta = lepz0sintheta
 
 				#for trigger matching
-						# if self.evt.tree.muontrigmatched[self.evt.ievt][ilep] == 0:
-						# 	print "is muon trig matched?", self.evt.tree.muontrigmatched[self.evt.ievt][ilep]
+						# if tree["muon_isTrigMatched"][ilep] == 0:
+						# 	print "is muon trig matched?", tree["muon_isTrigMatched"][ilep]
 						# 	print "pt of the highest pt TIGHT muon: ", self.highestpt_plep.Pt() 
 						# 	print "muon pt: ", self.evt.tree.muonpt[self.evt.ievt]
-						# 	print "trigger matched: ", self.evt.tree.muontrigmatched[self.evt.ievt]
+						# 	print "trigger matched: ", tree["muon_isTrigMatched"]
 						# 	print "lepton quality: ", lepquality[self.evt.ievt]
 						# 	print "muon type: ", self.evt.tree.muontype[self.evt.ievt]
 
