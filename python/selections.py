@@ -424,13 +424,14 @@ class Trackqual():
 			for imu in range(self.ndvmu):
 				muindex = muons.lepIndex[imu]
 				muisTight = tree['muon_isTight'][muindex]
-				if muisTight: 
+				# check if Tight == 1 to incase safeFill was used and isTight == -1 (which is also not Tight!) -DT
+				if muisTight == 1:
 					self.nmu_tight = self.nmu_tight + 1
 
 			for iel in range(self.ndvel):
 				elindex = electrons.lepIndex[iel]
 				elisTight = tree['el_LHTight'][elindex]
-				if elisTight:
+				if elisTight == 1:
 					self.nel_tight = self.nel_tight + 1
 
 	def passes(self):
