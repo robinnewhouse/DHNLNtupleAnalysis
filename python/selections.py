@@ -192,7 +192,10 @@ class PromptLepton():
 			# check if the plep passes the DRAW filter and passes quality before looping over tracks
 			# changed to be careful with negative electron quality values # RN
 			passes_lep_quality = lepquality == "" or tree[lepquality][ilep] > 0
-			if passPfilter[ilep] and passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
+			
+			#apply filter cut seperately do not need to addtionally require our lepton passes the prompt filter cuts -DT
+			# if passPfilter[ilep] and passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
+			if passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
 				# Check the overlap between the prompt lepton and every displaced vertex track
 				for idv in range(tree.ndv):
 					prefix = tree.dv_prefix + '_'
