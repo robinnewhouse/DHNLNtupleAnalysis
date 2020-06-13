@@ -26,11 +26,14 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
 #############################################################################################################################################
 # globals
-outputDir = '../output/' # change path here to save your histograms somewhere else!
+outputDir = '../output/TESTplotupdates/' # change path here to save your histograms somewhere else!
 MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 lumi = 60
 normalize = False
 setlogy = False
+drawRatio=True
+draw_channel_info = True
+do_cut_significane = True
 
 #############################################################################################################################################
 
@@ -40,15 +43,14 @@ def makeCutflows(config_file):
 	for vtx_channel in vtx_channels:
 		plotting.plot_cutflow(file = config_file["dataFile"],
 							  vertextype= vtx_channel,
-							  output_dir=outputDir + "Cutflows/")
+							  output_dir=outputDir)
+		nMCfiles = len(config_file["mcFiles"])
 
-		plotting.plot_cutflow(file = config_file["mcFiles"][0],
-							  vertextype= vtx_channel,
-							  output_dir=outputDir + "Cutflows/")
+		for i in range(nMCfiles): 
+			plotting.plot_cutflow(file = config_file["mcFiles"][i],
+								  vertextype= vtx_channel,
+								  output_dir=outputDir)
 
-		plotting.plot_cutflow(file = config_file["mcFiles"][1],
-							  vertextype= vtx_channel,
-							  output_dir=outputDir + "Cutflows/")
 
 
 def check_rerunningVSI(config_file, selection):
@@ -80,18 +82,29 @@ def compare_histograms(config_file, selection):
 		hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
 		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
 		hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
+		hist_channels.append([config_file["mcFiles"][2], config_file["mcLabels"][2], vtx_channel, selection])
 		
-		#get integrated luminosity corresponding to the data file
-		lumi = config_file["dataLumi"]
+		#get integrated luminosity to scale MC files to (ideally this should come from a value in the nutple TD DO) - DT
+		lumi = config_file["scaleLumi"]
+		if "ratioLabel" in config_file.keys():
+			ratioLabel = config_file["ratioLabel"]
+		else:
+			ratioLabel = ""
+
 
 		# DV Variables
 		plotting.compare(hist_channels,
 						 variable='DV_r',
 						 nRebin=10,
 						 setrange=(0, 350),
+						 # setrange=(0, 10),
 						 setlogy = setlogy,
+						 scaleymax=1.6,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 vertical_lines=MATERIAL_LAYERS,
 						 vertical_legend="Material Layers",
 						 output_dir= outputDir
@@ -103,7 +116,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(0, 100),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -111,7 +127,10 @@ def compare_histograms(config_file, selection):
 						 variable='DV_trk_eta',
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -120,7 +139,10 @@ def compare_histograms(config_file, selection):
 						 nRebin = 2, 
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -129,7 +151,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(-3, 3),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -138,7 +163,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(-10, 10),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -147,7 +175,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(-10, 10),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -157,7 +188,10 @@ def compare_histograms(config_file, selection):
 						 nRebin = 2, 
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -167,7 +201,10 @@ def compare_histograms(config_file, selection):
 						 nRebin = 2, 
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -176,7 +213,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(0, 3.2),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -186,7 +226,10 @@ def compare_histograms(config_file, selection):
 						 nRebin = 10, 
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 
@@ -196,7 +239,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(0, 20),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 vertical_lines=[4],
 						 vertical_legend="DV mass cut",
 						 output_dir= outputDir
@@ -208,7 +254,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(0, 200),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -218,15 +267,23 @@ def compare_histograms(config_file, selection):
 						 setrange=(0, 200),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 		plotting.compare(hist_channels,
 						 variable='HNLm',
 						 setrange=(0, 30),
 						 setlogy = setlogy,
+						 scaleymax=1.4,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
+						 do_cut_significane= do_cut_significane,
 						 output_dir= outputDir
 						 )
 
@@ -235,7 +292,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(0, 50),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -245,7 +305,10 @@ def compare_histograms(config_file, selection):
 						 nRebin=5,
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 		plotting.compare(hist_channels,
@@ -253,7 +316,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(0, 50),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -264,7 +330,10 @@ def compare_histograms(config_file, selection):
 						 nRebin=5,
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -274,7 +343,10 @@ def compare_histograms(config_file, selection):
 						 nRebin=5,
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -283,7 +355,10 @@ def compare_histograms(config_file, selection):
 						 setrange=(-3,3),
 						 setlogy = setlogy,
 						 lumi = lumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
 						 normalize = normalize,
+						 draw_channel_info= draw_channel_info,
 						 output_dir= outputDir
 						 )
 
@@ -316,16 +391,14 @@ if __name__ == '__main__':
 
 	options = parent_parser.parse_args()
 
-	if os.path.exists(outputDir):
-		pass
-	else: 
-		logger.info('Making output directories...')
-		os.mkdir(outputDir)
-		os.mkdir(outputDir + "plots/")
-		os.mkdir(outputDir + "Cutflows/")
-		os.mkdir(outputDir + "2Dmassplots")
-		os.mkdir(outputDir + "2Dmassplots/data/")
-		os.mkdir(outputDir + "2Dmassplots/mc/")
+
+	if not os.path.exists(outputDir): os.mkdir(outputDir)
+	if not os.path.exists(outputDir + "plots/"): os.mkdir(outputDir + "plots/")
+	if not os.path.exists(outputDir + "Cutflows/"): os.mkdir(outputDir + "Cutflows/")
+	if not os.path.exists(outputDir + "2Dmassplots"): os.mkdir(outputDir + "2Dmassplots")
+	if not os.path.exists(outputDir + "2Dmassplots/data/"): os.mkdir(outputDir + "2Dmassplots/data/")
+	if not os.path.exists(outputDir + "2Dmassplots/data/"): os.mkdir(outputDir + "2Dmassplots/data/")
+
 
 
 
@@ -334,9 +407,9 @@ if __name__ == '__main__':
 
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
-	# makeCutflows(config_file)
-	# compare_histograms(config_file, 'DVtype')
-	check_rerunningVSI(config_file,"all")
+	makeCutflows(config_file)
+	compare_histograms(config_file, 'DVtype')
+	# check_rerunningVSI(config_file,"all")
 
 	
 	
