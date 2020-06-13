@@ -20,27 +20,22 @@ from pylab import *
 
 
 logger = helpers.getLogger('dHNLAnalysis.plotting')
-
+shapelist = [22, 21, 33, 29, 30, 31, 32, 34, 35]
 
 def plot_cutflow(file, vertextype, output_dir="../output/"):
-	print file
 	Tfile = ROOT.TFile(file)
 	hcutflow = Tfile.Get('{}/CutFlow/CutFlow_{}'.format(vertextype,vertextype))
-
 	MyC01= ROOT.TCanvas("MyC01","cutflow",1200,400)
-
 	gPad.SetLogy()
 	ymax_cutflow = hcutflow.GetMaximum()
 	hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow*1000)
-	# hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow)
 	hcutflow.SetFillColor(kAzure-4)
 	hcutflow.SetLineWidth(0)
 	hcutflow.GetYaxis().SetTickLength(0.)
 	hcutflow.SetMarkerSize(2.2)
 	hcutflow.Draw("HIST TEXT35 SAME")
 
-
-	channel = filename.split(".root")[0].split("_")[len(filename.split(".root")[0].split("_")) - 1]
+	channel = file.split(".root")[0].split("histograms_")[1]
 
 	fileInfo = helpers.FileInfo(file,channel)
 	if "data" in file:
@@ -50,14 +45,109 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 
 	savefilename= "CutFlow_" + channel
 
-	output_dir = os.path.join(os.path.abspath(output_dir), '{}/'.format(vertextype))
+	output_dir = os.path.join(os.path.abspath(output_dir),"plots/", '{}/'.format(vertextype),"Cutflow/")
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
 
 	MyC01.SaveAs(output_dir +savefilename+'.pdf')
 
 
+def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_max, output_dir, savefilename, ncuts=0):
+	h_idx = range(len(histograms))
+	
+	#get the number of cuts you are going to make 
+	if ncuts == 0: 
+		nbins = histograms[0].GetNbinsX()
+		step_size = (x_max- x_min) / nbins 
+	else: 
+		nbins = ncuts
+		step_size = (x_max- x_min) / nbins 
+
+	b = []
+	s = {}
+	s_label = {}
+	cut_list = []
+	# loop over all the histograms 
+	for i in h_idx:
+		#get the channel from the filename
+		channel = filenames[i].split(".root")[0].split("histograms_")[1]
+		s_label[channel] = labels[i]
+		#loop over the cut you made
+		for j in range(0,nbins+1):
+			cut = x_min + j*step_size
+			cut_list.append(cut)
+			cut_yield = histograms[i].Integral(histograms[i].FindFixBin(cut),-1)
+			full_yield = histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), -1)
+
+			# check if you have a background estimate (need a better way to do this) -DT
+			if 'data' in channel:
+				b.append(cut_yield)
+			else: 
+				if j == 0:
+					s[channel] = [cut_yield]
+				else:
+					s[channel].append(cut_yield)
+	if len(b) == 0:
+		print "Please provide a background estimate, if you want to calculate the significance. Exiting."
+		return
+
+	g_sig = {}
+	c2 = {}
+	leg = {}
+	for key in s:
+		g_sig[key] = ROOT.TGraph()
+		n_cuts = len(s[key])
+		yvals = []
+
+		if len(b) != n_cuts: 
+			print "Different number of signal and bkg cuts were applied. Cannot calculate significance. Exiting."
+			return
+
+		for npoint in range(n_cuts):
+			if b[npoint] != 0: 
+				significance_bkgONLY = s[key][npoint]/np.sqrt(b[npoint])
+				significance_sPLUSb = s[key][npoint]/np.sqrt(s[key][npoint] + b[npoint])
+				g_sig[key].SetPoint(npoint, cut_list[npoint], significance_bkgONLY)
+				yvals.append(significance_bkgONLY)
+
+
+		index = list(s).index(key)
+		g_sig[key].SetLineColor(plotting_helpers.histColours(index+1))
+		g_sig[key].SetMarkerColor(plotting_helpers.histColours(index+1))
+		g_sig[key].GetYaxis().SetTitle("s/\surdb")
+		g_sig[key].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
+		g_sig[key].SetLineWidth(2)
+		y_max = max(yvals)
+		g_sig[key].GetYaxis().SetRangeUser(0.00001, y_max*1.5)
+		c2[key] = ROOT.TCanvas("sig_canvas_{}".format(index), "", 1200, 800)
+		# format legend
+		leg[key] = ROOT.TLegend(0.65, 0.71, 0.92, 0.92)
+		leg[key].SetTextSize(0.035)
+		leg[key].SetBorderSize(0)
+		leg[key].SetFillColor(kWhite)
+		leg[key].SetShadowColor(kWhite)
+
+		leg[key].AddEntry(g_sig[key],"\\bf{%s}  )"%(s_label[key]),"l")
+		g_sig[key].Draw("AL")
+		leg[key].Draw()
+		
+		plotting_helpers.drawNotes(vtx_alg, lumi)
+
+		l = ROOT.TLatex()
+		l.SetNDC()
+		l.SetTextFont(43)
+		l.SetTextColor(1)
+		l.SetTextSize(20)
+		l.DrawLatex(0.715,0.855,"(     m_{HNL},      c\\tau,      chan.)")
+
+		output_path = output_dir +"Cut_significance/"
+		if not os.path.exists(output_path): os.mkdir(output_path)	
+		c2[key].SaveAs(output_path + savefilename + "_{}".format(key) + '.pdf')
+
+
+
+
 def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, setlogy=False, output_dir="../output",
-			save_name="", vertical_lines=[], labels=[], normalize=True, lumi=1, **kwargs):
+			save_name="", vertical_lines=[], labels=[], normalize=True, drawRatio=False, lumi=1, do_cut_significane=False, **kwargs):
 
 	histograms = []
 	filenames = []
@@ -87,6 +177,13 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
 	# define your canvas
 	c = ROOT.TCanvas("canvas", "", 1200, 800)
+	if drawRatio:
+		c.Divide(1,1)
+		c.cd(1)
+		pad1 = ROOT.TPad("pad1", "pad1", 0, 0.3, 1, 1.0)
+		pad1.SetBottomMargin(0)
+		pad1.Draw()
+		pad1.cd()
 
 	# format legend
 	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
@@ -140,15 +237,15 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 				histograms[i].Scale(lumi)
 
 	# calculate yields
-	mc_yield = {}
+	Yield = {}
 	for i in h_idx:
-		mc_yield[i] = round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), histograms[i].FindLastBinAbove(0,1)),2)
+		Yield[i] = round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), -1),2)
 		# if data in list, add it to the legend first
 		if 'data' in labels[i]: 
 			if normalize:
 				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
 			else: 
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],mc_yield[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"lp")
 	#add non-data histograms to legend 
 	leg01.AddEntry(histograms[0],"","")
 	for i in h_idx:
@@ -156,7 +253,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			if normalize: 
 				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
 			else:
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],mc_yield[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"lp")
 		
 
 	# set the common x limits for all histograms
@@ -172,7 +269,6 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			if histograms[i].GetMaximum() > y_max:
 				y_max = histograms[i].GetMaximum()
 
-	shapelist = [22, 21, 33, 29, 30, 31, 32, 34, 35]
 	for i in h_idx:
 		if 'bin_labels' in kwargs:
 			bin_labels = kwargs['bin_labels']
@@ -186,9 +282,49 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			histograms[i].SetLineWidth(2)
 		else: 
 			histograms[i].SetLineWidth(2)
-			histograms[i].SetLineColor(plotting_helpers.histColours(i))
-			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
+			histograms[i].SetLineColor(plotting_helpers.histColours(i-1))
+			histograms[i].SetMarkerColor(plotting_helpers.histColours(i-1))
 			histograms[i].SetMarkerStyle(shapelist[i])
+
+			# 5 GeV
+			# if i ==0: 
+			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i))
+			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
+			# 	histograms[i].SetMarkerStyle(shapelist[i])
+			# else:
+			# 	histograms[i].SetLineStyle(3)
+			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i-1))
+			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i-1))
+			# 	histograms[i].SetMarkerStyle(shapelist[i-1]+4)
+
+			# # 10 GeV
+			# if i ==0: 
+			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i+1))
+			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i+1))
+			# 	histograms[i].SetMarkerStyle(shapelist[i+1])
+			# else:
+			# 	histograms[i].SetLineStyle(3)
+			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i))
+			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
+			# 	histograms[i].SetMarkerStyle(shapelist[i]+4)
+
+			# # 20 GeV
+			# if i ==0: 
+			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i+2))
+			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i+2))
+			# 	histograms[i].SetMarkerStyle(shapelist[i+2])
+			# else:
+			# 	histograms[i].SetLineStyle(3)
+			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i+1))
+			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i+1))
+			# 	histograms[i].SetMarkerStyle(shapelist[i+1]+4)
+			# 	histograms[i].SetMarkerStyle(27)
+
+				# histograms[i].SetLineStyle(3)
+				# histograms[i].SetLineColor(plotting_helpers.histColours(i-2))
+				# histograms[i].SetMarkerColor(plotting_helpers.histColours(i-2))
+				# histograms[i].SetMarkerStyle(shapelist[i-2]+4)
+
 		histograms[i].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
 		if not variable: histograms[i].GetXaxis().SetTitle(save_name)
 		histograms[i].GetYaxis().SetTitle("entries")
@@ -217,8 +353,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	l.SetTextFont(43)
 	l.SetTextColor(1)
 	l.SetTextSize(20)
-	if not normalize: 
- 		l.DrawLatex(0.65,0.855,"(     m_{HNL},      c\\tau,      chan.,      yield)")
+	if 'draw_channel_info' in kwargs:
+		if kwargs['draw_channel_info']:
+			l.DrawLatex(0.65,0.855,"(     m_{HNL},      c\\tau,      chan.,      yield)")
 
 	notes_x = 0.25
 	notes_y = 0.87
@@ -233,9 +370,54 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			notes_y -= 0.07
 			plotting_helpers.drawNote(note, size=40, ax=notes_x, ay=notes_y)
 
-	# plotting_helpers.getNote(35).DrawLatex(notes_x, notes_y-.05, vertextype)
+
+	if drawRatio:
+		c.cd(1)
+		pad2 = ROOT.TPad("pad2", "pad2", 0, 0.05, 1, 0.3)
+		pad2.SetTopMargin(0)
+		pad2.SetBottomMargin(0.2)
+		pad2.Draw()
+		pad2.cd()
+
+		hist_numerator =  histograms[1]
+		hist_denomenator =  histograms[0]
+		hratio = hist_numerator.Clone("hratio")
+		hratio.SetLineColor(kBlack)
+		hratio.SetMinimum(0.8)
+		hratio.SetMaximum(1.35)
+		# hratio.Sumw2()
+		hratio.SetStats(0)
+		hratio.Divide(hist_denomenator)
+		hratio.SetMarkerStyle(21)
+		hratio.SetLineStyle(1)
+		hratio.SetMarkerStyle(20)
+		hratio.SetMarkerSize(1)
+		if 'ratioLabel' in kwargs:
+			hratio.GetYaxis().SetTitle(kwargs['ratioLabel'][0])
+		else: 
+			hratio.GetYaxis().SetTitle("ratio")
+		hratio.GetYaxis().SetNdivisions(505)
+		hratio.GetYaxis().SetTitleSize(20)
+		hratio.GetYaxis().SetTitleFont(43)
+		hratio.GetYaxis().SetTitleOffset(1.55)
+		hratio.GetYaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
+		hratio.GetYaxis().SetLabelSize(15)
+		hratio.GetXaxis().SetTitleSize(20)
+		hratio.GetXaxis().SetTitleFont(43)
+		hratio.GetXaxis().SetTitleOffset(4.)
+		hratio.GetXaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
+		hratio.GetXaxis().SetLabelSize(15)
+		hratio.GetYaxis().SetRangeUser(-1 ,3)
+		line1=TLine(x_min,1,x_max,1)
+		line1.SetLineStyle(1)
+
+
+		hratio.SetMarkerColor(plotting_helpers.histColours("ratio"))
+		hratio.Draw("ep")
+		line1.Draw("SAME")
 
 	save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
+
 	# Clean output directory
 	if vtx_alg == "VSI": 
 		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI/')
@@ -244,156 +426,20 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	else:
 		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/')
 	
-	
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
+	if not os.path.exists(output_dir+"eps_files/"): os.mkdir(output_dir+"eps_files/")
+	
 	c.SaveAs(output_dir + save_file_name + '.pdf')
-	# c.SaveAs(output_dir + save_file_name + '.eps')
+	c.SaveAs(output_dir +"eps_files/" +save_file_name + '.eps')
 
-
-def compare2_wRatio(histos1, histos2, h1name, h1label, h2name, h2label, xlabel,savefilename,outputDir):
-	############################################################################
-	nRebin = 10 # set to 1 if you dont want to rebin.
-	scaleymax = 1.6 # use this to scale height of y axis for asthetics
-	############################################################################
-
-	# get 2 histograms from the file
-	file1 = ROOT.TFile(histos1)
-	file2 = ROOT.TFile(histos2)
-	h1 = file1.Get(h1name)
-	h2 = file2.Get(h2name)
-
-	#define your canvas
-	MyC01 = ROOT.TCanvas("MyC01", "canvas", 800, 800)
-	MyC01.Divide(1,1)
-	MyC01.cd(1)
-	pad1 = ROOT.TPad("pad1", "pad1", 0, 0.3, 1, 1.0)
-	pad1.SetBottomMargin(0)
-	pad1.Draw()
-	pad1.cd()
-
-	#format legend
-	leg01 = ROOT.TLegend(0.60,0.7,0.91,0.92)
-	leg01.SetTextSize(0.035)
-	leg01.SetBorderSize(0)
-	leg01.SetFillColor(kWhite)
-	leg01.SetShadowColor(kWhite)
-
-	leg01.AddEntry(h1,h1label,"l")
-	leg01.AddEntry(h2,h2label,"l")
-
-
-	#rebin histograms
-	h1.Rebin(nRebin)
-	h2.Rebin(nRebin)
-
-
-
-	# find the max of the 2 histograms
-	y1_max = h1.GetMaximum()
-	y2_max = h1.GetMaximum()
-	y_max = max(y1_max,y2_max) # scale the max for asthetics
-
-	h1_binxmax = h1.FindLastBinAbove(0,1)
-	h2_binxmax = h2.FindLastBinAbove(0,1)
-	bin_xmax = max(h1_binxmax,h2_binxmax)
-
-	h1_binxmin = h1.FindFirstBinAbove(0,1)
-	h2_binxmin = h2.FindFirstBinAbove(0,1)
-	bin_xmin = min(h1_binxmin,h2_binxmin)
-
-	shapelist = [22,21,33,29]
-	h1.SetLineColor(plotting_helpers.histColours(0))
-	h1.SetMarkerSize(0.9)
-	h1.SetLineColor(plotting_helpers.histColours(0))
-	h1.SetMarkerColor(plotting_helpers.histColours(0))
-	h1.SetMarkerStyle(shapelist[0])
-	h1.GetXaxis().SetTitle(xlabel)
-	h1.GetYaxis().SetTitle("entries")
-	h1.GetYaxis().SetRangeUser(0,y_max*scaleymax)
-	h1.GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
-	h1.Draw("HIST")
-
-
-
-	h2.SetLineColor(plotting_helpers.histColours(1))
-	h2.SetMarkerSize(0.9)
-	h2.SetLineColor(plotting_helpers.histColours(1))
-	h2.SetMarkerColor(plotting_helpers.histColours(1))
-	h2.SetMarkerStyle(shapelist[1])
-	h2.SetLineStyle(2)
-	h2.Draw("HIST SAME")
-
-	if "DV_r" in h1name or "DV_r" in h2name:
-		if  "redmass" in h1name or "redmass" in h2name:
-			pass
+	if do_cut_significane: 
+		if 'ncuts' in kwargs:
+			ncuts = kwargs['ncuts']
+			cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels,x_min,x_max, ncuts = ncuts)
 		else:
-			matlayers = [33.25,50.5,88.5,122.5,299]
-			nmatlayers = len(matlayers)
-			matlay={}
-			for i in range(nmatlayers):
-				matlay[i]=TLine(matlayers[i],0,matlayers[i],y_max*1.05)
-				matlay[i].SetLineStyle(3)
-				matlay[i].Draw("SAME")
-			leg01.AddEntry(matlay[0],"material layers","l")
+			cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels,x_min,x_max,output_dir,save_file_name)
 
 
-	leg01.Draw()
-	plotting_helpers.drawNotesVertextype("VSI")
-
-	MyC01.cd(1)
-	pad2 = ROOT.TPad("pad2", "pad2", 0, 0.05, 1, 0.3)
-	pad2.SetTopMargin(0)
-	pad2.SetBottomMargin(0.2)
-	pad2.Draw()
-	pad2.cd()
-
-	hratio = h1.Clone("hratio")
-	hratio.SetLineColor(kBlack)
-	hratio.SetMinimum(0.8)
-	hratio.SetMaximum(1.35)
-	hratio.Sumw2()
-	hratio.SetStats(0)
-	hratio.Divide(h2)
-	hratio.SetMarkerStyle(21)
-	hratio.GetYaxis().SetTitle("Orig. VSI / Rerun VSI")
-	hratio.GetYaxis().SetNdivisions(505)
-	hratio.GetYaxis().SetTitleSize(20)
-	hratio.GetYaxis().SetTitleFont(43)
-	hratio.GetYaxis().SetTitleOffset(1.55)
-	hratio.GetYaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
-	hratio.GetYaxis().SetLabelSize(15)
-	hratio.GetXaxis().SetTitleSize(20)
-	hratio.GetXaxis().SetTitleFont(43)
-	hratio.GetXaxis().SetTitleOffset(4.)
-	hratio.GetXaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
-	hratio.GetXaxis().SetLabelSize(15)
-	hratio.GetYaxis().SetRangeUser(0.8,1.23)
-	# line1=TLine(0,1,500,1)
-	# line1.SetLineStyle(1)
-
-	hratio.SetMarkerColor(plotting_helpers.histColours("ratio"))
-
-	hratio.GetXaxis().SetRange(bin_xmin-1,bin_xmax+1)
-
-
-	hratio.Draw("ep")
-	# line1.Draw("SAME")
-
-	if "DV_r" in h1name or "DV_r" in h2name:
-		if  "redmass" in h1name or "redmass" in h2name:
-			pass
-		else:
-			matlayers_ratio = [33.25,50.5,88.5,122.5,299]
-			nmatlayers_ratio = len(matlayers_ratio)
-			matlay_ratio={}
-			for i in range(nmatlayers):
-				matlay_ratio[i]=TLine(matlayers_ratio[i],0.8,matlayers_ratio[i],y_max)
-				matlay_ratio[i].SetLineStyle(3)
-				matlay_ratio[i].Draw("SAME")
-
-
-
-	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
 
 def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=1,rebiny=1, lumi=1, outputDir="../output/"):
