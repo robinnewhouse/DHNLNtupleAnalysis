@@ -11,18 +11,38 @@ class Trigger():
 	def __init__(self, tree, trigger, invert=False):
 		self.event_triggers = tree['passedTriggers']
 		self.invert = invert
-
 		if trigger == "muononly":
-			self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist
+			if tree.mc_campaign == "mc16a":
+				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2015_2016
+			if tree.mc_campaign == "mc16d":
+				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2017
+			if tree.mc_campaign == "mc16e":
+				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2018
+			else:
+				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist
 		elif trigger == "electrononly":
-			self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist
+			if tree.mc_campaign == "mc16a":
+				self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist_2015_2016
+			if tree.mc_campaign == "mc16d":
+				self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist_2017
+			if tree.mc_campaign == "mc16e":
+				self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist_2018
+			else:
+				self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist
 		elif trigger == "all":
-			self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist + helpers.apiSingleElectronTriggerlist
+			if tree.mc_campaign == "mc16a":
+				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2015_2016 + helpers.apiSingleElectronTriggerlist_2015_2016
+			if tree.mc_campaign == "mc16d":
+				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2017 + helpers.apiSingleElectronTriggerlist_2017
+			if tree.mc_campaign == "mc16e":
+				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2018 + helpers.apiSingleElectronTriggerlist_2018
+			else:
+				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist + helpers.apiSingleElectronTriggerlist
+
 		elif trigger == "DAOD_RPVLL":
 			self.allowed_trigger_list = helpers.DAOD_RPVLLTriggerlist
 		else:
 			self.allowed_trigger_list = list(trigger)
-		# print self.allowed_trigger_list
 
 	def overlap(self, event_triggers, trigger_list):
 		"""
@@ -42,7 +62,7 @@ class Trigger():
 			else:
 				return False
 		else:
-			# default check if event_triggers includes a trigger on the allowed trigger list
+			# default; check if event_triggers includes a trigger on the allowed trigger list
 			return self.overlap(self.event_triggers, self.allowed_trigger_list)
 
 

@@ -223,7 +223,7 @@ class FileInfo:
 		self.mass = -1  # signal mass of HNL in GeV
 		self.ctau = -1  # in mm
 
-		self.MC_campaign = ""
+		self.MC_campaign = None
 		self.ctau_str = ""
 		self.mass_str = ""
 
@@ -292,12 +292,34 @@ class FileInfo:
 
 # Define trigger lists here
 # trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
-apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium",
+# seperated by year using comments from the above link and cross checking with this twiki: https://twiki.cern.ch/twiki/bin/view/Atlas/LowestUnprescaled
+
+# muon triggers 
+apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_imedium","HLT_mu24_ivarmedium",
 							"HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50",
 							"HLT_mu60_0eta105_msonly"]
+
+apiSingleMuonTriggerlist_2018 = ["HLT_mu26_ivarmedium", "HLT_mu50", "HLT_mu60_0eta105_msonly" ]
+
+apiSingleMuonTriggerlist_2017 = ["HLT_mu26_ivarmedium", "HLT_mu50", "HLT_mu60_0eta105_msonly" ]
+
+apiSingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", 
+									       "HLT_mu24_imedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
+
+# electron triggers 
 apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0",
                                 "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium",
                                 "HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
+
+apiSingleElectronTriggerlist_2018 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e60_lhmedium_nod0", 
+									 "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
+
+apiSingleElectronTriggerlist_2017 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
+
+apiSingleElectronTriggerlist_2015_2016 = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", 
+										  "HLT_e60_lhmedium", "HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
+
+
 apiMultiMuonTriggerlist = ["HLT_2mu10", "HLT_2mu10_nomucomb", "HLT_2mu14", "HLT_2mu14_nomucomb",
                            "HLT_mu20_nomucomb_mu6noL1_nscan03", "HLT_mu20_mu8noL1", "HLT_mu22_mu8noL1",
                            "HLT_mu22_mu8noL1_calotag_0eta010", "HLT_3mu4", "HLT_mu6_2mu4", "HLT_3mu6",
@@ -317,6 +339,8 @@ apiElectronMuonTriggerlist = ["HLT_e17_lhloose_mu14", "HLT_e17_lhloose_nod0_mu14
                               "HLT_e24_lhmedium_nod0_L1EM20VHI_mu8noL1", "HLT_e26_lhmedium_nod0_mu8noL1",
                               "HLT_e7_lhmedium_nod0_mu24", "HLT_e12_lhloose_nod0_2mu10", "HLT_2e12_lhloose_mu10",
                               "HLT_2e12_lhloose_nod0_mu10", "HLT_e7_lhmedium_mu24", "HLT_e12_lhloose_2mu10"]
+
+
 DAOD_RPVLLTriggerlist = ['HLT_mu26_ivarmedium', 'HLT_xe110_pufit_xe65_L1XE50', 'HLT_e26_lhtight_nod0_ivarloose',
                          'HLT_mu50', 'HLT_mu60_0eta105_msonly', 'HLT_mu80_msonly_3layersEC', 'HLT_mu22_mu8noL1',
                          'HLT_xe120_pufit_L1XE50', 'HLT_xe110_pufit_xe70_L1XE50', 'HLT_j0_perf_ds1_L1J100',

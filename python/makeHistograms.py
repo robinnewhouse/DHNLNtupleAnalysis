@@ -55,7 +55,7 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
+		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
 		if tree.numentries < entries or entries is None:
 			entries = tree.numentries
 		# specify this to reduce number of entries loaded in each array
