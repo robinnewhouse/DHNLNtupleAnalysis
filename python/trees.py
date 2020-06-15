@@ -6,7 +6,7 @@ logger = helpers.getLogger('dHNLAnalysis.trees',level=logging.INFO)
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, mass=1.0, ctau=1.0, weight_override=None):
+	def __init__(self, file_name, tree_name, max_entries, mc_campaign = None, mass=1.0, ctau=1.0, weight_override=None):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -31,6 +31,7 @@ class Tree:
 		self.max_entries = max_entries
 		self.mass = mass
 		self.ctau = ctau
+		self.mc_campaign = mc_campaign
 		self.arrays = {}
 		# Calculated class attributes
 		# Open and load uproot trees

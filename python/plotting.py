@@ -45,7 +45,7 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 
 	savefilename= "CutFlow_" + channel
 
-	output_dir = os.path.join(os.path.abspath(output_dir),"plots/", '{}/'.format(vertextype),"Cutflow/")
+	output_dir = os.path.join(os.path.abspath(output_dir),"Cutflows/", '{}/'.format(vertextype) )
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
 
 	MyC01.SaveAs(output_dir +savefilename+'.pdf')

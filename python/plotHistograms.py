@@ -26,7 +26,7 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
 #############################################################################################################################################
 # globals
-outputDir = '../output/TESTplotupdates/' # change path here to save your histograms somewhere else!
+outputDir = '../output/' # change path here to save your histograms somewhere else!
 MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 lumi = 60
 normalize = False
