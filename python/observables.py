@@ -114,6 +114,7 @@ def reco_histograms(selection):
 	Observable(selection + "_DV_trk_dphi", binning = (64,0,8), do = ['hist']).queue()
 	Observable(selection + "_DV_trk_dR", binning = (1010,-5,10), do = ['hist']).queue()
 
+	Observable(selection + "_DV_weight", binning=(1, -10, 10), do=['hist']).queue()  # dummy histogram
 	Observable(selection + "_DV_x",binning = (2000,-500,500), do = ['hist']).queue()
 	Observable(selection + "_DV_y",binning = (2000,-500,500), do = ['hist']).queue()
 	Observable(selection + "_DV_z",binning = (2000,-500,500), do = ['hist']).queue()

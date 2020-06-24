@@ -1,7 +1,6 @@
 # Plotting Script
 import os, math, ROOT, json,sys
 import numpy as np
-import commentjson
 from ROOT import *
 from ROOT import gPad
 from pylab import *
@@ -89,7 +88,7 @@ def compare_histograms(config_file, selection):
 		if "ratioLabel" in config_file.keys():
 			ratioLabel = config_file["ratioLabel"]
 		else:
-			ratioLabel = ""
+			ratioLabel = [""]
 
 
 		# DV Variables
@@ -107,7 +106,9 @@ def compare_histograms(config_file, selection):
 						 draw_channel_info= draw_channel_info,
 						 vertical_lines=MATERIAL_LAYERS,
 						 vertical_legend="Material Layers",
-						 output_dir= outputDir
+						 output_dir= outputDir,
+						 use_ntuple = True,
+						 ntup_nbins=350,
 						 )
 
 		# DV Track Variables 
