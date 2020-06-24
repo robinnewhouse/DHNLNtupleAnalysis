@@ -270,16 +270,17 @@ class Analysis(object):
 	def write(self):
 		# Move ROOT to base directory
 		self.fi.cd()
+
+		# Store saved ntuple values to file
+		# self.fi.mkdir(self.ch+'/ntuples', "Micro Ntuples " + self.ch)
+		# self.fi.cd(self.ch+'/ntuples')
+		[ntuple.write(self.ch+'_ntuples_'+key) for key, ntuple in self.micro_ntuples.items()]
+
 		# Make a subdirectory for vertex type. May be other channels in the future.
 		if not self.fi.FindObject(self.ch):
 			self.fi.mkdir(self.ch, "Analysis Channel " + self.ch)
 		# Move ROOT to the channel subdirectory
 		self.fi.cd(self.ch)
-
-		# Store saved ntuple values to file
-		self.fi.mkdir(self.ch+'/ntuples', "Micro Ntuples " + self.ch)
-		self.fi.cd(self.ch+'/ntuples')
-		[ntuple.write(key) for key, ntuple in self.micro_ntuples.items()]
 
 		# Store saved histograms to file
 		# TODO: this should be saved in a different way. e.g. another level of dictionary. Parsing strings for variable names is not good.
