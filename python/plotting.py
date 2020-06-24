@@ -111,8 +111,8 @@ def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_
 
 
 		index = list(s).index(key)
-		g_sig[key].SetLineColor(plotting_helpers.histColours(index+1))
-		g_sig[key].SetMarkerColor(plotting_helpers.histColours(index+1))
+		g_sig[key].SetLineColor(plotting_helpers.histColours(index))
+		g_sig[key].SetMarkerColor(plotting_helpers.histColours(index))
 		g_sig[key].GetYaxis().SetTitle("s/\surdb")
 		g_sig[key].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
 		g_sig[key].SetLineWidth(2)
@@ -144,10 +144,102 @@ def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_
 		c2[key].SaveAs(output_path + savefilename + "_{}".format(key) + '.pdf')
 
 
+def makeAsimov(hbkg,hsignal,variable,selection, vtx_alg, scalelumi, datalumi, output_dir): 
+	#scale MC histogram to luminosity
+	c_asimov = ROOT.TCanvas("canvas_asimov_{}_{}".format(variable,vtx_alg), "", 1200, 800)
+	c_asimov.cd()
+
+	
+	outFile = ROOT.TFile(output_dir + "Asimov_dataset.root","update")
+	
+	asimov_name = "asimov_{}".format(variable)
+	signal_name = "signal_{}".format(variable)
+	bkg_name =  "bkg_{}".format(variable)
+
+	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
+	leg01.SetTextSize(0.035)
+	leg01.SetBorderSize(0)
+	leg01.SetFillColor(kWhite)
+	leg01.SetShadowColor(kWhite)
+	hsignal_clone = hsignal.Clone()
+	hsignal_clone.Scale(scalelumi)
+
+
+	hbkg_clone = hbkg.Clone()
+	hbkg_clone.Scale(scalelumi/datalumi)
+
+	hasimov = hsignal_clone.Clone(asimov_name)
+
+	hasimov.Add(hsignal_clone,hbkg_clone,1,1)
+
+
+	nbinsx = hasimov.GetXaxis().GetNbins()
+
+
+
+	for binx in range(1, nbinsx):
+		bin_content = hasimov.GetBinContent(binx)
+		bin_error = np.sqrt(bin_content)
+		hasimov.SetBinError(binx,bin_error)
+
+
+	# Move ROOT toe base directory
+	outFile.cd()
+	# Make a subdirectory for vertex type. May be other channels in the future.
+	if not outFile.FindObject(vtx_alg):
+		outFile.mkdir(vtx_alg, "Analysis Channel " + vtx_alg)
+	# Move ROOT to the channel subdirectory
+	outFile.cd(vtx_alg)
+
+
+	# Store saved histograms to file
+	sel_dir = vtx_alg + '/' + selection
+	if not outFile.GetDirectory(sel_dir):  # make TDirectory if necessary
+		outFile.mkdir(sel_dir, "Analysis Selection " + selection)
+	outFile.cd(sel_dir)  # change to TDirectory
+
+	hsignal.Write(signal_name)
+	hbkg.Write(bkg_name)
+	hasimov.Write(asimov_name) 
+	
+
+	hsignal_clone.SetFillColor(632)
+	hsignal_clone.SetLineColor(632)
+	color = ROOT.TColor()
+	hbkg_clone.SetFillColor(color.GetColor("#c2a5cf"))
+	hbkg_clone.SetLineColor(color.GetColor("#c2a5cf"))
+	hasimov.SetFillColor(0)
+	hasimov.SetLineColor(ROOT.kBlack)
+	hasimov.SetMarkerColor(ROOT.kBlack)
+	hasimov.SetMarkerStyle(20)
+	
+	leg01.AddEntry(hsignal_clone,"HNL signal","f")
+	leg01.AddEntry(hbkg_clone,"SS bkg","f")
+	leg01.AddEntry(hasimov,"Asimov data set")
+	a = ROOT.THStack("a_{}".format(variable),"Stacked 2D histograms")
+	a.Add(hbkg_clone)
+	a.Add(hsignal_clone)
+	
+	
+
+	# hsignal_clone.Draw("HIST")
+	# hbkg_clone.Draw("HIST SAME")
+	a.Draw("HIST")
+	a.GetXaxis().SetRangeUser(0,30)
+	a.GetXaxis().SetTitle("m_{HNL} [GeV]")
+	a.GetYaxis().SetRangeUser(0,a.GetMaximum()*2.5)
+
+	hasimov.Draw("E0 SAME")
+	
+	plotting_helpers.drawNotes(vtx_alg, scalelumi)
+	leg01.Draw("SAME")
+	c_asimov.SaveAs(output_dir + "Asimov_plot_{}_{}".format(vtx_alg,variable) + '.pdf')
+
+	outFile.Close()
 
 
 def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, setlogy=False, output_dir="../output",
-			save_name="", vertical_lines=[], labels=[], normalize=True, drawRatio=False, lumi=1, do_cut_significane=False, **kwargs):
+			save_name="", vertical_lines=[], labels=[], normalize=True, drawRatio=False, scalelumi=1.0,datalumi = 140.0, do_cut_significance=False, **kwargs):
 
 	histograms = []
 	filenames = []
@@ -172,6 +264,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			filenames.append(filename)
 			labels.append(label)
 
+	if do_cut_significance: 
+		makeAsimov(histograms[0],histograms[1],variable,selection, vtx_alg, scalelumi,datalumi, output_dir)
+	
 	n_h = len(histograms)
 	h_idx = range(len(histograms))
 
@@ -230,18 +325,19 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	#default scale historams to a given luminosity 
 	else: 
 		for i in h_idx:
-			if 'data' in labels[i]: 
-				# don't scale data histograms!
-				pass
+			if 'SS bkg' in labels[i]:
+				#scale data histograms to 140 fb-1
+				scale_data = scalelumi / datalumi
+				histograms[i].Scale(scale_data)
 			else:
-				histograms[i].Scale(lumi)
+				histograms[i].Scale(scalelumi)
 
 	# calculate yields
 	Yield = {}
 	for i in h_idx:
 		Yield[i] = round(histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), -1),2)
 		# if data in list, add it to the legend first
-		if 'data' in labels[i]: 
+		if 'SS bkg' in labels[i]: 
 			if normalize:
 				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
 			else: 
@@ -249,7 +345,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	#add non-data histograms to legend 
 	leg01.AddEntry(histograms[0],"","")
 	for i in h_idx:
-		if 'data' not in labels[i]: 
+		if 'SS bkg' not in labels[i]: 
 			if normalize: 
 				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
 			else:
@@ -275,55 +371,17 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			for j, label in enumerate(bin_labels):
 				histograms[i].GetXaxis().SetBinLabel(j+1, label)
 		histograms[i].SetMarkerSize(1.5)
-		if 'data' in labels[i]: 
-			histograms[i].SetLineColor(kBlack)
-			histograms[i].SetMarkerColor(kBlack)
-			histograms[i].SetMarkerStyle(20)
+		if 'SS bkg' in labels[i]: 
+			histograms[i].SetLineColor(plotting_helpers.bkgColours(i))
+			# histograms[i].SetFillColor(plotting_helpers.bkgColours(i))
+			histograms[i].SetMarkerColor(plotting_helpers.bkgColours(i))
 			histograms[i].SetLineWidth(2)
+			histograms[i].SetMarkerStyle(20)
 		else: 
 			histograms[i].SetLineWidth(2)
-			histograms[i].SetLineColor(plotting_helpers.histColours(i-1))
-			histograms[i].SetMarkerColor(plotting_helpers.histColours(i-1))
+			histograms[i].SetLineColor(plotting_helpers.histColours(i))
+			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
 			histograms[i].SetMarkerStyle(shapelist[i])
-
-			# 5 GeV
-			# if i ==0: 
-			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i))
-			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
-			# 	histograms[i].SetMarkerStyle(shapelist[i])
-			# else:
-			# 	histograms[i].SetLineStyle(3)
-			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i-1))
-			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i-1))
-			# 	histograms[i].SetMarkerStyle(shapelist[i-1]+4)
-
-			# # 10 GeV
-			# if i ==0: 
-			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i+1))
-			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i+1))
-			# 	histograms[i].SetMarkerStyle(shapelist[i+1])
-			# else:
-			# 	histograms[i].SetLineStyle(3)
-			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i))
-			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
-			# 	histograms[i].SetMarkerStyle(shapelist[i]+4)
-
-			# # 20 GeV
-			# if i ==0: 
-			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i+2))
-			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i+2))
-			# 	histograms[i].SetMarkerStyle(shapelist[i+2])
-			# else:
-			# 	histograms[i].SetLineStyle(3)
-			# 	histograms[i].SetLineColor(plotting_helpers.histColours(i+1))
-			# 	histograms[i].SetMarkerColor(plotting_helpers.histColours(i+1))
-			# 	histograms[i].SetMarkerStyle(shapelist[i+1]+4)
-			# 	histograms[i].SetMarkerStyle(27)
-
-				# histograms[i].SetLineStyle(3)
-				# histograms[i].SetLineColor(plotting_helpers.histColours(i-2))
-				# histograms[i].SetMarkerColor(plotting_helpers.histColours(i-2))
-				# histograms[i].SetMarkerStyle(shapelist[i-2]+4)
 
 		histograms[i].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
 		if not variable: histograms[i].GetXaxis().SetTitle(save_name)
@@ -355,7 +413,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	l.SetTextSize(20)
 	if 'draw_channel_info' in kwargs:
 		if kwargs['draw_channel_info']:
-			l.DrawLatex(0.65,0.855,"(     m_{HNL},      c\\tau,      chan.,      yield)")
+			l.DrawLatex(0.65,0.855,"(  m_{HNL},    c\\tau,    chan.,     yield)")
 
 	notes_x = 0.25
 	notes_y = 0.87
@@ -363,7 +421,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	if normalize: 
 		plotting_helpers.drawNotes(vtx_alg, "")
 	else: 
-		plotting_helpers.drawNotes(vtx_alg, lumi)
+		plotting_helpers.drawNotes(vtx_alg, scalelumi)
 
 	if 'notes' in kwargs:
 		for note in kwargs['notes']:
@@ -432,13 +490,12 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	c.SaveAs(output_dir + save_file_name + '.pdf')
 	c.SaveAs(output_dir +"eps_files/" +save_file_name + '.eps')
 
-	if do_cut_significane: 
+	if do_cut_significance: 
 		if 'ncuts' in kwargs:
 			ncuts = kwargs['ncuts']
-			cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels,x_min,x_max, ncuts = ncuts)
+			cut_significance(variable,vtx_alg,scalelumi,histograms,filenames,labels,x_min,x_max, ncuts = ncuts)
 		else:
-			cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels,x_min,x_max,output_dir,save_file_name)
-
+			cut_significance(variable,vtx_alg,scalelumi,histograms,filenames,labels,x_min,x_max,output_dir,save_file_name)
 
 
 

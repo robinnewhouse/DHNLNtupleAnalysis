@@ -26,8 +26,11 @@ def drawNotes(VtxConfig,lumi,channel=None):
 	ax = 0.22
 	ay = 0.82
 
-	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%lumi)
-	b.DrawLatex(ax,ay-0.05,'%s'%(VtxConfig))
+	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
+	if VtxConfig == "VSI_Leptons": 
+		b.DrawLatex(ax,ay-0.05,'VSI Leptons')
+	else: 
+		b.DrawLatex(ax,ay-0.05,'%s'%(VtxConfig))
 	if channel != None:
 		if  "uuu" in channel:
 			c.DrawLatex(ax,ay-0.1,'channel: \mu\mu\mu')
@@ -197,4 +200,19 @@ def histColours(nhist):
 		return ROOT.kOrange -3
 	else: 
 		return ROOT.kBlack
+
+def bkgColours(nhist): 
+	color = ROOT.TColor()
+	if nhist== 0:
+		ncolor = color.GetColor("#c2a5cf") #light purple
+	if nhist== 1:
+		ncolor = color.GetColor("#a6dba0")# light green
+	if nhist== 2:
+		ncolor = color.GetColor("#7b3294") # dark purple
+	if nhist== 3:
+		ncolor = color.GetColor("#008837") # dark green
+	return ncolor
+	
+
+
 

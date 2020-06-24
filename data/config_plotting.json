@@ -2,7 +2,8 @@
    
             "dataFile": "../output/histograms_data_uuu.root",
             "dataLabel":"data 2018 ( \\mu\\mu\\mu" ,
-            "scaleLumi": 60,
+            "dataLumi": 60.0,
+            "scaleLumi": 140.0,
             "mcFiles":[  "../output/histograms_mc16e_4G_10mm_uuu.root",
                         "../output/histograms_mc16e_10G_10mm_uuu.root",
             	      "../output/histograms_mc16e_20G_10mm_uuu.root"],
