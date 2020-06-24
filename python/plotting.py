@@ -394,9 +394,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			histograms[i].SetMarkerStyle(20)
 		else: 
 			histograms[i].SetLineWidth(2)
-			histograms[i].SetLineColor(plotting_helpers.histColours(i))
-			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
-			histograms[i].SetMarkerStyle(shapelist[i])
+			histograms[i].SetLineColor(plotting_helpers.histColours(i-1))
+			histograms[i].SetMarkerColor(plotting_helpers.histColours(i-1))
+			histograms[i].SetMarkerStyle(shapelist[i-1])
 
 		histograms[i].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
 		if not variable: histograms[i].GetXaxis().SetTitle(save_name)
