@@ -219,7 +219,6 @@ class Tracks():
 
 class FileInfo:
 	def __init__(self, infile, channel):
-		self.output_filename = "histograms.root"
 		self.mass = -1  # signal mass of HNL in GeV
 		self.ctau = -1  # in mm
 

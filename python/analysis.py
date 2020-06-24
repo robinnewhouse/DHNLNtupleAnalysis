@@ -45,7 +45,8 @@ class Analysis(object):
 			self.trigger = 'all'
 			self.do_trigger_cut = True
 		else:
-			logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
+			if 'CR' not in self.sel:
+				logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
 			self.do_trigger_cut = False
 
 		# filter cut
@@ -67,7 +68,8 @@ class Analysis(object):
 		elif 'muel-filter' in self.sel:
 			self.filter_type = 'mu-el'
 		else:
-			logger.warn('You did not specify a filter configuration for this channel. Skipping filter selection.')
+			if 'CR' not in self.sel:
+				logger.warn('You did not specify a filter configuration for this channel. Skipping filter selection.')
 			self.do_filter_cut = False
 
 		# prompt lepton cut
@@ -78,7 +80,8 @@ class Analysis(object):
 			self.plep = 'electron'
 			self.do_prompt_lepton_cut = True
 		else:
-			logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
+			if 'CR' not in self.sel:
+				logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
 			self.do_prompt_lepton_cut = False
 
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
@@ -151,12 +154,13 @@ class Analysis(object):
 		elif '2-tight' in self.sel:
 			self.track_quality = '2-tight'
 		else:
-			logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
+			if "CR" not in self.sel:
+				logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
 			self.do_track_quality_cut = False
 
 		# cosmic veto cut
 		self.do_cosmic_veto_cut = 'cosmicveto' in self.sel
-		if not self.do_cosmic_veto_cut:
+		if not self.do_cosmic_veto_cut and 'CR' not in self.sel:
 			logger.warn('You did not add a cosmic veto cut for this channel. Skipping cosmic veto selection.')
 
 		# tri-lepton mass cut
@@ -166,7 +170,7 @@ class Analysis(object):
 
 		# DV mass cut
 		self.do_dv_mass_cut = 'DVmass' in self.sel
-		if not self.do_dv_mass_cut:
+		if not self.do_dv_mass_cut and "CR" not in self.sel:
 			logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
 
 		# HNL mass cut

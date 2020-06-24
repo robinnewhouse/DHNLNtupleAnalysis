@@ -35,13 +35,20 @@ def main():
 		logger.info('Running on channel: {}'.format(channel))
 		# If you are running on MC this will give info about signal mass and lifetime
 		file_info = helpers.FileInfo(input_file, channel)
+		# Try to load only the number of entries of you need
+		entries = options.nevents if options.nevents else None
+		# Create new Tree class using uproot
+		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
 
 		# create one output file per channel in your config file
-		if "data" in options.config.split("config")[1]:
-			output_file = output_path + "histograms_data_{}.root".format(channel)
+		if "SSdata" in options.config.split("config")[1]:
+			output_file = output_path + "histograms_SSdata_{}.root".format(channel)
 		else:
 			if "CR" in config_file[channel]["selections"]:
-				output_file = output_path + "CR_" + file_info.output_filename
+				if tree.is_data:
+					output_file = output_path + "CR_histograms_data_{}.root".format(channel)
+				else:
+					output_file = output_path + "CR_" + file_info.output_filename
 			else:
 				output_file = output_path + file_info.output_filename
 		if os.path.exists(output_file):
@@ -52,10 +59,7 @@ def main():
 				logger.info('Removing {}'.format(output_file))
 				os.remove(output_file)  # if force option is given then remove histograms file that was previously created.
 
-		# Try to load only the number of entries of you need
-		entries = options.nevents if options.nevents else None
-		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
+		
 		if tree.numentries < entries or entries is None:
 			entries = tree.numentries
 		# specify this to reduce number of entries loaded in each array
