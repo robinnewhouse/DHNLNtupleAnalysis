@@ -135,6 +135,7 @@ def reco_histograms(selection):
 	Observable(selection + "_DV_alpha",binning = (400,-4,4), do = ['hist']).queue()
 	Observable(selection + "_mvis",binning = (10000,0,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLm",binning = (10005,-5,5000), do = ['hist']).queue()
+	Observable(selection + "_HNLm_altbinning",binning = (15,0,30), do = ['hist']).queue()
 	Observable(selection + "_alt_HNLm",binning = (10005,-5,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLm_fixWmass",binning = (10005,-5,5000), do = ['hist']).queue()
 	Observable(selection + "_HNLpt",binning = (1000,0,1000), do = ['hist']).queue()

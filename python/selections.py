@@ -327,6 +327,8 @@ class ChargeDV():
 		self.charge_trk1 = -111  # dont make default -1 since that's a valid charge! :)
 		self.charge_trk2 = -222  # dont make default -1 since that's a valid charge! :)
 		# also, don't make the same since the equality is checked later
+		self.two_plus = False
+		self.two_minus = False
 
 		if self.decaymode == "leptonic":
 			self.ntracks = tree.ntrk
@@ -334,6 +336,11 @@ class ChargeDV():
 			if self.ntracks == 2: 
 				self.charge_trk1 = tree.dv('trk_charge')[0]
 				self.charge_trk2 = tree.dv('trk_charge')[1]
+
+				if self.charge_trk1 == 1 and self.charge_trk2 == 1: 
+					self.two_plus = True
+				if self.charge_trk1 == -1 and self.charge_trk2 == -1: 
+					self.two_minus = True
 
 	def passes(self): 
 		if self.sel == 'OS':

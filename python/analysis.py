@@ -651,6 +651,7 @@ class Analysis(object):
 					self.fill_hist(sel, 'mvis', Mlll.mlll )
 					self.fill_hist(sel, 'mtrans', Mlll.mtrans)
 					self.fill_hist(sel, 'HNLm', Mhnl.mhnl)
+					self.fill_hist(sel, 'HNLm_altbinning', Mhnl.mhnl)
 					self.fill_hist(sel, 'alt_HNLm', Mhnl.alt_mhnl)
 					self.fill_hist(sel, 'HNLm_fixWmass', Mhnl_fixWmass.mhnl)
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
@@ -905,7 +906,7 @@ class ToyAnalysis(Analysis):
 		logger.info('Running  Toy Analysis cuts')
 		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
 
-		self.add('CutFlow', 17, -0.5, 16.5)
+		self.add('CutFlow', 21, -0.5, 20.5)
 		# Bin labels are 1 greater than histogram bins
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
@@ -932,18 +933,22 @@ class ToyAnalysis(Analysis):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "OS DV")
 		if self.do_same_sign_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "SS DV")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "++ DV")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "-- DV")
 		if self.do_dv_type_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "%s DV" % self.dv_type)
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "%s DV" % self.dv_type)
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "++ DV")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "-- DV")
 		if self.do_dv_mass_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "m_{DV}")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(16, "m_{DV}")
 		if self.do_trilepton_mass_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(17, "m_{lll}")
 		if self.do_HNL_pt_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "HNL p_{T}")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(18, "HNL p_{T}")
 		if self.do_cosmic_veto_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "cosmic veto")
-		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(16, "1-tight")
-		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(17, "2-tight")
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(19, "cosmic veto")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(20, "1-tight")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(21, "2-tight")
 
 		# 2D correlation plots after each cut in the DV
 		sel_list = ["charge", "DVtype", "mDV", "mlll", "HNLpt", "sel"]
@@ -1128,6 +1133,12 @@ class ToyAnalysis(Analysis):
 			if self._charge_cut():
 				if not self.passed_charge_cut:
 					self.h['CutFlow'][self.ch].Fill(9)
+					sign_pair = "SS" if self.do_same_sign_cut else "OS"
+					charge_sel = selections.ChargeDV(self.tree, sel=sign_pair)
+					if charge_sel.two_plus: 
+						self.h['CutFlow'][self.ch].Fill(10)
+					if charge_sel.two_minus: 
+						self.h['CutFlow'][self.ch].Fill(11)
 					self.passed_charge_cut = True
 			else:
 				return
@@ -1135,20 +1146,33 @@ class ToyAnalysis(Analysis):
 		# self._fill_selected_dv_histos("charge")
 		# self._fill_correlation_histos("charge")
 
+
+
 		if self.do_dv_type_cut:
 			if self._dv_type_cut():
 				if not self.passed_dv_type_cut:
-					self.h['CutFlow'][self.ch].Fill(10)
+					self.h['CutFlow'][self.ch].Fill(12)
+					sign_pair_1 = "SS" if self.do_same_sign_cut else "OS"
+					charge_sel_1 = selections.ChargeDV(self.tree, sel=sign_pair_1)
+					# print charge_sel.charge_trk1
+					# print charge_sel.charge_trk1
+					# print "++ ", charge_sel.two_plus
+					# print "-- ", charge_sel.two_minus
+					if charge_sel_1.two_plus: 
+						self.h['CutFlow'][self.ch].Fill(13)
+					if charge_sel_1.two_minus: 
+						self.h['CutFlow'][self.ch].Fill(14)
 					self.passed_dv_type_cut = True
 			else:
 				return
+
 		self._fill_selected_dv_histos("DVtype")
 		self._fill_correlation_histos("DVtype")
 
 		if self.do_dv_mass_cut:
 			if self._dv_mass_cut():
 				if not self.passed_dv_mass_cut:
-					self.h['CutFlow'][self.ch].Fill(11)
+					self.h['CutFlow'][self.ch].Fill(15)
 					self.passed_dv_mass_cut = True
 			else:
 				return
@@ -1159,7 +1183,7 @@ class ToyAnalysis(Analysis):
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
-					self.h['CutFlow'][self.ch].Fill(12)
+					self.h['CutFlow'][self.ch].Fill(16)
 					self.passed_trilepton_mass_cut = True
 			else:
 				return
@@ -1169,7 +1193,7 @@ class ToyAnalysis(Analysis):
 		if self.do_HNL_pt_cut:
 			if self._HNL_pt_cut():
 				if not self.passed_HNL_pt_cut:
-					self.h['CutFlow'][self.ch].Fill(13)
+					self.h['CutFlow'][self.ch].Fill(17)
 					self.passed_HNL_pt_cut = True
 
 			else:
@@ -1181,7 +1205,7 @@ class ToyAnalysis(Analysis):
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
-					self.h['CutFlow'][self.ch].Fill(14)
+					self.h['CutFlow'][self.ch].Fill(18)
 					self.passed_cosmic_veto_cut = True
 			else:
 				return
@@ -1189,7 +1213,7 @@ class ToyAnalysis(Analysis):
 
 		if self._track_quality_cut_1tight():
 			if not self.passed_track_1tight_cut:
-				self.h['CutFlow'][self.ch].Fill(15)
+				self.h['CutFlow'][self.ch].Fill(19)
 				self.passed_track_1tight_cut = True
 		else:
 			return
@@ -1198,7 +1222,7 @@ class ToyAnalysis(Analysis):
 
 		if self._track_quality_cut_2tight():
 			if not self.passed_track_2tight_cut:
-				self.h['CutFlow'][self.ch].Fill(16)
+				self.h['CutFlow'][self.ch].Fill(20)
 				self.passed_track_2tight_cut = True
 		else:
 			return
@@ -1206,7 +1230,7 @@ class ToyAnalysis(Analysis):
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data:
 			if self._truth_match():
-				self.h['CutFlow'][self.ch].Fill(17)
+				self.h['CutFlow'][self.ch].Fill(21)
 				self._fill_selected_dv_histos("match")
 
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
