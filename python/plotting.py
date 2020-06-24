@@ -244,25 +244,40 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	histograms = []
 	filenames = []
 	labels = []
-	channels = []
+	channels = []  # TODO: Why do we need channels? It seems to be never used.
 	tfiles = []  # root is stupid and will close the file if you're not careful
 	# for key, val in hist_channels.items():
 	for nhist in range(len(hist_channels)):
-			filename = hist_channels[nhist][0]
-			label = hist_channels[nhist][1]
-			vtx_alg = hist_channels[nhist][2]
-			selection = hist_channels[nhist][3]
-			channel = filename.split(".root")[0].split("_")[len(filename.split(".root")[0].split("_")) - 1]
-			tfiles.append(ROOT.TFile(filename) )  # get file
-			hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
+		filename = hist_channels[nhist][0]
+		label = hist_channels[nhist][1]
+		vtx_alg = hist_channels[nhist][2]
+		selection = hist_channels[nhist][3]
+		# channel = filename.split(".root")[0].split("_")[len(filename.split(".root")[0].split("_")) - 1]
+		tfiles.append(ROOT.TFile(filename))  # get file
+		hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
+
+		# block that is used if you want to use the micro-ntuple to plot
+		if 'use_ntuple' in kwargs and kwargs['use_ntuple']:
+			print('Using ntuple')
+			if setrange is None or 'ntup_nbins' not in kwargs:
+				raise ValueError('to use the ntuple, you must supply the range (e.g. setrange=(0,1000) '
+								 'and the number of bins (e.g. ntup_nbins=40) in the arguments)')
+			tmp_hist_name = "{}_{}_{}".format(vtx_alg, selection, variable)
+			ntup_hist = ROOT.TH1D(tmp_hist_name, tmp_hist_name, kwargs['ntup_nbins'], setrange[0], setrange[1])  # create empty histogram
+			ttree = tfiles[nhist].Get('{}/ntuples/{}'.format(vtx_alg, selection))  # get TTree
+			if not ttree:
+				raise KeyError('Cannot find {}/ntuples/{} in file {}'.format(vtx_alg, selection, tfiles[nhist]))
+			ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
+			histograms.append(ntup_hist)
+		else:
 			histogram = tfiles[nhist].Get(hist_path)
 			if not histogram:  # no histogram object. don't even try
 				print("cannot find {}. Exiting".format(variable))
 				return
 			histograms.append(histogram)  # get variable with suffix
-			channels.append(channel)
-			filenames.append(filename)
-			labels.append(label)
+		# channels.append(channel)
+		filenames.append(filename)
+		labels.append(label)
 
 	if do_cut_significance: 
 		makeAsimov(histograms[0],histograms[1],variable,selection, vtx_alg, scalelumi,datalumi, output_dir)

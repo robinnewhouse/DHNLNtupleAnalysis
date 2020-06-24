@@ -268,7 +268,7 @@ class Analysis(object):
 		self._locked = UNLOCKED
 
 	def write(self):
-		# Move ROOT toe base directory
+		# Move ROOT to base directory
 		self.fi.cd()
 		# Make a subdirectory for vertex type. May be other channels in the future.
 		if not self.fi.FindObject(self.ch):
@@ -619,6 +619,10 @@ class Analysis(object):
 			# these are the histograms you only want to fill ONCE per DV
 			# sel refers to the last selection that was applied
 
+			# fill event weight. storing this per dv as weights include dv scale factor.
+			self.fill_hist(sel, 'DV_weight', self.tree.weight)
+
+			# fill histograms that require a prompt lepton to be identified
 			if self.do_prompt_lepton_cut:
 				plep_vec = self.plep_sel.plepVec
 				plepd0 = self.plep_sel.plepd0
@@ -678,6 +682,7 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_dpt', dpt)
 					self.fill_hist(sel, 'DV_trk_dR', dR)
 
+			# fill histograms for track values
 			ntracks = self.tree.ntrk
 			for itrk in range(ntracks):  # loop over tracks
 				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
@@ -688,6 +693,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
 
+			# fill standard dv histograms
 			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
 			self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
 			self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
@@ -742,7 +748,8 @@ class Analysis(object):
 				#BUG here to add truth micro ntuples
 				if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
 					self.micro_ntuples['truth_'+sel].fill()
-			
+
+			# fill TTree with ntuple information. Already set by fill_hist
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':  
 				self.micro_ntuples[sel].fill()
 
