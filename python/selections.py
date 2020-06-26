@@ -148,6 +148,7 @@ class InvertedPromptLepton():
 class PromptLepton():
 	def __init__(self, tree, lepton="any", quality="tight", min_dR=0.05):
 		self.plepVec = ROOT.TLorentzVector(0,0,0,0)
+		self.plepcharge = 0
 		self.plepd0 = -2000
 		self.plepz0 = -2000
 		self.nPlep = 0
@@ -192,6 +193,7 @@ class PromptLepton():
 				eta = tree['muon_eta'][ilep]
 				phi = tree['muon_phi'][ilep]
 				mass = tree['muon_m'][ilep]
+				charge = tree['muon_charge'][ilep]
 				plepVec_i.SetPtEtaPhiM(pt, eta, phi, mass)
 
 				lepd0 = tree['muon_trkd0'][ilep]
@@ -203,6 +205,7 @@ class PromptLepton():
 				eta = tree['el_eta'][ilep]
 				phi = tree['el_phi'][ilep]
 				mass = tree['el_m'][ilep]
+				charge = tree['el_charge'][ilep]
 				plepVec_i.SetPtEtaPhiM(pt, eta, phi, mass)
 
 				lepd0 = tree['el_trkd0'][ilep]
@@ -241,6 +244,7 @@ class PromptLepton():
 						self.highestpt_lep = plepVec_i  # get highest pt prompt lepton!
 						self.highestpt_lep_d0 = lepd0
 						self.highestpt_lep_z0 = lepz0
+						self.highestpt_lep_charge = charge
 						self.highestpt_lep_z0sintheta = lepz0sintheta
 
 				#for trigger matching
@@ -258,6 +262,7 @@ class PromptLepton():
 			self.plepVec = self.highestpt_lep
 			self.plepd0 = self.highestpt_lep_d0
 			self.plepz0 = self.highestpt_lep_z0
+			self.plepcharge = self.highestpt_lep_charge
 			return True
 		else: 
 			return False
