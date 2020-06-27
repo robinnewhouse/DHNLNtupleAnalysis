@@ -38,18 +38,8 @@ python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.js
 ```
 For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_uuu.root. To see a full list of channels see this [section](#list-of-configuration-files).
 
+For a full list of configurable options for `makeHistograms.py` see this list of [options](#list-of-makehistogramspy-options).
 
-If you have previously created a histogram file for the channel you are trying to run, you can run the following to overwrite the output file: 
-```
-python makeHistograms.py --force -i path_to_dHNLntuple --config ../data/config_mc_all.json
-```
-Without the `--force` option, the code will not run to prevent you from accidentally overwriting your histogram files!
-
-
-If you would like to run over a different set of analysis cuts (e.g using the ToyAnalysis cuts) you can run: 
-```
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json --analysis ToyAnalysis
-```
 ### Running plotHistograms.py
 
 Once you have run makeHistograms.py edit `../data/config_plotting.json` to include a path to the histogram files you want to plot, as well as an identifying label for each file.
@@ -154,5 +144,19 @@ For comparing histograms:
 2. edit compare_histograms() following the examples provided.
 3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/`
 
+
+## List of makeHistograms.py Options
+
+| **Option** | **Action** |
+| ---------- | ---------- |
+| `config` | input config file for makeHisotgrams.py (required) |
+| `i` | path to input DHNL ntuple that was produced with DHNL Algorithm (required) |
+| `o` | output directory to store histograms. |
+| `f` | overwrite previous histograms output file if it exists. (default: False) |
+| `a` | name of the analysis you want to run (default: Old 36 inverse fb analysis) |
+| `s` | name of cut after which you want to save the micro-ntuples. (default: DVtype) |
+| `d` | Debug level. Options included are CRITICAL, ERROR, WARNING, INFO, DEBUG (default: INFO) |
+| `nevents` | max number of events to be processed |
+| `weight` | override the dHNL signal weight calculation for this sample. |
 
 
