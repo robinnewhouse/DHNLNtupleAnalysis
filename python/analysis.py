@@ -555,13 +555,13 @@ class Analysis(object):
 		sel = 'all'
 		# self.fill_hist(sel, 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
 		for itrk in range(self.tree.ntrk):  # loop over tracks
-			self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
-			self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk], fill_ntuple=False)
-			self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk], fill_ntuple=False)
-			self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk], fill_ntuple=False)
-			self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk], fill_ntuple=False)
-			self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
-			self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_pt_{}'.format(itrk), self.tree.dv('trk_pt_wrtSV')[itrk])
+			self.fill_hist(sel, 'DV_trk_eta_{}'.format(itrk), self.tree.dv('trk_eta_wrtSV')[itrk])
+			self.fill_hist(sel, 'DV_trk_phi_{}'.format(itrk), self.tree.dv('trk_phi_wrtSV')[itrk])
+			self.fill_hist(sel, 'DV_trk_d0_{}'.format(itrk), self.tree.dv('trk_d0')[itrk])
+			self.fill_hist(sel, 'DV_trk_z0_{}'.format(itrk), self.tree.dv('trk_z0')[itrk])
+			self.fill_hist(sel, 'DV_trk_charge_{}'.format(itrk), self.tree.dv('trk_charge')[itrk])
+			self.fill_hist(sel, 'DV_trk_chi2_{}'.format(itrk), self.tree.dv('trk_chi2_toSV')[itrk])
 
 		self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
 		self.fill_hist(sel, 'DV _x', self.tree.dv('x'))
@@ -690,14 +690,15 @@ class Analysis(object):
 
 			# fill histograms for track values
 			ntracks = self.tree.ntrk
-			for itrk in range(ntracks):  # loop over tracks
-				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
+			for itrk in range(self.tree.ntrk):  # loop over tracks
+				self.fill_hist(sel, 'DV_trk_pt_{}'.format(itrk), self.tree.dv('trk_pt_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_eta_{}'.format(itrk), self.tree.dv('trk_eta_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_phi_{}'.format(itrk), self.tree.dv('trk_phi_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_d0_{}'.format(itrk), self.tree.dv('trk_d0')[itrk])
+				self.fill_hist(sel, 'DV_trk_z0_{}'.format(itrk), self.tree.dv('trk_z0')[itrk])
+				self.fill_hist(sel, 'DV_trk_charge_{}'.format(itrk), self.tree.dv('trk_charge')[itrk])
+				self.fill_hist(sel, 'DV_trk_chi2_{}'.format(itrk), self.tree.dv('trk_chi2_toSV')[itrk])
+
 
 			# fill standard dv histograms
 			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
@@ -1346,13 +1347,14 @@ class KShort(Analysis):
 			# sel refers to the last selection that was applied
 			# self.fill_hist(sel, 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
 			for itrk in range(self.tree.ntrk):  # loop over tracks
-				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_pt_{}'.format(itrk), self.tree.dv('trk_pt_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_eta_{}'.format(itrk), self.tree.dv('trk_eta_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_phi_{}'.format(itrk), self.tree.dv('trk_phi_wrtSV')[itrk])
+				self.fill_hist(sel, 'DV_trk_d0_{}'.format(itrk), self.tree.dv('trk_d0')[itrk])
+				self.fill_hist(sel, 'DV_trk_z0_{}'.format(itrk), self.tree.dv('trk_z0')[itrk])
+				self.fill_hist(sel, 'DV_trk_charge_{}'.format(itrk), self.tree.dv('trk_charge')[itrk])
+				self.fill_hist(sel, 'DV_trk_chi2_{}'.format(itrk), self.tree.dv('trk_chi2_toSV')[itrk])
+
 
 			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
 			self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
