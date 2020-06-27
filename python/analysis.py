@@ -9,7 +9,6 @@ import observables
 import logging
 import ntuples
 
-logger = helpers.getLogger('dHNLAnalysis.analysis', level=logging.INFO)
 
 UNLOCKED = 0
 SELECTION_LOCKED = 1
@@ -17,8 +16,10 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
-		self.sel = selections
+	def __init__(self, tree, vtx_container, selection_list, outputFile, saveNtuples,debug_level):
+		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=debug_level)
+		selections.set_debug_level(debug_level)
+		self.sel = selection_list
 		self.outputFile = outputFile
 		self.fi = ROOT.TFile.Open(outputFile, 'update')
 		self.ch = vtx_container
@@ -46,7 +47,7 @@ class Analysis(object):
 			self.do_trigger_cut = True
 		else:
 			if 'CR' not in self.sel:
-				logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
+				self.logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
 			self.do_trigger_cut = False
 
 		# filter cut
@@ -69,7 +70,7 @@ class Analysis(object):
 			self.filter_type = 'mu-el'
 		else:
 			if 'CR' not in self.sel:
-				logger.warn('You did not specify a filter configuration for this channel. Skipping filter selection.')
+				self.logger.warn('You did not specify a filter configuration for this channel. Skipping filter selection.')
 			self.do_filter_cut = False
 
 		# prompt lepton cut
@@ -81,7 +82,7 @@ class Analysis(object):
 			self.do_prompt_lepton_cut = True
 		else:
 			if 'CR' not in self.sel:
-				logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
+				self.logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
 			self.do_prompt_lepton_cut = False
 
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
@@ -91,7 +92,7 @@ class Analysis(object):
 			self.do_filter_cut = False  # do not apply filter cut
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = True  # invert prompt lepton cut
-			logger.info('You are setup up to look in the inverted prompt lepton control region!')
+			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
 		else:
 			self.do_CR = False
 			self.do_invert_prompt_lepton_cut = False
@@ -105,12 +106,12 @@ class Analysis(object):
 
 		# nDV cut
 		self.do_ndv_cut = ('nDV' in self.sel)
-		if not self.do_ndv_cut: logger.warn('You did not add nDV cut. Skipping nDV selection.')
+		if not self.do_ndv_cut: self.logger.warn('You did not add nDV cut. Skipping nDV selection.')
 
 		# fiducial volume
 		self.do_fidvol_cut = 'fidvol' in self.sel
 		if not self.do_fidvol_cut:
-			logger.warn('You did not add DV in fiducial volume cut. Skipping DV in fiducial volume selection.')
+			self.logger.warn('You did not add DV in fiducial volume cut. Skipping DV in fiducial volume selection.')
 
 		# 2 (or more) track cut
 		self.do_ntrk_cut = True
@@ -121,7 +122,7 @@ class Analysis(object):
 		elif '4track' in self.sel:
 			self.ntrk = 4
 		else:
-			logger.warn('You did not add an ntrack cut. Skipping ntrack selection.')
+			self.logger.warn('You did not add an ntrack cut. Skipping ntrack selection.')
 			self.do_ntrk_cut = False
 
 		# Opposite sign children vertex cut
@@ -129,7 +130,7 @@ class Analysis(object):
 		# Same sign children vertex cut
 		self.do_same_sign_cut = 'SS' in self.sel
 		if not (self.do_opposite_sign_cut or self.do_same_sign_cut):
-			logger.warn('You did not add an SS or OS track cut. Skipping SS/OS track selection.')
+			self.logger.warn('You did not add an SS or OS track cut. Skipping SS/OS track selection.')
 
 		# DV type
 		self.do_dv_type_cut = True
@@ -144,7 +145,7 @@ class Analysis(object):
 		elif '2-lep' in self.sel:
 			self.dv_type = "2-lep"
 		else:
-			logger.warn('You did not specify a DV type for this channel. Skipping DV type selection.')
+			self.logger.warn('You did not specify a DV type for this channel. Skipping DV type selection.')
 			self.do_dv_type_cut = False
 
 		# Track quality
@@ -155,23 +156,23 @@ class Analysis(object):
 			self.track_quality = '2-tight'
 		else:
 			if "CR" not in self.sel:
-				logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
+				self.logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
 			self.do_track_quality_cut = False
 
 		# cosmic veto cut
 		self.do_cosmic_veto_cut = 'cosmicveto' in self.sel
 		if not self.do_cosmic_veto_cut and 'CR' not in self.sel:
-			logger.warn('You did not add a cosmic veto cut for this channel. Skipping cosmic veto selection.')
+			self.logger.warn('You did not add a cosmic veto cut for this channel. Skipping cosmic veto selection.')
 
 		# tri-lepton mass cut
 		self.do_trilepton_mass_cut = 'mlll' in self.sel
 		if not self.do_trilepton_mass_cut  and "CR" not in self.sel:
-			logger.warn('You did not add a mlll cut for this channel. Skipping tri-lepton mass selection.')
+			self.logger.warn('You did not add a mlll cut for this channel. Skipping tri-lepton mass selection.')
 
 		# DV mass cut
 		self.do_dv_mass_cut = 'DVmass' in self.sel
 		if not self.do_dv_mass_cut and "CR" not in self.sel:
-			logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
+			self.logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
 
 		# HNL mass cut
 		self.do_HNL_mass_cut = 'HNLmass' in self.sel
@@ -207,7 +208,7 @@ class Analysis(object):
 			else:
 				self.h[full_name][self.ch].Fill(variable_1, variable_2, self.tree.weight)
 		except KeyError as e:
-			logger.error("Histogram {} not registered. Automatically adding with default binning.".format(full_name))
+			self.logger.debug("Histogram {} not registered. Automatically adding with default binning.".format(full_name))
 			observable = observables.Observable(full_name)
 			observable.queue()
 			self.add(observable.name, *observable.binning)
@@ -257,15 +258,15 @@ class Analysis(object):
 	def check_input_consistency(self):
 		if self.do_trilepton_mass_cut or self.do_HNL_mass_cut or self.do_HNL_pt_cut:
 			if self.do_invert_prompt_lepton_cut:
-				logger.error("You are looking in the CR without prompt leptons so you cannot cut on mll, HNLpt or HNLm!!")
+				self.logger.error("You are looking in the CR without prompt leptons so you cannot cut on mll, HNLpt or HNLm!!")
 				sys.exit(1)  # abort because of error
 
 			if not self.do_prompt_lepton_cut:
-				logger.error("You cannot calculate mlll, HNLpt or HNLm without selecting a prompt lepton!")
+				self.logger.error("You cannot calculate mlll, HNLpt or HNLm without selecting a prompt lepton!")
 				sys.exit(1)  # abort because of error
 
 		if self.do_opposite_sign_cut and self.do_same_sign_cut:
-			logger.error("These cuts are mutually exclusive. You will get zero events!")
+			self.logger.error("These cuts are mutually exclusive. You will get zero events!")
 			sys.exit(1)  # abort because of error
 
 	def unlock(self):
@@ -297,12 +298,12 @@ class Analysis(object):
 			self.fi.cd(sel_dir)  # change to TDirectory
 			self.h[h_name][self.ch].Write(base_name)  # save only the base name
 
-		logger.info("Histograms written to {}".format(self.outputFile))
+		self.logger.info("Histograms written to {}".format(self.outputFile))
 
 		self.fi.Close()
 
 	def end(self):
-		logger.info('Done with Channel("{}")'.format(self.ch))
+		self.logger.info('Done with Channel("{}")'.format(self.ch))
 		meta = []
 		# if self.region:
 		# 	meta.append('Region: {}'.format(self.region))
@@ -310,19 +311,19 @@ class Analysis(object):
 		# 	meta.append('Period: {}'.format(self.period))
 		# if self.bcategory != None:
 		# 	meta.append('B-tagging Categroy: {}'.format(self.bcategory))
-		# logger.info('\t' + ' | '.join(meta))
+		# self.logger.info('\t' + ' | '.join(meta))
 
 		# gives warning messages if histograms are unfilled
 		for histName in self.h:
 			if self.h[histName][self.ch].GetEntries() == 0:
-				logger.debug('\tUnfilled HIST({}<{}>)!'.format(histName, self.ch))
+				self.logger.debug('\tUnfilled HIST({}<{}>)!'.format(histName, self.ch))
 
 		# y_err = ROOT.Double()
 		# for s in self.histSuffixes:
 		# 	h = self.h['finalNEvents'][s]
-		# 	logger.info('\tFinal NEvents <{syst}>: {y}'.format(syst = s, y = h.Integral()))
+		# 	self.logger.info('\tFinal NEvents <{syst}>: {y}'.format(syst = s, y = h.Integral()))
 		# 	h = self.h['finalYields'][s]
-		# 	logger.info('\tFinal Yields <{syst}>: {y:.4g}+/-{y_err:.2g}'.format(syst = s, y = h.IntegralAndError(0, h.GetNbinsX()+1, y_err), y_err = y_err))
+		# 	self.logger.info('\tFinal Yields <{syst}>: {y:.4g}+/-{y_err:.2g}'.format(syst = s, y = h.IntegralAndError(0, h.GetNbinsX()+1, y_err), y_err = y_err))
 		self.write()
 
 		# Clean up memory
@@ -336,7 +337,7 @@ class Analysis(object):
 		# try:
 		# 	os.rename(f + '.part', f)
 		# except OSError as e:
-		# 	logger.error(e, exc_info=True)
+		# 	self.logger.error(e, exc_info=True)
 
 
 	# Protected function to create the selection object and return its success
@@ -563,7 +564,7 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
 
 		self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
-		self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
+		self.fill_hist(sel, 'DV _x', self.tree.dv('x'))
 		self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
 		self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
 		self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
@@ -763,9 +764,10 @@ class Analysis(object):
 
 
 class oldAnalysis(Analysis):
-	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
-		logger.info('Running  Old Analysis cuts')
-		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
+	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples, debug_level):
+		
+		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
+		self.logger.info('Running  Old Analysis cuts')
 
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
@@ -914,9 +916,9 @@ class oldAnalysis(Analysis):
 
 
 class ToyAnalysis(Analysis):
-	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
-		logger.info('Running  Toy Analysis cuts')
-		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
+	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples, debug_level):
+		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
+		self.logger.info('Running  Toy Analysis cuts')
 
 		self.add('CutFlow', 29, -0.5, 28.5)
 		# Bin labels are 1 greater than histogram bins
@@ -1277,9 +1279,9 @@ class ToyAnalysis(Analysis):
 
 
 class KShort(Analysis):
-	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
-		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
-		logger.info('Running KShort Analysis cuts')
+	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples, debug_level):
+		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
+		self.logger.info('Running KShort Analysis cuts',level=logging.debug_level)
 
 		self.add('CutFlow', 17, -0.5, 16.5)
 		# Bin labels are 1 greater than histogram bins

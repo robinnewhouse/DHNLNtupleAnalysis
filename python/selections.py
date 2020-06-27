@@ -4,7 +4,12 @@ import numpy as np
 import helpers
 import logging
 
+#make a global logger variable for all selection classes
 logger = helpers.getLogger('dHNLAnalysis.selections', level=logging.WARNING)
+
+def set_debug_level(level): 
+	#update debug level to match debug level set at run time
+	logger = helpers.getLogger('dHNLAnalysis.selections', level=level)
 
 
 class Trigger():
@@ -639,7 +644,7 @@ class Mhnl_old():
 			
 			if (r== v and r_new.X() > 0.001): 
 				#if r=v then you should end up with a vector all in the z component
-				logger.ERROR("Roatating vectors did not work!! Check HNL mass calculation.")
+				logger.error("Roatating vectors did not work!! Check HNL mass calculation.")
 			return r_new
 
 		def unrotate_vector(r,v):

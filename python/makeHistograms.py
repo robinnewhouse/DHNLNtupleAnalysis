@@ -7,12 +7,18 @@ import json
 # import reweighting
 # import systematics
 
-logger = helpers.getLogger('dHNLAnalysis.makeHistograms')
+
 
 blinded = True  # Dont dont change this flag! This ensures you do not accidentally unblind when looking at data.
 
 
 def main():
+
+	#set debug level 
+	debug_level = helpers.set_debug_level(options.debug_level)
+	logger = helpers.getLogger('dHNLAnalysis.makeHistograms',level=debug_level)
+	logger.info("-> Calling main")
+
 	output_path = os.path.join(os.path.abspath(options.output), '')
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
@@ -28,6 +34,8 @@ def main():
 
 	input_file = options.input[0]  # get file
 	treename = "outTree"  # define tree name
+	
+
 
 	# loop over all the channels in the config file
 	for channel, configs in config_file.items():
@@ -84,7 +92,7 @@ def main():
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
-			ana = anaClass(tree, vtx_container, selections, output_file,options.saveNtuples)
+			ana = anaClass(tree, vtx_container, selections, output_file,options.saveNtuples, debug_level)
 
 			# Loop over each event
 			while tree.ievt < entries:
@@ -113,6 +121,7 @@ def main():
 			# This is a huge memory hog and will likely crash if too many histograms are declared
 			# Recommended not to use unless necessary and unless a minimal number of histograms are written. # RN
 			# analysisCode["%s_%s"%(channel,vtx_container)] = ana
+	logger.info("The end.")
 
 
 if __name__ == "__main__":
@@ -190,6 +199,19 @@ if __name__ == "__main__":
 						type = str,
 						help='Name of cut after which you want to save the micro-ntuples. Default is the save them after DV type cut')
 
+	parser.add_argument('-d','--debug',
+						dest="debug_level",
+						default = 'INFO',
+						type = str,
+						help='debug level. Default is INFO. Options include are CRITICAL, ERROR, WARNING, INFO, DEBUG ')
+	
+
+
+
+
+
+
+
 	# parser.add_argument("-u", "--update",
 	# 					action="store_true",
 	# 					dest="update",
@@ -204,10 +226,10 @@ if __name__ == "__main__":
 
 
 	options = parent_parser.parse_args()
-	logger.info("-> Calling main")
+	
 	# helpers.initialise_binds()
 	main()
-	logger.info("The end.")
+	
 
 
 

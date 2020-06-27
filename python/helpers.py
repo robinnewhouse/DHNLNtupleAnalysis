@@ -21,6 +21,20 @@ def getLogger(name = None, level = logging.INFO):
     return logger
 logger = getLogger('dHNLAnalysis.helpers')
 
+def set_debug_level(level):
+	import logging 
+	# supported levels are: CRITICAL, ERROR, WARNING, INFO, DEBUG 
+	if level == "INFO": 
+		debug_level = logging.INFO
+	elif level == "DEBUG": 
+		debug_level = logging.DEBUG
+	elif level == "CRITICAL": 
+		debug_level = logging.CRITICAL
+	elif level == "WARNING": 
+		debug_level = logging.WARNING
+	elif level == "ERROR": 
+		debug_level = logging.ERROR
+	return debug_level
 
 class Truth():
 	def __init__(self):
