@@ -1,0 +1,9 @@
+{
+   "alignment": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_Leptons"
+      ],
+      "selections": ["alltriggers", "4-filter", "prompt-muon-loose", "displaced-muon", "SS"]
+   }
+}

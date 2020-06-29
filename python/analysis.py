@@ -366,8 +366,8 @@ class Analysis(object):
 		filter_sel = selections.Filter(self.tree, filter_type=self.filter_type)
 		return filter_sel.passes()
 
-	def _prompt_lepton_cut(self):
-		self.plep_sel = selections.PromptLepton(self.tree, lepton=self.plep)
+	def _prompt_lepton_cut(self, quality="tight", min_dR=0.05):
+		self.plep_sel = selections.PromptLepton(self.tree, lepton=self.plep, quality=quality, min_dR=min_dR)
 		# Add to histogram all prompt leptons that pass selection.
 		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
 		if self.plep_sel.passes():
@@ -1249,6 +1249,117 @@ class ToyAnalysis(Analysis):
 		self._fill_selected_dv_histos("sel")
 		self._fill_correlation_histos("sel")
 
+
+class FilterCompareData(Analysis):
+	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
+		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
+		logger.info('Running FilterCompareData Analysis cuts')
+		self.add('CutFlow', 10, -0.5, 20.5)
+		# Bin labels are 1 greater than histogram bins
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
+		if self.do_trigger_cut:
+			if not self.do_CR:
+				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
+			else:
+				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
+		if self.do_filter_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s" % self.filter_type)
+		if self.do_ndv_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "prompt lepton")
+		if self.do_ndv_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "displaced lepton")
+		if self.do_ndv_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "DV")
+		if self.do_fidvol_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
+		if self.do_ntrk_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
+
+
+		# prompt lepton cut
+		if 'prompt-muon-loose' in self.sel:
+			self.plep = 'muon'
+			self.do_prompt_lepton_cut = True
+			self.plep_quality = 'loose'
+		if 'prompt-muon-medium' in self.sel:
+			self.plep = 'muon'
+			self.do_prompt_lepton_cut = True
+			self.plep_quality = 'medium'
+		if 'prompt-electron-loose' in self.sel:
+			self.plep = 'electron'
+			self.do_prompt_lepton_cut = True
+			self.plep_quality = 'loose'
+		if 'prompt-electron-medium' in self.sel:
+			self.plep = 'electron'
+			self.do_prompt_lepton_cut = True
+			self.plep_quality = 'medium'
+
+		# displaced lepton cut
+		if 'displaced-muon' in self.sel:
+			self.dlep = 'muon'
+			self.do_displaced_lepton_cut = True
+		if 'displaced-electron' in self.sel:
+			self.dlep = 'electron'
+			self.do_displaced_lepton_cut = True
+
+	def _displaced_lepton_cut(self, quality):
+		displaced_lepton = selections.DisplacedLepton(self.tree, lepton=self.dlep, quality=quality)
+		return displaced_lepton.passes()
+
+	def preSelection(self):
+		######################################################################################################
+		# Preselection are all the cuts that are requied per event
+		# Current cuts include: trigger, filter, plepton, DV cut
+		######################################################################################################
+
+		#initialize the cut bools for every event
+		self.initialize_cut_bools()
+
+		self._fill_leptons()
+
+		if not self.tree.is_data:
+			self._fill_truth_histos(sel='truth_all')
+
+		self.h['CutFlow'][self.ch].SetBinContent(1, self.tree.max_entries)  # all events
+
+		######################################################################################################
+		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
+		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
+		######################################################################################################
+
+		if self.do_trigger_cut:
+			if self._trigger_cut():
+				# Fill the plot at the specified bin
+				self.h['CutFlow'][self.ch].Fill(2)
+			else:
+				return
+
+		if self.do_filter_cut:
+			if self._filter_cut():
+				self.h['CutFlow'][self.ch].Fill(3)
+			else:
+				return
+
+		if self.do_prompt_lepton_cut:
+			if self._prompt_lepton_cut(quality='loose'):
+				self.h['CutFlow'][self.ch].Fill(4)
+			else:
+				return
+
+		if self.do_displaced_lepton_cut:
+			if self._displaced_lepton_cut(quality='loose'):
+				self.h['CutFlow'][self.ch].Fill(5)
+			else:
+				return
+
+		if self.do_displaced_lepton_cut:
+			if self._displaced_lepton_cut(quality='medium'):
+				self.h['CutFlow'][self.ch].Fill(6)
+			else:
+				return
+
+	def DVSelection(self):
+		return True
 
 class KShort(Analysis):
 	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):

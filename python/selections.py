@@ -978,3 +978,49 @@ class SumTrack:
 			self.sum_track_pt += tree.dv('trk_pt_wrtSV')[k]
 			self.sum_track_pt_wrt_pv += tree.dv('trk_pt')[k]
 			self.sum_track_charge += tree.dv('trk_charge')[k]
+
+
+class DisplacedLepton:
+	def __init__(self, tree, lepton, quality="loose"):
+		self.lepton = lepton
+		self.n_pass_quality_muons = 0
+		self.n_pass_quality_electrons = 0
+		lepquality = ""
+
+		if lepton == "muon":
+			if quality == "tight":  # tight muon is requested
+				lepquality = 'muon_isTight'
+			if quality == "medium":
+				lepquality = 'muon_isMedium'
+			if quality == "loose":
+				lepquality = 'muon_isLoose'
+			muons = helpers.Tracks(tree)
+			muons.getMuons()
+
+			for imu in range(len(muons.lepVec)):
+				muon_index = muons.lepIndex[imu]
+				if tree[lepquality][muon_index] == 1:
+					self.n_pass_quality_muons = self.n_pass_quality_muons + 1
+
+		if lepton == "electron":
+			if quality == "tight":  # tight electron is requested
+				lepquality = 'el_LHTight'
+			if quality == "medium":
+				lepquality = 'el_LHMedium'
+			if quality == "loose":
+				lepquality = 'el_LHLoose'
+			electrons = helpers.Tracks(tree)
+			electrons.getElectrons()
+
+			for iel in range(len(electrons.lepVec)):
+				elindex = electrons.lepIndex[iel]
+				if tree[lepquality][elindex] == 1:
+					self.n_pass_quality_electrons = self.n_pass_quality_electrons + 1
+
+	def passes(self):
+		if self.lepton == "electron":
+			return self.n_pass_quality_electrons >= 1
+
+		if self.lepton == "muon":
+			return self.n_pass_quality_muons >= 1
+

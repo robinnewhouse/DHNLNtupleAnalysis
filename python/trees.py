@@ -165,6 +165,8 @@ class Tree:
 
 	@property
 	def ntrk(self):
+		if self.ndv == 0:
+			return 0
 		return self.dv('ntrk')
 
 	@property
