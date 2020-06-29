@@ -4,6 +4,6 @@
          "VSI",
          "VSI_Leptons"
       ],
-      "selections": ["alltriggers", "4-filter", "prompt-muon-loose", "displaced-muon", "SS"]
+      "selections": ["alltriggers", "4-filter", "prompt-muon-loose", "nDV", "displaced-muon", "SS"]
    }
 }

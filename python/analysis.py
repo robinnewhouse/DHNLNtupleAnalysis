@@ -1254,28 +1254,8 @@ class FilterCompareData(Analysis):
 	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
 		Analysis.__init__(self, tree, vtx_container, selections, outputFile, saveNtuples)
 		logger.info('Running FilterCompareData Analysis cuts')
-		self.add('CutFlow', 10, -0.5, 20.5)
-		# Bin labels are 1 greater than histogram bins
-		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
-		if self.do_trigger_cut:
-			if not self.do_CR:
-				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
-			else:
-				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
-		if self.do_filter_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s" % self.filter_type)
-		if self.do_ndv_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "prompt lepton")
-		if self.do_ndv_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "displaced lepton")
-		if self.do_ndv_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "DV")
-		if self.do_fidvol_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
-		if self.do_ntrk_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
 
-
+		# check extra options
 		# prompt lepton cut
 		if 'prompt-muon-loose' in self.sel:
 			self.plep = 'muon'
@@ -1301,6 +1281,34 @@ class FilterCompareData(Analysis):
 		if 'displaced-electron' in self.sel:
 			self.dlep = 'electron'
 			self.do_displaced_lepton_cut = True
+
+
+		# Make cutflow
+		self.add('CutFlow', 10, -0.5, 9.5)
+		# Bin labels are 1 greater than histogram bins
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
+		if self.do_trigger_cut:
+			if not self.do_CR:
+				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
+			else:
+				self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
+		if self.do_filter_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s" % self.filter_type)
+		if self.do_prompt_lepton_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "prompt {} {}".format(self.plep, self.plep_quality) )
+		if self.do_ndv_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "nDV")
+		if self.do_displaced_lepton_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "displaced {} loose".format(self.dlep))
+		if self.do_displaced_lepton_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "displaced {} medium".format(self.dlep))
+		# if self.do_fidvol_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
+		# if self.do_ntrk_cut:
+		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
+
+
+
 
 	def _displaced_lepton_cut(self, quality):
 		displaced_lepton = selections.DisplacedLepton(self.tree, lepton=self.dlep, quality=quality)
@@ -1330,22 +1338,29 @@ class FilterCompareData(Analysis):
 		if self.do_trigger_cut:
 			if self._trigger_cut():
 				# Fill the plot at the specified bin
-				self.h['CutFlow'][self.ch].Fill(2)
+				self.h['CutFlow'][self.ch].Fill(1)
 			else:
 				return
 
 		if self.do_filter_cut:
 			if self._filter_cut():
-				self.h['CutFlow'][self.ch].Fill(3)
+				self.h['CutFlow'][self.ch].Fill(2)
 			else:
 				return
 
 		if self.do_prompt_lepton_cut:
 			if self._prompt_lepton_cut(quality='loose'):
+				self.h['CutFlow'][self.ch].Fill(3)
+			else:
+				return
+
+		if self.do_ndv_cut:
+			if self._ndv_cut():
 				self.h['CutFlow'][self.ch].Fill(4)
 			else:
 				return
 
+	def DVSelection(self):
 		if self.do_displaced_lepton_cut:
 			if self._displaced_lepton_cut(quality='loose'):
 				self.h['CutFlow'][self.ch].Fill(5)
@@ -1357,9 +1372,6 @@ class FilterCompareData(Analysis):
 				self.h['CutFlow'][self.ch].Fill(6)
 			else:
 				return
-
-	def DVSelection(self):
-		return True
 
 class KShort(Analysis):
 	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
