@@ -113,7 +113,7 @@ class Tree:
 		:param key: The variable to be accessed
 		:return: The variable for the event and displaced vertex
 		"""
-		if key.startswith(b'secVtx'):
+		if key.startswith('secVtx'):
 			# This variable is a likely dv type. Return variable at dv index.
 			return self.get_at(key, self.ievt, self.idv)
 		else:
@@ -157,7 +157,7 @@ class Tree:
 	@property
 	def is_data(self):
 		"""Checks if this tree represents real data"""
-		return "truthVtx_x" not in self.tree.keys()
+		return b'truthVtx_x' not in self.tree.keys()
 
 	@property
 	def ndv(self):
