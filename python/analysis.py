@@ -553,21 +553,6 @@ class Analysis(object):
 	def _fill_all_dv_histos(self):
 		sel = 'all'
 		# self.fill_hist(sel, 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
-
-		if self.do_prompt_lepton_cut:
-			plep_vec = self.plep_sel.plepVec
-			plepd0 = self.plep_sel.plepd0
-			plepz0 = self.plep_sel.plepz0
-			plepcharge = self.plep_sel.plepcharge
-
-			self.fill_hist(sel, 'plep_pt', plep_vec.Pt())
-			self.fill_hist(sel, 'plep_eta', plep_vec.Eta())
-			self.fill_hist(sel, 'plep_phi', plep_vec.Phi())
-			self.fill_hist(sel, 'plep_d0', plepd0)
-			self.fill_hist(sel, 'plep_z0', plepz0)
-			self.fill_hist(sel, 'plep_charge', plepcharge)
-
-
 		if self.tree.ntrk >= 2:  # check that DV has at least 2 tracks (this should always be the case)
 			self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[0])
 			self.fill_hist(sel, 'DV_trk_0_eta', self.tree.dv('trk_eta_wrtSV')[0])
