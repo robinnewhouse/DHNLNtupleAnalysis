@@ -4,6 +4,7 @@ import helpers
 import analysis
 import trees
 import json
+import time
 # import reweighting
 # import systematics
 
@@ -13,7 +14,7 @@ blinded = True  # Dont dont change this flag! This ensures you do not accidental
 
 
 def main():
-
+	start = time.clock()
 	#set debug level 
 	debug_level = helpers.set_debug_level(options.debug_level)
 	logger = helpers.getLogger('dHNLAnalysis.makeHistograms',level=debug_level)
@@ -46,7 +47,7 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
+		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
 
 		# create one output file per channel in your config file
 		if "SSdata" in options.config.split("config")[1]:
@@ -122,6 +123,7 @@ def main():
 			# Recommended not to use unless necessary and unless a minimal number of histograms are written. # RN
 			# analysisCode["%s_%s"%(channel,vtx_container)] = ana
 	logger.info("The end.")
+	logger.info("Time elapsed: {}".format(time.clock()-start)) 
 
 
 if __name__ == "__main__":

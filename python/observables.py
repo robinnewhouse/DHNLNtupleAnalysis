@@ -3,7 +3,6 @@ import ROOT
 ObservableList = []
 
 
-
 class Observable(object):
 	def __init__(self, name, binning = (2000, -1000, 1000), script = None, style = 'single', do = ['hist'], only = None, title = '{self.name}', dtype = float, default = -1, need_truth = False):
 		"""Observable for filling histograms or trees
@@ -70,7 +69,6 @@ class _Observable(object):
     #         else:
     #             return ret
 
-
 Observable("sel_plep_z0", do=['hist']).queue()
 
 Observable("all_nmuon", binning=(50, 0, 50), do=['hist']).queue()
@@ -101,18 +99,26 @@ def reco_histograms(selection):
 	Observable(selection + "_plep_phi", binning=(16, -4, 4), do=['hist']).queue()
 	Observable(selection + "_plep_d0", binning=(2000, -1000, 1000), do=['hist']).queue()
 	Observable(selection + "_plep_z0", binning=(2000, -1000, 1000), do=['hist']).queue()
+	Observable(selection + "_plep_charge", binning=(3,-1.5,1.5), do=['hist']).queue()
 
-	Observable(selection + "_DV_trk_pt",binning = (1000,0,1000), do = ['hist']).queue()
-	Observable(selection + "_DV_trk_eta",binning = (160,-10,10),do = ['hist']).queue()
-	Observable(selection + "_DV_trk_phi", binning =(64,-4,4), do = ['hist']).queue()
-	Observable(selection + "_DV_trk_d0", do = ['hist']).queue()
-	Observable(selection + "_DV_trk_z0", do = ['hist']).queue()
-	Observable(selection + "_DV_trk_charge",binning = (11,-5.5,5.5), do = ['hist']).queue()
-	Observable(selection + "_DV_trk_chi2",binning = (40,0,20), do = ['hist']).queue()
-	Observable(selection + "_DV_trk_dpt",binning = (2000,0,1000), do = ['hist']).queue()
-	Observable(selection + "_DV_trk_deta",binning = (160,0,20),do = ['hist']).queue()
-	Observable(selection + "_DV_trk_dphi", binning = (64,0,8), do = ['hist']).queue()
-	Observable(selection + "_DV_trk_dR", binning = (1010,-5,10), do = ['hist']).queue()
+	trk_str = ["","_0","_1"]
+	for i in range(len(trk_str)):
+		Observable(selection + "_DV_trk{}_pt".format(trk_str[i]),binning = (1000,0,1000), do = ['hist']).queue()
+		Observable(selection + "_DV_trk{}_eta".format(trk_str[i]),binning = (160,-10,10),do = ['hist']).queue()
+		Observable(selection + "_DV_trk{}_phi".format(trk_str[i]), binning =(64,-4,4), do = ['hist']).queue()
+		Observable(selection + "_DV_trk{}_d0".format(trk_str[i]), do = ['hist']).queue()
+		Observable(selection + "_DV_trk{}_z0".format(trk_str[i]), do = ['hist']).queue()
+		Observable(selection + "_DV_trk{}_charge".format(trk_str[i]),binning = (11,-5.5,5.5), do = ['hist']).queue()
+		Observable(selection + "_DV_trk{}_chi2".format(trk_str[i]),binning = (40,0,20), do = ['hist']).queue()
+
+		Observable(selection + "_DV_trk_dpt",binning = (2000,0,1000), do = ['hist']).queue()
+		Observable(selection + "_DV_trk_deta",binning = (160,0,20),do = ['hist']).queue()
+		Observable(selection + "_DV_trk_dphi", binning = (64,0,8), do = ['hist']).queue()
+		Observable(selection + "_DV_trk_dR", binning = (1010,-5,10), do = ['hist']).queue()
+
+
+
+
 
 	Observable(selection + "_DV_weight", binning=(1, -10, 10), do=['hist']).queue()  # dummy histogram
 	Observable(selection + "_DV_x",binning = (2000,-500,500), do = ['hist']).queue()
@@ -146,6 +152,12 @@ def reco_histograms(selection):
 	Observable(selection + "_DV_redmass",binning = (10005,-5,5000), do = ['hist']).queue()
 	Observable(selection + "_DV_redmassvis",binning = (10005,-5,5000), do = ['hist']).queue()
 	Observable(selection + "_DV_redmassHNL",binning = (10005,-5,5000), do = ['hist']).queue()
+	Observable(selection + "_DV_2tight",binning = (2,-0.5,1.5), do = ['hist']).queue()
+	Observable(selection + "_DV_2medium",binning = (2,-0.5,1.5), do = ['hist']).queue()
+	Observable(selection + "_DV_2loose",binning = (2,-0.5,1.5), do = ['hist']).queue()
+	Observable(selection + "_DV_1tight",binning = (2,-0.5,1.5), do = ['hist']).queue()
+	Observable(selection + "_DV_1medium",binning = (2,-0.5,1.5), do = ['hist']).queue()
+	Observable(selection + "_DV_1loose",binning = (2,-0.5,1.5), do = ['hist']).queue()
 
 reco_histograms("all")
 reco_histograms("presel")
