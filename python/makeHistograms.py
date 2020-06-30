@@ -34,6 +34,7 @@ def main():
 	anaClass = getattr(analysis, options.analysis)
 
 	input_file = options.input[0]  # get file
+	logger.info("Running event selection on: {}".format(input_file))
 	treename = "outTree"  # define tree name
 	
 
