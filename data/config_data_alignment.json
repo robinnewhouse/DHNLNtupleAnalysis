@@ -1,9 +1,58 @@
 {
-   "alignment": {
+   "alignment_uu_loose": {
       "vtx_containers": [
          "VSI",
          "VSI_Leptons"
       ],
       "selections": ["alltriggers", "4-filter", "prompt-muon-loose", "nDV", "displaced-muon", "SS"]
+   },
+   "alignment_ue_loose": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_Leptons"
+      ],
+      "selections": ["alltriggers", "4-filter", "prompt-muon-loose", "nDV", "displaced-electron", "SS"]
+   },
+   "alignment_eu_loose": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_Leptons"
+      ],
+      "selections": ["alltriggers", "4-filter", "prompt-electron-loose", "nDV", "displaced-muon", "SS"]
+   },
+   "alignment_ee_loose": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_Leptons"
+      ],
+      "selections": ["alltriggers", "4-filter", "prompt-electron-loose", "nDV", "displaced-electron", "SS"]
+   },
+   "alignment_uu_medium": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_Leptons"
+      ],
+      "selections": ["alltriggers", "4-filter", "prompt-muon-medium", "nDV", "displaced-muon", "SS"]
+   },
+   "alignment_ue_medium": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_Leptons"
+      ],
+      "selections": ["alltriggers", "4-filter", "prompt-muon-medium", "nDV", "displaced-electron", "SS"]
+   },
+   "alignment_eu_medium": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_Leptons"
+      ],
+      "selections": ["alltriggers", "4-filter", "prompt-electron-medium", "nDV", "displaced-muon", "SS"]
+   },
+   "alignment_ee_medium": {
+      "vtx_containers": [
+         "VSI",
+         "VSI_Leptons"
+      ],
+      "selections": ["alltriggers", "4-filter", "prompt-electron-medium", "nDV", "displaced-electron", "SS"]
    }
 }

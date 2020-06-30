@@ -1308,6 +1308,14 @@ class FilterCompareData(Analysis):
 		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
 
 
+	def initialize_cut_bools(self):
+		###########################################################################################################################
+		# Cut bools that will be intialized in the pre selection for every event. These bools tell the code if the cutflow has already been filled for this event.
+		# Default is to select the first event that passes the selection.
+		###########################################################################################################################
+		self.passed_preselection_cuts = False
+		self.passed_displaced_lepton_cut_loose = False
+		self.passed_displaced_lepton_cut_medium = False
 
 
 	def _displaced_lepton_cut(self, quality):
@@ -1349,7 +1357,7 @@ class FilterCompareData(Analysis):
 				return
 
 		if self.do_prompt_lepton_cut:
-			if self._prompt_lepton_cut(quality='loose'):
+			if self._prompt_lepton_cut(quality=self.plep_quality):
 				self.h['CutFlow'][self.ch].Fill(3)
 			else:
 				return
@@ -1360,16 +1368,29 @@ class FilterCompareData(Analysis):
 			else:
 				return
 
+		self.passed_preselection_cuts = True
+
 	def DVSelection(self):
+		# only do the DV selection if the preselction was passed for the event.
+		if not self.passed_preselection_cuts:
+			return
+
+		# There is an extra bit of logic here since we look at several DVs
+		# but only want to fill the cutflow once per event
+
 		if self.do_displaced_lepton_cut:
 			if self._displaced_lepton_cut(quality='loose'):
-				self.h['CutFlow'][self.ch].Fill(5)
+				if not self.passed_displaced_lepton_cut_loose:
+					self.h['CutFlow'][self.ch].Fill(5)
+					self.passed_displaced_lepton_cut_loose = True
 			else:
 				return
 
 		if self.do_displaced_lepton_cut:
 			if self._displaced_lepton_cut(quality='medium'):
-				self.h['CutFlow'][self.ch].Fill(6)
+				if not self.passed_displaced_lepton_cut_medium:
+					self.h['CutFlow'][self.ch].Fill(6)
+					self.passed_displaced_lepton_cut_medium = True
 			else:
 				return
 
