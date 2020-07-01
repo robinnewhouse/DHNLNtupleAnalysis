@@ -70,7 +70,7 @@ def main():
 				os.remove(output_file)  # if force option is given then remove histograms file that was previously created.
 
 		
-		if tree.numentries < entries or entries is None:
+		if entries is None or tree.numentries < entries:
 			entries = tree.numentries
 		# specify this to reduce number of entries loaded in each array
 		tree.max_entries = entries
