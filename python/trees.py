@@ -2,11 +2,11 @@ import uproot
 import helpers
 import logging
 
-logger = helpers.getLogger('dHNLAnalysis.trees',level=logging.INFO)
+
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, mc_campaign = None, mass=1.0, ctau=1.0, weight_override=None):
+	def __init__(self, file_name, tree_name, max_entries, debug_level, mc_campaign = None, mass=1.0, ctau=1.0, weight_override=None):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -41,7 +41,8 @@ class Tree:
 		self.allentries = self.cutflow[1]
 		self.vtx_container = ""
 		self.weight = self.get_weight(mass, ctau) if not weight_override else weight_override
-		logger.debug('Event weight for this signal sample is: {}'.format(self.weight))
+		self.logger = helpers.getLogger('dHNLAnalysis.trees',level=debug_level)
+		self.logger.debug('Event weight for this signal sample is: {}'.format(self.weight))
 
 	def increment_event(self):
 		self.ievt += 1
@@ -63,7 +64,7 @@ class Tree:
 
 	def add(self, key):
 		"""Loads a tree from uproot into a numpy array."""
-		logger.debug("Accessing tree {} for the first time. Loading from file.".format(key))
+		self.logger.debug("Accessing tree {} for the first time. Loading from file.".format(key))
 		try:
 			self.arrays[key] = self.tree[key].array(entrystop=self.max_entries)
 		except KeyError as e:
@@ -137,7 +138,7 @@ class Tree:
 			self.weight = 1
 		else:  # you are running on MC file
 			if self.mass == -1 or ctau == -1:  # MC weighting error
-				logger.debug("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
+				self.logger.debug("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
 				self.weight = 1
 			else:
 				mW = 80.379  # mass of W boson in GeV
