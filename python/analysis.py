@@ -1296,12 +1296,12 @@ class FilterCompareData(Analysis):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "prompt {} {}".format(self.plep, self.plep_quality) )
+		if self.do_displaced_lepton_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "displaced {} loose".format(self.dlep))
+		if self.do_displaced_lepton_cut:
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "displaced {} medium".format(self.dlep))
 		if self.do_ndv_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "nDV")
-		if self.do_displaced_lepton_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "displaced {} loose".format(self.dlep))
-		if self.do_displaced_lepton_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "displaced {} medium".format(self.dlep))
+			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "nDV")
 		# if self.do_fidvol_cut:
 		# 	self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
 		# if self.do_ntrk_cut:
