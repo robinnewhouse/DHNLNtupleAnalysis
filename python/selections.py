@@ -982,9 +982,41 @@ class SumTrack:
 
 class DisplacedLepton:
 	def __init__(self, tree, lepton, quality="loose"):
+
+		self.n_displaced_leptons = 0
+
+		if lepton == "muon":
+			if quality == "tight":  # tight muon is requested
+				lepquality = 'muon_isTight'
+			if quality == "medium":
+				lepquality = 'muon_isMedium'
+			if quality == "loose":
+				lepquality = 'muon_isLoose'
+
+			for displaced, quality in zip(tree['muon_passesDisplacedCuts'], tree[lepquality]):
+				if displaced and quality == 1:
+					self.n_displaced_leptons += 1
+
+		if lepton == "electron":
+			if quality == "tight":  # tight electron is requested
+				lepquality = 'el_LHTight'
+			if quality == "medium":
+				lepquality = 'el_LHMedium'
+			if quality == "loose":
+				lepquality = 'el_LHLoose'
+
+			for displaced, quality in zip(tree['el_passesDisplacedCuts'], tree[lepquality]):
+				if displaced and quality == 1:
+					self.n_displaced_leptons += 1
+		
+	def passes(self):
+		return self.n_displaced_leptons >= 1
+
+
+class DisplacedDVLepton:
+	def __init__(self, tree, lepton, quality="loose"):
 		self.lepton = lepton
-		self.n_pass_quality_muons = 0
-		self.n_pass_quality_electrons = 0
+		self.n_displaced_leptons = 0
 		lepquality = ""
 
 		if lepton == "muon":
@@ -1000,7 +1032,7 @@ class DisplacedLepton:
 			for imu in range(len(muons.lepVec)):
 				muon_index = muons.lepIndex[imu]
 				if tree[lepquality][muon_index] == 1:
-					self.n_pass_quality_muons = self.n_pass_quality_muons + 1
+					self.n_displaced_leptons += 1
 
 		if lepton == "electron":
 			if quality == "tight":  # tight electron is requested
@@ -1015,12 +1047,8 @@ class DisplacedLepton:
 			for iel in range(len(electrons.lepVec)):
 				elindex = electrons.lepIndex[iel]
 				if tree[lepquality][elindex] == 1:
-					self.n_pass_quality_electrons = self.n_pass_quality_electrons + 1
+					self.n_displaced_leptons += 1
 
 	def passes(self):
-		if self.lepton == "electron":
-			return self.n_pass_quality_electrons >= 1
-
-		if self.lepton == "muon":
-			return self.n_pass_quality_muons >= 1
+		return self.n_displaced_leptons >= 1
 

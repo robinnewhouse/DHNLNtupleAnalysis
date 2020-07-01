@@ -1362,9 +1362,22 @@ class FilterCompareData(Analysis):
 			else:
 				return
 
+		if self.do_displaced_lepton_cut:
+			if self._displaced_lepton_cut(quality='loose'):
+				print("passes loose displaced_lepton")
+				self.h['CutFlow'][self.ch].Fill(4)
+			else:
+				return
+
+		if self.do_displaced_lepton_cut:
+			if self._displaced_lepton_cut(quality='medium'):
+				self.h['CutFlow'][self.ch].Fill(5)
+			else:
+				return
+
 		if self.do_ndv_cut:
 			if self._ndv_cut():
-				self.h['CutFlow'][self.ch].Fill(4)
+				self.h['CutFlow'][self.ch].Fill(6)
 			else:
 				return
 
@@ -1377,22 +1390,6 @@ class FilterCompareData(Analysis):
 
 		# There is an extra bit of logic here since we look at several DVs
 		# but only want to fill the cutflow once per event
-
-		if self.do_displaced_lepton_cut:
-			if self._displaced_lepton_cut(quality='loose'):
-				if not self.passed_displaced_lepton_cut_loose:
-					self.h['CutFlow'][self.ch].Fill(5)
-					self.passed_displaced_lepton_cut_loose = True
-			else:
-				return
-
-		if self.do_displaced_lepton_cut:
-			if self._displaced_lepton_cut(quality='medium'):
-				if not self.passed_displaced_lepton_cut_medium:
-					self.h['CutFlow'][self.ch].Fill(6)
-					self.passed_displaced_lepton_cut_medium = True
-			else:
-				return
 
 class KShort(Analysis):
 	def __init__(self, tree, vtx_container, selections, outputFile, saveNtuples):
