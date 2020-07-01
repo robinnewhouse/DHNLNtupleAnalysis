@@ -56,7 +56,7 @@ class Trigger():
 		overlap([a,b,c], [x,y,z]) # False
 		overlap([a,b,c], [b,c,d]) # True
 		"""
-		return not set(event_triggers).isdisjoint(trigger_list)
+		return not set(helpers.decode_list(event_triggers)).isdisjoint(trigger_list)
 
 	def passes(self):
 		if self.invert:  # invert trigger requirement
