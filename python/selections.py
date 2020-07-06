@@ -992,7 +992,14 @@ class DisplacedLepton:
 				lepquality = 'muon_isMedium'
 			if quality == "loose":
 				lepquality = 'muon_isLoose'
+			if quality == 'none': 
+				# apply no quality cut
+				for displaced in tree['muon_passesDisplacedCuts']:
+					if displaced:
+						self.n_displaced_leptons += 1
+				return
 
+			# do apply quality cut
 			for displaced, quality in zip(tree['muon_passesDisplacedCuts'], tree[lepquality]):
 				if displaced and quality == 1:
 					self.n_displaced_leptons += 1
@@ -1004,7 +1011,14 @@ class DisplacedLepton:
 				lepquality = 'el_LHMedium'
 			if quality == "loose":
 				lepquality = 'el_LHLoose'
+			if quality == 'none': 
+				# apply no quality cut
+				for displaced in tree['el_passesDisplacedCuts']:
+					if displaced:
+						self.n_displaced_leptons += 1
+				return
 
+			# do apply quality cut
 			for displaced, quality in zip(tree['el_passesDisplacedCuts'], tree[lepquality]):
 				if displaced and quality == 1:
 					self.n_displaced_leptons += 1
