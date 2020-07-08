@@ -218,6 +218,9 @@ def truth_histograms(selection):
 	Observable("truth_" + selection + "_DV_y",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
 	Observable("truth_" + selection + "_DV_z",binning = (2000,-500,500), do = ['hist'], need_truth = True).queue()
 	Observable("truth_" + selection + "_DV_r",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
+	
+	Observable("truth_" + selection + "_maxlinkTruth_score",binning = (1000,0,1), do = ['hist'], need_truth = True).queue()
+	Observable("truth_" + selection + "_maxlinkTruth_parent_pdgId",binning = (201,-0.5,200), do = ['hist'], need_truth = True).queue()
 	# Observable("truth_" + selection + "_DV_num_trks",binning = (6,-0.5,5.5), do = ['hist'], need_truth = True).queue()
 	# Observable("truth_" + selection + "_DV_distFromPV",binning = (500,0,500), do = ['hist'], need_truth = True).queue()
 	# Observable("truth_" + selection + "_DV_mass",binning = (10000,0,5000), do = ['hist'], need_truth = True).queue()

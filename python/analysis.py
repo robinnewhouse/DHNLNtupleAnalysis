@@ -761,6 +761,11 @@ class Analysis(object):
 				self.fill_hist('truth_'+sel, 'plep_eta', truthInfo.plep_vec.Eta())
 				self.fill_hist('truth_'+sel, 'plep_phi', truthInfo.plep_vec.Phi())
 				self.fill_hist('truth_'+sel, 'plep_mass', truthInfo.plep_vec.M())
+
+				self.fill_hist('truth_'+sel, 'maxlinkTruth_score', self.tree.dv('maxlinkTruth_score') )
+				self.fill_hist('truth_'+sel, 'maxlinkTruth_parent_pdgId', self.tree.dv('maxlinkTruth_parent_pdgId') )
+
+
 				if len(truthInfo.trkVec) == 2: 
 					self.fill_hist('truth_'+sel, 'lep1_trk_pt', truthInfo.trkVec[0].Pt())
 					self.fill_hist('truth_'+sel, 'lep1_trk_eta', truthInfo.trkVec[0].Eta())
@@ -831,6 +836,7 @@ class oldAnalysis(Analysis):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
 		if self.do_dv_mass_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "truth matched")
 
 	
 	def DVSelection(self):
