@@ -29,7 +29,7 @@ outputDir = '../output/' # change path here to save your histograms somewhere el
 MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 normalize = False
 setlogy = False
-drawRatio=True
+drawRatio=False
 draw_channel_info = True
 do_cut_significane = True
 
@@ -113,7 +113,6 @@ def compare_histograms(config_file, selection):
 						 use_ntuple = True,
 						 ntup_nbins=350,
 						 )
-
 		# DV Track Variables 
 		plotting.compare(hist_channels,
 						 variable='DV_trk_pt',
@@ -347,7 +346,7 @@ def compare_histograms(config_file, selection):
 		# HNL quantities
 		plotting.compare(hist_channels,
 						 variable='HNLpt',
-						 setrange=(0, 50),
+						 setrange=(0, 200),
 						 nRebin=5,
 						 setlogy = setlogy,
 						 scalelumi = scalelumi,

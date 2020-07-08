@@ -264,9 +264,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 								 'and the number of bins (e.g. ntup_nbins=40) in the arguments)')
 			tmp_hist_name = "{}_{}_{}".format(vtx_alg, selection, variable)
 			ntup_hist = ROOT.TH1D(tmp_hist_name, tmp_hist_name, kwargs['ntup_nbins'], setrange[0], setrange[1])  # create empty histogram
-			ttree = tfiles[nhist].Get('{}/ntuples/{}'.format(vtx_alg, selection))  # get TTree
+			ttree = tfiles[nhist].Get('{}_ntuples_{}'.format(vtx_alg, selection))  # get TTree
 			if not ttree:
-				raise KeyError('Cannot find {}/ntuples/{} in file {}'.format(vtx_alg, selection, tfiles[nhist]))
+				raise KeyError('Cannot find {}_ntuples_{} micro-ntuple in file {}'.format(vtx_alg, selection, tfiles[nhist]))
 			ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
 			histograms.append(ntup_hist)
 		else:

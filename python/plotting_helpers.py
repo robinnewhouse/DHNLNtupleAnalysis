@@ -189,11 +189,11 @@ def xlabelhistograms(hist):
 
 def histColours(nhist): 
 	if nhist== 0:
-		return ROOT.kAzure+6
+		return ROOT.kRed
 	if nhist== 1:
 		return ROOT.kViolet+8
 	if nhist== 2:
-		return ROOT.kRed
+		return ROOT.kAzure+6
 	if nhist== 3:
 		return ROOT.kGreen+1
 	if nhist== 4:
