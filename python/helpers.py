@@ -450,3 +450,13 @@ DAOD_RPVLLTriggerlist = ['HLT_mu26_ivarmedium', 'HLT_xe110_pufit_xe65_L1XE50', '
                          'HLT_mu11_mu6_bUpsimumu_L1LFV-MU11', 'HLT_mu11_mu6_bUpsimumu', 'HLT_3mu4_bTau',
                          'HLT_mu11_mu6_bBmumu_L1LFV-MU11', 'HLT_3mu6_bDimu',
                          'HLT_2mu6_bBmumu_Lxy0_L1BPH-2M9-2MU6_BPH-2DR15-2MU6', 'HLT_mu11_mu6_bBmumu', 'HLT_3mu6']
+
+def decode_list(in_list, encoding='utf8'):
+	"""Helper fucntion to make bytes python2/3 compatible"""
+	out_list = []
+	for item in in_list:
+		if isinstance(item, bytes):
+			out_list.append(item.decode(encoding))
+		else:
+			out_list.append(item)
+	return out_list

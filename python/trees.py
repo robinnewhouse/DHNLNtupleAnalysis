@@ -6,7 +6,7 @@ import logging
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, debug_level, mc_campaign = None, mass=1.0, ctau=1.0, weight_override=None):
+	def __init__(self, file_name, tree_name, max_entries, debug_level, mc_campaign=None, mass=1.0, ctau=1.0, weight_override=None):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -26,6 +26,7 @@ class Tree:
 		:param weight_override: Use this if you want to override the weight calculation.
 		"""
 		# Set class attributes
+		self.logger = helpers.getLogger('dHNLAnalysis.trees',level=debug_level)
 		self.ievt = 0
 		self.idv = 0
 		self.max_entries = max_entries
@@ -41,7 +42,6 @@ class Tree:
 		self.allentries = self.cutflow[1]
 		self.vtx_container = ""
 		self.weight = self.get_weight(mass, ctau) if not weight_override else weight_override
-		self.logger = helpers.getLogger('dHNLAnalysis.trees',level=debug_level)
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.weight))
 
 	def increment_event(self):
@@ -114,7 +114,7 @@ class Tree:
 		:param key: The variable to be accessed
 		:return: The variable for the event and displaced vertex
 		"""
-		if key.startswith(b'secVtx'):
+		if key.startswith('secVtx'):
 			# This variable is a likely dv type. Return variable at dv index.
 			return self.get_at(key, self.ievt, self.idv)
 		else:
@@ -158,7 +158,7 @@ class Tree:
 	@property
 	def is_data(self):
 		"""Checks if this tree represents real data"""
-		return "truthVtx_x" not in self.tree.keys()
+		return b'truthVtx_x' not in self.tree.keys()
 
 	@property
 	def ndv(self):
