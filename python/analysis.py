@@ -703,7 +703,7 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_0_d0', self.tree.dv('trk_d0')[0])
 					self.fill_hist(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[0])
 					self.fill_hist(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[0])
-					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2_toSV')[0])
+					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[0])
 
 					self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[1])
 					self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[1])
@@ -711,7 +711,24 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_d0', self.tree.dv('trk_d0')[1])
 					self.fill_hist(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[1])
 					self.fill_hist(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[1])
-					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2_toSV')[1])
+					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[1])
+
+					for i in xrange(tracks.ntracks):
+						self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])
+						self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[i])
+						self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[i])
+						self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[i])
+						self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[i])
+						self.fill_hist(sel, 'DV_trk_absz0', abs(self.tree.dv('trk_z0')[i]))
+						self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[i])
+						self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2')[i])
+						self.fill_hist(sel, 'DV_trk_isLRT', self.tree.dv('trk_isLRT')[i])
+						self.fill_hist(sel, 'DV_trk_nPixelHits', self.tree.dv('trk_nPixelHits')[i])
+						self.fill_hist(sel, 'DV_trk_nSCTHits', self.tree.dv('trk_nSCTHits')[i])
+						# self.fill_hist(sel, 'DV_trk_nSCTHoles', self.tree.dv('trk_nSCTHoles')[i])
+						self.fill_hist(sel, 'DV_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i]+self.tree.dv('trk_nPixelHits')[i])
+						# self.fill_hist(sel, 'DV_trk_dTheta', self.tree.dv('trk_dTheta')[i])
+
 
 			# fill standard dv histograms
 			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
