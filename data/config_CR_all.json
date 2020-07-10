@@ -1,0 +1,24 @@
+{
+   
+"uu":{
+            "vtx_containers" : ["VSI", "VSI_Leptons"],
+            "selections":["CR", "nDV", "fidvol","2track","OS", "mumu","2-tight","DVmass" ]
+
+         },
+
+"eu":{
+            "vtx_containers" : ["VSI", "VSI_Leptons"],
+            "selections":["CR", "nDV", "fidvol","2track","OS", "emu","2-tight","DVmass" ] 
+
+         },
+
+"ee":{
+            "vtx_containers" : ["VSI", "VSI_Leptons"],
+            "selections":["CR", "nDV", "fidvol","2track","OS", "ee","2-tight","DVmass" ]
+
+         }
+
+
+}
+
+
