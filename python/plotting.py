@@ -51,193 +51,6 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 	MyC01.SaveAs(output_dir +savefilename+'.pdf')
 
 
-def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_max, output_dir, savefilename, ncuts=0):
-	h_idx = range(len(histograms))
-	
-	#get the number of cuts you are going to make 
-	if ncuts == 0: 
-		nbins = histograms[0].GetNbinsX()
-		step_size = (x_max- x_min) / nbins 
-	else: 
-		nbins = ncuts
-		step_size = (x_max- x_min) / nbins 
-
-	b = []
-	s = {}
-	s_label = {}
-	cut_list = []
-	# loop over all the histograms 
-	for i in h_idx:
-		#get the channel from the filename
-		channel = filenames[i].split(".root")[0].split("histograms_")[1]
-		s_label[channel] = labels[i]
-		#loop over the cut you made
-		for j in range(0,nbins+1):
-			cut = x_min + j*step_size
-			cut_list.append(cut)
-			cut_yield = histograms[i].Integral(histograms[i].FindFixBin(cut),-1)
-			full_yield = histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), -1)
-
-			# check if you have a background estimate (need a better way to do this) -DT
-			if 'data' in channel:
-				b.append(cut_yield)
-			else: 
-				if j == 0:
-					s[channel] = [cut_yield]
-				else:
-					s[channel].append(cut_yield)
-	if len(b) == 0:
-		print "Please provide a background estimate, if you want to calculate the significance. Exiting."
-		return
-
-	g_sig = {}
-	c2 = {}
-	leg = {}
-	for key in s:
-		g_sig[key] = ROOT.TGraph()
-		n_cuts = len(s[key])
-		yvals = []
-
-		if len(b) != n_cuts: 
-			print "Different number of signal and bkg cuts were applied. Cannot calculate significance. Exiting."
-			return
-
-		for npoint in range(n_cuts):
-			if b[npoint] != 0: 
-				significance_bkgONLY = s[key][npoint]/np.sqrt(b[npoint])
-				significance_sPLUSb = s[key][npoint]/np.sqrt(s[key][npoint] + b[npoint])
-				g_sig[key].SetPoint(npoint, cut_list[npoint], significance_bkgONLY)
-				yvals.append(significance_bkgONLY)
-
-
-		index = list(s).index(key)
-		g_sig[key].SetLineColor(plotting_helpers.histColours(index))
-		g_sig[key].SetMarkerColor(plotting_helpers.histColours(index))
-		g_sig[key].GetYaxis().SetTitle("s/\surdb")
-		g_sig[key].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
-		g_sig[key].SetLineWidth(2)
-		y_max = max(yvals)
-		g_sig[key].GetYaxis().SetRangeUser(0.00001, y_max*1.5)
-		c2[key] = ROOT.TCanvas("sig_canvas_{}".format(index), "", 1200, 800)
-		# format legend
-		leg[key] = ROOT.TLegend(0.65, 0.71, 0.92, 0.92)
-		leg[key].SetTextSize(0.035)
-		leg[key].SetBorderSize(0)
-		leg[key].SetFillColor(kWhite)
-		leg[key].SetShadowColor(kWhite)
-
-		leg[key].AddEntry(g_sig[key],"\\bf{%s}  )"%(s_label[key]),"l")
-		g_sig[key].Draw("AL")
-		leg[key].Draw()
-		
-		plotting_helpers.drawNotes(vtx_alg, lumi)
-
-		l = ROOT.TLatex()
-		l.SetNDC()
-		l.SetTextFont(43)
-		l.SetTextColor(1)
-		l.SetTextSize(20)
-		l.DrawLatex(0.715,0.855,"(     m_{HNL},      c\\tau,      chan.)")
-
-		output_path = output_dir +"Cut_significance/"
-		if not os.path.exists(output_path): os.mkdir(output_path)	
-		c2[key].SaveAs(output_path + savefilename + "_{}".format(key) + '.pdf')
-
-
-def makeAsimov(hbkg,hsignal,variable,selection, vtx_alg, scalelumi, datalumi, output_dir): 
-	#scale MC histogram to luminosity
-	c_asimov = ROOT.TCanvas("canvas_asimov_{}_{}".format(variable,vtx_alg), "", 1200, 800)
-	c_asimov.cd()
-
-	
-	outFile = ROOT.TFile(output_dir + "Asimov_dataset.root","update")
-	
-	asimov_name = "asimov_{}".format(variable)
-	signal_name = "signal_{}".format(variable)
-	bkg_name =  "bkg_{}".format(variable)
-
-	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
-	leg01.SetTextSize(0.035)
-	leg01.SetBorderSize(0)
-	leg01.SetFillColor(kWhite)
-	leg01.SetShadowColor(kWhite)
-	hsignal_clone = hsignal.Clone()
-	hsignal_clone.Scale(scalelumi)
-
-
-	hbkg_clone = hbkg.Clone()
-	hbkg_clone.Scale(scalelumi/datalumi)
-
-	hasimov = hsignal_clone.Clone(asimov_name)
-
-	hasimov.Add(hsignal_clone,hbkg_clone,1,1)
-
-
-	nbinsx = hasimov.GetXaxis().GetNbins()
-
-
-
-	for binx in range(1, nbinsx):
-		bin_content = hasimov.GetBinContent(binx)
-		bin_error = np.sqrt(bin_content)
-		hasimov.SetBinError(binx,bin_error)
-
-
-	# Move ROOT toe base directory
-	outFile.cd()
-	# Make a subdirectory for vertex type. May be other channels in the future.
-	if not outFile.FindObject(vtx_alg):
-		outFile.mkdir(vtx_alg, "Analysis Channel " + vtx_alg)
-	# Move ROOT to the channel subdirectory
-	outFile.cd(vtx_alg)
-
-
-	# Store saved histograms to file
-	sel_dir = vtx_alg + '/' + selection
-	if not outFile.GetDirectory(sel_dir):  # make TDirectory if necessary
-		outFile.mkdir(sel_dir, "Analysis Selection " + selection)
-	outFile.cd(sel_dir)  # change to TDirectory
-
-	hsignal.Write(signal_name)
-	hbkg.Write(bkg_name)
-	hasimov.Write(asimov_name) 
-	
-
-	hsignal_clone.SetFillColor(632)
-	hsignal_clone.SetLineColor(632)
-	color = ROOT.TColor()
-	hbkg_clone.SetFillColor(color.GetColor("#c2a5cf"))
-	hbkg_clone.SetLineColor(color.GetColor("#c2a5cf"))
-	hasimov.SetFillColor(0)
-	hasimov.SetLineColor(ROOT.kBlack)
-	hasimov.SetMarkerColor(ROOT.kBlack)
-	hasimov.SetMarkerStyle(20)
-	
-	leg01.AddEntry(hsignal_clone,"HNL signal","f")
-	leg01.AddEntry(hbkg_clone,"SS bkg","f")
-	leg01.AddEntry(hasimov,"Asimov data set")
-	a = ROOT.THStack("a_{}".format(variable),"Stacked 2D histograms")
-	a.Add(hbkg_clone)
-	a.Add(hsignal_clone)
-	
-	
-
-	# hsignal_clone.Draw("HIST")
-	# hbkg_clone.Draw("HIST SAME")
-	a.Draw("HIST")
-	a.GetXaxis().SetRangeUser(0,30)
-	a.GetXaxis().SetTitle("m_{HNL} [GeV]")
-	a.GetYaxis().SetRangeUser(0,a.GetMaximum()*2.5)
-
-	hasimov.Draw("E0 SAME")
-	
-	plotting_helpers.drawNotes(vtx_alg, scalelumi)
-	leg01.Draw("SAME")
-	c_asimov.SaveAs(output_dir + "Asimov_plot_{}_{}".format(vtx_alg,variable) + '.pdf')
-
-	outFile.Close()
-
-
 def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, setlogy=False, output_dir="../output",
 			save_name="", vertical_lines=[], labels=[], normalize=True, drawRatio=False, scalelumi=1.0,datalumi = 140.0, do_cut_significance=False, **kwargs):
 
@@ -281,6 +94,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
 	if do_cut_significance: 
 		makeAsimov(histograms[0],histograms[1],variable,selection, vtx_alg, scalelumi,datalumi, output_dir)
+
+	if variable == "HNLm": 
+		doBinningTest(tfiles[1],tfiles[0], variable,selection, vtx_alg, output_dir)
 	
 	n_h = len(histograms)
 	h_idx = range(len(histograms))
@@ -660,4 +476,249 @@ def CorrPlot2D(file, hname, hlabel,vertextype, setxrange="",setyrange="",rebinx=
 
 	MyC01.SaveAs(outputDir +savefilename+'.pdf')
 
+
+
+
+def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_max, output_dir, savefilename, ncuts=0):
+	h_idx = range(len(histograms))
+	
+	#get the number of cuts you are going to make 
+	if ncuts == 0: 
+		nbins = histograms[0].GetNbinsX()
+		step_size = (x_max- x_min) / nbins 
+	else: 
+		nbins = ncuts
+		step_size = (x_max- x_min) / nbins 
+
+	b = []
+	s = {}
+	s_label = {}
+	cut_list = []
+	# loop over all the histograms 
+	for i in h_idx:
+		#get the channel from the filename
+		channel = filenames[i].split(".root")[0].split("histograms_")[1]
+		s_label[channel] = labels[i]
+		#loop over the cut you made
+		for j in range(0,nbins+1):
+			cut = x_min + j*step_size
+			cut_list.append(cut)
+			cut_yield = histograms[i].Integral(histograms[i].FindFixBin(cut),-1)
+			full_yield = histograms[i].Integral(histograms[i].FindFirstBinAbove(0,1), -1)
+
+			# check if you have a background estimate (need a better way to do this) -DT
+			if 'data' in channel:
+				b.append(cut_yield)
+			else: 
+				if j == 0:
+					s[channel] = [cut_yield]
+				else:
+					s[channel].append(cut_yield)
+	if len(b) == 0:
+		print "Please provide a background estimate, if you want to calculate the significance. Exiting."
+		return
+
+	g_sig = {}
+	c2 = {}
+	leg = {}
+	for key in s:
+		g_sig[key] = ROOT.TGraph()
+		n_cuts = len(s[key])
+		yvals = []
+
+		if len(b) != n_cuts: 
+			print "Different number of signal and bkg cuts were applied. Cannot calculate significance. Exiting."
+			return
+
+		for npoint in range(n_cuts):
+			if b[npoint] != 0: 
+				significance_bkgONLY = s[key][npoint]/np.sqrt(b[npoint])
+				significance_sPLUSb = s[key][npoint]/np.sqrt(s[key][npoint] + b[npoint])
+				g_sig[key].SetPoint(npoint, cut_list[npoint], significance_bkgONLY)
+				yvals.append(significance_bkgONLY)
+
+
+		index = list(s).index(key)
+		g_sig[key].SetLineColor(plotting_helpers.histColours(index))
+		g_sig[key].SetMarkerColor(plotting_helpers.histColours(index))
+		g_sig[key].GetYaxis().SetTitle("s/\surdb")
+		g_sig[key].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
+		g_sig[key].SetLineWidth(2)
+		y_max = max(yvals)
+		g_sig[key].GetYaxis().SetRangeUser(0.00001, y_max*1.5)
+		c2[key] = ROOT.TCanvas("sig_canvas_{}".format(index), "", 1200, 800)
+		# format legend
+		leg[key] = ROOT.TLegend(0.65, 0.71, 0.92, 0.92)
+		leg[key].SetTextSize(0.035)
+		leg[key].SetBorderSize(0)
+		leg[key].SetFillColor(kWhite)
+		leg[key].SetShadowColor(kWhite)
+
+		leg[key].AddEntry(g_sig[key],"\\bf{%s}  )"%(s_label[key]),"l")
+		g_sig[key].Draw("AL")
+		leg[key].Draw()
+		
+		plotting_helpers.drawNotes(vtx_alg, lumi)
+
+		l = ROOT.TLatex()
+		l.SetNDC()
+		l.SetTextFont(43)
+		l.SetTextColor(1)
+		l.SetTextSize(20)
+		l.DrawLatex(0.715,0.855,"(     m_{HNL},      c\\tau,      chan.)")
+
+		output_path = output_dir +"Cut_significance/"
+		if not os.path.exists(output_path): os.mkdir(output_path)	
+		c2[key].SaveAs(output_path + savefilename + "_{}".format(key) + '.pdf')
+
+
+def makeAsimov(hbkg,hsignal,variable,selection, vtx_alg, scalelumi, datalumi, output_dir): 
+	#scale MC histogram to luminosity
+	c_asimov = ROOT.TCanvas("canvas_asimov_{}_{}".format(variable,vtx_alg), "", 1200, 800)
+	c_asimov.cd()
+
+	
+	outFile = ROOT.TFile(output_dir + "Asimov_dataset.root","update")
+	
+	asimov_name = "asimov_{}".format(variable)
+	signal_name = "signal_{}".format(variable)
+	bkg_name =  "bkg_{}".format(variable)
+
+	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
+	leg01.SetTextSize(0.035)
+	leg01.SetBorderSize(0)
+	leg01.SetFillColor(kWhite)
+	leg01.SetShadowColor(kWhite)
+	hsignal_clone = hsignal.Clone()
+	hsignal_clone.Scale(scalelumi)
+
+
+	hbkg_clone = hbkg.Clone()
+	hbkg_clone.Scale(scalelumi/datalumi)
+
+	hasimov = hsignal_clone.Clone(asimov_name)
+
+	hasimov.Add(hsignal_clone,hbkg_clone,1,1)
+
+
+	nbinsx = hasimov.GetXaxis().GetNbins()
+
+
+
+	for binx in range(1, nbinsx):
+		bin_content = hasimov.GetBinContent(binx)
+		bin_error = np.sqrt(bin_content)
+		hasimov.SetBinError(binx,bin_error)
+
+
+	# Move ROOT toe base directory
+	outFile.cd()
+	# Make a subdirectory for vertex type. May be other channels in the future.
+	if not outFile.FindObject(vtx_alg):
+		outFile.mkdir(vtx_alg, "Analysis Channel " + vtx_alg)
+	# Move ROOT to the channel subdirectory
+	outFile.cd(vtx_alg)
+
+
+	# Store saved histograms to file
+	sel_dir = vtx_alg + '/' + selection
+	if not outFile.GetDirectory(sel_dir):  # make TDirectory if necessary
+		outFile.mkdir(sel_dir, "Analysis Selection " + selection)
+	outFile.cd(sel_dir)  # change to TDirectory
+
+	hsignal.Write(signal_name)
+	hbkg.Write(bkg_name)
+	hasimov.Write(asimov_name) 
+	
+
+	hsignal_clone.SetFillColor(632)
+	hsignal_clone.SetLineColor(632)
+	color = ROOT.TColor()
+	hbkg_clone.SetFillColor(color.GetColor("#c2a5cf"))
+	hbkg_clone.SetLineColor(color.GetColor("#c2a5cf"))
+	hasimov.SetFillColor(0)
+	hasimov.SetLineColor(ROOT.kBlack)
+	hasimov.SetMarkerColor(ROOT.kBlack)
+	hasimov.SetMarkerStyle(20)
+	
+	leg01.AddEntry(hsignal_clone,"HNL signal","f")
+	leg01.AddEntry(hbkg_clone,"SS bkg","f")
+	leg01.AddEntry(hasimov,"Asimov data set")
+	a = ROOT.THStack("a_{}".format(variable),"Stacked 2D histograms")
+	a.Add(hbkg_clone)
+	a.Add(hsignal_clone)
+	
+	
+
+	# hsignal_clone.Draw("HIST")
+	# hbkg_clone.Draw("HIST SAME")
+	a.Draw("HIST")
+	a.GetXaxis().SetRangeUser(0,30)
+	a.GetXaxis().SetTitle("m_{HNL} [GeV]")
+	a.GetYaxis().SetRangeUser(0,a.GetMaximum()*2.5)
+
+	hasimov.Draw("E0 SAME")
+	
+	plotting_helpers.drawNotes(vtx_alg, scalelumi)
+	leg01.Draw("SAME")
+	c_asimov.SaveAs(output_dir + "Asimov_plot_{}_{}".format(vtx_alg,variable) + '.pdf')
+
+	outFile.Close()
+
+
+def doBinningTest(sig_file,bkg_file, variable,selection, vtx_alg, output_dir): 
+	# print sig_file
+	# print bkg_file
+	tmp_hist_name = "{}".format(variable)
+	h_signal = ROOT.TH1D(tmp_hist_name+"_sig", tmp_hist_name+"_sig", 32, 0, 64)  # create empty histogram
+	ttree_sig = sig_file.Get('{}_ntuples_{}'.format(vtx_alg, selection))  # get TTree
+	if not ttree_sig:
+		raise KeyError('Cannot find {}_ntuples_{} micro-ntuple in sig_file {}'.format(vtx_alg, selection, sig_file))
+	ttree_sig.Draw(variable+'>>'+tmp_hist_name+"_sig", '(DV_mass > 2)*DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
+
+	h_bkg = ROOT.TH1D(tmp_hist_name+"_bkg", tmp_hist_name+"_bkg", 16, 0, 64)  # create empty histogram
+	h_bkg_rebin = ROOT.TH1D(tmp_hist_name+"_bkg_rebin", tmp_hist_name+"_bkg_rebin", 32, 0, 64)  # create empty histogram
+
+	ttree_bkg = bkg_file.Get('{}_ntuples_{}'.format(vtx_alg, selection))  # get TTree
+	# ttree_bkg.Print()
+	if not ttree_bkg:
+		raise KeyError('Cannot find {}_ntuples_{} micro-ntuple in bkg_file {}'.format(vtx_alg, selection, bkg_file))
+	ttree_bkg.Draw(variable+'>>'+tmp_hist_name+"_bkg", '(DV_mass > 2)*DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
+
+	#rebin data histogram only to be 2 GeV bin widths 
+	nbinsx = h_bkg.GetXaxis().GetNbins()
+
+	for binx in range(1, nbinsx):
+		if binx <= nbinsx:
+			ibin = h_bkg.GetBin(binx)
+			old_bin_content = h_bkg.GetBinContent(ibin,0)
+			new_bin_content = old_bin_content/2.0
+
+			h_bkg_rebin.AddBinContent(binx*2, new_bin_content)
+			h_bkg_rebin.AddBinContent(binx*2-1, new_bin_content)
+
+	print "old histogram yield: ",  round(h_bkg.Integral(h_bkg.FindFirstBinAbove(0,1), -1),2)
+	print "new histogram yield: ",  round(h_bkg_rebin.Integral(h_bkg_rebin.FindFirstBinAbove(0,1), -1),2)
+
+	outFile = ROOT.TFile(output_dir + "BinningTest.root","update")
+
+	# Move ROOT toe base directory
+	outFile.cd()
+	# Make a subdirectory for vertex type. May be other channels in the future.
+	if not outFile.FindObject(vtx_alg):
+		outFile.mkdir(vtx_alg, "Analysis Channel " + vtx_alg)
+	# Move ROOT to the channel subdirectory
+	outFile.cd(vtx_alg)
+
+	# Store saved histograms to file
+	sel_dir = vtx_alg + '/' + selection +"_2GeVcut"
+	if not outFile.GetDirectory(sel_dir):  # make TDirectory if necessary
+		outFile.mkdir(sel_dir, "Analysis Selection " + selection)
+	outFile.cd(sel_dir)  # change to TDirectory
+
+
+	h_signal.Write(tmp_hist_name+"_sig")
+	h_bkg.Write(tmp_hist_name+"_bkg")
+	h_bkg_rebin.Write(tmp_hist_name+"_bkg_rebin")
+	outFile.Close()
 
