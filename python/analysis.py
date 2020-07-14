@@ -816,7 +816,7 @@ class oldAnalysis(Analysis):
 
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
-		self.add('CutFlow', 14, -0.5, 13.5)
+		self.add('CutFlow', 15, -0.5, 14.5)
 		# Bin labels are 1 greater than histogram bins
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
@@ -853,7 +853,7 @@ class oldAnalysis(Analysis):
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
 		if self.do_dv_mass_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
-		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "truth matched")
+		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "truth matched")
 
 	
 	def DVSelection(self):
