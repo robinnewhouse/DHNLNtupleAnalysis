@@ -287,9 +287,9 @@ class FileInfo:
 		
 		if "r11915" in infile or "mc16a" in infile or "r10740" in infile:
 			self.MC_campaign = "mc16a"
-		if "r11916" in infile or "mc16d" in infile or "r10740" in infile:
+		if "r11916" in infile or "mc16d" in infile or "r10739" in infile:
 			self.MC_campaign = "mc16d"
-		if "r11891" in infile or "mc16e" in infile or "r10740" in infile:
+		if "r11891" in infile or "mc16e" in infile or "r10790" in infile:
 			self.MC_campaign = "mc16e"
 
 		# More flexibility for non-signal samples
