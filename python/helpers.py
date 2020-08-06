@@ -41,6 +41,7 @@ class Truth():
 		self.HNL_vec = ROOT.TLorentzVector()
 		self.dNu_vec =  ROOT.TLorentzVector()
 		self.trkVec = []
+		self.dLepVec = []
 		self.truth_dvx = -1
 		self.truth_dvy = -1
 		self.truth_dvz = -1
@@ -64,34 +65,74 @@ class Truth():
 					self.truth_dvz = tree['truthVtx_z'][ivx]
 					self.truth_dvr = np.sqrt(self.truth_dvx**2 + self.truth_dvy**2)
 
-					trkVec0 =  ROOT.TLorentzVector()
-					trkVec1 =  ROOT.TLorentzVector()
+					visTrkVec =  ROOT.TLorentzVector()
+					truthVec  =  ROOT.TLorentzVector()
 					nu_vec =  ROOT.TLorentzVector()
 
+					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
+						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
+						if trk_pdgId == 13 or trk_pdgId == 11: # is track a muon of electron? Then these are our visible (charged) truth tracks
+							visTrkVec =  ROOT.TLorentzVector()
+							visTrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+												tree['truthVtx_outP_eta'][ivx][i],
+												tree['truthVtx_outP_phi'][ivx][i],
+												tree['truthVtx_outP_M'][ivx][i] 
+												)
+							# print trk_pdgId
+							# print visTrkVec.M()
+							self.trkVec.append(visTrkVec) #only add visible leptons to trkVec list
+						else: # remaining child is the neutrino
+							nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+												tree['truthVtx_outP_eta'][ivx][i],
+												tree['truthVtx_outP_phi'][ivx][i],
+												tree['truthVtx_outP_M'][ivx][i]
+												)
+							self.dNu_vec = nu_vec
 
-					trkVec0.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][0],
-										tree['truthVtx_outP_eta'][ivx][0],
-										tree['truthVtx_outP_phi'][ivx][0],
-										tree['truthVtx_outP_M'][ivx][0]
-										)
-					trkVec1.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][1],
-										tree['truthVtx_outP_eta'][ivx][1],
-										tree['truthVtx_outP_phi'][ivx][1],
-										tree['truthVtx_outP_M'][ivx][1]
-										)
-					nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][2],
-										tree['truthVtx_outP_eta'][ivx][2],
-										tree['truthVtx_outP_phi'][ivx][2],
-										tree['truthVtx_outP_M'][ivx][2]
-										)
-					self.trkVec.append(trkVec0)
-					self.trkVec.append(trkVec1)
+						# dLepVec  =  ROOT.TLorentzVector()
+						# dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+						# 						tree['truthVtx_outP_eta'][ivx][i],
+						# 						tree['truthVtx_outP_phi'][ivx][i],
+						# 						tree['truthVtx_outP_M'][ivx][i]
+						# 						)
+					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
+						dLepVec  =  ROOT.TLorentzVector()
+						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
+						if trk_pdgId == 13: #add electron first
+							dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+													tree['truthVtx_outP_eta'][ivx][i],
+													tree['truthVtx_outP_phi'][ivx][i],
+													tree['truthVtx_outP_M'][ivx][i]
+													)
+							self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
+
+					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
+						dLepVec  =  ROOT.TLorentzVector()
+						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
+						if trk_pdgId == 14 or trk_pdgId == 12: #add neutrino first
+							dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+													tree['truthVtx_outP_eta'][ivx][i],
+													tree['truthVtx_outP_phi'][ivx][i],
+													tree['truthVtx_outP_M'][ivx][i]
+													)
+							self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
+					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
+						dLepVec  =  ROOT.TLorentzVector()
+						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
+						if trk_pdgId == 11: #add muon last
+							dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+													tree['truthVtx_outP_eta'][ivx][i],
+													tree['truthVtx_outP_phi'][ivx][i],
+													tree['truthVtx_outP_M'][ivx][i]
+													)
+							self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
 
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],
 											tree['truthVtx_parent_phi'][ivx],
 											tree['truthVtx_parent_M'][ivx]
 											)
+
 
 			# get the primary vertex
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 24:  # PDGID 24: W Boson
@@ -126,7 +167,10 @@ class Tracks():
 	def __init__(self, tree):
 		self.tree = tree
 		self.lepVec = []
+		truthlepCharge = []
 		self.lepIndex = []
+		self.lepCharge = []
+		self.lepisAssoc = []
 		self.eta = []
 		self.phi = []
 		self.pt = []
@@ -163,6 +207,10 @@ class Tracks():
 
 					self.lepVec.append(lepVec)
 					self.lepIndex.append(muon_index)
+					self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
+					self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
+					
+
 				else:
 					continue
 
@@ -206,6 +254,8 @@ class Tracks():
 
 					self.lepVec.append(lepVec)
 					self.lepIndex.append(el_index)
+					self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
+					self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 				else:
 					continue
 
@@ -229,6 +279,8 @@ class Tracks():
 			self.eta.append(eta)
 			self.phi.append(phi)
 			self.pt.append(pt)
+			self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
+			self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 
 
 class FileInfo:
