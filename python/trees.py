@@ -39,7 +39,8 @@ class Tree:
 		self.file = uproot.open(file_name)
 		self.tree = self.file[tree_name]
 		self.cutflow = self.file["cutflow"]
-		self.allentries = self.cutflow[1]
+		self.all_entries = self.cutflow[1]  
+		self.init_entries = self.cutflow[2]  # init entries
 		self.vtx_container = ""
 		self.weight = self.get_weight(mass, ctau) if not weight_override else weight_override
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.weight))
@@ -147,7 +148,7 @@ class Tree:
 				else: U2 = U2Gronau
 
 				xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-				self.weight = 1 * xsec / self.allentries  # scale to 1 fb^-1  of luminosity
+				self.weight = 1 * xsec / self.all_entries  # scale to 1 fb^-1  of luminosity
 
 		return self.weight
 

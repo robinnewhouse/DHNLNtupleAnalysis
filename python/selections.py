@@ -330,7 +330,7 @@ class DVntracks():
 
 
 class ChargeDV():
-	def __init__(self, tree, sel="OS", decaymode="leptonic"):
+	def __init__(self, tree, sel="OS", decaymode="leptonic",trk_charge=[]):
 		self.decaymode = decaymode
 		self.sel = sel
 		self.ntracks = -1
@@ -340,17 +340,23 @@ class ChargeDV():
 		self.two_plus = False
 		self.two_minus = False
 
+
 		if self.decaymode == "leptonic":
 			self.ntracks = tree.ntrk
 
 			if self.ntracks == 2: 
 				self.charge_trk1 = tree.dv('trk_charge')[0]
-				self.charge_trk2 = tree.dv('trk_charge')[1]
+				self.charge_trk2 = tree.dv('trk_charge')[1]	
+			else: 
+				if len(trk_charge) == 2: 
+					self.charge_trk1 = trk_charge[0]
+					self.charge_trk2 = trk_charge[1]
 
-				if self.charge_trk1 == 1 and self.charge_trk2 == 1: 
+			if self.charge_trk1 == 1 and self.charge_trk2 == 1: 
 					self.two_plus = True
-				if self.charge_trk1 == -1 and self.charge_trk2 == -1: 
-					self.two_minus = True
+			if self.charge_trk1 == -1 and self.charge_trk2 == -1: 
+				self.two_minus = True
+
 
 	def passes(self): 
 		if self.sel == 'OS':
@@ -364,11 +370,13 @@ class ChargeDV():
 			return False
 
 
+
 class DVtype():
 	def __init__(self, tree, dv_type, decaymode="leptonic"):
 		self.tree = tree
 		self.decaymode = decaymode
 		self.dv_type = dv_type
+		self.lepton_charge = []
 
 		if self.decaymode == "leptonic":
 			self.ntracks = self.tree.ntrk
@@ -391,6 +399,8 @@ class DVtype():
 				mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
 
 				if mu1_type == combined:  # Only count combined muons 
+					self.lepton_charge.append(self.electrons.lepCharge[0])
+					self.lepton_charge.append(self.muons.lepCharge[0])
 					return True
 				else:
 					return False
@@ -403,6 +413,8 @@ class DVtype():
 				mu2_type = self.tree['muon_type'][self.muons.lepIndex[1]]
 
 				if mu1_type == combined and mu2_type == combined:  # Only count combined muons
+					self.lepton_charge.append(self.muons.lepCharge[0])
+					self.lepton_charge.append(self.muons.lepCharge[1])
 					return True
 				else:
 					return False
@@ -412,17 +424,21 @@ class DVtype():
 		elif self.dv_type == "ee":
 			if self.nel == 2: 
 				return True
+				lepton_charge.append(self.electrons.lepCharge[0])
+				lepton_charge.append(self.electrons.lepCharge[1])
 			else:
 				return False
 
 		elif self.dv_type == "mumu-notcomb":
 			if self.nmu == 2:
+				lepton_charge.append(self.muons.lepCharge[0])
+				lepton_charge.append(self.muons.lepCharge[1])
 				return True
 			else: 
 				return False
 
 		elif self.dv_type == "1-lep":
-			if self.nmu > 0 or self.nel> 0: 					
+			if self.nmu > 0 or self.nel> 0: 			
 				return True
 			else: 
 				return False
