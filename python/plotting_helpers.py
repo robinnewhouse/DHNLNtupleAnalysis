@@ -25,8 +25,10 @@ def drawNotes(VtxConfig,lumi,channel=None):
 	
 	ax = 0.22
 	ay = 0.82
-
-	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
+	if lumi != "":
+		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
+	else: 
+		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV")
 	if VtxConfig == "VSI_Leptons": 
 		b.DrawLatex(ax,ay-0.05,'VSI Leptons')
 	else: 
@@ -134,14 +136,17 @@ x_label_names = {
 	"redmass": "reduced DV mass [GeV]",
 	"redmassvis": "reduced visible mass [GeV]",
 	"redmassHNL": "reduced HNL mass [GeV]",
+	"DV_trk_d0_wrtSV": "d0/errd0 wrt SV",
+	"DV_trk_z0_wrtSV": "z0/errz0 wrt SV"
 }
 
-
+ 
 def get_x_label(hist_name):
 	if hist_name in x_label_names:
 		return x_label_names[hist_name]
 	else:
 		return hist_name
+
 
 def xlabelhistograms(hist):
 	if "DV_r" in hist:
