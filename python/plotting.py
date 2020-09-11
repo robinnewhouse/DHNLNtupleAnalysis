@@ -25,15 +25,38 @@ shapelist = [22, 21, 33, 29, 30, 31, 32, 34, 35]
 def plot_cutflow(file, vertextype, output_dir="../output/"):
 	Tfile = ROOT.TFile(file)
 	hcutflow = Tfile.Get('{}/CutFlow/CutFlow_{}'.format(vertextype,vertextype))
+	# hcutflow = Tfile.Get('{}/CutFlow/acceptance'.format(vertextype))
 	MyC01= ROOT.TCanvas("MyC01","cutflow",1200,400)
+	# MyC01= ROOT.TCanvas("MyC01","cutflow",900,400)
 	gPad.SetLogy()
 	ymax_cutflow = hcutflow.GetMaximum()
 	hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow*1000)
+	# hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow*1.4) # acceptance plot needs to be rescaled
 	hcutflow.SetFillColor(kAzure-4)
+	# color = ROOT.TColor()
+	# ncolor = color.GetColor("#FF7E00")
+	# hcutflow.SetFillColor(ncolor)
 	hcutflow.SetLineWidth(0)
 	hcutflow.GetYaxis().SetTickLength(0.)
 	hcutflow.SetMarkerSize(2.2)
-	hcutflow.Draw("HIST TEXT35 SAME")
+	# hcutflow.Scale(140*0.00087499) # TO DO: get scaling weight for the histograms automatically from the DV_weight variable!
+	hcutflow.GetXaxis().SetLabelSize(0.05)
+	hcutflow.GetXaxis().SetRange(1,12)
+	# hcutflow.SeFF7E00
+	# hcutflow.LabelsOption("v")
+
+	#get rounded numbers to draw on histogram
+	hcutflow.Draw("HIST SAME")
+	text = ROOT.TLatex()
+	text.SetTextAlign(21)
+	text.SetTextColor(hcutflow.GetMarkerColor());
+	text.SetTextSize(0.03*hcutflow.GetMarkerSize());
+	# text.SetTextAngle(35)
+	for j in xrange(1, hcutflow.GetNbinsX()+1):
+		x  = hcutflow.GetXaxis().GetBinCenter(j)
+		y  = hcutflow.GetBinContent(j)
+		if y != 0.0: 
+			text.DrawLatex(x, y+0.5, '%.1f' % y)
 
 	channel = file.split(".root")[0].split("histograms_")[1]
 
@@ -239,7 +262,7 @@ def makeAsimov(hbkg,hsignal,variable,selection, vtx_alg, scalelumi, datalumi, ou
 
 
 def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, setlogy=False, output_dir="../output",
-			save_name="", vertical_lines=[], labels=[], normalize=True, drawRatio=False, scalelumi=1.0,datalumi = 140.0, do_cut_significance=False, **kwargs):
+			save_name="", vertical_lines=[], labels=[], normalize=True, drawRatio=False, customVariable = False, scalelumi=1.0,datalumi = 140.0, do_cut_significance=False, **kwargs):
 
 	histograms = []
 	filenames = []
@@ -247,6 +270,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	channels = []  # TODO: Why do we need channels? It seems to be never used.
 	tfiles = []  # root is stupid and will close the file if you're not careful
 	# for key, val in hist_channels.items():
+	ROOT.gStyle.SetOptTitle(0)
 	for nhist in range(len(hist_channels)):
 		filename = hist_channels[nhist][0]
 		label = hist_channels[nhist][1]
@@ -262,12 +286,36 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			if setrange is None or 'ntup_nbins' not in kwargs:
 				raise ValueError('to use the ntuple, you must supply the range (e.g. setrange=(0,1000) '
 								 'and the number of bins (e.g. ntup_nbins=40) in the arguments)')
+
 			tmp_hist_name = "{}_{}_{}".format(vtx_alg, selection, variable)
 			ntup_hist = ROOT.TH1D(tmp_hist_name, tmp_hist_name, kwargs['ntup_nbins'], setrange[0], setrange[1])  # create empty histogram
-			ttree = tfiles[nhist].Get('{}_ntuples_{}'.format(vtx_alg, selection))  # get TTree
-			if not ttree:
-				raise KeyError('Cannot find {}_ntuples_{} micro-ntuple in file {}'.format(vtx_alg, selection, tfiles[nhist]))
-			ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
+			ROOT.gStyle.SetOptTitle(0)
+			if customVariable: 
+				if not 'variable2' in kwargs or not 'customVariableAction'in kwargs:
+					raise ValueError('To use a custom variable you must give variable, variable2 and a customVariableAction. Supported actions include "divide" and "multiply".')
+				chain = ROOT.TChain('{}_ntuples_{}'.format(vtx_alg, selection)) 
+				if not chain:
+					raise KeyError('Cannot find {}_ntuples_{} micro-ntuple in file {}'.format(vtx_alg, selection, tfiles[nhist]))
+				chain.Add(filename) 
+
+				for event in chain: 
+					var1 = event.GetLeaf(variable).GetValue() 
+					var2 = event.GetLeaf(kwargs['variable2']).GetValue() 
+					if kwargs['customVariableAction'] == "divide":
+						customVar = var1/var2
+						ntup_hist.GetXaxis().SetTitle("{}/{}".format(variable, kwargs['variable2'] ))
+					if kwargs['customVariableAction'] == "multiply":
+						customVar = var1*var2
+						ntup_hist.GetXaxis().SetTitle("{}*{}}".format(variable, kwargs['variable2'] ))
+					ntup_hist.Fill(customVar)
+			else: 
+				ttree = tfiles[nhist].Get('{}_ntuples_{}'.format(vtx_alg, selection))  # get TTree
+				if not ttree:
+					raise KeyError('Cannot find {}_ntuples_{} micro-ntuple in file {}'.format(vtx_alg, selection, tfiles[nhist]))
+			
+				ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
+				# ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_mass > 2)')  # fill histogram with data from ttree. weighted with DV_weight
+			ntup_hist.SetTitle("")
 			histograms.append(ntup_hist)
 		else:
 			histogram = tfiles[nhist].Get(hist_path)
@@ -284,7 +332,6 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	
 	n_h = len(histograms)
 	h_idx = range(len(histograms))
-
 	# define your canvas
 	c = ROOT.TCanvas("canvas", "", 1200, 800)
 	if drawRatio:
@@ -297,7 +344,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
 	# format legend
 	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
-	leg01.SetTextSize(0.035)
+	leg01.SetTextSize(0.025)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
@@ -307,9 +354,10 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		for i in h_idx:
 			histograms[i].Rebin(nRebin)
 
+			
 	# find the common min and max for x axis	
 	if setrange is None:
-		bin_xmin, bin_xmax = (np.inf, -np.inf)
+		bin_xmin, bin_xmax = (-np.inf, np.inf)
 		for i in h_idx:
 			if histograms[i].FindFirstBinAbove(0, 1) > bin_xmin:
 				bin_xmin = histograms[i].FindFirstBinAbove(0, 1)
@@ -329,7 +377,6 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			norm = kwargs['norm']
 		else: 
 			norm = 1
-
 		for i in h_idx:
 			if (histograms[i].Integral() != 0):
 				scale_mc = norm/(histograms[i].Integral(bin_xmin, bin_xmax))
@@ -341,10 +388,12 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	else: 
 		for i in h_idx:
 			if 'SS bkg' in labels[i]:
-				#scale data histograms to 140 fb-1
+				#scale data histograms to scalelumi
 				scale_data = scalelumi / datalumi
 				histograms[i].Scale(scale_data)
+				
 			else:
+				#scale MC histograms to scalelumi
 				histograms[i].Scale(scalelumi)
 
 	# calculate yields
@@ -354,17 +403,17 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		# if data in list, add it to the legend first
 		if 'SS bkg' in labels[i]: 
 			if normalize:
-				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"l")
 			else: 
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"l")
 	#add non-data histograms to legend 
 	leg01.AddEntry(histograms[0],"","")
 	for i in h_idx:
 		if 'SS bkg' not in labels[i]: 
 			if normalize: 
-				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"f")
 			else:
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"lp")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"f")
 		
 
 	# set the common x limits for all histograms
@@ -387,23 +436,37 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 				histograms[i].GetXaxis().SetBinLabel(j+1, label)
 		histograms[i].SetMarkerSize(1.5)
 		if 'SS bkg' in labels[i]: 
-			histograms[i].SetLineColor(plotting_helpers.bkgColours(i))
+			histograms[i].SetLineColor(plotting_helpers.bkgColours(0))
 			# histograms[i].SetFillColor(plotting_helpers.bkgColours(i))
-			histograms[i].SetMarkerColor(plotting_helpers.bkgColours(i))
+			histograms[i].SetMarkerColor(plotting_helpers.bkgColours(0))
 			histograms[i].SetLineWidth(2)
-			histograms[i].SetMarkerStyle(20)
+			# histograms[i].SetMarkerStyle(20)
 		else: 
-			histograms[i].SetLineWidth(2)
-			histograms[i].SetLineColor(plotting_helpers.histColours(i-1))
-			histograms[i].SetMarkerColor(plotting_helpers.histColours(i-1))
-			histograms[i].SetMarkerStyle(shapelist[i-1])
-
-		histograms[i].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
+			histograms[i].SetLineWidth(1)
+			histograms[i].SetFillColor(plotting_helpers.histColours(i))
+			histograms[i].SetLineColor(ROOT.kBlack)
+			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
+			histograms[i].SetMarkerStyle(shapelist[i])
+		if customVariable == False:
+			histograms[i].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
 		if not variable: histograms[i].GetXaxis().SetTitle(save_name)
 		histograms[i].GetYaxis().SetTitle("entries")
 		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
-		histograms[i].Draw("E0 HIST SAME")
+		# histograms[i].GetYaxis().SetRangeUser(0,400)
+		histograms[i].Draw("HIST SAME")
+		# histograms[i].Draw("E0 HIST SAME") # plot with errors
 
+		# get rounded numbers to draw on histogram
+		# text = ROOT.TLatex()
+		# text.SetTextAlign(21)
+		# text.SetTextColor(histograms[i].GetMarkerColor());
+		# text.SetTextSize(0.02*histograms[i].GetMarkerSize());
+
+		# for j in xrange(1, histograms[i].GetNbinsX()+1):
+		# 	x  = histograms[i].GetXaxis().GetBinCenter(j)
+		# 	y  = histograms[i].GetBinContent(j)
+		# 	if y != 0.0: 
+		# 		text.DrawLatex(x, y+0.3, '%.1f' % y)
 	
 	if setlogy:
 		gPad.SetLogy()
@@ -425,7 +488,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	l.SetNDC()
 	l.SetTextFont(43)
 	l.SetTextColor(1)
-	l.SetTextSize(20)
+	l.SetTextSize(18)
 	if 'draw_channel_info' in kwargs:
 		if kwargs['draw_channel_info']:
 			l.DrawLatex(0.65,0.855,"(  m_{HNL},    c\\tau,    chan.,     yield)")
@@ -436,6 +499,10 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	if normalize: 
 		plotting_helpers.drawNotes(vtx_alg, "")
 	else: 
+		# if "VSI_" in vtx_alg:
+		# 	vtx = "VSI"
+		# if "VSI_Leptons_" in vtx_alg:
+		# 	vtx = "VSI_Leptons"
 		plotting_helpers.drawNotes(vtx_alg, scalelumi)
 
 	if 'notes' in kwargs:
@@ -489,12 +556,20 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		hratio.Draw("ep")
 		line1.Draw("SAME")
 
-	save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
+	if customVariable == True: 
+		if save_name == "": 
+			save_file_name = "{}_{}_{}_{}".format(selection, variable ,kwargs["variable2"],kwargs["customVariableAction"])
+		else: 
+			save_file_name = "{}_{}".format(selection, save_name)
+	else:
+		save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
 
 	# Clean output directory
-	if vtx_alg == "VSI": 
+	# if vtx_alg == "VSI": 
+	if "VSI_LRT" in vtx_alg: 
 		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI/')
-	elif vtx_alg == "VSI_Leptons": 
+	# elif vtx_alg == "VSI_Leptons": 
+	elif "VSI_Leptons_LRT" in vtx_alg: 
 		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI_Leptons/')
 	else:
 		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/')
