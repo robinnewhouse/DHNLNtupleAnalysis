@@ -1,4 +1,4 @@
-# Plotting Script
+	# Plotting Script
 import os, math, ROOT, json,sys
 import numpy as np
 from ROOT import *
@@ -27,10 +27,10 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 # globals
 outputDir = '../output/rerunVSI_LRTcomboTest/' # change path here to save your histograms somewhere else!
 MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
-normalize = True
+normalize = False
 setlogy = False
 drawRatio=False
-draw_channel_info = False
+draw_channel_info = True
 do_cut_significane = True
 
 #############################################################################################################################################
@@ -44,8 +44,8 @@ def makeCutflows(config_file):
 							  output_dir=outputDir)
 		nMCfiles = len(config_file["mcFiles"])
 
-		for i in range(nMCfiles): 
-			plotting.plot_cutflow(file = config_file["mcFiles"][i],
+		# for i in range(nMCfiles): 
+		plotting.plot_cutflow(file = config_file["mcFiles"][1],
 								  vertextype= vtx_channel,
 								  output_dir=outputDir)
 
@@ -76,7 +76,10 @@ def check_rerunningVSI(config_file, selection):
 def compare_histograms(config_file, selection):
 	# vtx_channels = ["VSI", "VSI_Leptons"]
 
-	vtx_channels = ["VSI","VSI_Leptons"]
+	# vtx_channels = ["VSI"]
+	# vtx_channels = ["VSI","VSI_Leptons"]
+	# vtx_channels = ["VSI","VSI_Leptons", "VSI_LRTR3_1p0"]
+	vtx_channels = ["VSI_LRTR3_1p0"]
 	for vtx_channel in vtx_channels:
 		hist_channels = []
 		hist_channels_multitrk = []
@@ -91,20 +94,31 @@ def compare_histograms(config_file, selection):
 	# 	hist_channels.append([config_file["dataFile"],"( data VSI", "{}".format(vtx_channel), selection])
 
 		# LRT d0 combo test
-		hist_channels.append([config_file["mcFiles"][0],"( sig. 0mm d0 w LRT cuts", "{}_LRTR3_0p0".format(vtx_channel), selection])
-		hist_channels_multitrk.append([config_file["mcFiles"][0],"( sig. 0mm d0 w LRT cuts", "{}_LRTR3_0p0".format(vtx_channel), "2lepMultitrk"])
-		hist_channels.append([config_file["dataFile"],"( SS bkg 0mm d0 w LRT cuts", "{}_LRTR3_0p0".format(vtx_channel), selection])
+		# hist_channels.append([config_file["mcFiles"][0],"( sig. 0mm d0 w LRT cuts", "{}_LRTR3_0p0".format(vtx_channel), selection])
+		# hist_channels.append([config_file["dataFile"],"( SS bkg 0mm d0 w LRT cuts", "{}_LRTR3_0p0".format(vtx_channel), selection])
+		# hist_channels_multitrk.append([config_file["mcFiles"][0],"( sig. 0mm d0 w LRT cuts", "{}_LRTR3_0p0".format(vtx_channel), "2lepMultitrk"])
 		# hist_channels_multitrk.append([config_file["dataFile"],"( SS bkg 0mm d0 w LRT cuts", "{}_LRTR3_0p0".format(vtx_channel), '2lepMultitrk'])
+
+		#VSILep Mod test
+		# hist_channels.append([config_file["mcFiles"][0],"( sig. 1mm d0 w LRT cuts", "{}_LRTR3_1p0".format(vtx_channel), selection])
+		# hist_channels.append([config_file["dataFile"],"( SS bkg 0mm d0 w LRT cuts", "{}_LRTR3_0p0".format(vtx_channel), selection])
+		# hist_channels_multitrk.append([config_file["mcFiles"][0],"( sig. 1mm d0 w LRT cuts", "{}_LRTR3_1p0".format(vtx_channel), "2lepMultitrk"])
 
 		# hist_channels.append([config_file["dataFile"],"( SS bkg 1mm d0 ", "{}_d0min_1p0".format(vtx_channel), selection])
 		# hist_channels.append([config_file["mcFiles"][0],"( sig. 1mm d0 ", "{}_d0min_1p0".format(vtx_channel), selection])
 
+
 		# hist_channels.append([config_file["dataFile"],"( SS bkg 1mm d0 w LRT cuts", "{}_LRTR3_1p0".format(vtx_channel), selection])
-		# hist_channels.append([config_file["mcFiles"][0],"( sig. 1mm d0 w LRT cuts", "{}_LRTR3_1p0".format(vtx_channel), selection])
+		# hist_channels.append([config_file["dataFile"],"( SS bkg 1mm d0 w LRT cuts VSIL Mod", "VSI_LeptonsMod_LRTR3_1p0", selection])
 		# hist_channels.append([config_file["dataFile"],"( SS bkg 2mm d0 w LRT cuts", "{}_LRTR3_2p0".format(vtx_channel), selection])
 		# hist_channels.append([config_file["mcFiles"][0],"( sig. 2mm d0 w LRT cuts", "{}_LRTR3_2p0".format(vtx_channel), selection])
 
-		# hist_channels.append([config_file["dataFile"],"( SS bkg original ", "{}".format(vtx_channel), selection])
+		
+		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], "{}".format(vtx_channel), selection])
+		hist_channels.append([config_file["mcFiles"][1],config_file["mcLabels"][1], "{}".format(vtx_channel), selection])
+		hist_channels.append([config_file["mcFiles"][2],config_file["mcLabels"][2], "{}".format(vtx_channel), selection])
+		hist_channels.append([config_file["dataFile"],"( SS bkg", "{}".format(vtx_channel), selection])
+
 		# hist_channels.append([config_file["mcFiles"][0],"( sig. original ", "{}".format(vtx_channel), selection])
 
 
@@ -135,106 +149,376 @@ def compare_histograms(config_file, selection):
 		# hist_channels.append([config_file["dataFile"],config_file["dataLabel"], "VSI_LRTR3", selection])
 		# hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], "VSI_LRTR3", selection])
 
-		plotting.compare(hist_channels_multitrk,
-					 variable='num_trks',
-					 # nRebin=10,
-					 # setrange=(0, 350),
-					 # setrange=(0, 10),
-					 setlogy = setlogy,
-					 scaleymax=1.6,
-					 scalelumi = scalelumi,
-					 datalumi = datalumi,
-					 drawRatio = drawRatio,
-					 ratioLabel = ratioLabel,
-					 normalize = False,
-					 draw_channel_info= draw_channel_info,
-					 #vertical_lines=MATERIAL_LAYERS,
-					 #vertical_legend="Material Layers",
-					 output_dir= outputDir,
-					 use_ntuple = False,
-					 ntup_nbins=350,
-					 )
+		# plotting.compare(hist_channels_multitrk,
+		# 			 variable='num_trks',
+		# 			 # nRebin=10,
+		# 			 # setrange=(0, 350),
+		# 			 setrange=(2, 12),
+		# 			 setlogy = False,
+		# 			 scaleymax=1.6,
+		# 			 scalelumi = scalelumi,
+		# 			 datalumi = datalumi,
+		# 			 drawRatio = drawRatio,
+		# 			 ratioLabel = ratioLabel,
+		# 			 normalize = False,
+		# 			 draw_channel_info= draw_channel_info,
+		# 			 #vertical_lines=MATERIAL_LAYERS,
+		# 			 #vertical_legend="Material Layers",
+		# 			 output_dir= outputDir,
+		# 			 use_ntuple = False,
+		# 			 ntup_nbins=350,
+		# 			 )
 
-		plotting.compare(hist_channels_multitrk,
-					 variable='onemuon_isAssociated',
-					 # nRebin=10,
-					 # setrange=(0, 350),
-					 setrange=(-0.5, 1.5),
-					 setlogy = setlogy,
-					 scaleymax=1.6,
-					 scalelumi = scalelumi,
-					 datalumi = datalumi,
-					 drawRatio = drawRatio,
-					 ratioLabel = ratioLabel,
-					 normalize = False,
-					 draw_channel_info= draw_channel_info,
-					 #vertical_lines=MATERIAL_LAYERS,
-					 #vertical_legend="Material Layers",
-					 output_dir= outputDir,
-					 use_ntuple = False,
-					 ntup_nbins=350,
-					 )
+		# plotting.compare(hist_channels_multitrk,
+		# 			 variable='onemuon_isAssociated',
+		# 			 # nRebin=10,
+		# 			 # setrange=(0, 350),
+		# 			 setrange=(-0.5, 1.5),
+		# 			 setlogy = setlogy,
+		# 			 scaleymax=1.6,
+		# 			 scalelumi = scalelumi,
+		# 			 datalumi = datalumi,
+		# 			 drawRatio = drawRatio,
+		# 			 ratioLabel = ratioLabel,
+		# 			 normalize = False,
+		# 			 draw_channel_info= draw_channel_info,
+		# 			 #vertical_lines=MATERIAL_LAYERS,
+		# 			 #vertical_legend="Material Layers",
+		# 			 output_dir= outputDir,
+		# 			 use_ntuple = False,
+		# 			 ntup_nbins=350,
+		# 			 )
 
-		plotting.compare(hist_channels_multitrk,
-					 variable='bothmuon_isAssociated',
-					 # nRebin=10,
-					 setrange=(-0.5, 1.5),
-					 # setrange=(0, 10),
-					 setlogy = setlogy,
-					 scaleymax=1.6,
-					 scalelumi = scalelumi,
-					 datalumi = datalumi,
-					 drawRatio = drawRatio,
-					 ratioLabel = ratioLabel,
-					 normalize = False,
-					 draw_channel_info= draw_channel_info,
-					 #vertical_lines=MATERIAL_LAYERS,
-					 #vertical_legend="Material Layers",
-					 output_dir= outputDir,
-					 use_ntuple = False,
-					 ntup_nbins=350,
-					 )
+		# plotting.compare(hist_channels_multitrk,
+		# 			 variable='bothmuon_isAssociated',
+		# 			 # nRebin=10,
+		# 			 setrange=(-0.5, 1.5),
+		# 			 # setrange=(0, 10),
+		# 			 setlogy = setlogy,
+		# 			 scaleymax=1.6,
+		# 			 scalelumi = scalelumi,
+		# 			 datalumi = datalumi,
+		# 			 drawRatio = drawRatio,
+		# 			 ratioLabel = ratioLabel,
+		# 			 normalize = False,
+		# 			 draw_channel_info= draw_channel_info,
+		# 			 #vertical_lines=MATERIAL_LAYERS,
+		# 			 #vertical_legend="Material Layers",
+		# 			 output_dir= outputDir,
+		# 			 use_ntuple = False,
+		# 			 ntup_nbins=350,
+		# 			 )
 
-		plotting.compare(hist_channels_multitrk,
-					 variable='nomuon_isAssociated',
-					 # nRebin=10,
-					 setrange=(-0.5, 1.5),
-					 # setrange=(0, 10),
-					 setlogy = setlogy,
-					 scaleymax=1.6,
-					 scalelumi = scalelumi,
-					 datalumi = datalumi,
-					 drawRatio = drawRatio,
-					 ratioLabel = ratioLabel,
-					 normalize = False,
-					 draw_channel_info= draw_channel_info,
-					 #vertical_lines=MATERIAL_LAYERS,
-					 #vertical_legend="Material Layers",
-					 output_dir= outputDir,
-					 use_ntuple = False,
-					 ntup_nbins=350,
-					 )
-		ntrk = [3,4,5,6,7,8,9,10]
-		for i in range(len(ntrk)):
-			plotting.compare(hist_channels_multitrk,
-						 variable='num_assoc_{}trk'.format(ntrk[i]),
-						 # nRebin=10,
-						 # setrange=(-0.5, 1.5),
-						 # setrange=(0, 10),
-						 setlogy = setlogy,
-						 scaleymax=1.6,
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 drawRatio = drawRatio,
-						 ratioLabel = ratioLabel,
-						 normalize = False,
-						 draw_channel_info= draw_channel_info,
-						 #vertical_lines=MATERIAL_LAYERS,
-						 #vertical_legend="Material Layers",
-						 output_dir= outputDir,
-						 use_ntuple = False,
-						 ntup_nbins=350,
-						 )
+		# plotting.compare(hist_channels_multitrk,
+		# 			 variable='nomuon_isAssociated',
+		# 			 # nRebin=10,
+		# 			 setrange=(-0.5, 1.5),
+		# 			 # setrange=(0, 10),
+		# 			 setlogy = setlogy,
+		# 			 scaleymax=1.6,
+		# 			 scalelumi = scalelumi,
+		# 			 datalumi = datalumi,
+		# 			 drawRatio = drawRatio,
+		# 			 ratioLabel = ratioLabel,
+		# 			 normalize = False,
+		# 			 draw_channel_info= draw_channel_info,
+		# 			 #vertical_lines=MATERIAL_LAYERS,
+		# 			 #vertical_legend="Material Layers",
+		# 			 output_dir= outputDir,
+		# 			 use_ntuple = False,
+		# 			 ntup_nbins=350,
+		# 			 )
+		# ntrk = [3,4,5,6,7,8,9,10]
+		# for i in range(len(ntrk)):
+		# 	plotting.compare(hist_channels_multitrk,
+		# 				 variable='num_assoc_{}trk'.format(ntrk[i]),
+		# 				 # nRebin=10,
+		# 				 # setrange=(-0.5, 1.5),
+		# 				 # setrange=(0, 10),
+		# 				 setlogy = setlogy,
+		# 				 scaleymax=1.6,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = False,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 #vertical_lines=MATERIAL_LAYERS,
+		# 				 #vertical_legend="Material Layers",
+		# 				 output_dir= outputDir,
+		# 				 use_ntuple = False,
+		# 				 ntup_nbins=350,
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_pt',
+		# 				 setrange=(0, 50),
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 nRebin = 2,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_eta',
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 nRebin = 4,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				setrange=(-4, 4),
+		# 				 variable='nonlep_trk_phi',
+		# 				 nRebin = 4, 
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+		# plotting.compare(hist_channels_multitrk,
+		# 			 variable='nonlep_trk_d0',
+		# 			 setrange=(-10, 10),
+		# 			 setlogy = setlogy,
+		# 			 scalelumi = scalelumi,
+		# 			 datalumi = datalumi,
+		# 			 drawRatio = drawRatio,
+		# 			 ratioLabel = ratioLabel,
+		# 			 normalize = normalize,
+		# 			 draw_channel_info= draw_channel_info,
+		# 			 output_dir = outputDir
+		# 			 )
+
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_z0',
+		# 				 setrange=(-200, 200),
+		# 				 setlogy = setlogy,
+		# 				 scaleymax=1.6,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 nRebin = 8,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_absz0',
+		# 				 setrange=(0, 250),
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_dTheta',
+		# 				 setrange=(0, 3),
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_nSCTHoles',
+		# 				 setrange=(0, 3),
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_nSiHits',
+		# 				 setrange=(0, 23),
+		# 				 setlogy = setlogy,
+		# 				 scaleymax=1.6,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_nSCTHits',
+		# 				 setrange=(0, 14),
+		# 				 setlogy = setlogy,
+		# 				 scaleymax=1.9,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_isLRT',
+		# 				 setrange=(0, 2),
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_isSelected',
+		# 				 setrange=(0, 2),
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_isAssociated',
+		# 				 setrange=(0, 2),
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_chi2',
+		# 				 setrange=(0, 4),
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 nRebin =  4,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 use_ntuple = False,
+		# 				 ntup_nbins=200,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_chi2_toSV',
+		# 				 setrange=(0, 5),
+		# 				 nRebin = 5, 
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_d0_wrtSV',
+		# 				 setrange=(-2,2),
+		# 				 # nRebin = 10, 
+		# 				 scaleymax=1.3,
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 use_ntuple = False,
+		# 				 ntup_nbins = 20,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_errd0_wrtSV',
+		# 				 setrange=(0, 0.1),
+		# 				 # nRebin = 10, 
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 use_ntuple = False,
+		# 				 ntup_nbins = 100,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_z0_wrtSV',
+		# 				 setrange=(-2, 2),
+		# 				 # nRebin = 10, 
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 use_ntuple = False,
+		# 				 ntup_nbins = 20,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+		# plotting.compare(hist_channels_multitrk,
+		# 				 variable='nonlep_trk_errz0_wrtSV',
+		# 				 setrange=(0, 0.2),
+		# 				 # nRebin = 10, 
+		# 				 setlogy = setlogy,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 drawRatio = drawRatio,
+		# 				 ratioLabel = ratioLabel,
+		# 				 normalize = normalize,
+		# 				 use_ntuple = False,
+		# 				 ntup_nbins =20,
+		# 				 draw_channel_info= draw_channel_info,
+		# 				 output_dir = outputDir
+		# 				 )
+
+
+
 			
 		
 
@@ -563,7 +847,7 @@ def compare_histograms(config_file, selection):
 						 )
 		plotting.compare(hist_channels,
 						 variable='DV_trk_d0_wrtSV',
-						 setrange=(-10,10),
+						 setrange=(-2,2),
 						 # nRebin = 10, 
 						 scaleymax=1.3,
 						 setlogy = setlogy,
@@ -573,7 +857,7 @@ def compare_histograms(config_file, selection):
 						 ratioLabel = ratioLabel,
 						 normalize = normalize,
 						 use_ntuple = True,
-						 ntup_nbins = 20,
+						 ntup_nbins = 40,
 						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
@@ -615,7 +899,7 @@ def compare_histograms(config_file, selection):
 						 )
 		plotting.compare(hist_channels,
 						 variable='DV_trk_z0_wrtSV',
-						 setrange=(-10, 10),
+						 setrange=(-2, 2),
 						 # nRebin = 10, 
 						 setlogy = setlogy,
 						 scalelumi = scalelumi,
@@ -624,13 +908,13 @@ def compare_histograms(config_file, selection):
 						 ratioLabel = ratioLabel,
 						 normalize = normalize,
 						 use_ntuple = True,
-						 ntup_nbins = 20,
+						 ntup_nbins = 40,
 						 draw_channel_info= draw_channel_info,
 						 output_dir = outputDir
 						 )
 		plotting.compare(hist_channels,
 						 variable='DV_trk_errz0_wrtSV',
-						 setrange=(0, 0.1),
+						 setrange=(0, 0.2),
 						 # nRebin = 10, 
 						 setlogy = setlogy,
 						 scalelumi = scalelumi,
@@ -912,7 +1196,8 @@ def compare_histograms(config_file, selection):
 		plotting.compare(hist_channels,
 						 variable='DV_mass',
 						 setrange=(0, 10),
-						 setlogy = setlogy,
+						 setlogy = True,
+						 scaleymax=2.5,
 						 scalelumi = scalelumi,
 						 datalumi = datalumi,
 						 drawRatio = drawRatio,
@@ -921,8 +1206,8 @@ def compare_histograms(config_file, selection):
 						 use_ntuple = True,
 						 ntup_nbins=20,
 						 draw_channel_info= draw_channel_info,
-						 vertical_lines=[2],
-						 vertical_legend="DV mass cut",
+						 # vertical_lines=[2],
+						 # vertical_legend="DV mass cut",
 						 output_dir= outputDir
 						 )
 
@@ -956,8 +1241,8 @@ def compare_histograms(config_file, selection):
 		plotting.compare(hist_channels,
 						 variable='HNLm',
 						 setrange=(0, 30),
-						 setlogy = setlogy,
-						 scaleymax=1.4,
+						 setlogy = True,
+						 scaleymax=2.5,
 						 scalelumi = scalelumi,
 						 datalumi = datalumi,
 						 drawRatio = drawRatio,
@@ -1097,7 +1382,7 @@ if __name__ == '__main__':
 
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
-	# makeCutflows(config_file)
+	makeCutflows(config_file)
 	compare_histograms(config_file, 'DVtype')
 	# check_rerunningVSI(config_file,"all")
 

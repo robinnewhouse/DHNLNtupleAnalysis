@@ -59,7 +59,8 @@ def drawNotesMC(MC_campaign,Vertextype, channel,mass,lifetime):
 	ax = 0.82
 	ay = 0.82
 	
-	a.DrawLatex(ax,ay,'%s'%MC_campaign) 
+	# a.DrawLatex(ax,ay,'%s'%MC_campaign) 
+	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%140) 
 	b.DrawLatex(ax,ay-0.05,'(m_{HNL}, c\\tau) = (%s GeV,  %s mm) '%(mass.split("G")[0],lifetime.split("mm")[0]) )
 	# b.DrawLatex(ax,ay-0.05,'HNL mass: %s GeV'%mass.split("G")[0])
 	# c.DrawLatex(ax,ay-0.10,'HNL lifetime: %s mm'%lifetime.split("mm")[0])
@@ -136,8 +137,8 @@ x_label_names = {
 	"redmass": "reduced DV mass [GeV]",
 	"redmassvis": "reduced visible mass [GeV]",
 	"redmassHNL": "reduced HNL mass [GeV]",
-	"DV_trk_d0_wrtSV": "d0/errd0 wrt SV",
-	"DV_trk_z0_wrtSV": "z0/errz0 wrt SV"
+	"DV_trk_d0_wrtSV": "d0 wrt SV",
+	"DV_trk_z0_wrtSV": "z0 wrt SV"
 }
 
  
@@ -192,24 +193,39 @@ def xlabelhistograms(hist):
 	else:
 		return ""
 
+# def histColours(nhist): 
+# 	if nhist== 0:
+# 		return ROOT.kRed
+# 	if nhist== 1:
+# 		return ROOT.kViolet+8
+# 	if nhist== 2:
+# 		return ROOT.kAzure+6
+# 	if nhist== 3:
+# 		return ROOT.kGreen+1
+# 	if nhist== 4:
+# 		return ROOT.kOrange -3
+# 	else: 
+# 		return ROOT.kBlack
+
+
 def histColours(nhist): 
-	if nhist== 0:
-		return ROOT.kRed
-	if nhist== 1:
-		return ROOT.kViolet+8
-	if nhist== 2:
-		return ROOT.kAzure+6
+	color = ROOT.TColor()
 	if nhist== 3:
-		return ROOT.kGreen+1
-	if nhist== 4:
-		return ROOT.kOrange -3
-	else: 
-		return ROOT.kBlack
+		ncolor = color.GetColor("#1522C0")
+	if nhist== 0:
+		ncolor = color.GetColor("#FF7A43")
+	if nhist== 1:
+		ncolor = color.GetColor("#B576FF")
+	if nhist== 2:
+		ncolor = color.GetColor("#3AB1FF") 
+	return ncolor
 
 def bkgColours(nhist): 
 	color = ROOT.TColor()
 	if nhist== 0:
-		ncolor = color.GetColor("#c2a5cf") #light purple
+		# ncolor = color.GetColor("#c2a5cf") #light purple
+		
+		ncolor = color.GetColor("#3F4FC0") #light purple
 	if nhist== 1:
 		ncolor = color.GetColor("#a6dba0")# light green
 	if nhist== 2:

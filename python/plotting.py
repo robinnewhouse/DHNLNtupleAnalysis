@@ -27,15 +27,36 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 	hcutflow = Tfile.Get('{}/CutFlow/CutFlow_{}'.format(vertextype,vertextype))
 	# hcutflow = Tfile.Get('{}/CutFlow/acceptance'.format(vertextype))
 	MyC01= ROOT.TCanvas("MyC01","cutflow",1200,400)
+	# MyC01= ROOT.TCanvas("MyC01","cutflow",900,400)
 	gPad.SetLogy()
 	ymax_cutflow = hcutflow.GetMaximum()
 	hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow*1000)
 	# hcutflow.GetYaxis().SetRangeUser(0.1,ymax_cutflow*1.4) # acceptance plot needs to be rescaled
 	hcutflow.SetFillColor(kAzure-4)
+	# color = ROOT.TColor()
+	# ncolor = color.GetColor("#FF7E00")
+	# hcutflow.SetFillColor(ncolor)
 	hcutflow.SetLineWidth(0)
 	hcutflow.GetYaxis().SetTickLength(0.)
 	hcutflow.SetMarkerSize(2.2)
-	hcutflow.Draw("HIST TEXT35 SAME")
+	# hcutflow.Scale(140*0.00087499) # TO DO: get scaling weight for the histograms automatically from the DV_weight variable!
+	hcutflow.GetXaxis().SetLabelSize(0.05)
+	hcutflow.GetXaxis().SetRange(1,12)
+	# hcutflow.SeFF7E00
+	# hcutflow.LabelsOption("v")
+
+	#get rounded numbers to draw on histogram
+	hcutflow.Draw("HIST SAME")
+	text = ROOT.TLatex()
+	text.SetTextAlign(21)
+	text.SetTextColor(hcutflow.GetMarkerColor());
+	text.SetTextSize(0.03*hcutflow.GetMarkerSize());
+	# text.SetTextAngle(35)
+	for j in xrange(1, hcutflow.GetNbinsX()+1):
+		x  = hcutflow.GetXaxis().GetBinCenter(j)
+		y  = hcutflow.GetBinContent(j)
+		if y != 0.0: 
+			text.DrawLatex(x, y+0.5, '%.1f' % y)
 
 	channel = file.split(".root")[0].split("histograms_")[1]
 
@@ -249,6 +270,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	channels = []  # TODO: Why do we need channels? It seems to be never used.
 	tfiles = []  # root is stupid and will close the file if you're not careful
 	# for key, val in hist_channels.items():
+	ROOT.gStyle.SetOptTitle(0)
 	for nhist in range(len(hist_channels)):
 		filename = hist_channels[nhist][0]
 		label = hist_channels[nhist][1]
@@ -293,7 +315,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			
 				ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
 				# ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_mass > 2)')  # fill histogram with data from ttree. weighted with DV_weight
-			
+			ntup_hist.SetTitle("")
 			histograms.append(ntup_hist)
 		else:
 			histogram = tfiles[nhist].Get(hist_path)
@@ -310,7 +332,6 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	
 	n_h = len(histograms)
 	h_idx = range(len(histograms))
-
 	# define your canvas
 	c = ROOT.TCanvas("canvas", "", 1200, 800)
 	if drawRatio:
@@ -370,8 +391,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 				#scale data histograms to scalelumi
 				scale_data = scalelumi / datalumi
 				histograms[i].Scale(scale_data)
+				
 			else:
-				#scale data histograms to scalelumi
+				#scale MC histograms to scalelumi
 				histograms[i].Scale(scalelumi)
 
 	# calculate yields
@@ -385,13 +407,13 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			else: 
 				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"l")
 	#add non-data histograms to legend 
-	# leg01.AddEntry(histograms[0],"","")
+	leg01.AddEntry(histograms[0],"","")
 	for i in h_idx:
 		if 'SS bkg' not in labels[i]: 
 			if normalize: 
-				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"l")
+				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"f")
 			else:
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"l")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"f")
 		
 
 	# set the common x limits for all histograms
@@ -413,15 +435,16 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			for j, label in enumerate(bin_labels):
 				histograms[i].GetXaxis().SetBinLabel(j+1, label)
 		histograms[i].SetMarkerSize(1.5)
-		if 'SS data' in labels[i]: 
-			histograms[i].SetLineColor(plotting_helpers.bkgColours(i))
+		if 'SS bkg' in labels[i]: 
+			histograms[i].SetLineColor(plotting_helpers.bkgColours(0))
 			# histograms[i].SetFillColor(plotting_helpers.bkgColours(i))
-			histograms[i].SetMarkerColor(plotting_helpers.bkgColours(i))
+			histograms[i].SetMarkerColor(plotting_helpers.bkgColours(0))
 			histograms[i].SetLineWidth(2)
-			histograms[i].SetMarkerStyle(20)
+			# histograms[i].SetMarkerStyle(20)
 		else: 
-			histograms[i].SetLineWidth(2)
-			histograms[i].SetLineColor(plotting_helpers.histColours(i))
+			histograms[i].SetLineWidth(1)
+			histograms[i].SetFillColor(plotting_helpers.histColours(i))
+			histograms[i].SetLineColor(ROOT.kBlack)
 			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
 			histograms[i].SetMarkerStyle(shapelist[i])
 		if customVariable == False:
@@ -429,8 +452,21 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		if not variable: histograms[i].GetXaxis().SetTitle(save_name)
 		histograms[i].GetYaxis().SetTitle("entries")
 		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
-		histograms[i].Draw("E0 HIST SAME")
+		# histograms[i].GetYaxis().SetRangeUser(0,400)
+		histograms[i].Draw("HIST SAME")
+		# histograms[i].Draw("E0 HIST SAME") # plot with errors
 
+		# get rounded numbers to draw on histogram
+		# text = ROOT.TLatex()
+		# text.SetTextAlign(21)
+		# text.SetTextColor(histograms[i].GetMarkerColor());
+		# text.SetTextSize(0.02*histograms[i].GetMarkerSize());
+
+		# for j in xrange(1, histograms[i].GetNbinsX()+1):
+		# 	x  = histograms[i].GetXaxis().GetBinCenter(j)
+		# 	y  = histograms[i].GetBinContent(j)
+		# 	if y != 0.0: 
+		# 		text.DrawLatex(x, y+0.3, '%.1f' % y)
 	
 	if setlogy:
 		gPad.SetLogy()
@@ -452,7 +488,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	l.SetNDC()
 	l.SetTextFont(43)
 	l.SetTextColor(1)
-	l.SetTextSize(20)
+	l.SetTextSize(18)
 	if 'draw_channel_info' in kwargs:
 		if kwargs['draw_channel_info']:
 			l.DrawLatex(0.65,0.855,"(  m_{HNL},    c\\tau,    chan.,     yield)")
