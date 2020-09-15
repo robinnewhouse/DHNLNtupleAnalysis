@@ -42,8 +42,11 @@ class Tree:
 		self.all_entries = self.cutflow[1]  
 		self.init_entries = self.cutflow[2]  # init entries
 		self.vtx_container = ""
-		self.weight = self.get_weight(mass, ctau) if not weight_override else weight_override
+		self.mass_lt_weight = self.get_weight(mass, ctau) 
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.weight))
+
+		
+
 
 	def increment_event(self):
 		self.ievt += 1

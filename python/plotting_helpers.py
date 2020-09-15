@@ -210,11 +210,13 @@ def xlabelhistograms(hist):
 
 def histColours(nhist): 
 	color = ROOT.TColor()
-	if nhist== 3:
-		ncolor = color.GetColor("#1522C0")
+	if nhist== 1:
+		# ncolor = color.GetColor("#1522C0")
+		ncolor = color.GetColor("#6A77FF")
+		
 	if nhist== 0:
 		ncolor = color.GetColor("#FF7A43")
-	if nhist== 1:
+	if nhist== 3:
 		ncolor = color.GetColor("#B576FF")
 	if nhist== 2:
 		ncolor = color.GetColor("#3AB1FF") 

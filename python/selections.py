@@ -1020,6 +1020,102 @@ class PV():
 		else: 
 			return False # no primary vertex in the event
 
+class EventType_LNC_LNV:
+	def __init__(self, tree, get_LNC = True, get_LNV = False):
+		self.weight = -1 # get weight 
+
+		# Matrix elements for the trilepton process, when only the charged-current contribution is present.
+
+		# Input:
+		# - All masses are in GeV, and all Mandelstam variables in GeV^2.
+		# - The Mandelstam variables are defined as follows:
+		#       s13 = (p(l1)+p(l3))^2
+		#       s24 = (p(l2)+p(nu))^2
+		#   with:
+		#     - l1 the charged lepton produced along with the HNL;
+		#     - l2 the charged lepton produced in the HNL decay, on the same fermion line as the HNL;
+		#     - l3 the charged lepton produced in the HNL decay, on the same fermion line as the light neutrino;
+		#     - nu the light neutrino produced in the HNL decay.
+		#   There are two additional, independent Mandelstam variables which do not enter the matrix elements.
+
+		# Assumptions:
+		# - Light lepton (e, mu) masses are neglected.
+		# - Off-shell effects coming from the finite width of the W are neglected.
+		# - Matrix elements are given up to a dimensionful constant, but should be consistent among themselves.
+		#   In particular: M2_nocorr = M2_LNC + M2_LNV.
+
+		MW = 80.379 # Change the W mass to match your particle data. This is the latest PDG value.
+
+		# Lepton number conserving charged-current trilepton process.
+		def M2_LNC(MN, s13, s24):
+		    return s24 * ( MN**4*(s13-2*MW**2) + 2*MN**2*MW**2*(MW**2-s13+s24) - 2*s24*MW**4 ) / ( 6*MW**6 )
+
+		# Lepton number violating charged-current trilepton process.
+		def M2_LNV(MN, s13, s24):
+		    return s24 * MN**2 * ( (MN**2+s13-s24) * (MW**2-MN**2) + s13*MW**2 ) / ( 6*MW**6 )
+
+		# Charged-current trilepton process, ignoring spin correlations between the HNL production and its decay.
+		def M2_nocorr(MN, s13, s24):
+		    return ( s24*(MN**2-s24)*(2*MW**4-MN**2*MW**2-MN**4) ) / ( 6*MW**6 )
+
+		
+		truth_info = helpers.Truth()
+		truth_info.getTruthParticles(tree)
+		MN = truth_info.HNL_vec.M()
+		# print "HNL mass ", MN
+		charge_1 = truth_info.plep_charge # charge of prompt lepton
+		self.p_1 = truth_info.plep_vec # prompt lepton 
+
+		if get_LNC: 
+			if charge_1 != truth_info.dLepCharge[0]: 
+				self.p_2 = truth_info.dLepVec[0]
+				self.p_3 = truth_info.dLepVec[1]
+				self.p_4 = truth_info.dLepVec[2]
+			else: 
+				self.p_2 = truth_info.dLepVec[1]
+				self.p_3 = truth_info.dLepVec[0]
+				self.p_4 = truth_info.dLepVec[2]
+
+		if get_LNV: 
+			if charge_1 == truth_info.dLepCharge[0]: 
+				self.p_2 = truth_info.dLepVec[0]
+				self.p_3 = truth_info.dLepVec[1]
+				self.p_4 = truth_info.dLepVec[2]
+			else: 
+				self.p_2 = truth_info.dLepVec[1]
+				self.p_3 = truth_info.dLepVec[0]
+				self.p_4 = truth_info.dLepVec[2]
+
+		p12 = self.p_1 + self.p_2
+		p13 = self.p_1 + self.p_3
+		p14 = self.p_1 + self.p_4
+
+		p23 = self.p_2 + self.p_3
+		p24 = self.p_2 + self.p_4
+		p34 = self.p_3 + self.p_4
+
+		self.s12 = p12.Mag2()
+		self.s13 = p13.Mag2()
+		self.s14 = p14.Mag2()
+		self.s23 = p23.Mag2()
+		self.s24 = p24.Mag2()
+		self.s34 = p34.Mag2()
+
+		# print "s13: ", s13
+		# print "s24: ", s24
+
+		if get_LNC: 
+			self.weight = 2*M2_LNC(MN, self.s13, self.s24)/M2_nocorr(MN, self.s13, self.s24)
+
+		if get_LNV: 
+			self.weight = 2*M2_LNV(MN, self.s13, self.s24)/M2_nocorr(MN, self.s13, self.s24)
+
+			
+
+		
+
+
+
 
 class SumTrack:
 	def __init__(self, tree):
@@ -1033,3 +1129,8 @@ class SumTrack:
 			self.sum_track_pt += tree.dv('trk_pt_wrtSV')[k]
 			self.sum_track_pt_wrt_pv += tree.dv('trk_pt')[k]
 			self.sum_track_charge += tree.dv('trk_charge')[k]
+
+
+
+
+

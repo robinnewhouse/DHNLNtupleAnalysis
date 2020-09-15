@@ -25,9 +25,9 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
 #############################################################################################################################################
 # globals
-outputDir = '../output/altOrdering/' # change path here to save your histograms somewhere else!
+outputDir = '../output/MCreweighting/' # change path here to save your histograms somewhere else!
 MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
-normalize = False
+normalize = True
 setlogy = False
 drawRatio=False
 draw_channel_info = True
@@ -37,7 +37,8 @@ do_cut_significane = True
 
 
 def makeCutflows(config_file):
-	vtx_channels = ["VSI", "VSI_Leptons"]
+	# vtx_channels = ["VSI", "VSI_Leptons"]
+	vtx_channels = ["VSI"]
 	for vtx_channel in vtx_channels:
 		plotting.plot_cutflow(file = config_file["dataFile"],
 							  vertextype= vtx_channel,
@@ -73,14 +74,14 @@ def check_rerunningVSI(config_file, selection):
 
 
 def compare_histograms(config_file, selection):
-	vtx_channels = ["VSI", "VSI_Leptons"]
+	# vtx_channels = ["VSI", "VSI_Leptons"]
+	vtx_channels = ["VSI"]
 	for vtx_channel in vtx_channels:
 		hist_channels = []
 		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>)
 		# hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
 		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
 		hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][2], config_file["mcLabels"][2], vtx_channel, selection])
 		
 		#get integrated luminosity to scale MC files to (ideally this should come from a value in the nutple TD DO) - DT
 		scalelumi = config_file["scaleLumi"] # luminosity you want to scale everything to 
@@ -527,14 +528,14 @@ def compare_histograms(config_file, selection):
 					 )
 
 def compare_TRUTH_histograms(config_file, selection):
-	vtx_channels = ["VSI", "VSI_Leptons"]
+	# vtx_channels = ["VSI", "VSI_Leptons"]
+	vtx_channels = ["VSI"]
 	for vtx_channel in vtx_channels:
 		hist_channels = []
 		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>)
 		# hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
 		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
 		hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][2], config_file["mcLabels"][2], vtx_channel, selection])
 		
 		#get integrated luminosity to scale MC files to (ideally this should come from a value in the nutple TD DO) - DT
 		scalelumi = config_file["scaleLumi"] # luminosity you want to scale everything to 
@@ -559,6 +560,20 @@ def compare_TRUTH_histograms(config_file, selection):
 					 draw_channel_info= draw_channel_info,
 					 output_dir= outputDir
 					 )
+		plotting.compare(hist_channels,
+				 variable='all_plep_pt',
+				 #setrange=(-3,3),
+				 setlogy = setlogy,
+				 scalelumi = scalelumi,
+				 datalumi = datalumi,
+				 drawRatio = drawRatio,
+				 ratioLabel = ratioLabel,
+				 normalize = normalize,
+				 # nRebin =2,
+				 draw_channel_info= draw_channel_info,
+				 output_dir= outputDir
+				 )
+
 
 		plotting.compare(hist_channels,
 				 variable='all_lep1_trk_pt',
@@ -680,6 +695,92 @@ def compare_TRUTH_histograms(config_file, selection):
 			 )
 
 
+		plotting.compare(hist_channels,
+			 variable='all_s12',
+			 setrange=(0,5999),
+			 setlogy = setlogy,
+			 scalelumi = scalelumi,
+			 datalumi = datalumi,
+			 drawRatio = drawRatio,
+			 ratioLabel = ratioLabel,
+			 normalize = normalize,
+			 nRebin =100,
+			 draw_channel_info= draw_channel_info,
+			 output_dir= outputDir
+			 )
+
+		plotting.compare(hist_channels,
+			 variable='all_s13',
+			 setrange=(0,5999),
+			 setlogy = setlogy,
+			 scalelumi = scalelumi,
+			 datalumi = datalumi,
+			 drawRatio = drawRatio,
+			 ratioLabel = ratioLabel,
+			 normalize = normalize,
+			 nRebin =100,
+			 draw_channel_info= draw_channel_info,
+			 output_dir= outputDir
+			 )
+
+		plotting.compare(hist_channels,
+			 variable='all_s14',
+			 setrange=(0,5999),
+			 setlogy = setlogy,
+			 scalelumi = scalelumi,
+			 datalumi = datalumi,
+			 drawRatio = drawRatio,
+			 ratioLabel = ratioLabel,
+			 normalize = normalize,
+			 nRebin =100,
+			 draw_channel_info= draw_channel_info,
+			 output_dir= outputDir
+			 )
+
+		plotting.compare(hist_channels,
+			 variable='all_s23',
+			 # setrange=(0,20),
+			 setlogy = setlogy,
+			 scalelumi = scalelumi,
+			 datalumi = datalumi,
+			 drawRatio = drawRatio,
+			 ratioLabel = ratioLabel,
+			 normalize = normalize,
+			 # nRebin =2,
+			 draw_channel_info= draw_channel_info,
+			 output_dir= outputDir
+			 )
+
+		plotting.compare(hist_channels,
+			 variable='all_s24',
+			 # setrange=(0,20),
+			 setlogy = setlogy,
+			 scalelumi = scalelumi,
+			 datalumi = datalumi,
+			 drawRatio = drawRatio,
+			 ratioLabel = ratioLabel,
+			 normalize = normalize,
+			 # nRebin =2,
+			 draw_channel_info= draw_channel_info,
+			 output_dir= outputDir
+			 )
+
+		plotting.compare(hist_channels,
+			 variable='all_s34',
+			 # setrange=(0,20),
+			 setlogy = setlogy,
+			 scalelumi = scalelumi,
+			 datalumi = datalumi,
+			 drawRatio = drawRatio,
+			 ratioLabel = ratioLabel,
+			 normalize = normalize,
+			 # nRebin =2,
+			 draw_channel_info= draw_channel_info,
+			 output_dir= outputDir
+			 )
+
+
+
 
 if __name__ == '__main__':
 	import argparse
@@ -725,7 +826,7 @@ if __name__ == '__main__':
 	#execute plotting here, comment out functions in you dont want to plot them again.	
 	makeCutflows(config_file)
 	compare_histograms(config_file, 'DVtype')
-	# compare_TRUTH_histograms(config_file, 'truth')
+	compare_TRUTH_histograms(config_file, 'truth')
 	# check_rerunningVSI(config_file,"all")
 
 	

@@ -1,5 +1,4 @@
 # plotting functions
-from __future__ import division
 import argparse
 import os
 import math
@@ -442,9 +441,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			histograms[i].SetLineWidth(2)
 			# histograms[i].SetMarkerStyle(20)
 		else: 
-			histograms[i].SetLineWidth(1)
-			histograms[i].SetFillColor(plotting_helpers.histColours(i))
-			histograms[i].SetLineColor(ROOT.kBlack)
+			histograms[i].SetLineWidth(2)
+			histograms[i].SetLineColor(plotting_helpers.histColours(i))
+			# histograms[i].SetLineColor(ROOT.kBlack)
 			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
 			histograms[i].SetMarkerStyle(shapelist[i])
 		if customVariable == False:

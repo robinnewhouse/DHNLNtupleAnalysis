@@ -203,9 +203,9 @@ class Analysis(object):
 		else: full_name = hist_name
 		try:
 			if variable_2 is None:
-				self.h[full_name][self.ch].Fill(variable_1, self.tree.weight)
+				self.h[full_name][self.ch].Fill(variable_1, self.weight)
 			else:
-				self.h[full_name][self.ch].Fill(variable_1, variable_2, self.tree.weight)
+				self.h[full_name][self.ch].Fill(variable_1, variable_2, self.weight)
 		except KeyError as e:
 			self.logger.debug("Histogram {} not registered. Automatically adding with default binning.".format(full_name))
 			observable = observables.Observable(full_name)
@@ -460,6 +460,20 @@ class Analysis(object):
 
 
 	def preSelection(self):
+
+		######################################################################################################
+		# MC re-weighting to include spin correlations
+		######################################################################################################
+		self.get_LNC = False
+		self.get_LNV = True
+		self.LNC_LNV = selections.EventType_LNC_LNV(self.tree,get_LNC=self.get_LNC,get_LNV=self.get_LNV)
+		# print "mass lt weight ",self.tree.mass_lt_weight
+		# print "LNC/LNV weight ", self.LNC_LNV_weight
+
+		self.weight = self.tree.mass_lt_weight*self.LNC_LNV.weight  #if not weight_override else weight_override
+		# print  "weight ", self.weight
+
+
 		######################################################################################################
 		# Preselection are all the cuts that are requied per event
 		# Current cuts include: trigger, filter, plepton, DV cut
@@ -616,6 +630,7 @@ class Analysis(object):
 		self.fill_hist(sel, 'plep_eta', truth_info.plep_vec.Eta())
 		self.fill_hist(sel, 'plep_phi', truth_info.plep_vec.Phi())
 		self.fill_hist(sel, 'plep_mass', truth_info.plep_vec.M())
+
 		if len(truth_info.trkVec) == 2: 
 			
 			DV_4vec= truth_info.trkVec[1]+ truth_info.trkVec[0]
@@ -629,12 +644,18 @@ class Analysis(object):
 			self.fill_hist(sel, 'm12_sq', lep12.M()**2)
 			self.fill_hist(sel, 'm23_sq', lep23.M()**2)
 			self.fill_hist(sel, 'm13_sq', lep13.M()**2)
-			self.fill_hist(sel, 'lep1_trk_pt', truth_info.dLepVec[2].Pt())
-			self.fill_hist(sel, 'lep1_trk_eta', truth_info.dLepVec[2].Eta())
-			self.fill_hist(sel, 'lep1_trk_phi', truth_info.dLepVec[2].Phi())
-			self.fill_hist(sel, 'lep2_trk_pt', truth_info.dLepVec[0].Pt())
-			self.fill_hist(sel, 'lep2_trk_eta', truth_info.dLepVec[0].Eta())
-			self.fill_hist(sel, 'lep2_trk_phi', truth_info.dLepVec[0].Phi())
+			self.fill_hist(sel, 's12', self.LNC_LNV.s12) 
+			self.fill_hist(sel, 's13', self.LNC_LNV.s13) 
+			self.fill_hist(sel, 's14', self.LNC_LNV.s14) 
+			self.fill_hist(sel, 's23', self.LNC_LNV.s23) 
+			self.fill_hist(sel, 's24', self.LNC_LNV.s24) 
+			self.fill_hist(sel, 's34', self.LNC_LNV.s34) 
+			self.fill_hist(sel, 'lep1_trk_pt', self.LNC_LNV.p_2.Pt())
+			self.fill_hist(sel, 'lep1_trk_eta', self.LNC_LNV.p_2.Eta())
+			self.fill_hist(sel, 'lep1_trk_phi', self.LNC_LNV.p_2.Phi())
+			self.fill_hist(sel, 'lep2_trk_pt', self.LNC_LNV.p_3.Pt())
+			self.fill_hist(sel, 'lep2_trk_eta', self.LNC_LNV.p_3.Eta())
+			self.fill_hist(sel, 'lep2_trk_phi', self.LNC_LNV.p_3.Phi())
 			self.fill_hist(sel, 'nu_trk_pt', truth_info.dNu_vec.Pt())
 			self.fill_hist(sel, 'nu_trk_eta', truth_info.dNu_vec.Eta())
 			self.fill_hist(sel, 'nu_trk_phi', truth_info.dNu_vec.Phi())
@@ -654,7 +675,7 @@ class Analysis(object):
 			# sel refers to the last selection that was applied
 
 			# fill event weight. storing this per dv as weights include dv scale factor.
-			self.fill_hist(sel, 'DV_weight', self.tree.weight)
+			self.fill_hist(sel, 'DV_weight', self.weight)
 
 			# fill histograms that require a prompt lepton to be identified
 			if self.do_prompt_lepton_cut:
@@ -833,13 +854,37 @@ class Analysis(object):
 
 
 				if len(truthInfo.trkVec) == 2: 
-					self.fill_hist('truth_'+sel, 'lep1_trk_pt', truthInfo.trkVec[0].Pt())
-					self.fill_hist('truth_'+sel, 'lep1_trk_eta', truthInfo.trkVec[0].Eta())
-					self.fill_hist('truth_'+sel, 'lep1_trk_phi', truthInfo.trkVec[0].Phi())
 
-					self.fill_hist('truth_'+sel, 'lep2_trk_pt', truthInfo.trkVec[1].Pt())
-					self.fill_hist('truth_'+sel, 'lep2_trk_eta', truthInfo.trkVec[1].Eta())
-					self.fill_hist('truth_'+sel, 'lep2_trk_phi', truthInfo.trkVec[1].Phi())
+					charge_1 = truthInfo.plep_charge # charge of prompt lepton
+					p_1 = truthInfo.plep_vec # prompt lepton 
+
+					if self.get_LNC: 
+						if charge_1 != truthInfo.dLepCharge[0]: 
+							p_2 = truthInfo.dLepVec[0]
+							p_3 = truthInfo.dLepVec[1]
+							p_4 = truthInfo.dLepVec[2]
+						else: 
+							p_2 = truthInfo.dLepVec[1]
+							p_3 = truthInfo.dLepVec[0]
+							p_4 = truthInfo.dLepVec[2]
+					if self.get_LNV: 
+						if charge_1 == truthInfo.dLepCharge[0]: 
+							p_2 = truthInfo.dLepVec[0]
+							p_3 = truthInfo.dLepVec[1]
+							p_4 = truthInfo.dLepVec[2]
+						else: 
+							p_2 = truthInfo.dLepVec[1]
+							p_3 = truthInfo.dLepVec[0]
+							p_4 = truthInfo.dLepVec[2]
+
+
+					self.fill_hist('truth_'+sel, 'lep1_trk_pt', p_2.Pt())
+					self.fill_hist('truth_'+sel, 'lep1_trk_eta', p_2.Eta())
+					self.fill_hist('truth_'+sel, 'lep1_trk_phi', p_2.Phi())
+
+					self.fill_hist('truth_'+sel, 'lep2_trk_pt', p_3.Pt())
+					self.fill_hist('truth_'+sel, 'lep2_trk_eta', p_3.Eta())
+					self.fill_hist('truth_'+sel, 'lep2_trk_phi', p_3.Phi())
 					for itrk in range(2):
 						self.fill_hist('truth_'+sel, 'DV_trk_pt', truthInfo.trkVec[itrk].Pt(), fill_ntuple=False)
 						self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta(), fill_ntuple=False)
@@ -1083,7 +1128,7 @@ class ToyAnalysis(Analysis):
 			self.add2D( sel + '_mhnl2D', 1010, -5, 500, 1000, 0, 500)
 
 	def _fill_correlation_histos(self, sel):
-		w = self.tree.weight
+		w = self.weight
 		# sel refers to the last selection that was applied
 
 		if self.do_prompt_lepton_cut:

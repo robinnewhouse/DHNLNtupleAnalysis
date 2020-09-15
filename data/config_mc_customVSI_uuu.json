@@ -5,7 +5,9 @@
             "LRTR3_vtx_containers" : ["VSI","VSI_Leptons","VSI_LRTR3","VSI_LRTR3_wGeoCut","VSI_Leptons_LRTR3","VSI_Leptons_LRTR3_wGeoCut"],
             "comboLRT_vtx_containers" :  ["VSI_d0min_1p0", "VSI_LRTR3_2p0", "VSI_LRTR3_1p0", "VSI_LRTR3_0p0","VSI_Leptons_d0min_1p0", "VSI_Leptons_LRTR3_2p0", "VSI_Leptons_LRTR3_1p0", "VSI_Leptons_LRTR3_0p0","VSI","VSI_Leptons"],
             "vtx_containers_0p0ONLY" :  ["VSI_LRTR3_0p0", "VSI_Leptons_LRTR3_0p0"],
-			"vtx_containers" :  ["VSI","VSI_Leptons","VSI_LRTR3_1p0", "VSI_Leptons_LRTR3_1p0", "VSI_LeptonsMod_LRTR3_1p0"],
+			"ALL_vtx_containers" :  ["VSI","VSI_Leptons","VSI_LRTR3_1p0", "VSI_Leptons_LRTR3_1p0", "VSI_LeptonsMod_LRTR3_1p0"],
+			"vtx_containers" :  ["VSI"],
+
             "selections":["alltriggers","pmuon", "4-filter","nDV", "fidvol","2track","OS", "mumu","2-tight","cosmicveto", "mlll","DVmass"]
 
          }
