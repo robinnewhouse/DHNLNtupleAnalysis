@@ -1158,7 +1158,7 @@ class ToyAnalysis(Analysis):
 		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=2)  # changed the dvmass cut to 2 GeV
 		return dv_mass_sel.passes()
 
-	def _multitrk_2lep_cut(self): 
+	def _multitrk_2mu_cut(self): 
 		if self.tree.dv('ntrk') >= 2:  # 2+ trk vertex
 			dv_type_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
 			if dv_type_sel.passes(): #2 leptosn in the DV
@@ -1338,8 +1338,9 @@ class ToyAnalysis(Analysis):
 
 		self.fill_hist('presel', 'num_trks', self.tree.dv('ntrk')) # fill ntrk cut after pre-selection but before ntrk cut
 		
-		if self._multitrk_2lep_cut(): # no return becuase this is not an analysis cut, only used for studying S & B 
-			self._fill_multitrk_histos()
+		if self.dv_type == "mumu": 
+			if self._multitrk_2mu_cut(): # no return becuase this is not an analysis cut, only used for studying S & B in uuu channel
+				self._fill_multitrk_histos()
 
 		if self.do_ntrk_cut:
 			if self._ntrk_cut():
