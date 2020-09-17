@@ -115,7 +115,7 @@ Here is a list of cuts that you can update the code using the --saveNtuples opti
 - sel
 
 
-## List of configuration files
+## List of Configuration Files
 
 The following are the default channels that have corresponding config files in DHNLNtupleAnalysis/data: 
 - uuu: Prompt muon, 2-displaced muons
@@ -126,7 +126,7 @@ The following are the default channels that have corresponding config files in D
 - eee: Prompt electron, 2-displaced electrons
 
 
-## New vertex working points
+## New Vertex Configuration Working Points
 New developments have been included to modify the VSI vertex configurations in the derivation step and produced SUSY15 derivation files with new vertex containers. If you are running on an nutple that was produced from a SUSY15 derivation file you may want to run over different vertex container names. The original and new container names are listed below: 
 - **VSI**: Original VSI container that was created in the DRAW-> AOD step. This container is just copied during the AOD -> DAOD (derivation) step. 
 - **VSI Leptons**: Original VSI Leptons container that was created in the DRAW-> AOD step. This container is just copied during the derivation step. 
