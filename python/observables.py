@@ -374,6 +374,8 @@ def truth_histograms(selection):
 	# Observable("truth_" + selection + "_DV_redmassHNL",binning = (10005,-5,5000), do = ['hist'], need_truth = True).queue()
 
 truth_histograms("all")
+truth_histograms("LNC")
+truth_histograms("LNV")
 truth_histograms("presel")
 truth_histograms("alpha")
 truth_histograms("mass")

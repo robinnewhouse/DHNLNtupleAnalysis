@@ -1021,9 +1021,10 @@ class PV():
 			return False # no primary vertex in the event
 
 class EventType_LNC_LNV:
-	def __init__(self, tree, get_LNC = True, get_LNV = False):
+	def __init__(self, tree, get_LNC = True, get_LNV = False, wrong_lep_order = True):
 		self.weight = -1 # get weight 
-
+		self.isLNC = False
+		self.isLNV = False
 		# Matrix elements for the trilepton process, when only the charged-current contribution is present.
 
 		# Input:
@@ -1055,36 +1056,48 @@ class EventType_LNC_LNV:
 		    return s24 * MN**2 * ( (MN**2+s13-s24) * (MW**2-MN**2) + s13*MW**2 ) / ( 6*MW**6 )
 
 		# Charged-current trilepton process, ignoring spin correlations between the HNL production and its decay.
-		def M2_nocorr(MN, s13, s24):
+		def M2_nocorr(MN, s24):
 		    return ( s24*(MN**2-s24)*(2*MW**4-MN**2*MW**2-MN**4) ) / ( 6*MW**6 )
 
-		
+
 		truth_info = helpers.Truth()
 		truth_info.getTruthParticles(tree)
+
 		MN = truth_info.HNL_vec.M()
 		# print "HNL mass ", MN
 		charge_1 = truth_info.plep_charge # charge of prompt lepton
 		self.p_1 = truth_info.plep_vec # prompt lepton 
+		self.p_2 = truth_info.dLepVec[0]
+		self.p_3 = truth_info.dLepVec[1]
+		self.p_4 = truth_info.dLepVec[2]
 
-		if get_LNC: 
-			if charge_1 != truth_info.dLepCharge[0]: 
-				self.p_2 = truth_info.dLepVec[0]
-				self.p_3 = truth_info.dLepVec[1]
-				self.p_4 = truth_info.dLepVec[2]
-			else: 
-				self.p_2 = truth_info.dLepVec[1]
-				self.p_3 = truth_info.dLepVec[0]
-				self.p_4 = truth_info.dLepVec[2]
+		if charge_1 != truth_info.dLepCharge[0]: 
+			self.isLNC = True
+		else: 
+			self.isLNV = True
+			
+		# 	else: 
 
-		if get_LNV: 
-			if charge_1 == truth_info.dLepCharge[0]: 
-				self.p_2 = truth_info.dLepVec[0]
-				self.p_3 = truth_info.dLepVec[1]
-				self.p_4 = truth_info.dLepVec[2]
-			else: 
-				self.p_2 = truth_info.dLepVec[1]
-				self.p_3 = truth_info.dLepVec[0]
-				self.p_4 = truth_info.dLepVec[2]
+
+		# if get_LNC: 
+		# 	if charge_1 != truth_info.dLepCharge[0]: 
+		# 		self.p_2 = truth_info.dLepVec[0]
+		# 		self.p_3 = truth_info.dLepVec[1]
+		# 		self.p_4 = truth_info.dLepVec[2]
+		# 	else: 
+		# 		self.p_2 = truth_info.dLepVec[1]
+		# 		self.p_3 = truth_info.dLepVec[0]
+		# 		self.p_4 = truth_info.dLepVec[2]
+
+		# if get_LNV: 
+		# 	if charge_1 == truth_info.dLepCharge[0]: 
+		# 		self.p_2 = truth_info.dLepVec[0]
+		# 		self.p_3 = truth_info.dLepVec[1]
+		# 		self.p_4 = truth_info.dLepVec[2]
+		# 	else: 
+		# 		self.p_2 = truth_info.dLepVec[1]
+		# 		self.p_3 = truth_info.dLepVec[0]
+		# 		self.p_4 = truth_info.dLepVec[2]
 
 		p12 = self.p_1 + self.p_2
 		p13 = self.p_1 + self.p_3
@@ -1103,12 +1116,21 @@ class EventType_LNC_LNV:
 
 		# print "s13: ", s13
 		# print "s24: ", s24
+		
+		if wrong_lep_order: 
+		# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
+		# For official samples, swap s24 -> s34 
+			if self.isLNC: 
+				self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s34)
 
-		if get_LNC: 
-			self.weight = 2*M2_LNC(MN, self.s13, self.s24)/M2_nocorr(MN, self.s13, self.s24)
+			if self.isLNV: 
+				self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s34)
+		else: 
+			if self.isLNC: 
+				self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s24)
 
-		if get_LNV: 
-			self.weight = 2*M2_LNV(MN, self.s13, self.s24)/M2_nocorr(MN, self.s13, self.s24)
+			if self.isLNV: 
+				self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s24)
 
 			
 

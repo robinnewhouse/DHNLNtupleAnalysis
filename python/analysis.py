@@ -464,9 +464,10 @@ class Analysis(object):
 		######################################################################################################
 		# MC re-weighting to include spin correlations
 		######################################################################################################
-		self.get_LNC = False
-		self.get_LNV = True
-		self.LNC_LNV = selections.EventType_LNC_LNV(self.tree,get_LNC=self.get_LNC,get_LNV=self.get_LNV)
+		self.get_LNC = True
+		self.get_LNV = False
+		official_samples = True
+		self.LNC_LNV = selections.EventType_LNC_LNV(self.tree,get_LNC=self.get_LNC,get_LNV=self.get_LNV,wrong_lep_order=official_samples)
 		# print "mass lt weight ",self.tree.mass_lt_weight
 		# print "LNC/LNV weight ", self.LNC_LNV_weight
 
@@ -486,6 +487,10 @@ class Analysis(object):
 
 		if not self.tree.is_data:
 			self._fill_truth_histos(sel='truth_all')
+			if self.LNC_LNV.isLNC: 
+				self._fill_truth_histos(sel='truth_LNC')
+			if self.LNC_LNV.isLNV: 
+				self._fill_truth_histos(sel='truth_LNV')
 
 		self.h['CutFlow'][self.ch].SetBinContent(1, self.tree.all_entries)  # all events
 
@@ -602,7 +607,7 @@ class Analysis(object):
 		self.fill_hist(sel, 'DV_maxOpAng', self.tree.dv('maxOpAng'))
 		self.fill_hist(sel, 'DV_charge', self.tree.dv('charge'))
 		self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
-		self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
+		# self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
 		
 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
 			self.micro_ntuples[sel].fill()
@@ -806,7 +811,7 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_maxOpAng', self.tree.dv('maxOpAng'))
 			self.fill_hist(sel, 'DV_charge', self.tree.dv('charge'))
 			self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
-			self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
+			# self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
 			self.fill_hist(sel, 'DV_max_dR', self.tree.dv('maxDR'))
 			self.fill_hist(sel, 'DV_max_dR_wrtSV', self.tree.dv('maxDR_wrtSV'))
 			self.fill_hist(sel, 'DV_maxd0', self.tree.dv('maxd0'))
@@ -858,33 +863,33 @@ class Analysis(object):
 					charge_1 = truthInfo.plep_charge # charge of prompt lepton
 					p_1 = truthInfo.plep_vec # prompt lepton 
 
-					if self.get_LNC: 
-						if charge_1 != truthInfo.dLepCharge[0]: 
-							p_2 = truthInfo.dLepVec[0]
-							p_3 = truthInfo.dLepVec[1]
-							p_4 = truthInfo.dLepVec[2]
-						else: 
-							p_2 = truthInfo.dLepVec[1]
-							p_3 = truthInfo.dLepVec[0]
-							p_4 = truthInfo.dLepVec[2]
-					if self.get_LNV: 
-						if charge_1 == truthInfo.dLepCharge[0]: 
-							p_2 = truthInfo.dLepVec[0]
-							p_3 = truthInfo.dLepVec[1]
-							p_4 = truthInfo.dLepVec[2]
-						else: 
-							p_2 = truthInfo.dLepVec[1]
-							p_3 = truthInfo.dLepVec[0]
-							p_4 = truthInfo.dLepVec[2]
+					# if self.get_LNC: 
+					# 	if charge_1 != truthInfo.dLepCharge[0]: 
+					# 		p_2 = truthInfo.dLepVec[0]
+					# 		p_3 = truthInfo.dLepVec[1]
+					# 		p_4 = truthInfo.dLepVec[2]
+					# 	else: 
+					# 		p_2 = truthInfo.dLepVec[1]
+					# 		p_3 = truthInfo.dLepVec[0]
+					# 		p_4 = truthInfo.dLepVec[2]
+					# if self.get_LNV: 
+					# 	if charge_1 == truthInfo.dLepCharge[0]: 
+					# 		p_2 = truthInfo.dLepVec[0]
+					# 		p_3 = truthInfo.dLepVec[1]
+					# 		p_4 = truthInfo.dLepVec[2]
+					# 	else: 
+					# 		p_2 = truthInfo.dLepVec[1]
+					# 		p_3 = truthInfo.dLepVec[0]
+					# 		p_4 = truthInfo.dLepVec[2]
 
 
-					self.fill_hist('truth_'+sel, 'lep1_trk_pt', p_2.Pt())
-					self.fill_hist('truth_'+sel, 'lep1_trk_eta', p_2.Eta())
-					self.fill_hist('truth_'+sel, 'lep1_trk_phi', p_2.Phi())
+					self.fill_hist('truth_'+sel, 'lep1_trk_pt', truthInfo.dLepVec[0].Pt())
+					self.fill_hist('truth_'+sel, 'lep1_trk_eta', truthInfo.dLepVec[0].Eta())
+					self.fill_hist('truth_'+sel, 'lep1_trk_phi', truthInfo.dLepVec[0].Phi())
 
-					self.fill_hist('truth_'+sel, 'lep2_trk_pt', p_3.Pt())
-					self.fill_hist('truth_'+sel, 'lep2_trk_eta', p_3.Eta())
-					self.fill_hist('truth_'+sel, 'lep2_trk_phi', p_3.Phi())
+					self.fill_hist('truth_'+sel, 'lep2_trk_pt', truthInfo.dLepVec[1].Pt())
+					self.fill_hist('truth_'+sel, 'lep2_trk_eta', truthInfo.dLepVec[1].Eta())
+					self.fill_hist('truth_'+sel, 'lep2_trk_phi', truthInfo.dLepVec[1].Phi())
 					for itrk in range(2):
 						self.fill_hist('truth_'+sel, 'DV_trk_pt', truthInfo.trkVec[itrk].Pt(), fill_ntuple=False)
 						self.fill_hist('truth_'+sel, 'DV_trk_eta', truthInfo.trkVec[itrk].Eta(), fill_ntuple=False)
@@ -1562,7 +1567,7 @@ class KShort(Analysis):
 			self.fill_hist(sel, 'DV_maxOpAng', self.tree.dv('maxOpAng'))
 			self.fill_hist(sel, 'DV_charge', self.tree.dv('charge'))
 			self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
-			self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
+			# self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
 			self.fill_hist(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
 
 			# kshort stuff

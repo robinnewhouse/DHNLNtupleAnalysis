@@ -97,40 +97,18 @@ class Truth():
 						# 						tree['truthVtx_outP_phi'][ivx][i],
 						# 						tree['truthVtx_outP_M'][ivx][i]
 						# 						)
+					# print "pdgIDs: ", tree['truthVtx_outP_pdgId'][ivx]
+					# print "charge: ", tree['truthVtx_outP_charge'][ivx]
 					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
 						dLepVec  =  ROOT.TLorentzVector()
-						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
-						if trk_pdgId == 13: #add electrons first
-							dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-													tree['truthVtx_outP_eta'][ivx][i],
-													tree['truthVtx_outP_phi'][ivx][i],
-													tree['truthVtx_outP_M'][ivx][i]
-													)
-							self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
-							self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
-					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
-						dLepVec  =  ROOT.TLorentzVector()
-						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
-						if trk_pdgId == 11: #add muons next
-							dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-													tree['truthVtx_outP_eta'][ivx][i],
-													tree['truthVtx_outP_phi'][ivx][i],
-													tree['truthVtx_outP_M'][ivx][i]
-													)
-							self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
-							self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
-
-					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
-						dLepVec  =  ROOT.TLorentzVector()
-						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
-						if trk_pdgId == 14 or trk_pdgId == 12: #add neutrino last
-							dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-													tree['truthVtx_outP_eta'][ivx][i],
-													tree['truthVtx_outP_phi'][ivx][i],
-													tree['truthVtx_outP_M'][ivx][i]
-													)
-							self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
-							self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
+						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+												tree['truthVtx_outP_eta'][ivx][i],
+												tree['truthVtx_outP_phi'][ivx][i],
+												tree['truthVtx_outP_M'][ivx][i]
+												)
+						self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
+						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
+					
 
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],

@@ -534,9 +534,12 @@ def compare_TRUTH_histograms(config_file, selection):
 		hist_channels = []
 		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>)
 		# hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
-		
+		# hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
+		# hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
+
+		hist_channels.append([config_file["mcFiles"][2], "( LNV   " + config_file["mcLabels"][2], vtx_channel, selection])
+		hist_channels.append([config_file["mcFiles"][2], "( LNC   " + config_file["mcLabels"][2], vtx_channel, selection])
+		"( LNC   "
 		#get integrated luminosity to scale MC files to (ideally this should come from a value in the nutple TD DO) - DT
 		scalelumi = config_file["scaleLumi"] # luminosity you want to scale everything to 
 		datalumi = config_file["dataLumi"] #  lumi of the data you are looking at
@@ -548,155 +551,155 @@ def compare_TRUTH_histograms(config_file, selection):
 
 
 
-		plotting.compare(hist_channels,
-					 variable='all_DV_mass',
-					 setrange=(0,20),
-					 setlogy = setlogy,
-					 scalelumi = scalelumi,
-					 datalumi = datalumi,
-					 drawRatio = drawRatio,
-					 ratioLabel = ratioLabel,
-					 normalize = normalize,
-					 draw_channel_info= draw_channel_info,
-					 output_dir= outputDir
-					 )
-		plotting.compare(hist_channels,
-				 variable='all_plep_pt',
-				 #setrange=(-3,3),
-				 setlogy = setlogy,
-				 scalelumi = scalelumi,
-				 datalumi = datalumi,
-				 drawRatio = drawRatio,
-				 ratioLabel = ratioLabel,
-				 normalize = normalize,
-				 # nRebin =2,
-				 draw_channel_info= draw_channel_info,
-				 output_dir= outputDir
-				 )
+		# plotting.compare(hist_channels,
+		# 			 variable='all_DV_mass',
+		# 			 setrange=(0,20),
+		# 			 setlogy = setlogy,
+		# 			 scalelumi = scalelumi,
+		# 			 datalumi = datalumi,
+		# 			 drawRatio = drawRatio,
+		# 			 ratioLabel = ratioLabel,
+		# 			 normalize = normalize,
+		# 			 draw_channel_info= draw_channel_info,
+		# 			 output_dir= outputDir
+		# 			 )
+		# plotting.compare(hist_channels,
+		# 		 variable='all_plep_pt',
+		# 		 #setrange=(-3,3),
+		# 		 setlogy = setlogy,
+		# 		 scalelumi = scalelumi,
+		# 		 datalumi = datalumi,
+		# 		 drawRatio = drawRatio,
+		# 		 ratioLabel = ratioLabel,
+		# 		 normalize = normalize,
+		# 		 # nRebin =2,
+		# 		 draw_channel_info= draw_channel_info,
+		# 		 output_dir= outputDir
+		# 		 )
+
+
+		# plotting.compare(hist_channels,
+		# 		 variable='all_lep1_trk_pt',
+		# 		 #setrange=(-3,3),
+		# 		 setlogy = setlogy,
+		# 		 scalelumi = scalelumi,
+		# 		 datalumi = datalumi,
+		# 		 drawRatio = drawRatio,
+		# 		 ratioLabel = ratioLabel,
+		# 		 normalize = normalize,
+		# 		 # nRebin =2,
+		# 		 draw_channel_info= draw_channel_info,
+		# 		 output_dir= outputDir
+		# 		 )
+
+		# plotting.compare(hist_channels,
+		# 		 variable='all_lep2_trk_pt',
+		# 		 #setrange=(-3,3),
+		# 		 setlogy = setlogy,
+		# 		 scalelumi = scalelumi,
+		# 		 datalumi = datalumi,
+		# 		 drawRatio = drawRatio,
+		# 		 ratioLabel = ratioLabel,
+		# 		 normalize = normalize,
+		# 		 # nRebin =2,
+		# 		 draw_channel_info= draw_channel_info,
+		# 		 output_dir= outputDir
+		# 		 )
+
+		# plotting.compare(hist_channels,
+		# 	 variable='all_m12',
+		# 	 setrange=(0,20),
+		# 	 setlogy = setlogy,
+		# 	 scalelumi = scalelumi,
+		# 	 datalumi = datalumi,
+		# 	 drawRatio = drawRatio,
+		# 	 ratioLabel = ratioLabel,
+		# 	 normalize = normalize,
+		# 	 draw_channel_info= draw_channel_info,
+		# 	 output_dir= outputDir
+		# 	 )
+		# plotting.compare(hist_channels,
+		# 	 variable='all_m12_sq',
+		# 	 setrange=(0,100),
+		# 	 setlogy = setlogy,
+		# 	 scalelumi = scalelumi,
+		# 	 datalumi = datalumi,
+		# 	 drawRatio = drawRatio,
+		# 	 ratioLabel = ratioLabel,
+		# 	 normalize = normalize,
+		# 	 draw_channel_info= draw_channel_info,
+		# 	 nRebin= 5,
+		# 	 output_dir= outputDir
+		# 	 )
+
+		# plotting.compare(hist_channels,
+		# 	 variable='all_m13',
+		# 	 setrange=(0,20),
+		# 	 setlogy = setlogy,
+		# 	 scalelumi = scalelumi,
+		# 	 datalumi = datalumi,
+		# 	 drawRatio = drawRatio,
+		# 	 ratioLabel = ratioLabel,
+		# 	 normalize = normalize,
+		# 	 draw_channel_info= draw_channel_info,
+		# 	 output_dir= outputDir
+		# 	 )
+		# plotting.compare(hist_channels,
+		# 	 variable='all_m13_sq',
+		# 	 setrange=(0,100),
+		# 	 setlogy = setlogy,
+		# 	 scalelumi = scalelumi,
+		# 	 datalumi = datalumi,
+		# 	 drawRatio = drawRatio,
+		# 	 ratioLabel = ratioLabel,
+		# 	 normalize = normalize,
+		# 	 draw_channel_info= draw_channel_info,
+		# 	 nRebin= 5,
+		# 	 output_dir= outputDir
+		# 	 )
+		# plotting.compare(hist_channels,
+		# 	 variable='all_m23',
+		# 	 setrange=(0,20),
+		# 	 setlogy = setlogy,
+		# 	 scalelumi = scalelumi,
+		# 	 datalumi = datalumi,
+		# 	 drawRatio = drawRatio,
+		# 	 ratioLabel = ratioLabel,
+		# 	 normalize = normalize,
+		# 	 draw_channel_info= draw_channel_info,
+		# 	 output_dir= outputDir
+		# 	 )
+		# plotting.compare(hist_channels,
+		# 	 variable='all_m23_sq',
+		# 	 setrange=(0,100),
+		# 	 setlogy = setlogy,
+		# 	 scalelumi = scalelumi,
+		# 	 datalumi = datalumi,
+		# 	 drawRatio = drawRatio,
+		# 	 ratioLabel = ratioLabel,
+		# 	 normalize = normalize,
+		# 	 draw_channel_info= draw_channel_info,
+		# 	 nRebin= 5,
+		# 	 output_dir= outputDir
+		# 	 )
+
+		# plotting.compare(hist_channels,
+		# 	 variable='all_nu_trk_pt',
+		# 	 # setrange=(0,20),
+		# 	 setlogy = setlogy,
+		# 	 scalelumi = scalelumi,
+		# 	 datalumi = datalumi,
+		# 	 drawRatio = drawRatio,
+		# 	 ratioLabel = ratioLabel,
+		# 	 normalize = normalize,
+		# 	 # nRebin =2,
+		# 	 draw_channel_info= draw_channel_info,
+		# 	 output_dir= outputDir
+		# 	 )
 
 
 		plotting.compare(hist_channels,
-				 variable='all_lep1_trk_pt',
-				 #setrange=(-3,3),
-				 setlogy = setlogy,
-				 scalelumi = scalelumi,
-				 datalumi = datalumi,
-				 drawRatio = drawRatio,
-				 ratioLabel = ratioLabel,
-				 normalize = normalize,
-				 # nRebin =2,
-				 draw_channel_info= draw_channel_info,
-				 output_dir= outputDir
-				 )
-
-		plotting.compare(hist_channels,
-				 variable='all_lep2_trk_pt',
-				 #setrange=(-3,3),
-				 setlogy = setlogy,
-				 scalelumi = scalelumi,
-				 datalumi = datalumi,
-				 drawRatio = drawRatio,
-				 ratioLabel = ratioLabel,
-				 normalize = normalize,
-				 # nRebin =2,
-				 draw_channel_info= draw_channel_info,
-				 output_dir= outputDir
-				 )
-
-		plotting.compare(hist_channels,
-			 variable='all_m12',
-			 setrange=(0,20),
-			 setlogy = setlogy,
-			 scalelumi = scalelumi,
-			 datalumi = datalumi,
-			 drawRatio = drawRatio,
-			 ratioLabel = ratioLabel,
-			 normalize = normalize,
-			 draw_channel_info= draw_channel_info,
-			 output_dir= outputDir
-			 )
-		plotting.compare(hist_channels,
-			 variable='all_m12_sq',
-			 setrange=(0,100),
-			 setlogy = setlogy,
-			 scalelumi = scalelumi,
-			 datalumi = datalumi,
-			 drawRatio = drawRatio,
-			 ratioLabel = ratioLabel,
-			 normalize = normalize,
-			 draw_channel_info= draw_channel_info,
-			 nRebin= 5,
-			 output_dir= outputDir
-			 )
-
-		plotting.compare(hist_channels,
-			 variable='all_m13',
-			 setrange=(0,20),
-			 setlogy = setlogy,
-			 scalelumi = scalelumi,
-			 datalumi = datalumi,
-			 drawRatio = drawRatio,
-			 ratioLabel = ratioLabel,
-			 normalize = normalize,
-			 draw_channel_info= draw_channel_info,
-			 output_dir= outputDir
-			 )
-		plotting.compare(hist_channels,
-			 variable='all_m13_sq',
-			 setrange=(0,100),
-			 setlogy = setlogy,
-			 scalelumi = scalelumi,
-			 datalumi = datalumi,
-			 drawRatio = drawRatio,
-			 ratioLabel = ratioLabel,
-			 normalize = normalize,
-			 draw_channel_info= draw_channel_info,
-			 nRebin= 5,
-			 output_dir= outputDir
-			 )
-		plotting.compare(hist_channels,
-			 variable='all_m23',
-			 setrange=(0,20),
-			 setlogy = setlogy,
-			 scalelumi = scalelumi,
-			 datalumi = datalumi,
-			 drawRatio = drawRatio,
-			 ratioLabel = ratioLabel,
-			 normalize = normalize,
-			 draw_channel_info= draw_channel_info,
-			 output_dir= outputDir
-			 )
-		plotting.compare(hist_channels,
-			 variable='all_m23_sq',
-			 setrange=(0,100),
-			 setlogy = setlogy,
-			 scalelumi = scalelumi,
-			 datalumi = datalumi,
-			 drawRatio = drawRatio,
-			 ratioLabel = ratioLabel,
-			 normalize = normalize,
-			 draw_channel_info= draw_channel_info,
-			 nRebin= 5,
-			 output_dir= outputDir
-			 )
-
-		plotting.compare(hist_channels,
-			 variable='all_nu_trk_pt',
-			 # setrange=(0,20),
-			 setlogy = setlogy,
-			 scalelumi = scalelumi,
-			 datalumi = datalumi,
-			 drawRatio = drawRatio,
-			 ratioLabel = ratioLabel,
-			 normalize = normalize,
-			 # nRebin =2,
-			 draw_channel_info= draw_channel_info,
-			 output_dir= outputDir
-			 )
-
-
-		plotting.compare(hist_channels,
-			 variable='all_s12',
+			 variable='s12',
 			 setrange=(0,5999),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
@@ -704,13 +707,13 @@ def compare_TRUTH_histograms(config_file, selection):
 			 drawRatio = drawRatio,
 			 ratioLabel = ratioLabel,
 			 normalize = normalize,
-			 nRebin =100,
+			 nRebin =500,
 			 draw_channel_info= draw_channel_info,
 			 output_dir= outputDir
 			 )
 
 		plotting.compare(hist_channels,
-			 variable='all_s13',
+			 variable='s13',
 			 setrange=(0,5999),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
@@ -718,13 +721,13 @@ def compare_TRUTH_histograms(config_file, selection):
 			 drawRatio = drawRatio,
 			 ratioLabel = ratioLabel,
 			 normalize = normalize,
-			 nRebin =100,
+			 nRebin =500,
 			 draw_channel_info= draw_channel_info,
 			 output_dir= outputDir
 			 )
 
 		plotting.compare(hist_channels,
-			 variable='all_s14',
+			 variable='s14',
 			 setrange=(0,5999),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
@@ -732,13 +735,13 @@ def compare_TRUTH_histograms(config_file, selection):
 			 drawRatio = drawRatio,
 			 ratioLabel = ratioLabel,
 			 normalize = normalize,
-			 nRebin =100,
+			 nRebin =500,
 			 draw_channel_info= draw_channel_info,
 			 output_dir= outputDir
 			 )
 
 		plotting.compare(hist_channels,
-			 variable='all_s23',
+			 variable='s23',
 			 # setrange=(0,20),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
@@ -746,13 +749,13 @@ def compare_TRUTH_histograms(config_file, selection):
 			 drawRatio = drawRatio,
 			 ratioLabel = ratioLabel,
 			 normalize = normalize,
-			 # nRebin =2,
+			 nRebin =4,
 			 draw_channel_info= draw_channel_info,
 			 output_dir= outputDir
 			 )
 
 		plotting.compare(hist_channels,
-			 variable='all_s24',
+			 variable='s24',
 			 # setrange=(0,20),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
@@ -760,13 +763,13 @@ def compare_TRUTH_histograms(config_file, selection):
 			 drawRatio = drawRatio,
 			 ratioLabel = ratioLabel,
 			 normalize = normalize,
-			 # nRebin =2,
+			 nRebin =4,
 			 draw_channel_info= draw_channel_info,
 			 output_dir= outputDir
 			 )
 
 		plotting.compare(hist_channels,
-			 variable='all_s34',
+			 variable='s34',
 			 # setrange=(0,20),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
@@ -774,7 +777,7 @@ def compare_TRUTH_histograms(config_file, selection):
 			 drawRatio = drawRatio,
 			 ratioLabel = ratioLabel,
 			 normalize = normalize,
-			 # nRebin =2,
+			 nRebin =4,
 			 draw_channel_info= draw_channel_info,
 			 output_dir= outputDir
 			 )
@@ -824,8 +827,8 @@ if __name__ == '__main__':
 
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
-	makeCutflows(config_file)
-	compare_histograms(config_file, 'DVtype')
+	# makeCutflows(config_file)
+	# compare_histograms(config_file, 'DVtype')
 	compare_TRUTH_histograms(config_file, 'truth')
 	# check_rerunningVSI(config_file,"all")
 

@@ -277,7 +277,16 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		selection = hist_channels[nhist][3]
 		# channel = filename.split(".root")[0].split("_")[len(filename.split(".root")[0].split("_")) - 1]
 		tfiles.append(ROOT.TFile(filename))  # get file
-		hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
+		print filename
+		if "LNC" in label: 
+			hist_path = "{}/{}/{}".format(vtx_alg, selection, "LNC_"+ variable)
+			print hist_path
+		if "LNV" in label: 
+			hist_path = "{}/{}/{}".format(vtx_alg, selection, "LNV_"+ variable)
+			print hist_path
+		# else: 
+		# 	hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
+		
 
 		# block that is used if you want to use the micro-ntuple to plot
 		if 'use_ntuple' in kwargs and kwargs['use_ntuple']:
