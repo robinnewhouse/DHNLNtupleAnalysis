@@ -537,9 +537,12 @@ def compare_TRUTH_histograms(config_file, selection):
 		# hist_channels.append([config_file["mcFiles"][0],config_file["mcLabels"][0], vtx_channel, selection])
 		# hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection])
 
-		hist_channels.append([config_file["mcFiles"][2], "( LNV   " + config_file["mcLabels"][2], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][2], "( LNC   " + config_file["mcLabels"][2], vtx_channel, selection])
-		"( LNC   "
+		# hist_channels.append([config_file["mcFiles"][2], "( LNV   " + config_file["mcLabels"][2], vtx_channel, selection])
+		# hist_channels.append([config_file["mcFiles"][2], "( LNC   " + config_file["mcLabels"][2], vtx_channel, selection])
+
+		hist_channels.append([config_file["mcFiles"][3], config_file["mcLabels"][3], vtx_channel, selection])
+		hist_channels.append([config_file["mcFiles"][4], config_file["mcLabels"][4], vtx_channel, selection])
+
 		#get integrated luminosity to scale MC files to (ideally this should come from a value in the nutple TD DO) - DT
 		scalelumi = config_file["scaleLumi"] # luminosity you want to scale everything to 
 		datalumi = config_file["dataLumi"] #  lumi of the data you are looking at
@@ -700,7 +703,7 @@ def compare_TRUTH_histograms(config_file, selection):
 
 		plotting.compare(hist_channels,
 			 variable='s12',
-			 setrange=(0,5999),
+			 setrange=(0,6000),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
 			 datalumi = datalumi,
@@ -714,7 +717,7 @@ def compare_TRUTH_histograms(config_file, selection):
 
 		plotting.compare(hist_channels,
 			 variable='s13',
-			 setrange=(0,5999),
+			 setrange=(0,6000),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
 			 datalumi = datalumi,
@@ -728,7 +731,7 @@ def compare_TRUTH_histograms(config_file, selection):
 
 		plotting.compare(hist_channels,
 			 variable='s14',
-			 setrange=(0,5999),
+			 setrange=(0,6000),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
 			 datalumi = datalumi,
@@ -742,7 +745,7 @@ def compare_TRUTH_histograms(config_file, selection):
 
 		plotting.compare(hist_channels,
 			 variable='s23',
-			 # setrange=(0,20),
+			 setrange=(0,100),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
 			 datalumi = datalumi,
@@ -756,7 +759,7 @@ def compare_TRUTH_histograms(config_file, selection):
 
 		plotting.compare(hist_channels,
 			 variable='s24',
-			 # setrange=(0,20),
+			 setrange=(0,100),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
 			 datalumi = datalumi,
@@ -770,7 +773,7 @@ def compare_TRUTH_histograms(config_file, selection):
 
 		plotting.compare(hist_channels,
 			 variable='s34',
-			 # setrange=(0,20),
+			 setrange=(0,100),
 			 setlogy = setlogy,
 			 scalelumi = scalelumi,
 			 datalumi = datalumi,
@@ -829,7 +832,7 @@ if __name__ == '__main__':
 	#execute plotting here, comment out functions in you dont want to plot them again.	
 	# makeCutflows(config_file)
 	# compare_histograms(config_file, 'DVtype')
-	compare_TRUTH_histograms(config_file, 'truth')
+	compare_TRUTH_histograms(config_file, 'truthall')
 	# check_rerunningVSI(config_file,"all")
 
 	

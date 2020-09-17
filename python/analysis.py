@@ -464,15 +464,12 @@ class Analysis(object):
 		######################################################################################################
 		# MC re-weighting to include spin correlations
 		######################################################################################################
-		self.get_LNC = True
-		self.get_LNV = False
-		official_samples = True
-		self.LNC_LNV = selections.EventType_LNC_LNV(self.tree,get_LNC=self.get_LNC,get_LNV=self.get_LNV,wrong_lep_order=official_samples)
-		# print "mass lt weight ",self.tree.mass_lt_weight
-		# print "LNC/LNV weight ", self.LNC_LNV_weight
-
-		self.weight = self.tree.mass_lt_weight*self.LNC_LNV.weight  #if not weight_override else weight_override
-		# print  "weight ", self.weight
+		if not self.tree.is_data:
+			official_samples = True
+			self.MCEventType = selections.MCEventType(self.tree,wrong_lep_order=official_samples)
+			self.weight = self.tree.mass_lt_weight*self.MCEventType.weight  #if not weight_override else weight_override
+		else: 
+			self.weight = self.tree.mass_lt_weight # for data, mass_lt_weight = 1 
 
 
 		######################################################################################################
@@ -486,11 +483,11 @@ class Analysis(object):
 		self._fill_leptons()
 
 		if not self.tree.is_data:
-			self._fill_truth_histos(sel='truth_all')
-			if self.LNC_LNV.isLNC: 
-				self._fill_truth_histos(sel='truth_LNC')
-			if self.LNC_LNV.isLNV: 
-				self._fill_truth_histos(sel='truth_LNV')
+			self._fill_truth_histos(sel='truthall')
+			if self.MCEventType.isLNC: 
+				self._fill_truth_histos(sel='truthLNC')
+			if self.MCEventType.isLNV: 
+				self._fill_truth_histos(sel='truthLNV')
 
 		self.h['CutFlow'][self.ch].SetBinContent(1, self.tree.all_entries)  # all events
 
@@ -547,7 +544,10 @@ class Analysis(object):
 		# If you've made it here, preselection is passed
 		self.passed_preselection_cuts = True
 		if not self.tree.is_data:
-			self._fill_truth_histos(sel='truth_presel')
+			if self.MCEventType.isLNC: 
+				self._fill_truth_histos(sel='truthLNCpresel')
+			if self.MCEventType.isLNV: 
+				self._fill_truth_histos(sel='truthLNVpresel')
 
 	# def preSelection(self):
 	# 	raise NotImplementedError("Please implement this method in your own Analysis subclass")
@@ -649,18 +649,18 @@ class Analysis(object):
 			self.fill_hist(sel, 'm12_sq', lep12.M()**2)
 			self.fill_hist(sel, 'm23_sq', lep23.M()**2)
 			self.fill_hist(sel, 'm13_sq', lep13.M()**2)
-			self.fill_hist(sel, 's12', self.LNC_LNV.s12) 
-			self.fill_hist(sel, 's13', self.LNC_LNV.s13) 
-			self.fill_hist(sel, 's14', self.LNC_LNV.s14) 
-			self.fill_hist(sel, 's23', self.LNC_LNV.s23) 
-			self.fill_hist(sel, 's24', self.LNC_LNV.s24) 
-			self.fill_hist(sel, 's34', self.LNC_LNV.s34) 
-			self.fill_hist(sel, 'lep1_trk_pt', self.LNC_LNV.p_2.Pt())
-			self.fill_hist(sel, 'lep1_trk_eta', self.LNC_LNV.p_2.Eta())
-			self.fill_hist(sel, 'lep1_trk_phi', self.LNC_LNV.p_2.Phi())
-			self.fill_hist(sel, 'lep2_trk_pt', self.LNC_LNV.p_3.Pt())
-			self.fill_hist(sel, 'lep2_trk_eta', self.LNC_LNV.p_3.Eta())
-			self.fill_hist(sel, 'lep2_trk_phi', self.LNC_LNV.p_3.Phi())
+			self.fill_hist(sel, 's12', self.MCEventType.s12) 
+			self.fill_hist(sel, 's13', self.MCEventType.s13) 
+			self.fill_hist(sel, 's14', self.MCEventType.s14) 
+			self.fill_hist(sel, 's23', self.MCEventType.s23) 
+			self.fill_hist(sel, 's24', self.MCEventType.s24) 
+			self.fill_hist(sel, 's34', self.MCEventType.s34) 
+			self.fill_hist(sel, 'lep1_trk_pt', self.MCEventType.p_2.Pt())
+			self.fill_hist(sel, 'lep1_trk_eta', self.MCEventType.p_2.Eta())
+			self.fill_hist(sel, 'lep1_trk_phi', self.MCEventType.p_2.Phi())
+			self.fill_hist(sel, 'lep2_trk_pt', self.MCEventType.p_3.Pt())
+			self.fill_hist(sel, 'lep2_trk_eta', self.MCEventType.p_3.Eta())
+			self.fill_hist(sel, 'lep2_trk_phi', self.MCEventType.p_3.Phi())
 			self.fill_hist(sel, 'nu_trk_pt', truth_info.dNu_vec.Pt())
 			self.fill_hist(sel, 'nu_trk_eta', truth_info.dNu_vec.Eta())
 			self.fill_hist(sel, 'nu_trk_phi', truth_info.dNu_vec.Phi())
@@ -1009,7 +1009,13 @@ class oldAnalysis(Analysis):
 					self.passed_dv_type_cut = True
 			else:
 				return
-		self._fill_selected_dv_histos("DVtype")
+		if not self.tree.is_data:	
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCDVtype")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVDVtype")
+		else: 
+			self._fill_selected_dv_histos("DVtype")
 
 		if self.do_track_quality_cut:
 			if self._track_quality_cut():
@@ -1018,8 +1024,13 @@ class oldAnalysis(Analysis):
 					self.passed_track_quality_cut = True
 			else:
 				return
-
-		self._fill_selected_dv_histos("trkqual")
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCtrkqual")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVtrkqual")
+		else:
+			self._fill_selected_dv_histos("trkqual")
 
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
@@ -1029,8 +1040,14 @@ class oldAnalysis(Analysis):
 			else:
 				return
 
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCcosmic")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVcosmic")
+		else:
+			self._fill_selected_dv_histos("trkqual")
 
-		self._fill_selected_dv_histos("cosmic")
 
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
@@ -1039,8 +1056,14 @@ class oldAnalysis(Analysis):
 					self.passed_trilepton_mass_cut = True
 			else:
 				return
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCmlll")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVmlll")
+		else:
+			self._fill_selected_dv_histos("mlll")
 
-		self._fill_selected_dv_histos("mlll")
 
 		if self.do_dv_mass_cut:
 			if self._dv_mass_cut():
@@ -1054,10 +1077,19 @@ class oldAnalysis(Analysis):
 		if not self.tree.is_data:
 			if self._truth_match():
 				self.h['CutFlow'][self.ch].Fill(14)
-				self._fill_selected_dv_histos("match")
+				if self.MCEventType.isLNC: 
+					self._fill_selected_dv_histos("LNCmatch")
+				if self.MCEventType.isLNV:
+					self._fill_selected_dv_histos("LNVmatch")
 
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
-		self._fill_selected_dv_histos("sel")
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+						self._fill_selected_dv_histos("LNCsel")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVsel")
+		else:
+			self._fill_selected_dv_histos("sel")
 
 
 class ToyAnalysis(Analysis):
@@ -1422,8 +1454,17 @@ class ToyAnalysis(Analysis):
 			else:
 				return
 
-		self._fill_selected_dv_histos("DVtype")
-		self._fill_correlation_histos("DVtype")
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCDVtype")
+				self._fill_correlation_histos("LNCDVtype")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVDVtype")
+				self._fill_correlation_histos("LNVDVtype")
+		else:
+			self._fill_selected_dv_histos("DVtype")
+			self._fill_correlation_histos("DVtype")
+
 
 		if self.do_dv_mass_cut:
 			if self._dv_mass_cut():
@@ -1433,8 +1474,16 @@ class ToyAnalysis(Analysis):
 			else:
 				return
 
-		self._fill_selected_dv_histos("mDV")
-		self._fill_correlation_histos("mDV")
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCmDV")
+				self._fill_correlation_histos("LNCmDV")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVmDV")
+				self._fill_correlation_histos("LNVmDV")
+		else:
+			self._fill_selected_dv_histos("mDV")
+			self._fill_correlation_histos("mDV")
 
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
@@ -1443,20 +1492,18 @@ class ToyAnalysis(Analysis):
 					self.passed_trilepton_mass_cut = True
 			else:
 				return
-		self._fill_selected_dv_histos("mlll")
-		self._fill_correlation_histos("mlll")
 
-		if self.do_HNL_pt_cut:
-			if self._HNL_pt_cut():
-				if not self.passed_HNL_pt_cut:
-					self.h['CutFlow'][self.ch].Fill(13)
-					self.passed_HNL_pt_cut = True
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCmlll")
+				self._fill_correlation_histos("LNCmlll")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVmlll")
+				self._fill_correlation_histos("LNVmlll")
+		else:
+			self._fill_selected_dv_histos("mlll")
+			self._fill_correlation_histos("mlll")
 
-			else:
-				return
-
-		self._fill_selected_dv_histos("HNLpt")
-		self._fill_correlation_histos("HNLpt")
 
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
@@ -1465,33 +1512,36 @@ class ToyAnalysis(Analysis):
 					self.passed_cosmic_veto_cut = True
 			else:
 				return
-		self._fill_selected_dv_histos("cosmic")
+		
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCcosmic")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVcosmic")
 
-		if self._track_quality_cut_1tight():
-			if not self.passed_track_1tight_cut:
-				self.h['CutFlow'][self.ch].Fill(15)
-				self.passed_track_1tight_cut = True
 		else:
-			return
+			self._fill_selected_dv_histos("cosmic")
+			
 
-		self._fill_selected_dv_histos("tight1")
-
-		if self._track_quality_cut_2tight():
-			if not self.passed_track_2tight_cut:
-				self.h['CutFlow'][self.ch].Fill(16)
-				self.passed_track_2tight_cut = True
-		else:
-			return
 
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data:
 			if self._truth_match():
 				self.h['CutFlow'][self.ch].Fill(17)
-				self._fill_selected_dv_histos("match")
+				if self.MCEventType.isLNC: 
+					self._fill_selected_dv_histos("LNCmatch")
+				if self.MCEventType.isLNV:
+					self._fill_selected_dv_histos("LNVmatch")
 
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
-		self._fill_selected_dv_histos("sel")
-		self._fill_correlation_histos("sel")
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				self._fill_selected_dv_histos("LNCsel")
+			if self.MCEventType.isLNV:
+				self._fill_selected_dv_histos("LNVsel")
+		else:
+			self._fill_selected_dv_histos("sel")
+			
 
 
 class KShort(Analysis):

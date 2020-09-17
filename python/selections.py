@@ -1020,8 +1020,8 @@ class PV():
 		else: 
 			return False # no primary vertex in the event
 
-class EventType_LNC_LNV:
-	def __init__(self, tree, get_LNC = True, get_LNV = False, wrong_lep_order = True):
+class MCEventType:
+	def __init__(self, tree, wrong_lep_order = True):
 		self.weight = -1 # get weight 
 		self.isLNC = False
 		self.isLNV = False
@@ -1067,9 +1067,14 @@ class EventType_LNC_LNV:
 		# print "HNL mass ", MN
 		charge_1 = truth_info.plep_charge # charge of prompt lepton
 		self.p_1 = truth_info.plep_vec # prompt lepton 
-		self.p_2 = truth_info.dLepVec[0]
-		self.p_3 = truth_info.dLepVec[1]
-		self.p_4 = truth_info.dLepVec[2]
+		if wrong_lep_order: 
+			self.p_2 = truth_info.dLepVec[0]
+			self.p_3 = truth_info.dLepVec[1]
+			self.p_4 = truth_info.dLepVec[2]
+		else: 
+			self.p_2 = truth_info.dLepVec[2]
+			self.p_3 = truth_info.dLepVec[0]
+			self.p_4 = truth_info.dLepVec[1]
 
 		if charge_1 != truth_info.dLepCharge[0]: 
 			self.isLNC = True
@@ -1120,17 +1125,17 @@ class EventType_LNC_LNV:
 		if wrong_lep_order: 
 		# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
 		# For official samples, swap s24 -> s34 
-			if self.isLNC: 
-				self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s34)
-
-			if self.isLNV: 
-				self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s34)
+			self.weight = M2_nocorr(MN=MN,s24= self.s24)/M2_nocorr(MN=MN,s24= self.s34)
+			# if self.isLNC: 
+			# 	self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s34)
+			# if self.isLNV: 
+			# 	self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s34)
 		else: 
-			if self.isLNC: 
-				self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s24)
-
-			if self.isLNV: 
-				self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s24)
+			self.weight = 1
+			# if self.isLNC: 
+			# 	self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s24)
+			# if self.isLNV: 
+			# 	self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s24)
 
 			
 

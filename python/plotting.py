@@ -284,8 +284,8 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		if "LNV" in label: 
 			hist_path = "{}/{}/{}".format(vtx_alg, selection, "LNV_"+ variable)
 			print hist_path
-		# else: 
-		# 	hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
+		else: 
+			hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
 		
 
 		# block that is used if you want to use the micro-ntuple to plot
