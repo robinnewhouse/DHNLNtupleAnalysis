@@ -419,7 +419,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	for i in h_idx:
 		if 'SS bkg' not in labels[i]: 
 			if normalize: 
-				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"f")
+				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"f")
 			else:
 				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"f")
 		
@@ -504,14 +504,18 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	notes_x = 0.25
 	notes_y = 0.87
 
+	if "truth" in selection: 
+		truth_plot = True
+	else: 
+		truth_plot = False
 	if normalize: 
-		plotting_helpers.drawNotes(vtx_alg, "")
+		plotting_helpers.drawNotes(vtx_alg, "", truth_plot)
 	else: 
 		# if "VSI_" in vtx_alg:
 		# 	vtx = "VSI"
 		# if "VSI_Leptons_" in vtx_alg:
 		# 	vtx = "VSI_Leptons"
-		plotting_helpers.drawNotes(vtx_alg, scalelumi)
+		plotting_helpers.drawNotes(vtx_alg, scalelumi, truth_plot)
 
 	if 'notes' in kwargs:
 		for note in kwargs['notes']:

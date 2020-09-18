@@ -18,7 +18,7 @@ def drawNote(note, size=14, ax=0.25, ay=0.82):
 	a = getNote(size)
 	a.DrawLatex(ax,ay,note)
 	
-def drawNotes(VtxConfig,lumi,channel=None):
+def drawNotes(VtxConfig,lumi,truth_plot, channel=None):
 	a = getNote(size=20)
 	b = getNote(size=20)
 	c = getNote(size=20)
@@ -29,10 +29,11 @@ def drawNotes(VtxConfig,lumi,channel=None):
 		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
 	else: 
 		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV")
-	if VtxConfig == "VSI_Leptons": 
-		b.DrawLatex(ax,ay-0.05,'VSI Leptons')
-	else: 
-		b.DrawLatex(ax,ay-0.05,'%s'%(VtxConfig))
+	if not truth_plot:
+		if VtxConfig == "VSI_Leptons": 
+			b.DrawLatex(ax,ay-0.05,'VSI Leptons')
+		else: 
+			b.DrawLatex(ax,ay-0.05,'%s'%(VtxConfig))
 	if channel != None:
 		if  "uuu" in channel:
 			c.DrawLatex(ax,ay-0.1,'channel: \mu\mu\mu')

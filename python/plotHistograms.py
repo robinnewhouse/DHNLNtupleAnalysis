@@ -30,7 +30,7 @@ MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 normalize = True
 setlogy = False
 drawRatio=False
-draw_channel_info = True
+draw_channel_info = not normalize
 do_cut_significane = True
 
 #############################################################################################################################################
@@ -540,8 +540,12 @@ def compare_TRUTH_histograms(config_file, selection):
 		# hist_channels.append([config_file["mcFiles"][2], "( LNV   " + config_file["mcLabels"][2], vtx_channel, selection])
 		# hist_channels.append([config_file["mcFiles"][2], "( LNC   " + config_file["mcLabels"][2], vtx_channel, selection])
 
-		hist_channels.append([config_file["mcFiles"][3], config_file["mcLabels"][3], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][4], config_file["mcLabels"][4], vtx_channel, selection])
+		# hist_channels.append([config_file["mcFiles"][3], config_file["mcLabels"][3], vtx_channel, selection])
+		# hist_channels.append([config_file["mcFiles"][4], config_file["mcLabels"][4], vtx_channel, selection])
+
+		hist_channels.append([config_file["mcFiles"][5], "LNV decays", vtx_channel, "LNV"+selection])
+		hist_channels.append([config_file["mcFiles"][5], "LNC decays", vtx_channel, "LNC"+selection])
+
 
 		#get integrated luminosity to scale MC files to (ideally this should come from a value in the nutple TD DO) - DT
 		scalelumi = config_file["scaleLumi"] # luminosity you want to scale everything to 
@@ -832,7 +836,7 @@ if __name__ == '__main__':
 	#execute plotting here, comment out functions in you dont want to plot them again.	
 	# makeCutflows(config_file)
 	# compare_histograms(config_file, 'DVtype')
-	compare_TRUTH_histograms(config_file, 'truthall')
+	compare_TRUTH_histograms(config_file, 'truth')
 	# check_rerunningVSI(config_file,"all")
 
 	

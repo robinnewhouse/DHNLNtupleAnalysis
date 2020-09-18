@@ -29,15 +29,11 @@ class Analysis(object):
 		self.tree = tree
 		self.saveNtuples = saveNtuples
 		self._locked = UNLOCKED
-		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
-		for observable in self.observables:
-			if 'hist' in observable.do:
-				if self.tree.is_data and observable.need_truth:
-					continue
-				elif type(observable.binning) == tuple:
-					self.add(observable.name, *observable.binning)
-				else:
-					self.addVar(observable.name, observable.binning)
+		self.observables = {}
+		for observable in observables.ObservableList:
+			if ((observable.only is None) or any(only in self.sel for only in observable.only)): 
+				self.observables[observable.name] = observable.registered(self) 
+		
 
 		# setting all the relevant variables for the cuts based on the input selections
 		# trigger cut
@@ -202,6 +198,19 @@ class Analysis(object):
 		if selection: full_name = selection + '_' + hist_name
 		else: full_name = hist_name
 		try:
+			# check if histogram was already created
+			if full_name not in self.h.keys(): 
+				# check if histogram was registered
+				if full_name in self.observables.keys() and 'hist' in self.observables[full_name].do: 
+					# check if the observable is only avaliable in signal MC
+					if self.tree.is_data and observable.need_truth:
+						continue
+					elif type(self.observables[full_name].binning) == tuple:
+						self.add(self.observables[full_name].name, *self.observables[full_name].binning)
+					else:
+						self.addVar(self.observables[full_name].name, self.observables[full_name].binning)
+
+
 			if variable_2 is None:
 				self.h[full_name][self.ch].Fill(variable_1, self.weight)
 			else:
