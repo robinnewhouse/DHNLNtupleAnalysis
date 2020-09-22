@@ -94,7 +94,7 @@ def main():
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
-			ana = anaClass(tree, vtx_container, selections, output_file,options.saveNtuples, debug_level)
+			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file,options.saveNtuples, debug_level)
 
 			# Loop over each event
 			while tree.ievt < entries:

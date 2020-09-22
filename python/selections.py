@@ -1023,6 +1023,8 @@ class PV():
 class MCEventType:
 	def __init__(self, tree, wrong_lep_order = True):
 		self.weight = -1 # get weight 
+		self.M2_spin_corr = -1
+		self.M2_nocorr = -1
 		self.isLNC = False
 		self.isLNV = False
 		# Matrix elements for the trilepton process, when only the charged-current contribution is present.
@@ -1104,6 +1106,10 @@ class MCEventType:
 		# 		self.p_3 = truth_info.dLepVec[0]
 		# 		self.p_4 = truth_info.dLepVec[2]
 
+		if self.isLNC == self.isLNV: 
+			print "both LNC and LNV!!!"
+
+
 		p12 = self.p_1 + self.p_2
 		p13 = self.p_1 + self.p_3
 		p14 = self.p_1 + self.p_4
@@ -1127,13 +1133,23 @@ class MCEventType:
 		# For official samples, swap s24 -> s34 
 			if self.isLNC: 
 				self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s34)
+				self.M2_spin_corr = M2_LNC(MN=MN, s13=self.s13, s24=self.s24)
+				self.M2_nocorr = M2_nocorr(MN=MN,s24= self.s34)
 			if self.isLNV: 
 				self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s34)
+				self.M2_spin_corr = M2_LNV(MN=MN, s13=self.s13, s24=self.s24)
+				self.M2_nocorr = M2_nocorr(MN=MN,s24= self.s34)
 		else: 
 			if self.isLNC: 
 				self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s24)
+				self.M2_spin_corr = M2_LNC(MN=MN, s13=self.s13, s24=self.s24)
+				self.M2_nocorr = M2_nocorr(MN=MN,s24= self.s24)
 			if self.isLNV: 
 				self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s24)
+				self.M2_spin_corr = M2_LNV(MN=MN, s13=self.s13, s24=self.s24)
+				self.M2_nocorr = M2_nocorr(MN=MN,s24= self.s24)
+
+	
 
 			
 

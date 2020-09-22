@@ -38,13 +38,12 @@ class Tree:
 		# Open and load uproot trees
 		self.file = uproot.open(file_name)
 		self.tree = self.file[tree_name]
-		self.cutflow = self.file["cutflow"]
-		# self.all_entries = self.cutflow[1]  
-		self.all_entries = self.cutflow[2]  
+		self.cutflow = self.file["cutflow"] 
+		self.all_entries = self.cutflow[1]  
 		self.init_entries = self.cutflow[2]  # init entries
 		self.vtx_container = ""
 		self.mass_lt_weight = self.get_weight(mass, ctau) 
-		self.logger.debug('Event weight for this signal sample is: {}'.format(self.weight))
+		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
 
 		
 
@@ -152,7 +151,8 @@ class Tree:
 				else: U2 = U2Gronau
 
 				xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-				self.weight = 1 * xsec / (self.all_entries)  # scale to 1 fb^-1  of luminosity, 
+				print self.all_entries
+				self.weight = 1 * xsec / (self.all_entries / 2)  # scale to 1 fb^-1  of luminosity, 
 															 	# scale all entries /2 becuase we are splitting events into 100% LNC & 100% LNV
 
 		return self.weight
