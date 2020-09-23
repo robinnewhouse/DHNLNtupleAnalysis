@@ -31,7 +31,7 @@ class Analysis(object):
 		self.saveNtuples = saveNtuples
 		self._locked = UNLOCKED
 		# queue the observables 
-		observables.queue_all_observables(self.name)
+		observables.queue_all_observables(self.name, self.tree.is_data)
 		# register the variables 
 		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
 		# make empty histograms with desired binnings
@@ -301,8 +301,8 @@ class Analysis(object):
 			if self.h[h_name][self.ch].GetEntries() != 0:
 
 				if not self.tree.is_data:
-					EventType = h_name.split('_')[0]  # get LNC or LNV 
-					selection = '_'.join(h_name.split('_')[1:]).split('_')[0]  # get selection
+					selection = h_name.split('_')[0]  # get LNC or LNV 
+					EventType = '_'.join(h_name.split('_')[1:]).split('_')[0]  # get selection
 					sel_dir = self.ch + '/' +  selection + '/' + EventType 
 					base_name = '_'.join(h_name.split('_')[2:])  # get base name
 				else: 
@@ -325,11 +325,11 @@ class Analysis(object):
 		self.fi.Close()
 
 	def end(self):
-		self.h['all_CutFlow_acceptance'] = {}
-		self.h['all_CutFlow_acceptance'][self.ch] = self.h['all_CutFlow'][self.ch].Clone()
-		self.h['all_CutFlow_acceptance'][self.ch].SetName("all_CutFlow_acceptance"+"_"+self.ch)
-		self.h['all_CutFlow_acceptance'][self.ch].SetDirectory(0)
-		self.h['all_CutFlow_acceptance'][self.ch].Scale(1.0/self.tree.all_entries)
+		self.h['CutFlow_all_acceptance'] = {}
+		self.h['CutFlow_all_acceptance'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
+		self.h['CutFlow_all_acceptance'][self.ch].SetName("CutFlow_all_acceptance"+"_"+self.ch)
+		self.h['CutFlow_all_acceptance'][self.ch].SetDirectory(0)
+		self.h['CutFlow_all_acceptance'][self.ch].Scale(1.0/self.h['CutFlow_all'][self.ch].GetBinContent(1))
 		self.logger.info('Done with Channel("{}")'.format(self.ch))
 		meta = []
 		# if self.region:
@@ -521,14 +521,14 @@ class Analysis(object):
 		self._fill_leptons()
 
 		if not self.tree.is_data:
-			self._fill_truth_histos(sel='all_truth')
+			self._fill_truth_histos(sel='truth_all')
 			if self.MCEventType.isLNC: 
-				self.h['LNC_CutFlow'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
-				self._fill_truth_histos(sel='LNC_truth')
+				self.h['CutFlow_LNC'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
+				self._fill_truth_histos(sel='truth_LNC')
 			if self.MCEventType.isLNV: 
-				self._fill_truth_histos(sel='LNV_truth')
-				self.h['LNV_CutFlow'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
-			self.h['all_CutFlow'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
+				self._fill_truth_histos(sel='truth_LNV')
+				self.h['CutFlow_LNV'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
+			self.h['CutFlow_all'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
 		
 
 		######################################################################################################
@@ -592,9 +592,9 @@ class Analysis(object):
 		self.passed_preselection_cuts = True
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC: 
-				self._fill_truth_histos(sel='LNC_truth_presel')
+				self._fill_truth_histos(sel='truth_LNC_presel')
 			if self.MCEventType.isLNV: 
-				self._fill_truth_histos(sel='LNV_truth_presel')
+				self._fill_truth_histos(sel='truth_LNV_presel')
 
 	# def preSelection(self):
 	# 	raise NotImplementedError("Please implement this method in your own Analysis subclass")
@@ -607,12 +607,12 @@ class Analysis(object):
 	def _fill_cutflow(self,nbin): 
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC:
-				self.h['LNC_CutFlow'][self.ch].Fill(nbin,self.weight)
+				self.h['CutFlow_LNC'][self.ch].Fill(nbin,self.weight)
 			if self.MCEventType.isLNV:	
-				self.h['LNV_CutFlow'][self.ch].Fill(nbin,self.weight)
-			self.h['all_CutFlow'][self.ch].Fill(nbin,self.tree.mass_lt_weight/2)
+				self.h['CutFlow_LNV'][self.ch].Fill(nbin,self.weight)
+			self.h['CutFlow_all'][self.ch].Fill(nbin,self.tree.mass_lt_weight/2)
 		else:
-			self.h['all_CutFlow'][self.ch].Fill(nbin)
+			self.h['CutFlow_all'][self.ch].Fill(nbin)
 
 	def _fill_leptons(self):
 		sel = 'all'
@@ -738,9 +738,9 @@ class Analysis(object):
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC: 
-				sel = "LNC_" + sel
+				sel =  sel + "_LNC" 
 			if self.MCEventType.isLNV:
-				sel = "LNV_" + sel
+				sel =  sel + "_LNV" 
 
 
 		if self._locked < FILL_LOCKED and do_lock:
@@ -1016,51 +1016,51 @@ class oldAnalysis(Analysis):
 
 		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
-		self.add('all_CutFlow', 15, -0.5, 14.5)
+		self.add('CutFlow_all', 15, -0.5, 14.5)
 		# Bin labels are 1 greater than histogram bins
-		self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
+		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		if self.do_trigger_cut:
 			if self.do_CR == False:
-				self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
+				self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
 			else:
-				self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
+				self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
 		if self.do_invert_trigger_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "invert trigger")
-		self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "PV")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "invert trigger")
+		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(3, "PV")
 		if self.do_filter_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
 		if self.do_invert_prompt_lepton_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
 		if self.do_ndv_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "DV")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(6, "DV")
 		if self.do_fidvol_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
 		if self.do_ntrk_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
 		if self.do_opposite_sign_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "OS DV")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(9, "OS DV")
 		if self.do_same_sign_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "SS DV")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(9, "SS DV")
 		if self.do_dv_type_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "%s DV" % self.dv_type)
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(10, "%s DV" % self.dv_type)
 		if self.do_track_quality_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "{}-lepton DV".format(self.track_quality))
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(11, "{}-lepton DV".format(self.track_quality))
 		if self.do_cosmic_veto_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "cosmic veto")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(12, "cosmic veto")
 		if self.do_trilepton_mass_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
 		if self.do_dv_mass_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
-		self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "truth matched")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
+		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(15, "truth matched")
 
-		self.h['LNV_CutFlow'] = {}
-		self.h['LNC_CutFlow'] = {}
-		self.h['LNV_CutFlow'][self.ch] = self.h['all_CutFlow'][self.ch].Clone()
-		self.h['LNC_CutFlow'][self.ch] = self.h['all_CutFlow'][self.ch].Clone()
-		self.h['LNV_CutFlow'][self.ch].SetName("LNV_CutFlow"+"_"+self.ch)
-		self.h['LNC_CutFlow'][self.ch].SetName("LNC_CutFlow"+"_"+self.ch)
+		self.h['CutFlow_LNV'] = {}
+		self.h['CutFlow_LNC'] = {}
+		self.h['CutFlow_LNV'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
+		self.h['CutFlow_LNC'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
+		self.h['CutFlow_LNV'][self.ch].SetName("CutFlow_LNV"+"_"+self.ch)
+		self.h['CutFlow_LNC'][self.ch].SetName("CutFlow_LNC"+"_"+self.ch)
 
 	
 	def DVSelection(self):
@@ -1184,57 +1184,57 @@ class ToyAnalysis(Analysis):
 		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
 		self.logger.info('Running  Toy Analysis cuts')
 
-		self.add('all_CutFlow', 14, -0.5, 13.5)
+		self.add('CutFlow_all', 14, -0.5, 13.5)
 		# Bin labels are 1 greater than histogram bins
-		self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
+		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(1, "all")
 		if self.do_trigger_cut:
 			if not self.do_CR:
-				self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
+				self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
 			else:
-				self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
-		self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "PV")
+				self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
+		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(3, "PV")
 		if self.do_filter_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
 		if self.do_invert_prompt_lepton_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
 		if self.do_ndv_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(6, "DV")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(6, "DV")
 		if self.do_fidvol_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
 		if self.do_ntrk_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
 		# if self.do_HNL_mass_cut:
-		self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(9, "dR")
+		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(9, "dR")
 		if self.do_opposite_sign_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "OS DV")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(10, "OS DV")
 		if self.do_same_sign_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(10, "SS DV")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "++ DV")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "-- DV")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "+++ lll")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "+-- lll")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(15, "-++ lll")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(16, "--- lll")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(10, "SS DV")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(11, "++ DV")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(12, "-- DV")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(13, "+++ lll")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(14, "+-- lll")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(15, "-++ lll")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(16, "--- lll")
 		if self.do_dv_type_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(11, "%s DV" % self.dv_type)
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(18, "++ DV")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(19, "-- DV")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(20, "+++ lll")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(21, "+-- lll")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(22, "-++ lll")
-		# self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(23, "--- lll")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(11, "%s DV" % self.dv_type)
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(18, "++ DV")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(19, "-- DV")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(20, "+++ lll")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(21, "+-- lll")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(22, "-++ lll")
+		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(23, "--- lll")
 		if self.do_dv_mass_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(12, "m_{DV}")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(12, "m_{DV}")
 		if self.do_trilepton_mass_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
 		if self.do_cosmic_veto_cut:
-			self.h['all_CutFlow'][self.ch].GetXaxis().SetBinLabel(14, "cosmic veto")
+			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(14, "cosmic veto")
 
 
-		self.h['LNV_CutFlow'][self.ch] = self.h['all_CutFlow'][self.ch].Clone()
-		self.h['LNC_CutFlow'][self.ch] = self.h['all_CutFlow'][self.ch].Clone()
+		self.h['CutFlow_LNV'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
+		self.h['CutFlow_LNC'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
 
 		# 2D correlation plots after each cut in the DV
 		sel_list = ["charge", "DVtype", "mDV", "mlll", "HNLpt", "sel"]
@@ -1549,11 +1549,11 @@ class ToyAnalysis(Analysis):
 
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC: 
-				self._fill_selected_dv_histos("LNC_DVtype")
-				self._fill_correlation_histos("LNC_DVtype")
+				self._fill_selected_dv_histos("DVtype_LNC")
+				self._fill_correlation_histos("DVtype_LNC")
 			if self.MCEventType.isLNV:
-				self._fill_selected_dv_histos("LNV_DVtype")
-				self._fill_correlation_histos("LNV_DVtype")
+				self._fill_selected_dv_histos("DVtype_LNV")
+				self._fill_correlation_histos("DVtype_LNV")
 		else:
 			self._fill_selected_dv_histos("DVtype")
 			self._fill_correlation_histos("DVtype")
@@ -1570,11 +1570,11 @@ class ToyAnalysis(Analysis):
 
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC: 
-				self._fill_selected_dv_histos("LNC_mDV")
-				self._fill_correlation_histos("LNC_mDV")
+				self._fill_selected_dv_histos("mDV_LNC")
+				self._fill_correlation_histos("mDV_LNC")
 			if self.MCEventType.isLNV:
-				self._fill_selected_dv_histos("LNV_mDV")
-				self._fill_correlation_histos("LNV_mDV")
+				self._fill_selected_dv_histos("mDV_LNV")
+				self._fill_correlation_histos("mDV_LNV")
 		else:
 			self._fill_selected_dv_histos("mDV")
 			self._fill_correlation_histos("mDV")
@@ -1590,11 +1590,11 @@ class ToyAnalysis(Analysis):
 
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC: 
-				self._fill_selected_dv_histos("LNC_mlll")
-				self._fill_correlation_histos("LNC_mlll")
+				self._fill_selected_dv_histos("mlll_LNC")
+				self._fill_correlation_histos("mlll_LNC")
 			if self.MCEventType.isLNV:
-				self._fill_selected_dv_histos("LNV_mlll")
-				self._fill_correlation_histos("LNV_mlll")
+				self._fill_selected_dv_histos("mlll_LNV")
+				self._fill_correlation_histos("mlll_LNV")
 		else:
 			self._fill_selected_dv_histos("mlll")
 			self._fill_correlation_histos("mlll")
@@ -1611,9 +1611,9 @@ class ToyAnalysis(Analysis):
 		
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC: 
-				self._fill_selected_dv_histos("LNC_cosmic")
+				self._fill_selected_dv_histos("cosmic_LNC")
 			if self.MCEventType.isLNV:
-				self._fill_selected_dv_histos("LNV_cosmic")
+				self._fill_selected_dv_histos("cosmic_LNV")
 
 		else:
 			self._fill_selected_dv_histos("cosmic")
@@ -1626,16 +1626,16 @@ class ToyAnalysis(Analysis):
 				self._fill_cutflow(14)
 				# self.h['CutFlow'][self.ch].Fill(14)
 				if self.MCEventType.isLNC: 
-					self._fill_selected_dv_histos("LNC_match")
+					self._fill_selected_dv_histos("match_LNC")
 				if self.MCEventType.isLNV:
-					self._fill_selected_dv_histos("LNV_match")
+					self._fill_selected_dv_histos("match_LNV")
 
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC: 
-				self._fill_selected_dv_histos("LNC_sel")
+				self._fill_selected_dv_histos("sel_LNC")
 			if self.MCEventType.isLNV:
-				self._fill_selected_dv_histos("LNV_sel")
+				self._fill_selected_dv_histos("sel_LNV")
 		else:
 			self._fill_selected_dv_histos("sel")
 			
