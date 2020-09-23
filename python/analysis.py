@@ -1686,6 +1686,13 @@ class KShort(Analysis):
 
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
+		if not self.tree.is_data:
+			if self.MCEventType.isLNC: 
+				sel =  sel + "_LNC" 
+			if self.MCEventType.isLNV:
+				sel =  sel + "_LNV" 
+
+
 		if self._locked < FILL_LOCKED or not do_lock:
 			# these are the histograms you only want to fill ONCE per DV
 
