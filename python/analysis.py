@@ -329,7 +329,8 @@ class Analysis(object):
 		self.h['CutFlow_all_acceptance'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
 		self.h['CutFlow_all_acceptance'][self.ch].SetName("CutFlow_all_acceptance"+"_"+self.ch)
 		self.h['CutFlow_all_acceptance'][self.ch].SetDirectory(0)
-		self.h['CutFlow_all_acceptance'][self.ch].Scale(1.0/self.h['CutFlow_all'][self.ch].GetBinContent(1))
+		if self.h['CutFlow_all'][self.ch].GetBinContent(1) != 0: # Protect against zero-division
+			self.h['CutFlow_all_acceptance'][self.ch].Scale(1.0/self.h['CutFlow_all'][self.ch].GetBinContent(1))
 		self.logger.info('Done with Channel("{}")'.format(self.ch))
 		meta = []
 		# if self.region:
@@ -622,8 +623,8 @@ class Analysis(object):
 			self.fill_hist(sel, 'muon_eta', self.tree['muon_eta'][imu])
 			self.fill_hist(sel, 'muon_phi', self.tree['muon_phi'][imu])
 			if self.tree['muon_isTight'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 3)
-			elif self.tree['muon_isMedium'][imu] == 1: self.fill_hist(sel, 'muon_quality', 2)
-			elif self.tree['muon_isLoose'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 1)
+			if self.tree['muon_isMedium'][imu] == 1: self.fill_hist(sel, 'muon_quality', 2)
+			if self.tree['muon_isLoose'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 1)
 			else: self.fill_hist(sel, 'muon_quality', 0)
 
 		for iel in range(len(self.tree['el_pt'])):
@@ -631,8 +632,8 @@ class Analysis(object):
 			self.fill_hist(sel, 'el_eta', self.tree['el_eta'][iel])
 			self.fill_hist(sel, 'el_phi', self.tree['el_phi'][iel])
 			if self.tree['el_LHTight'][iel] == 1:  self.fill_hist(sel, 'el_quality', 3)
-			elif self.tree['el_LHMedium'][iel] == 1: self.fill_hist(sel, 'el_quality', 2)
-			elif self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(sel, 'el_quality', 1)
+			if self.tree['el_LHMedium'][iel] == 1: self.fill_hist(sel, 'el_quality', 2)
+			if self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(sel, 'el_quality', 1)
 			else: self.fill_hist(sel, 'el_quality', 0)
 
 	def _fill_all_dv_histos(self):
@@ -1232,7 +1233,8 @@ class ToyAnalysis(Analysis):
 		if self.do_cosmic_veto_cut:
 			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(14, "cosmic veto")
 
-
+		self.h['CutFlow_LNV'] = {}
+		self.h['CutFlow_LNC'] = {}
 		self.h['CutFlow_LNV'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
 		self.h['CutFlow_LNC'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
 
