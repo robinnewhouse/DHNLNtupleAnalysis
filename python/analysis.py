@@ -5,8 +5,7 @@ import os
 import sys
 import helpers
 import selections
-import observables
-import logging
+import observables_new as observables
 import ntuples
 
 
@@ -16,7 +15,7 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples,debug_level):
+	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples, debug_level):
 		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=debug_level)
 		selections.set_debug_level(debug_level)
 		self.name = name
@@ -193,6 +192,17 @@ class Analysis(object):
 	def get(self, key):
 		return self.tree[key]
 
+	def check_histogram_exists(self, full_name):
+		"""
+		Takes a histogram name and verifies that it exists. If not, create it.
+		This allows histograms to be made in-time.
+		:param full_name: name of the histogram
+		:return:
+		"""
+
+		return True
+
+
 	# hist filling helper functions
 	def fill_hist(self, selection, hist_name, variable_1, variable_2=None, fill_ntuple=True):
 		"""
@@ -204,8 +214,18 @@ class Analysis(object):
 		:param fill_ntuple: set to True if you want to simultaneously fill an ntuple with this variable
 		:return:
 		"""
+		# TODO get the correct LNC or LNV. Not sure how to do this yet
+		directory = '{ch}/{selection}/{ln}/'.format(ch=self.ch, selection=selection, ln='LNC')
+		self.observables.fill_hist(directory, hist_name, variable_1, variable_2)
+
+
+
 		if selection: full_name = selection + '_' + hist_name
 		else: full_name = hist_name
+
+		if not self.check_histogram_exists(full_name):
+			raise KeyError("Histogram does not exists and cannot be made")
+
 		try:
 			if variable_2 is None:
 				if 'MCweight' in hist_name:
@@ -1646,7 +1666,7 @@ class ToyAnalysis(Analysis):
 class KShort(Analysis):
 	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level):
 		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
-		self.logger.info('Running KShort Analysis cuts',level=logging.debug_level)
+		self.logger.info('Running KShort Analysis cuts', level=debug_level)
 
 		self.add('CutFlow', 17, -0.5, 16.5)
 		# Bin labels are 1 greater than histogram bins
