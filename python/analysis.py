@@ -5,7 +5,7 @@ import os
 import sys
 import helpers
 import selections
-import observables_new as observables
+import observables
 import ntuples
 
 
