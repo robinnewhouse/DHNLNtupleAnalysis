@@ -27,6 +27,7 @@ class Analysis(object):
 		self.h = {}
 		self.micro_ntuples = {}
 		self.tree = tree
+		self.weight = 1
 		self.saveNtuples = saveNtuples
 		self._locked = UNLOCKED
 		# create an instance of Observables to store histograms
@@ -432,8 +433,10 @@ class Analysis(object):
 		"""Truth matching function for displaced vertices.
 		linkTruth_score is calculated using DVAnalysisBase.
 		pdgId 50 signifies a heavy neutral lepton parent particle."""
-		return self.tree.dv('maxlinkTruth_score') > 0.75 and \
-			   abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
+		maxlinkTruth_score = self.tree.dv('maxlinkTruth_score')
+		maxlinkTruth_parent_pdgId = abs(self.tree.dv('maxlinkTruth_parent_pdgId'))
+
+		return self.tree.dv('maxlinkTruth_score') > 0.75 and abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
 
 	def initialize_cut_bools(self):
 		###########################################################################################################################
@@ -455,31 +458,7 @@ class Analysis(object):
 
 	def preSelection(self):
 
-		######################################################################################################
-		# MC re-weighting to include spin correlations
-		######################################################################################################
-		if not self.tree.is_data:
-			official_samples = True
-			self.MCEventType = selections.MCEventType(self.tree,wrong_lep_order=official_samples)
-			# self.weight = self.tree.mass_lt_weight*self.MCEventType.weight  #if not weight_override else weight_override
-			self.weight = self.tree.mass_lt_weight #dont apply the weighting
-		else: 
-			self.weight = self.tree.mass_lt_weight # for data, mass_lt_weight = 1 
-
-		# if self.MCEventType.weight < 0: 
-		# 	print "--------"
-		# 	print "isLNC ", self.MCEventType.isLNC
-		# 	print "isLNV ", self.MCEventType.isLNV
-		# 	print "MC weight: ", self.MCEventType.weight
-		# 	print "M2 spin corr: ", self.MCEventType.M2_spin_corr 
-		# 	print "M2 no corr: ", self.MCEventType.M2_nocorr
-		# 	print "s13: ", self.MCEventType.s13
-		# 	print "s24: ", self.MCEventType.s24
-		# 	print "p1 (px,py,pz,m): ", self.MCEventType.p_1.Px(),self.MCEventType.p_1.Py(),self.MCEventType.p_1.Pz(),self.MCEventType.p_1.M()
-		# 	print "p2 (px,py,pz,m): ", self.MCEventType.p_2.Px(),self.MCEventType.p_2.Py(),self.MCEventType.p_2.Pz(),self.MCEventType.p_2.M()
-		# 	print "p3 (px,py,pz,m): ", self.MCEventType.p_3.Px(),self.MCEventType.p_3.Py(),self.MCEventType.p_3.Pz(),self.MCEventType.p_3.M()
-		# 	print "p4 (px,py,pz,m): ", self.MCEventType.p_4.Px(),self.MCEventType.p_4.Py(),self.MCEventType.p_4.Pz(),self.MCEventType.p_4.M()
-
+		self.calculate_event_weight()
 
 		######################################################################################################
 		# Preselection are all the cuts that are requied per event
@@ -492,14 +471,12 @@ class Analysis(object):
 		self._fill_leptons()
 
 		if not self.tree.is_data:
-			self._fill_truth_histos(sel='truth_all')
+			self._fill_truth_histos(sel='truth/all')
 			if self.MCEventType.isLNC: 
-				self.CutFlow_LNC.SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
-				self._fill_truth_histos(sel='truth_LNC')
-			if self.MCEventType.isLNV: 
-				self._fill_truth_histos(sel='truth_LNV')
-				self.CutFlow_LNV.SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
-			self.CutFlow.SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
+				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries)  # all events
+			if self.MCEventType.isLNV:
+				self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries)  # all events
+			self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
 		
 
 		######################################################################################################
@@ -562,26 +539,44 @@ class Analysis(object):
 		# If you've made it here, preselection is passed
 		self.passed_preselection_cuts = True
 		if not self.tree.is_data:
-			if self.MCEventType.isLNC: 
-				self._fill_truth_histos(sel='truth_LNC_presel')
-			if self.MCEventType.isLNV: 
-				self._fill_truth_histos(sel='truth_LNV_presel')
+			self._fill_truth_histos(sel='truth/presel')
 
-	# def preSelection(self):
-	# 	raise NotImplementedError("Please implement this method in your own Analysis subclass")
+	def calculate_event_weight(self):
+		######################################################################################################
+		# MC re-weighting to include spin correlations
+		######################################################################################################
+		if not self.tree.is_data:
+			official_samples = True
+			self.MCEventType = selections.MCEventType(self.tree, wrong_lep_order=official_samples)
+			# self.weight = self.tree.mass_lt_weight*self.MCEventType.weight  #if not weight_override else weight_override
+			self.weight = self.tree.mass_lt_weight  # dont apply the weighting
+		else:
+			self.weight = self.tree.mass_lt_weight  # for data, mass_lt_weight = 1
+
+		# if self.MCEventType.weight < 0:
+		# 	print "--------"
+		# 	print "isLNC ", self.MCEventType.isLNC
+		# 	print "isLNV ", self.MCEventType.isLNV
+		# 	print "MC weight: ", self.MCEventType.weight
+		# 	print "M2 spin corr: ", self.MCEventType.M2_spin_corr
+		# 	print "M2 no corr: ", self.MCEventType.M2_nocorr
+		# 	print "s13: ", self.MCEventType.s13
+		# 	print "s24: ", self.MCEventType.s24
+		# 	print "p1 (px,py,pz,m): ", self.MCEventType.p_1.Px(),self.MCEventType.p_1.Py(),self.MCEventType.p_1.Pz(),self.MCEventType.p_1.M()
+		# 	print "p2 (px,py,pz,m): ", self.MCEventType.p_2.Px(),self.MCEventType.p_2.Py(),self.MCEventType.p_2.Pz(),self.MCEventType.p_2.M()
+		# 	print "p3 (px,py,pz,m): ", self.MCEventType.p_3.Px(),self.MCEventType.p_3.Py(),self.MCEventType.p_3.Pz(),self.MCEventType.p_3.M()
+		# 	print "p4 (px,py,pz,m): ", self.MCEventType.p_4.Px(),self.MCEventType.p_4.Py(),self.MCEventType.p_4.Pz(),self.MCEventType.p_4.M()
 
 	def DVSelection(self):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
 
-	# Common histograms to fill
-	
-	def _fill_cutflow(self,nbin): 
+	def _fill_cutflow(self, nbin):
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC:
-				self.CutFlow_LNC.Fill(nbin,self.weight)
-			if self.MCEventType.isLNV:	
-				self.CutFlow_LNV.Fill(nbin,self.weight)
-			self.CutFlow.Fill(nbin,self.tree.mass_lt_weight/2)
+				self.CutFlow_LNC.Fill(nbin)
+			if self.MCEventType.isLNV:
+				self.CutFlow_LNV.Fill(nbin)
+			self.CutFlow.Fill(nbin)
 		else:
 			self.CutFlow.Fill(nbin)
 
@@ -707,12 +702,6 @@ class Analysis(object):
 
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
-		if not self.tree.is_data:
-			if self.MCEventType.isLNC: 
-				sel =  sel + "_LNC" 
-			if self.MCEventType.isLNV:
-				sel =  sel + "_LNV" 
-
 
 		if self._locked < FILL_LOCKED and do_lock:
 			# these are the histograms you only want to fill ONCE per DV
@@ -762,7 +751,6 @@ class Analysis(object):
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
 					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
 					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
-					
 
 					deta = abs(tracks.eta[0] - tracks.eta[1])
 					dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
@@ -783,7 +771,6 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_dpt', dpt)
 					self.fill_hist(sel, 'DV_trk_dR', dR)
 
-					
 					self.fill_hist(sel, 'DV_trk_max_chi2_toSV', max(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
 					self.fill_hist(sel, 'DV_trk_min_chi2_toSV', min(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
 					self.fill_hist(sel, 'DV_trk_max_d0_wrtSV', max(self.tree.dv('trk_d0_wrtSV')[0],self.tree.dv('trk_d0_wrtSV')[1] ) )
@@ -816,7 +803,7 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[0])
 						self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[0])
 						self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[0])
-					else: 
+					else:
 						self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[0])
 						self.fill_hist(sel, 'DV_trk_0_eta', self.tree.dv('trk_eta_wrtSV')[0])
 						self.fill_hist(sel, 'DV_trk_0_phi', self.tree.dv('trk_phi_wrtSV')[0])
@@ -836,11 +823,6 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[1])
 						self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[1])
 						self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[1])
-
-					
-
-					
-
 
 					for i in xrange(tracks.ntracks):
 						self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])
@@ -864,9 +846,6 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_trk_errd0_wrtSV'.format(i), self.tree.dv('trk_errd0_wrtSV')[i])
 						self.fill_hist(sel, 'DV_trk_z0_wrtSV'.format(i), self.tree.dv('trk_z0_wrtSV')[i])
 						self.fill_hist(sel, 'DV_trk_errz0_wrtSV'.format(i), self.tree.dv('trk_errz0_wrtSV')[i])
-
-
-
 
 			# fill standard dv histograms
 			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
@@ -900,7 +879,6 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_1tight', trk_quality.DV_1tight)
 			self.fill_hist(sel, 'DV_1medium', trk_quality.DV_1medium)
 			self.fill_hist(sel, 'DV_1loose', trk_quality.DV_1loose)
-
 
 			# better to fill truth matched DVs... need to fix this -DT
 			# if not self.tree.is_data:
@@ -1286,12 +1264,12 @@ class ToyAnalysis(Analysis):
 		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=2)  # changed the dvmass cut to 2 GeV
 		return dv_mass_sel.passes()
 
-	def _multitrk_2lep_cut(self): 
+	def _multitrk_2lep_cut(self):
 		if self.tree.dv('ntrk') >= 2:  # 2+ trk vertex
 			dv_type_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
-			if dv_type_sel.passes(): #2 leptosn in the DV
+			if dv_type_sel.passes():  # 2 leptons in the DV
 				sign_pair = "SS" if self.do_same_sign_cut else "OS"
-				charge_sel = selections.ChargeDV(self.tree, sel=sign_pair,trk_charge=dv_type_sel.lepton_charge)
+				charge_sel = selections.ChargeDV(self.tree, sel=sign_pair, trk_charge=dv_type_sel.lepton_charge)
 				return charge_sel.passes()
 
 	def _fill_multitrk_histos(self):
