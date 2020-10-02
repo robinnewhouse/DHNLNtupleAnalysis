@@ -25,13 +25,13 @@ def plot_cutflow(file, selection,vertextype, output_dir="../output/"):
 	Tfile = ROOT.TFile(file)
 	
 	if selection == "mixed": 
-		hcutflow1 = Tfile.Get('{}/CutFlow/{}/{}_CutFlow_{}'.format(vertextype,"LNC","LNC",vertextype))
-		hcutflow2 = Tfile.Get('{}/CutFlow/{}/{}_CutFlow_{}'.format(vertextype,"LNV","LNV",vertextype))
+		hcutflow1 = Tfile.Get('{}/CutFlow/{}/CutFlow_{}_{}'.format(vertextype,"LNC","LNC",vertextype))
+		hcutflow2 = Tfile.Get('{}/CutFlow/{}/CutFlow_{}_{}'.format(vertextype,"LNV","LNV",vertextype))
 		hcutflow1.Scale(0.5)
 		hcutflow2.Scale(0.5)
 		hcutflow = hcutflow1 + hcutflow2
 	else:
-		hcutflow = Tfile.Get('{}/CutFlow/{}/{}_CutFlow_{}'.format(vertextype,selection,selection,vertextype))
+		hcutflow = Tfile.Get('{}/CutFlow/{}/CutFlow_{}_{}'.format(vertextype,selection,selection,vertextype))
 
 	# hcutflow = Tfile.Get('{}/CutFlow/acceptance'.format(vertextype))
 	MyC01= ROOT.TCanvas("MyC01","cutflow",1200,400)
@@ -288,9 +288,11 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		# channel = filename.split(".root")[0].split("_")[len(filename.split(".root")[0].split("_")) - 1]
 		tfiles.append(ROOT.TFile(filename))  # get file
 		if "LNC" in selection or "LNV" in selection: 
-			event_type = selection.split('_')[0]
-			selection = selection.split('_')[1]
+			print selection
+			event_type = selection.split('_')[1]
+			selection = selection.split('_')[0]
 			hist_path = "{}/{}/{}/{}".format(vtx_alg, selection,event_type, variable)
+			print hist_path
 		# 	print hist_path
 		# if "LNV" in label: 
 		# 	hist_path = "{}/{}/{}".format(vtx_alg, selection, "LNV_"+ variable)
@@ -473,8 +475,16 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
 		# histograms[i].GetYaxis().SetRangeUser(0,400)
 		histograms[i].Draw("HIST SAME E0")
-		print variable
-		print labels[i]
+		print "# of events! ", histograms[i].GetEntries()
+		# if variable == 'lep1_trk_pt':
+
+		# for j in xrange(1, histograms[i].GetNbinsX()+1):
+		# 	print "---------"
+		# 	print "N: ", histograms[i].GetBinContent(j)
+		# 	print "sqrtN: ",sqrt(histograms[i].GetBinContent(j))
+		# 	print  "err: ",histograms[i].GetBinError(j)
+		# print variable
+		# print labels[i]
 		print "mean: ", histograms[i].GetMean()
 		print "std dev: ", histograms[i].GetStdDev()
 		print "rms: ", histograms[i].GetRMS()
