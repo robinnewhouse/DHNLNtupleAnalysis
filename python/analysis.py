@@ -1694,8 +1694,8 @@ class KShort(Analysis):
 			self.fill_hist(sel, 'muon_eta', self.tree['muon_eta'][imu])
 			self.fill_hist(sel, 'muon_phi', self.tree['muon_phi'][imu])
 			if self.tree['muon_isTight'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 3)
-			elif self.tree['muon_isMedium'][imu] == 1: self.fill_hist(sel, 'muon_quality', 2)
-			elif self.tree['muon_isLoose'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 1)
+			if self.tree['muon_isMedium'][imu] == 1: self.fill_hist(sel, 'muon_quality', 2)
+			if self.tree['muon_isLoose'][imu] == 1:  self.fill_hist(sel, 'muon_quality', 1)
 			else: self.fill_hist(sel, 'muon_quality', 0)
 
 		for iel in range(len(self.tree['el_pt'])):
@@ -1703,8 +1703,8 @@ class KShort(Analysis):
 			self.fill_hist(sel, 'el_eta', self.tree['el_eta'][iel])
 			self.fill_hist(sel, 'el_phi', self.tree['el_phi'][iel])
 			if self.tree['el_LHTight'][iel] == 1:  self.fill_hist(sel, 'el_quality', 3)
-			elif self.tree['el_LHMedium'][iel] == 1: self.fill_hist(sel, 'el_quality', 2)
-			elif self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(sel, 'el_quality', 1)
+			if self.tree['el_LHMedium'][iel] == 1: self.fill_hist(sel, 'el_quality', 2)
+			if self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(sel, 'el_quality', 1)
 			else: self.fill_hist(sel, 'el_quality', 0)
 
 
