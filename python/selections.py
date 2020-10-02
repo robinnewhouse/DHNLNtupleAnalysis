@@ -1031,6 +1031,7 @@ class MCEventType:
 
 		# Input:
 		# - All masses are in GeV, and all Mandelstam variables in GeV^2.
+		# - pW2 = p(W)^2 = mW^2
 		# - The Mandelstam variables are defined as follows:
 		#       s13 = (p(l1)+p(l3))^2
 		#       s24 = (p(l2)+p(nu))^2
@@ -1043,28 +1044,29 @@ class MCEventType:
 
 		# Assumptions:
 		# - Light lepton (e, mu) masses are neglected.
-		# - Off-shell effects coming from the finite width of the W are neglected.
+		# - Some off-shell effects coming from the finite width of the W are neglected.
 		# - Matrix elements are given up to a dimensionful constant, but should be consistent among themselves.
 		#   In particular: M2_nocorr = M2_LNC + M2_LNV.
+
 
 		MW = 80.379 # Change the W mass to match your particle data. This is the latest PDG value.
 
 		# Lepton number conserving charged-current trilepton process.
-		def M2_LNC(MN, s13, s24):
-		    return s24 * ( MN**4*(s13-2*MW**2) + 2*MN**2*MW**2*(MW**2-s13+s24) - 2*s24*MW**4 ) / ( 6*MW**6 )
+		def M2_LNC(MN, pW2, s13, s24):
+		    return s24 * ( 2*MW**2*pW2*(MN**2-s24) + MN**4*(s13-2*MW**2) + 2*(s24-s13)*MN**2*MW**2 ) / ( 6*MW**6 )
 
 		# Lepton number violating charged-current trilepton process.
-		def M2_LNV(MN, s13, s24):
-		    return s24 * MN**2 * ( (MN**2+s13-s24) * (MW**2-MN**2) + s13*MW**2 ) / ( 6*MW**6 )
+		def M2_LNV(MN, pW2, s13, s24):
+		    return - s24 * MN**2 * ( pW2*(s24-MN**2) + (s13-s24)*MN**2 + MN**4 - 2*s13*MW**2 ) / ( 6*MW**6 )
 
 		# Charged-current trilepton process, ignoring spin correlations between the HNL production and its decay.
-		def M2_nocorr(MN, s24):
-		    return ( s24*(MN**2-s24)*(2*MW**4-MN**2*MW**2-MN**4) ) / ( 6*MW**6 )
+		def M2_nocorr(MN, pW2, s24):
+		    return ( s24*(MN**2-s24)*(MN**2+2*MW**2)*(pW2-MN**2) ) / ( 6*MW**6 )
 
 
 		truth_info = helpers.Truth()
 		truth_info.getTruthParticles(tree)
-
+		pW2 = truth_info.W_vec.Mag2()
 		MN = truth_info.HNL_vec.M()
 		# print "HNL mass ", MN
 		charge_1 = truth_info.plep_charge # charge of prompt lepton
@@ -1132,22 +1134,22 @@ class MCEventType:
 		# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
 		# For official samples, swap s24 -> s34 
 			if self.isLNC: 
-				self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s34)
-				self.M2_spin_corr = M2_LNC(MN=MN, s13=self.s13, s24=self.s24)
-				self.M2_nocorr = M2_nocorr(MN=MN,s24= self.s34)
+				self.weight = 2*M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, pW2=pW2,s24= self.s34)
+				self.M2_spin_corr = M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
+				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s34)
 			if self.isLNV: 
-				self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s34)
-				self.M2_spin_corr = M2_LNV(MN=MN, s13=self.s13, s24=self.s24)
-				self.M2_nocorr = M2_nocorr(MN=MN,s24= self.s34)
+				self.weight = 2*M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, pW2=pW2, s24= self.s34)
+				self.M2_spin_corr = M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
+				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2,s24= self.s34)
 		else: 
 			if self.isLNC: 
-				self.weight = 2*M2_LNC(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN,s24= self.s24)
-				self.M2_spin_corr = M2_LNC(MN=MN, s13=self.s13, s24=self.s24)
-				self.M2_nocorr = M2_nocorr(MN=MN,s24= self.s24)
+				self.weight = 2*M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, pW2=pW2,s24= self.s24)
+				self.M2_spin_corr = M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
+				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24)
 			if self.isLNV: 
-				self.weight = 2*M2_LNV(MN=MN, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, s24= self.s24)
-				self.M2_spin_corr = M2_LNV(MN=MN, s13=self.s13, s24=self.s24)
-				self.M2_nocorr = M2_nocorr(MN=MN,s24= self.s24)
+				self.weight = 2*M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, pW2=pW2, s24= self.s24)
+				self.M2_spin_corr = M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
+				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24)
 
 	
 

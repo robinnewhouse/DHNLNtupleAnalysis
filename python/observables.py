@@ -81,7 +81,7 @@ def queue_all_observables(analysis_name,is_data):
 	Observable("all_el_pt", binning=(1000, 0, 1000), do=['oldAnalysis','ToyAnalysis']).queue()
 	Observable("all_el_eta", binning=(40, -10, 10), do=['oldAnalysis','ToyAnalysis']).queue()
 	Observable("all_el_phi", binning=(16, -4, 4), do=['oldAnalysis','ToyAnalysis']).queue()
-	Observable("all_el_quality", binning=(4, -.5, 3.5), do=['oldAnalysis','ToyAnalysis']).queue()
+	Observable("all_l_qualitye", binning=(4, -.5, 3.5), do=['oldAnalysis','ToyAnalysis']).queue()
 	Observable("all_prompt_muon", binning=(50, 0, 50), do=['oldAnalysis','ToyAnalysis']).queue()
 	Observable("all_prompt_electron", binning=(50, 0, 50), do=['oldAnalysis','ToyAnalysis']).queue()
 	Observable("all_prompt_lepton", binning=(50, 0, 50), do=['oldAnalysis','ToyAnalysis']).queue()
@@ -258,10 +258,8 @@ def truth_histograms(selection):
 	Observable( selection + "_plep_eta",binning = (40,-10,10),do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()
 	Observable( selection + "_plep_phi", binning = (16,-4,4), do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()
 	Observable( selection + "_plep_mass",binning = (10000,0,5000), do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()
-
 	# Observable( selection + "_plep_d0", do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue() # no d0 or z0 for truth particles
 	# Observable( selection + "_plep_z0", do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()
-
 	Observable( selection + "_DV_trk_pt",binning = (1000,0,1000), do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()
 	Observable( selection + "_DV_trk_eta",binning = (160,-10,10),do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()
 	Observable( selection + "_DV_trk_phi", binning =(64,-4,4), do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()
@@ -271,9 +269,22 @@ def truth_histograms(selection):
 	Observable( selection + "_lep2_trk_pt", binning=(1000, 0, 1000), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
 	Observable( selection + "_lep2_trk_eta", binning=(160, -10, 10), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
 	Observable( selection + "_lep2_trk_phi", binning=(64, -4, 4), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_lep1_trk_pt", binning=(1000, 0, 1000), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_lep1_trk_eta", binning=(160, -10, 10), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_lep1_trk_phi", binning=(64, -4, 4), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_lep2_trk_pt", binning=(1000, 0, 1000), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_lep2_trk_eta", binning=(160, -10, 10), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_lep2_trk_phi", binning=(64, -4, 4), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_nu_trk_pt", binning=(1000, 0, 1000), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_nu_trk_eta", binning=(160, -10, 10), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	Observable( selection + "_largew_nu_trk_phi", binning=(64, -4, 4), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
 	Observable( selection + "_nu_trk_pt", binning=(1000, 0, 1000), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
 	Observable( selection + "_nu_trk_eta", binning=(160, -10, 10), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
 	Observable( selection + "_nu_trk_phi", binning=(64, -4, 4), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+	for i in range(1,3): 
+		Observable( selection + "_dlep{}_pt".format(i), binning=(1000, 0, 1000), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+		Observable( selection + "_dlep{}_eta".format(i), binning=(160, -10, 10), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
+		Observable( selection + "_dlep{}_phi".format(i), binning=(64, -4, 4), do=['oldAnalysis','ToyAnalysis'], need_truth=True).queue()
 	# Observable( selection + "_DV_trk_d0", do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue() # no d0 or z0 for truth particles
 	# Observable( selection + "_DV_trk_z0", do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()
 	# Observable( selection + "_DV_trk_charge",binning = (11,-5.5,5.5), do = ['oldAnalysis','ToyAnalysis'], need_truth = True).queue()

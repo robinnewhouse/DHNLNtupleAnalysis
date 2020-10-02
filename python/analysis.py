@@ -325,6 +325,9 @@ class Analysis(object):
 		self.fi.Close()
 
 	def end(self):
+		for h_dict in self.h.values():
+			for hist in h_dict.values():
+				hist.SetBinContent(hist.GetNbinsX(), hist.GetBinContent(hist.GetNbinsX()) + hist.GetBinContent(hist.GetNbinsX() + 1))
 		self.h['CutFlow_all_acceptance'] = {}
 		self.h['CutFlow_all_acceptance'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
 		self.h['CutFlow_all_acceptance'][self.ch].SetName("CutFlow_all_acceptance"+"_"+self.ch)
@@ -490,8 +493,8 @@ class Analysis(object):
 		if not self.tree.is_data:
 			official_samples = True
 			self.MCEventType = selections.MCEventType(self.tree,wrong_lep_order=official_samples)
-			# self.weight = self.tree.mass_lt_weight*self.MCEventType.weight  #if not weight_override else weight_override
-			self.weight = self.tree.mass_lt_weight #dont apply the weighting
+			self.weight = self.tree.mass_lt_weight*self.MCEventType.weight  #if not weight_override else weight_override
+			# self.weight = self.tree.mass_lt_weight #dont apply the weighting
 		else: 
 			self.weight = self.tree.mass_lt_weight # for data, mass_lt_weight = 1 
 
@@ -673,6 +676,7 @@ class Analysis(object):
 	def _fill_truth_histos(self, sel):
 		truth_info = helpers.Truth()
 		truth_info.getTruthParticles(self.tree)
+		
 		self.fill_hist(sel, 'event_type_MCweight', self.MCEventType.weight)  #if not weight_override else weight_override
 		self.fill_hist(sel, 'M2_spin_corr_MCweight', self.MCEventType.M2_spin_corr)  #if not weight_override else weight_override
 		self.fill_hist(sel, 'M2_nocorr_MCweight', self.MCEventType.M2_nocorr)  #if not weight_override else weight_override
@@ -692,13 +696,14 @@ class Analysis(object):
 		self.fill_hist(sel, 'DV_x', truth_info.truth_dvx)
 		self.fill_hist(sel, 'DV_y', truth_info.truth_dvy)
 		self.fill_hist(sel, 'DV_z', truth_info.truth_dvz)
+
 		self.fill_hist(sel, 'plep_pt', truth_info.plep_vec.Pt())
 		self.fill_hist(sel, 'plep_eta', truth_info.plep_vec.Eta())
 		self.fill_hist(sel, 'plep_phi', truth_info.plep_vec.Phi())
 		self.fill_hist(sel, 'plep_mass', truth_info.plep_vec.M())
+		
 
 		if len(truth_info.trkVec) == 2: 
-			
 			DV_4vec= truth_info.trkVec[1]+ truth_info.trkVec[0]
 			lep12 = truth_info.dLepVec[0] + truth_info.dLepVec[1] 
 			lep23 = truth_info.dLepVec[1] + truth_info.dLepVec[2] 
@@ -726,6 +731,22 @@ class Analysis(object):
 			self.fill_hist(sel, 'nu_trk_eta', truth_info.dNu_vec.Eta())
 			self.fill_hist(sel, 'nu_trk_phi', truth_info.dNu_vec.Phi())
 
+			disp_lep = [self.MCEventType.p_2,self.MCEventType.p_3,self.MCEventType.p_4]
+			# pt order the displaced leptons
+			disp_lep.sort(key=lambda x: x.Pt(), reverse=True)
+
+			self.fill_hist(sel, 'dlep1_pt', disp_lep[0].Pt())
+			self.fill_hist(sel, 'dlep1_eta', disp_lep[0].Eta())
+			self.fill_hist(sel, 'dlep1_phi', disp_lep[0].Phi())
+			self.fill_hist(sel, 'dlep2_pt', disp_lep[1].Pt())
+			self.fill_hist(sel, 'dlep2_eta', disp_lep[1].Eta())
+			self.fill_hist(sel, 'dlep2_phi', disp_lep[1].Phi())
+			self.fill_hist(sel, 'dlep3_pt', disp_lep[2].Pt())
+			self.fill_hist(sel, 'dlep3_eta', disp_lep[2].Eta())
+			self.fill_hist(sel, 'dlep3_phi', disp_lep[2].Phi())
+	
+
+			
 			for itrk in range(2):
 				self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
