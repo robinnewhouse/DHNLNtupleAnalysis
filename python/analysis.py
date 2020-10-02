@@ -29,19 +29,8 @@ class Analysis(object):
 		self.tree = tree
 		self.saveNtuples = saveNtuples
 		self._locked = UNLOCKED
-		# queue the observables 
-		observables.queue_all_observables(self.name, self.tree.is_data)
-		# register the variables 
-		self.observables = [observable.registered(self) for observable in observables.ObservableList if ((observable.only is None) or any(only in self.sel for only in observable.only))]
-		# make empty histograms with desired binnings
-		for observable in self.observables:
-			if self.name in observable.do:
-				if self.tree.is_data and observable.need_truth:
-					continue
-				elif type(observable.binning) == tuple:
-					self.add(observable.name, *observable.binning)
-				else:
-					self.addVar(observable.name, observable.binning)
+		# create an instance of Observables to store histograms
+		self.observables = observables.Observables()
 
 		# setting all the relevant variables for the cuts based on the input selections
 		# trigger cut
@@ -192,17 +181,6 @@ class Analysis(object):
 	def get(self, key):
 		return self.tree[key]
 
-	def check_histogram_exists(self, full_name):
-		"""
-		Takes a histogram name and verifies that it exists. If not, create it.
-		This allows histograms to be made in-time.
-		:param full_name: name of the histogram
-		:return:
-		"""
-
-		return True
-
-
 	# hist filling helper functions
 	def fill_hist(self, selection, hist_name, variable_1, variable_2=None, fill_ntuple=True):
 		"""
@@ -212,54 +190,25 @@ class Analysis(object):
 		:param variable_1: variable you want to fill the histogram with.
 		:param variable_2: if histogram is 2d, variable you want to fill the second axis of the histogram with
 		:param fill_ntuple: set to True if you want to simultaneously fill an ntuple with this variable
-		:return:
 		"""
-		# TODO get the correct LNC or LNV. Not sure how to do this yet
-		directory = '{ch}/{selection}/{ln}/'.format(ch=self.ch, selection=selection, ln='LNC')
-		self.observables.fill_hist(directory, hist_name, variable_1, variable_2)
 
+		# define here the directory structure where this histogram is stored.
+		directory = '{ch}/{selection}/'.format(ch=self.ch, selection=selection)
+		# add LNC or LNV directory for simulation. Not used for data.
+		if self.MCEventType.isLNC: directory += 'LNC/'
+		if self.MCEventType.isLNV: directory += 'LNV/'
 
-
-		if selection: full_name = selection + '_' + hist_name
-		else: full_name = hist_name
-
-		if not self.check_histogram_exists(full_name):
-			raise KeyError("Histogram does not exists and cannot be made")
-
-		try:
-			if variable_2 is None:
-				if 'MCweight' in hist_name:
-					self.h[full_name][self.ch].Fill(variable_1, 1) # dont weight the " MC weight variables"
-				else:
-					self.h[full_name][self.ch].Fill(variable_1, self.weight)
-			else:
-				self.h[full_name][self.ch].Fill(variable_1, variable_2, self.weight)
-		except KeyError as e:
-			self.logger.debug("Histogram {} not registered. Automatically adding with default binning.".format(full_name))
-			observable = observables.Observable(full_name)
-			observable.queue()
-			self.add(observable.name, *observable.binning)
-			self.fill_hist(selection, hist_name, variable_1, variable_2=variable_2, fill_ntuple=fill_ntuple)
+		self.observables.fill_hist(directory, hist_name, variable_1, variable_2, self.tree.weight)
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
+		# TODO Can we clean this up in some way?
 		save_sel = self.saveNtuples == selection or 'truth_'+self.saveNtuples == selection or self.saveNtuples == 'allcuts'
 		if fill_ntuple and variable_2 is None and save_sel:
 			# Note: selection and hist_name will be overridden by full_name
 			# Need selection to define ntuple tree
+			# TODO redo this method to use the directory correctly
 			self.fill_ntuple(selection, hist_name, variable_1)
-
-	def add(self, hName, nBins, xLow, xHigh):
-		self.h[hName] = {}
-		self.h[hName][self.ch] = ROOT.TH1D(hName+"_"+self.ch, "", nBins, xLow, xHigh)
-		self.h[hName][self.ch].Sumw2()
-		self.h[hName][self.ch].SetDirectory(0)
-
-	def add2D(self, hName, nBins, xLow, xHigh, nBinsY, yLow, yHigh):
-		self.h[hName] = {}
-		self.h[hName][self.ch] = ROOT.TH2D(hName + "_" + self.ch, "", nBins, xLow, xHigh, nBinsY, yLow, yHigh)
-		self.h[hName][self.ch].Sumw2()
-		self.h[hName][self.ch].SetDirectory(0)
 
 	def fill_ntuple(self, selection, ntuple_name, variable, full_name=""):
 		"""
@@ -270,7 +219,6 @@ class Analysis(object):
 		:param ntuple_name: base name of the ntuple. When saved, a prefix and suffix will be appended.
 		:param variable: variable you want to fill the histogram with.
 		:param full_name: override the automatic naming of the ntuple.
-		:return:
 		"""
 		if not selection:
 			raise ValueError("You must indicate a selection in order to store the ntuple. Use 'all' if no selection.")
@@ -308,49 +256,51 @@ class Analysis(object):
 		# self.fi.cd(self.ch+'/ntuples')
 		[ntuple.write(self.ch+'_ntuples_'+key) for key, ntuple in self.micro_ntuples.items()]
 
-		# Make a subdirectory for vertex type. May be other channels in the future.
-		if not self.fi.FindObject(self.ch):
-			self.fi.mkdir(self.ch, "Analysis Channel " + self.ch)
-		# Move ROOT to the channel subdirectory
-		self.fi.cd(self.ch)
+		self.observables.write_histograms(root_file=self.fi)
 
-		# Store saved histograms to file
-		# TODO: this should be saved in a different way. e.g. another level of dictionary. Parsing strings for variable names is not good.
-		for h_name in self.h:
+		# # Make a subdirectory for vertex type. May be other channels in the future.
+		# if not self.fi.FindObject(self.ch):
+		# 	self.fi.mkdir(self.ch, "Analysis Channel " + self.ch)
+		# # Move ROOT to the channel subdirectory
+		# self.fi.cd(self.ch)
 
-			if self.h[h_name][self.ch].GetEntries() != 0:
-
-				if not self.tree.is_data:
-					selection = h_name.split('_')[0]  # get LNC or LNV 
-					EventType = '_'.join(h_name.split('_')[1:]).split('_')[0]  # get selection
-					sel_dir = self.ch + '/' +  selection + '/' + EventType 
-					base_name = '_'.join(h_name.split('_')[2:])  # get base name
-				else: 
-					selection = h_name.split('_')[0]  # get selection
-					sel_dir = self.ch + '/' + selection
-					base_name = '_'.join(h_name.split('_')[2:])  # get base name
-				# if "CutFlow" in h_name: 
-				# 	print EventType
-				# 	print selection
-				# 	print sel_dir
-				# 	print base_name
-
-				if not self.fi.GetDirectory(sel_dir):  # make TDirectory if necessary
-					self.fi.mkdir(sel_dir, "Analysis Selection " + selection)
-				self.fi.cd(sel_dir)  # change to TDirectory
-				self.h[h_name][self.ch].Write(base_name)  # save only the base name
-
-		self.logger.info("Histograms written to {}".format(self.outputFile))
+		# # Store saved histograms to file
+		# # TODO: this should be saved in a different way. e.g. another level of dictionary. Parsing strings for variable names is not good.
+		# for h_name in self.h:
+		#
+		# 	if self.h[h_name][self.ch].GetEntries() != 0:
+		#
+		# 		if not self.tree.is_data:
+		# 			selection = h_name.split('_')[0]  # get LNC or LNV
+		# 			EventType = '_'.join(h_name.split('_')[1:]).split('_')[0]  # get selection
+		# 			sel_dir = self.ch + '/' +  selection + '/' + EventType
+		# 			base_name = '_'.join(h_name.split('_')[2:])  # get base name
+		# 		else:
+		# 			selection = h_name.split('_')[0]  # get selection
+		# 			sel_dir = self.ch + '/' + selection
+		# 			base_name = '_'.join(h_name.split('_')[2:])  # get base name
+		# 		# if "CutFlow" in h_name:
+		# 		# 	print EventType
+		# 		# 	print selection
+		# 		# 	print sel_dir
+		# 		# 	print base_name
+		#
+		# 		if not self.fi.GetDirectory(sel_dir):  # make TDirectory if necessary
+		# 			self.fi.mkdir(sel_dir, "Analysis Selection " + selection)
+		# 		self.fi.cd(sel_dir)  # change to TDirectory
+		# 		self.h[h_name][self.ch].Write(base_name)  # save only the base name
+		#
+		# self.logger.info("Histograms written to {}".format(self.outputFile))
 
 		self.fi.Close()
 
 	def end(self):
 		self.h['CutFlow_all_acceptance'] = {}
-		self.h['CutFlow_all_acceptance'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
+		self.h['CutFlow_all_acceptance'][self.ch] = self.CutFlow.Clone()
 		self.h['CutFlow_all_acceptance'][self.ch].SetName("CutFlow_all_acceptance"+"_"+self.ch)
 		self.h['CutFlow_all_acceptance'][self.ch].SetDirectory(0)
-		if self.h['CutFlow_all'][self.ch].GetBinContent(1) != 0: # Protect against zero-division
-			self.h['CutFlow_all_acceptance'][self.ch].Scale(1.0/self.h['CutFlow_all'][self.ch].GetBinContent(1))
+		if self.CutFlow.GetBinContent(1) != 0: # Protect against zero-division
+			self.h['CutFlow_all_acceptance'][self.ch].Scale(1.0/self.CutFlow.GetBinContent(1))
 		self.logger.info('Done with Channel("{}")'.format(self.ch))
 		meta = []
 		# if self.region:
@@ -544,12 +494,12 @@ class Analysis(object):
 		if not self.tree.is_data:
 			self._fill_truth_histos(sel='truth_all')
 			if self.MCEventType.isLNC: 
-				self.h['CutFlow_LNC'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
+				self.CutFlow_LNC.SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
 				self._fill_truth_histos(sel='truth_LNC')
 			if self.MCEventType.isLNV: 
 				self._fill_truth_histos(sel='truth_LNV')
-				self.h['CutFlow_LNV'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
-			self.h['CutFlow_all'][self.ch].SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
+				self.CutFlow_LNV.SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
+			self.CutFlow.SetBinContent(1, (self.tree.all_entries)*self.tree.mass_lt_weight/2)  # all events
 		
 
 		######################################################################################################
@@ -628,12 +578,12 @@ class Analysis(object):
 	def _fill_cutflow(self,nbin): 
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC:
-				self.h['CutFlow_LNC'][self.ch].Fill(nbin,self.weight)
+				self.CutFlow_LNC.Fill(nbin,self.weight)
 			if self.MCEventType.isLNV:	
-				self.h['CutFlow_LNV'][self.ch].Fill(nbin,self.weight)
-			self.h['CutFlow_all'][self.ch].Fill(nbin,self.tree.mass_lt_weight/2)
+				self.CutFlow_LNV.Fill(nbin,self.weight)
+			self.CutFlow.Fill(nbin,self.tree.mass_lt_weight/2)
 		else:
-			self.h['CutFlow_all'][self.ch].Fill(nbin)
+			self.CutFlow.Fill(nbin)
 
 	def _fill_leptons(self):
 		sel = 'all'
@@ -1035,53 +985,55 @@ class oldAnalysis(Analysis):
 		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
 		self.logger.info('Running  Old Analysis cuts')
 
-		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
-
-		self.add('CutFlow_all', 15, -0.5, 14.5)
+		# Define cutflow histogram "by hand"
+		# TODO Maybe the directory here needs to change, or the selection needs to be set
+		self.observables.histogram_dict['CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 15, -0.5, 14.5)
+		self.CutFlow = self.observables.histogram_dict['CutFlow']
 		# Bin labels are 1 greater than histogram bins
-		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(1, "all")
+		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
 		if self.do_trigger_cut:
 			if self.do_CR == False:
-				self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
+				self.CutFlow.GetXaxis().SetBinLabel(2, "trigger")
 			else:
-				self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
+				self.CutFlow.GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
 		if self.do_invert_trigger_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "invert trigger")
-		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(3, "PV")
+			self.CutFlow.GetXaxis().SetBinLabel(2, "invert trigger")
+		self.CutFlow.GetXaxis().SetBinLabel(3, "PV")
 		if self.do_filter_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
+			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+			self.CutFlow.GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
 		if self.do_invert_prompt_lepton_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
+			self.CutFlow.GetXaxis().SetBinLabel(5, "invert prompt lepton")
 		if self.do_ndv_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(6, "DV")
+			self.CutFlow.GetXaxis().SetBinLabel(6, "DV")
 		if self.do_fidvol_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
+			self.CutFlow.GetXaxis().SetBinLabel(7, "fiducial")
 		if self.do_ntrk_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
+			self.CutFlow.GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
 		if self.do_opposite_sign_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(9, "OS DV")
+			self.CutFlow.GetXaxis().SetBinLabel(9, "OS DV")
 		if self.do_same_sign_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(9, "SS DV")
+			self.CutFlow.GetXaxis().SetBinLabel(9, "SS DV")
 		if self.do_dv_type_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(10, "%s DV" % self.dv_type)
+			self.CutFlow.GetXaxis().SetBinLabel(10, "%s DV" % self.dv_type)
 		if self.do_track_quality_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(11, "{}-lepton DV".format(self.track_quality))
+			self.CutFlow.GetXaxis().SetBinLabel(11, "{}-lepton DV".format(self.track_quality))
 		if self.do_cosmic_veto_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(12, "cosmic veto")
+			self.CutFlow.GetXaxis().SetBinLabel(12, "cosmic veto")
 		if self.do_trilepton_mass_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
+			self.CutFlow.GetXaxis().SetBinLabel(13, "m_{lll}")
 		if self.do_dv_mass_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(14, "m_{DV}")
-		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(15, "truth matched")
+			self.CutFlow.GetXaxis().SetBinLabel(14, "m_{DV}")
+		self.CutFlow.GetXaxis().SetBinLabel(15, "truth matched")
 
-		self.h['CutFlow_LNV'] = {}
-		self.h['CutFlow_LNC'] = {}
-		self.h['CutFlow_LNV'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
-		self.h['CutFlow_LNC'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
-		self.h['CutFlow_LNV'][self.ch].SetName("CutFlow_LNV"+"_"+self.ch)
-		self.h['CutFlow_LNC'][self.ch].SetName("CutFlow_LNC"+"_"+self.ch)
+		# Store LNC and LNV cutflows in the observables collection
+		self.CutFlow_LNV = self.CutFlow.Clone()
+		self.CutFlow_LNC = self.CutFlow.Clone()
+		self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
+		self.CutFlow_LNC.SetName("CutFlow_LNC"+"_"+self.ch)
+		self.observables.histogram_dict['CutFlow_LNV'] = self.CutFlow_LNV
+		self.observables.histogram_dict['CutFlow_LNC'] = self.CutFlow_LNC
 
 	
 	def DVSelection(self):
@@ -1207,71 +1159,56 @@ class ToyAnalysis(Analysis):
 
 		self.add('CutFlow_all', 14, -0.5, 13.5)
 		# Bin labels are 1 greater than histogram bins
-		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(1, "all")
+		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
 		if self.do_trigger_cut:
 			if not self.do_CR:
-				self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "trigger")
+				self.CutFlow.GetXaxis().SetBinLabel(2, "trigger")
 			else:
-				self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
-		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(3, "PV")
+				self.CutFlow.GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
+		self.CutFlow.GetXaxis().SetBinLabel(3, "PV")
 		if self.do_filter_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
+			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+			self.CutFlow.GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
 		if self.do_invert_prompt_lepton_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(5, "invert prompt lepton")
+			self.CutFlow.GetXaxis().SetBinLabel(5, "invert prompt lepton")
 		if self.do_ndv_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(6, "DV")
+			self.CutFlow.GetXaxis().SetBinLabel(6, "DV")
 		if self.do_fidvol_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(7, "fiducial")
+			self.CutFlow.GetXaxis().SetBinLabel(7, "fiducial")
 		if self.do_ntrk_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
+			self.CutFlow.GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
 		# if self.do_HNL_mass_cut:
-		self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(9, "dR")
+		self.CutFlow.GetXaxis().SetBinLabel(9, "dR")
 		if self.do_opposite_sign_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(10, "OS DV")
+			self.CutFlow.GetXaxis().SetBinLabel(10, "OS DV")
 		if self.do_same_sign_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(10, "SS DV")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(11, "++ DV")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(12, "-- DV")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(13, "+++ lll")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(14, "+-- lll")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(15, "-++ lll")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(16, "--- lll")
+			self.CutFlow.GetXaxis().SetBinLabel(10, "SS DV")
+		# self.CutFlow.GetXaxis().SetBinLabel(11, "++ DV")
+		# self.CutFlow.GetXaxis().SetBinLabel(12, "-- DV")
+		# self.CutFlow.GetXaxis().SetBinLabel(13, "+++ lll")
+		# self.CutFlow.GetXaxis().SetBinLabel(14, "+-- lll")
+		# self.CutFlow.GetXaxis().SetBinLabel(15, "-++ lll")
+		# self.CutFlow.GetXaxis().SetBinLabel(16, "--- lll")
 		if self.do_dv_type_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(11, "%s DV" % self.dv_type)
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(18, "++ DV")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(19, "-- DV")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(20, "+++ lll")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(21, "+-- lll")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(22, "-++ lll")
-		# self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(23, "--- lll")
+			self.CutFlow.GetXaxis().SetBinLabel(11, "%s DV" % self.dv_type)
+		# self.CutFlow.GetXaxis().SetBinLabel(18, "++ DV")
+		# self.CutFlow.GetXaxis().SetBinLabel(19, "-- DV")
+		# self.CutFlow.GetXaxis().SetBinLabel(20, "+++ lll")
+		# self.CutFlow.GetXaxis().SetBinLabel(21, "+-- lll")
+		# self.CutFlow.GetXaxis().SetBinLabel(22, "-++ lll")
+		# self.CutFlow.GetXaxis().SetBinLabel(23, "--- lll")
 		if self.do_dv_mass_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(12, "m_{DV}")
+			self.CutFlow.GetXaxis().SetBinLabel(12, "m_{DV}")
 		if self.do_trilepton_mass_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(13, "m_{lll}")
+			self.CutFlow.GetXaxis().SetBinLabel(13, "m_{lll}")
 		if self.do_cosmic_veto_cut:
-			self.h['CutFlow_all'][self.ch].GetXaxis().SetBinLabel(14, "cosmic veto")
+			self.CutFlow.GetXaxis().SetBinLabel(14, "cosmic veto")
 
 		self.h['CutFlow_LNV'] = {}
 		self.h['CutFlow_LNC'] = {}
-		self.h['CutFlow_LNV'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
-		self.h['CutFlow_LNC'][self.ch] = self.h['CutFlow_all'][self.ch].Clone()
-
-		# 2D correlation plots after each cut in the DV
-		sel_list = ["charge", "DVtype", "mDV", "mlll", "HNLpt", "sel"]
-		for sel in sel_list:
-			self.add2D( sel + '_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
-			self.add2D( sel + '_DVmass_mvis', 1000, 0, 500, 1000, 0, 500)
-			self.add2D( sel + '_DVmass_mhnl', 1000, 0, 500, 1010, -5, 500)
-			self.add2D( sel + '_DVmass_mtrans', 1000, 0, 500, 1000, 0, 500)
-			self.add2D( sel + '_DVmass_hnlpt', 1000, 0, 500, 1010, -5, 500)
-			self.add2D( sel + '_mvis_mhnl', 1000, 0, 500, 1010, -5, 500)
-			self.add2D( sel + '_mvis_mtrans', 1000, 0, 500, 1000, 0, 500)
-			self.add2D( sel + '_mvis_hnlpt', 1000, 0, 500, 1010, -5, 500)
-			self.add2D( sel + '_mhnl_hnlpt', 1010, -5, 500, 1010, -5, 500)
-			self.add2D( sel + '_mhnl_mtrans', 1010, -5, 500, 1000, 0, 500)
-			self.add2D( sel + '_mhnl2D', 1010, -5, 500, 1000, 0, 500)
+		self.CutFlow_LNV = self.CutFlow.Clone()
+		self.CutFlow_LNC = self.CutFlow.Clone()
 
 	def _fill_correlation_histos(self, sel):
 		w = self.weight
@@ -1679,7 +1616,6 @@ class KShort(Analysis):
 		if self.do_mass_window_cut:
 			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "K0 mass")
 		# add other histograms
-		self.add2D('charge_ntrk', 11, -5.5, 5.5, 9, -0.5, 8.5)
 
 	def _fill_leptons(self):
 		sel = 'all'
