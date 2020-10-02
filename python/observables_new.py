@@ -78,7 +78,7 @@ class Observables:
 			hist_name = tokens[-1]
 			directory = '/'.join(tokens[:-1])
 			# make the directory if it doesn't exist and cd to it
-			if not root_file.FindObject(directory):
+			if not root_file.cd(directory):  # This will throw a warning, haven't been able to suppress it
 				root_file.mkdir(directory)
 			root_file.cd(directory)
 			# write the histogram
