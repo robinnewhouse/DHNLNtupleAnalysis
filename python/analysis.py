@@ -256,7 +256,6 @@ class Analysis(object):
 		# self.fi.mkdir(self.ch+'/ntuples', "Micro Ntuples " + self.ch)
 		# self.fi.cd(self.ch+'/ntuples')
 		[ntuple.write(self.ch+'_ntuples_'+key) for key, ntuple in self.micro_ntuples.items()]
-
 		self.observables.write_histograms(root_file=self.fi)
 
 		# # Make a subdirectory for vertex type. May be other channels in the future.
@@ -291,7 +290,7 @@ class Analysis(object):
 		# 		self.fi.cd(sel_dir)  # change to TDirectory
 		# 		self.h[h_name][self.ch].Write(base_name)  # save only the base name
 		#
-		# self.logger.info("Histograms written to {}".format(self.outputFile))
+		self.logger.info("Histograms written to {}".format(self.outputFile))
 
 		self.fi.Close()
 
@@ -460,7 +459,9 @@ class Analysis(object):
 
 
 	def preSelection(self):
-
+		########################################
+		# get the event weight for each event
+		########################################
 		self.calculate_event_weight()
 
 		######################################################################################################
@@ -549,26 +550,11 @@ class Analysis(object):
 		# MC re-weighting to include spin correlations
 		######################################################################################################
 		if not self.tree.is_data:
-			official_samples = True
-			self.MCEventType = selections.MCEventType(self.tree, wrong_lep_order=official_samples)
-			# self.weight = self.tree.mass_lt_weight*self.MCEventType.weight  #if not weight_override else weight_override
-			self.weight = self.tree.mass_lt_weight  # dont apply the weighting
+			#TODO what to to when running on MC that is not HNL and has no concept of LNV/LNC
+			self.MCEventType = selections.MCEventType(self.tree)
+			self.weight = self.tree.mass_lt_weight*self.MCEventType.weight  #if not weight_override else weight_override
 		else:
 			self.weight = self.tree.mass_lt_weight  # for data, mass_lt_weight = 1
-
-		# if self.MCEventType.weight < 0:
-		# 	print "--------"
-		# 	print "isLNC ", self.MCEventType.isLNC
-		# 	print "isLNV ", self.MCEventType.isLNV
-		# 	print "MC weight: ", self.MCEventType.weight
-		# 	print "M2 spin corr: ", self.MCEventType.M2_spin_corr
-		# 	print "M2 no corr: ", self.MCEventType.M2_nocorr
-		# 	print "s13: ", self.MCEventType.s13
-		# 	print "s24: ", self.MCEventType.s24
-		# 	print "p1 (px,py,pz,m): ", self.MCEventType.p_1.Px(),self.MCEventType.p_1.Py(),self.MCEventType.p_1.Pz(),self.MCEventType.p_1.M()
-		# 	print "p2 (px,py,pz,m): ", self.MCEventType.p_2.Px(),self.MCEventType.p_2.Py(),self.MCEventType.p_2.Pz(),self.MCEventType.p_2.M()
-		# 	print "p3 (px,py,pz,m): ", self.MCEventType.p_3.Px(),self.MCEventType.p_3.Py(),self.MCEventType.p_3.Pz(),self.MCEventType.p_3.M()
-		# 	print "p4 (px,py,pz,m): ", self.MCEventType.p_4.Px(),self.MCEventType.p_4.Py(),self.MCEventType.p_4.Pz(),self.MCEventType.p_4.M()
 
 	def DVSelection(self):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
@@ -978,16 +964,18 @@ class Analysis(object):
 				self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
 
 
-class oldAnalysis(Analysis):
+class run2Analysis(Analysis):
 	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level):
 		
 		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
-		self.logger.info('Running  Old Analysis cuts')
+		self.logger.info('Running  Full Run 2 Analysis cuts')
 
 		# Define cutflow histogram "by hand"
 		# TODO Maybe the directory here needs to change, or the selection needs to be set
-		self.observables.histogram_dict['CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 15, -0.5, 14.5)
-		self.CutFlow = self.observables.histogram_dict['CutFlow']
+		
+		cutflow_dir = self.ch + '/CutFlow/'
+		self.observables.histogram_dict[cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 15, -0.5, 14.5)
+		self.CutFlow = self.observables.histogram_dict[cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
 		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
 		if self.do_trigger_cut:
@@ -1031,10 +1019,9 @@ class oldAnalysis(Analysis):
 		self.CutFlow_LNC = self.CutFlow.Clone()
 		self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
 		self.CutFlow_LNC.SetName("CutFlow_LNC"+"_"+self.ch)
-		self.observables.histogram_dict['CutFlow_LNV'] = self.CutFlow_LNV
-		self.observables.histogram_dict['CutFlow_LNC'] = self.CutFlow_LNC
+		self.observables.histogram_dict[cutflow_dir+'CutFlow_LNV'] = self.CutFlow_LNV
+		self.observables.histogram_dict[cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
 
-	
 	def DVSelection(self):
 
 		######################################################################################################

@@ -192,9 +192,9 @@ if __name__ == "__main__":
 
 	parser.add_argument('-a','--analysis',
 						dest="analysis",
-						default = "oldAnalysis",
+						default = "run2Analysis",
 						type = str,
-						help='Name of the analysis you want to run. Default is the old 36fb dHNL analysis')
+						help='Name of the analysis you want to run. Default is the full run 2 139fb dHNL analysis')
 
 	parser.add_argument('-s','--saveNtuples',
 						dest="saveNtuples",

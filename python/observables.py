@@ -83,7 +83,6 @@ class Observables:
 			root_file.cd(directory)
 			# write the histogram
 			histogram.Write(hist_name)
-		self.logger.info("Histograms written to file")
 
 
 binning_definitions = {
@@ -201,6 +200,15 @@ binning_definitions = {
 	'lep2_trk_pt': (1000, 0, 1000),
 	'lep2_trk_eta': (160, -10, 10),
 	'lep2_trk_phi': (64, -4, 4),
+	'dlep1_pt': (1000, 0, 1000),
+	'dlep1_eta': (160, -10, 10),
+	'dlep1_phi': (64, -4, 4),
+	'dlep2_pt': (1000, 0, 1000),
+	'dlep2_eta': (160, -10, 10),
+	'dlep2_phi': (64, -4, 4),
+	'dlep3_pt': (1000, 0, 1000),
+	'dlep3_eta': (160, -10, 10),
+	'dlep3_phi': (64, -4, 4),
 	'nu_trk_pt': (1000, 0, 1000),
 	'nu_trk_eta': (160, -10, 10),
 	'nu_trk_phi': (64, -4, 4),
