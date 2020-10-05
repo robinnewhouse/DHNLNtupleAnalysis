@@ -827,7 +827,7 @@ class Mhnl_old():
 			return False
 
 class Mhnl():
-	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 4):
+	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 4,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3() ):
 		# Global W pole mass
 		MW = 80.379
 		MW2 = MW**2
@@ -854,10 +854,15 @@ class Mhnl():
 			dtrks.append(dEl[1])
 
 		# Get 3 vectors
-		pv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
-		dv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
+		if not use_truth: 	
+			pv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
+			dv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
+		else: 
+			pv = truth_pv
+			dv = truth_dv
 
 		p0 = ROOT.TVector3( plep.Px(), plep.Py(), plep.Pz() )
+
 		d0 = ROOT.TVector3( dtrks[0].Px(), dtrks[0].Py(), dtrks[0].Pz() )
 		d1 = ROOT.TVector3( dtrks[1].Px(), dtrks[1].Py(), dtrks[1].Pz() )
 

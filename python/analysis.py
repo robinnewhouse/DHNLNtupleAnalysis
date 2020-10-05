@@ -684,6 +684,7 @@ class Analysis(object):
 		self.fill_hist(sel, 'HNL_mass', truth_info.HNL_vec.M())
 
 		self.fill_hist(sel, 'mHNLcalc', truth_info.mhnl)
+		self.fill_hist(sel, 'DV_mass', truth_info.dvmass)
 
 		self.fill_hist(sel, 'DV_r', truth_info.truth_dvr)
 		

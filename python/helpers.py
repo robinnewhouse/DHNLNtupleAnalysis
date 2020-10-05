@@ -76,17 +76,23 @@ class Truth():
 		self.truth_dvx = -1
 		self.truth_dvy = -1
 		self.truth_dvz = -1
+		self.truth_dv = ROOT.TLorentzVector()
 		self.truth_dvr = -1
 		self.truth_pvx = -1
 		self.truth_pvy = -1
 		self.truth_pvz = -1
+		self.truth_pv = ROOT.TLorentzVector()
 		self.W_vec = ROOT.TLorentzVector()
 		self.plep_vec = ROOT.TLorentzVector()
 		self.plep_charge = -99 
 		self.mhnl = -1
+		self.dvmass = -1
 		self.HNL_pdgID = 50
+		
 
 	def getTruthParticles(self, tree):
+		dMu = []
+		dEl = []
 		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
 			# get the DV!
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50:  # PDGID 50: Heavy Neutral Lepton
@@ -95,14 +101,31 @@ class Truth():
 					self.truth_dvx = tree['truthVtx_x'][ivx]
 					self.truth_dvy = tree['truthVtx_y'][ivx]
 					self.truth_dvz = tree['truthVtx_z'][ivx]
+					self.truth_dv = ROOT.TVector3( self.truth_dvx, self.truth_dvy, self.truth_dvz )
 					self.truth_dvr = np.sqrt(self.truth_dvx**2 + self.truth_dvy**2)
-
 					visTrkVec =  ROOT.TLorentzVector()
 					truthVec  =  ROOT.TLorentzVector()
 					nu_vec =  ROOT.TLorentzVector()
 
 					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
 						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
+						if trk_pdgId == 13: 
+							TrkVec  =  ROOT.TLorentzVector()
+							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+												tree['truthVtx_outP_eta'][ivx][i],
+												tree['truthVtx_outP_phi'][ivx][i],
+												tree['truthVtx_outP_M'][ivx][i] 
+												)
+							dMu.append(TrkVec)
+						if trk_pdgId == 11: 
+							TrkVec  =  ROOT.TLorentzVector()
+							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+												tree['truthVtx_outP_eta'][ivx][i],
+												tree['truthVtx_outP_phi'][ivx][i],
+												tree['truthVtx_outP_M'][ivx][i] 
+												)
+							dEl.append(TrkVec)
+
 						if trk_pdgId == 13 or trk_pdgId == 11: # is track a muon of electron? Then these are our visible (charged) truth tracks
 							visTrkVec =  ROOT.TLorentzVector()
 							visTrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
@@ -143,6 +166,7 @@ class Truth():
 					self.truth_pvx = tree['truthVtx_x'][ivx]
 					self.truth_pvy = tree['truthVtx_y'][ivx]
 					self.truth_pvz = tree['truthVtx_z'][ivx]
+					self.truth_pv = ROOT.TVector3( self.truth_pvx, self.truth_pvy, self.truth_pvz )
 
 					self.plep_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][0],
 											   tree['truthVtx_outP_eta'][ivx][0],
@@ -155,11 +179,16 @@ class Truth():
 											tree['truthVtx_parent_phi'][ivx],
 											tree['truthVtx_parent_M'][ivx]
 											)
-
+		# TO DO: bug with truth mHNL calculation
 		# try:
 		# 	import selections
-		# 	Mhnl = selections.new_Mhnl(tree, plep=self.plep_vec, trks=self.trkVec,MW=self.W_vec.M(),fixWMass=True)
-		# 	self.mhnl = Mhnl.mhnl
+		# 	if len(dMu) == 2: dv_type = "mumu"
+		# 	if len(dEl) == 2: dv_type = "ee"
+		# 	if len(dEl) == 1 and len(dMu) == 1: dv_type = "emu"
+		# 	Mhnl = selections.Mhnl(tree=tree, dv_type = dv_type, plep=self.plep_vec, dMu=dMu, dEl=dEl,use_truth=True,truth_pv=self.truth_pv,truth_dv=self.truth_dv)
+		# 	self.mhnl = Mhnl.alt_mhnl
+		# 	dv_vec = self.trkVec[0] + self.trkVec[1] 
+		# 	self.dvmass = dv_vec.M()
 		# except:
 		# 	pass
 

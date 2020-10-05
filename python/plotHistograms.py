@@ -716,12 +716,26 @@ def compare_TRUTH_histograms(config_file, selection):
 					 output_dir= outputDir
 					 )
 
+			plotting.compare(hist_channels,
+						 variable=var_prefix[i] + 'DV_mass',
+						 setrange=(0,10),
+						 setlogy = setlogy,
+						 scalelumi = scalelumi,
+						 datalumi = datalumi,
+						 drawRatio = drawRatio,
+						 ratioLabel = ratioLabel,
+						 normalize = normalize,
+						 # nRebin =2,
+						 draw_channel_info= draw_channel_info,
+						 output_dir= outputDir
+						 )
 
 			plotting.compare(hist_channels,
 						 variable=var_prefix[i] + 'mHNLcalc',
-						 # setrange=(0,10),
+						 setrange=(0,10),
 						 setlogy = setlogy,
 						 scalelumi = scalelumi,
+						 scaleymax = 1.9,
 						 datalumi = datalumi,
 						 drawRatio = drawRatio,
 						 ratioLabel = ratioLabel,
