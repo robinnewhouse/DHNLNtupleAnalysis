@@ -596,8 +596,9 @@ def compare_TRUTH_histograms(config_file, selection):
 
 		# hist_channels.append([config_file["mcFiles"][3], config_file["mcLabels"][3], vtx_channel, selection])
 		# hist_channels.append([config_file["mcFiles"][4], config_file["mcLabels"][4], vtx_channel, selection])
-		hist_channels.append([config_file["mcFiles"][8], "LNV decays", vtx_channel, selection+"_LNV"])
-		hist_channels.append([config_file["mcFiles"][8], "LNC decays", vtx_channel, selection+"_LNC"])
+		print "hellooooo"
+		hist_channels.append([config_file["mcFiles"][9], "LNV decays", vtx_channel, selection+"_LNV"])
+		hist_channels.append([config_file["mcFiles"][9], "LNC decays", vtx_channel, selection+"_LNC"])
 
 		# hist_channels.append([config_file["mcFiles"][5], " LNC reweighting", vtx_channel, "LNC_"+selection])
 		# hist_channels.append([config_file["mcFiles"][6], " LNC no reweighting", vtx_channel, "LNC_"+selection])
@@ -1084,7 +1085,7 @@ if __name__ == '__main__':
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
 	# makeCutflows(config_file)
-	compare_histograms(config_file, 'DVtype')
+	# compare_histograms(config_file, 'DVtype')
 	compare_TRUTH_histograms(config_file, 'truth')
 	# check_rerunningVSI(config_file,"all")
 

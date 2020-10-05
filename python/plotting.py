@@ -291,15 +291,12 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			print selection
 			event_type = selection.split('_')[1]
 			selection = selection.split('_')[0]
-			hist_path = "{}/{}/{}/{}".format(vtx_alg, selection,event_type, variable)
-			print hist_path
-		# 	print hist_path
-		# if "LNV" in label: 
-		# 	hist_path = "{}/{}/{}".format(vtx_alg, selection, "LNV_"+ variable)
-		# 	print hist_path
+			if "truth" in selection: 
+				hist_path = "{}/{}/all/{}/{}".format(vtx_alg, selection,event_type, variable)
+			else: 
+				hist_path = "{}/{}/{}/{}".format(vtx_alg, selection,event_type, variable)
 		else: 
 			hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
-		
 
 		# block that is used if you want to use the micro-ntuple to plot
 		if 'use_ntuple' in kwargs and kwargs['use_ntuple']:
@@ -343,6 +340,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			if not histogram:  # no histogram object. don't even try
 				print("cannot find {}. Exiting".format(variable))
 				return
+			histogram.SetTitle("")
 			histograms.append(histogram)  # get variable with suffix
 		# channels.append(channel)
 		filenames.append(filename)
