@@ -508,9 +508,9 @@ class Analysis(object):
 	def _fill_cutflow(self, nbin):
 		if not self.tree.is_data:
 			if self.MCEventType.isLNC:
-				self.CutFlow_LNC.Fill(nbin, self.weight)
+				self.CutFlow_LNC.Fill(nbin)
 			if self.MCEventType.isLNV:
-				self.CutFlow_LNV.Fill(nbin,self.weight)
+				self.CutFlow_LNV.Fill(nbin)
 			self.CutFlow.Fill(nbin)
 		else:
 			self.CutFlow.Fill(nbin)
