@@ -36,6 +36,36 @@ def set_debug_level(level):
 		debug_level = logging.ERROR
 	return debug_level
 
+
+def get_mass_lt_weight(tree,logger, lnv=False):
+	"""
+	Calculates the weight of the event based on the Gronau parametrization
+	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
+	Sets the weight of events for this tree
+	:param mass: HNL sample mass
+	:param ctau: HNL sample lifetime
+	:param lnv: Use Lepton Number Violating calculation
+	:return: calculated weight.
+	"""
+	mass = tree.mass
+	ctau = tree.ctau
+	if tree.is_data:  # you are running on data
+		weight = 1
+	else:  # you are running on MC file
+		if mass == -1 or ctau == -1:  # MC weighting error
+			logger.debug("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
+			weight = 1
+		else:
+			mW = 80.379  # mass of W boson in GeV
+			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+			if (lnv): U2 = 0.5 * U2Gronau
+			else: U2 = U2Gronau
+			xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+			weight = 1 * xsec / (tree.all_entries / 2)  # scale to 1 fb^-1  of luminosity, 
+														# scale all entries /2 becuase we are splitting events into 100% LNC & 100% LNV
+	return weight
+
+
 class Truth():
 	def __init__(self):
 		self.HNL_vec = ROOT.TLorentzVector()
@@ -80,8 +110,6 @@ class Truth():
 												tree['truthVtx_outP_phi'][ivx][i],
 												tree['truthVtx_outP_M'][ivx][i] 
 												)
-							# print trk_pdgId
-							# print visTrkVec.M()
 							self.trkVec.append(visTrkVec) #only add visible leptons to trkVec list
 						else: # remaining child is the neutrino
 							nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
@@ -91,14 +119,6 @@ class Truth():
 												)
 							self.dNu_vec = nu_vec
 
-						# dLepVec  =  ROOT.TLorentzVector()
-						# dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-						# 						tree['truthVtx_outP_eta'][ivx][i],
-						# 						tree['truthVtx_outP_phi'][ivx][i],
-						# 						tree['truthVtx_outP_M'][ivx][i]
-						# 						)
-					# print "pdgIDs: ", tree['truthVtx_outP_pdgId'][ivx]
-					# print "charge: ", tree['truthVtx_outP_charge'][ivx]
 					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
 						dLepVec  =  ROOT.TLorentzVector()
 						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
@@ -109,7 +129,6 @@ class Truth():
 						self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
 						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
 					
-
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],
 											tree['truthVtx_parent_phi'][ivx],

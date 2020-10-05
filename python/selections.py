@@ -1022,7 +1022,7 @@ class PV():
 
 class MCEventType:
 	def __init__(self, tree, wrong_lep_order = True):
-		self.weight = -1 # get weight 
+		self.weight = 1 # if not data weight is default, event is neither LNC or LNV
 		self.M2_spin_corr = -1
 		self.M2_nocorr = -1
 		self.isLNC = False
@@ -1063,101 +1063,63 @@ class MCEventType:
 		def M2_nocorr(MN, pW2, s24):
 		    return ( s24*(MN**2-s24)*(MN**2+2*MW**2)*(pW2-MN**2) ) / ( 6*MW**6 )
 
+		if not tree.is_data:
+			truth_info = helpers.Truth()
+			truth_info.getTruthParticles(tree)
+			pW2 = truth_info.W_vec.Mag2()
+			MN = truth_info.HNL_vec.M()
+			# print "HNL mass ", MN
+			charge_1 = truth_info.plep_charge # charge of prompt lepton
+			self.p_1 = truth_info.plep_vec # prompt lepton 
+			if wrong_lep_order: 
+				self.p_2 = truth_info.dLepVec[0]
+				self.p_3 = truth_info.dLepVec[1]
+				self.p_4 = truth_info.dLepVec[2]
+			else: 
+				self.p_2 = truth_info.dLepVec[2]
+				self.p_3 = truth_info.dLepVec[0]
+				self.p_4 = truth_info.dLepVec[1]
 
-		truth_info = helpers.Truth()
-		truth_info.getTruthParticles(tree)
-		pW2 = truth_info.W_vec.Mag2()
-		MN = truth_info.HNL_vec.M()
-		# print "HNL mass ", MN
-		charge_1 = truth_info.plep_charge # charge of prompt lepton
-		self.p_1 = truth_info.plep_vec # prompt lepton 
-		if wrong_lep_order: 
-			self.p_2 = truth_info.dLepVec[0]
-			self.p_3 = truth_info.dLepVec[1]
-			self.p_4 = truth_info.dLepVec[2]
-		else: 
-			self.p_2 = truth_info.dLepVec[2]
-			self.p_3 = truth_info.dLepVec[0]
-			self.p_4 = truth_info.dLepVec[1]
+			if charge_1 != truth_info.dLepCharge[0]: 
+				self.isLNC = True
+			else: 
+				self.isLNV = True
+				
+			if self.isLNC == self.isLNV: 
+				logger.error("MCEventType selection found that this event is both LNC and LNV. Check this event!")
 
-		if charge_1 != truth_info.dLepCharge[0]: 
-			self.isLNC = True
-		else: 
-			self.isLNV = True
+
+			p12 = self.p_1 + self.p_2
+			p13 = self.p_1 + self.p_3
+			p14 = self.p_1 + self.p_4
+
+			p23 = self.p_2 + self.p_3
+			p24 = self.p_2 + self.p_4
+			p34 = self.p_3 + self.p_4
+
+			self.s12 = p12.Mag2()
+			self.s13 = p13.Mag2()
+			self.s14 = p14.Mag2()
+			self.s23 = p23.Mag2()
+			self.s24 = p24.Mag2()
+			self.s34 = p34.Mag2()
 			
-		# 	else: 
-
-
-		# if get_LNC: 
-		# 	if charge_1 != truth_info.dLepCharge[0]: 
-		# 		self.p_2 = truth_info.dLepVec[0]
-		# 		self.p_3 = truth_info.dLepVec[1]
-		# 		self.p_4 = truth_info.dLepVec[2]
-		# 	else: 
-		# 		self.p_2 = truth_info.dLepVec[1]
-		# 		self.p_3 = truth_info.dLepVec[0]
-		# 		self.p_4 = truth_info.dLepVec[2]
-
-		# if get_LNV: 
-		# 	if charge_1 == truth_info.dLepCharge[0]: 
-		# 		self.p_2 = truth_info.dLepVec[0]
-		# 		self.p_3 = truth_info.dLepVec[1]
-		# 		self.p_4 = truth_info.dLepVec[2]
-		# 	else: 
-		# 		self.p_2 = truth_info.dLepVec[1]
-		# 		self.p_3 = truth_info.dLepVec[0]
-		# 		self.p_4 = truth_info.dLepVec[2]
-
-		if self.isLNC == self.isLNV: 
-			print "both LNC and LNV!!!"
-
-
-		p12 = self.p_1 + self.p_2
-		p13 = self.p_1 + self.p_3
-		p14 = self.p_1 + self.p_4
-
-		p23 = self.p_2 + self.p_3
-		p24 = self.p_2 + self.p_4
-		p34 = self.p_3 + self.p_4
-
-		self.s12 = p12.Mag2()
-		self.s13 = p13.Mag2()
-		self.s14 = p14.Mag2()
-		self.s23 = p23.Mag2()
-		self.s24 = p24.Mag2()
-		self.s34 = p34.Mag2()
-
-		# print "s13: ", s13
-		# print "s24: ", s24
-		
-		if wrong_lep_order: 
-		# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
-		# For official samples, swap s24 -> s34 
+			# calculate the correct matrix that takes into account LNC or LNV decay
 			if self.isLNC: 
-				self.weight = 2*M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, pW2=pW2,s24= self.s34)
 				self.M2_spin_corr = M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
-				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s34)
 			if self.isLNV: 
-				self.weight = 2*M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, pW2=pW2, s24= self.s34)
 				self.M2_spin_corr = M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
-				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2,s24= self.s34)
-		else: 
-			if self.isLNC: 
-				self.weight = 2*M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, pW2=pW2,s24= self.s24)
-				self.M2_spin_corr = M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
-				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24)
-			if self.isLNV: 
-				self.weight = 2*M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)/M2_nocorr(MN=MN, pW2=pW2, s24= self.s24)
-				self.M2_spin_corr = M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
-				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24)
 
-	
+			if wrong_lep_order: 
+			# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
+			# For official samples, swap s24 -> s34 
+				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2,s24= self.s34) # wrong matrix used when generating pythia samples, includes lepton permutation
+			else: 
+				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24) # wrong matrix used when generating pythia samples, NO lepton permutation
 
-			
+			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is becuase M2_nocorr as calculated includes LNC + LNV decays
 
 		
-
-
 
 
 class SumTrack:

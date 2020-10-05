@@ -199,7 +199,7 @@ class Analysis(object):
 		if self.MCEventType.isLNC: directory += 'LNC/'
 		if self.MCEventType.isLNV: directory += 'LNV/'
 
-		self.observables.fill_hist(directory, hist_name, variable_1, variable_2, self.tree.weight)
+		self.observables.fill_hist(directory, hist_name, variable_1, variable_2, self.weight)
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
@@ -251,45 +251,8 @@ class Analysis(object):
 	def write(self):
 		# Move ROOT to base directory
 		self.fi.cd()
-
-		# Store saved ntuple values to file
-		# self.fi.mkdir(self.ch+'/ntuples', "Micro Ntuples " + self.ch)
-		# self.fi.cd(self.ch+'/ntuples')
 		[ntuple.write(self.ch+'_ntuples_'+key) for key, ntuple in self.micro_ntuples.items()]
 		self.observables.write_histograms(root_file=self.fi)
-
-		# # Make a subdirectory for vertex type. May be other channels in the future.
-		# if not self.fi.FindObject(self.ch):
-		# 	self.fi.mkdir(self.ch, "Analysis Channel " + self.ch)
-		# # Move ROOT to the channel subdirectory
-		# self.fi.cd(self.ch)
-
-		# # Store saved histograms to file
-		# # TODO: this should be saved in a different way. e.g. another level of dictionary. Parsing strings for variable names is not good.
-		# for h_name in self.h:
-		#
-		# 	if self.h[h_name][self.ch].GetEntries() != 0:
-		#
-		# 		if not self.tree.is_data:
-		# 			selection = h_name.split('_')[0]  # get LNC or LNV
-		# 			EventType = '_'.join(h_name.split('_')[1:]).split('_')[0]  # get selection
-		# 			sel_dir = self.ch + '/' +  selection + '/' + EventType
-		# 			base_name = '_'.join(h_name.split('_')[2:])  # get base name
-		# 		else:
-		# 			selection = h_name.split('_')[0]  # get selection
-		# 			sel_dir = self.ch + '/' + selection
-		# 			base_name = '_'.join(h_name.split('_')[2:])  # get base name
-		# 		# if "CutFlow" in h_name:
-		# 		# 	print EventType
-		# 		# 	print selection
-		# 		# 	print sel_dir
-		# 		# 	print base_name
-		#
-		# 		if not self.fi.GetDirectory(sel_dir):  # make TDirectory if necessary
-		# 			self.fi.mkdir(sel_dir, "Analysis Selection " + selection)
-		# 		self.fi.cd(sel_dir)  # change to TDirectory
-		# 		self.h[h_name][self.ch].Write(base_name)  # save only the base name
-		#
 		self.logger.info("Histograms written to {}".format(self.outputFile))
 
 		self.fi.Close()
@@ -428,7 +391,7 @@ class Analysis(object):
 		return mlll_sel.passes()
 
 	def _dv_mass_cut(self):
-		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=4)
+		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=2)
 		return dv_mass_sel.passes()
 
 	def _truth_match(self):
@@ -437,7 +400,6 @@ class Analysis(object):
 		pdgId 50 signifies a heavy neutral lepton parent particle."""
 		maxlinkTruth_score = self.tree.dv('maxlinkTruth_score')
 		maxlinkTruth_parent_pdgId = abs(self.tree.dv('maxlinkTruth_parent_pdgId'))
-
 		return self.tree.dv('maxlinkTruth_score') > 0.75 and abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
 
 	def initialize_cut_bools(self):
@@ -494,13 +456,11 @@ class Analysis(object):
 			if self._trigger_cut():
 				# Fill the plot at the specified bin
 				self._fill_cutflow(1)
-				# self.h['CutFlow'][self.ch].Fill(1)
 			else:
 				return
 		
 		if self._pv_cut(): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
 			self._fill_cutflow(2)
-			# self.h['CutFlow'][self.ch].Fill(2)
 		else:
 			return
 
@@ -508,35 +468,30 @@ class Analysis(object):
 		if self.do_invert_trigger_cut:
 			if self._invert_trigger_cut():
 				self._fill_cutflow(2)
-				# self.h['CutFlow'][self.ch].Fill(2)
 			else:
 				return
 
 		if self.do_filter_cut:
 			if self._filter_cut():
 				self._fill_cutflow(3)
-				# self.h['CutFlow'][self.ch].Fill(3)
 			else:
 				return
 
 		if self.do_prompt_lepton_cut:
 			if self._prompt_lepton_cut():
 				self._fill_cutflow(4)
-				# self.h['CutFlow'][self.ch].Fill(4)
 			else:
 				return
 
 		if self.do_invert_prompt_lepton_cut:
 			if self._invert_prompt_lepton_cut():
 				self._fill_cutflow(4)
-				# self.h['CutFlow'][self.ch].Fill(4)
 			else:
 				return
 
 		if self.do_ndv_cut:
 			if self._ndv_cut():
 				self._fill_cutflow(5)
-				# self.h['CutFlow'][self.ch].Fill(5)
 			else:
 				return
 
@@ -546,15 +501,15 @@ class Analysis(object):
 			self._fill_truth_histos(sel='truth/presel')
 
 	def calculate_event_weight(self):
-		######################################################################################################
-		# MC re-weighting to include spin correlations
-		######################################################################################################
-		if not self.tree.is_data:
-			#TODO what to to when running on MC that is not HNL and has no concept of LNV/LNC
-			self.MCEventType = selections.MCEventType(self.tree)
-			self.weight = self.tree.mass_lt_weight*self.MCEventType.weight  #if not weight_override else weight_override
-		else:
-			self.weight = self.tree.mass_lt_weight  # for data, mass_lt_weight = 1
+		# MC re-weighting to include spin correlations and fix lepton ordering bug
+		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
+		# calculate mass lifetime weight 
+		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree,logger=self.logger, lnv=False) 
+		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
+		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
+		
+		self.weight = self.mass_lt_weight*self.MCEventType.weight 
+		
 
 	def DVSelection(self):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
@@ -1004,14 +959,15 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(9, "SS DV")
 		if self.do_dv_type_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(10, "%s DV" % self.dv_type)
-		if self.do_track_quality_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(11, "{}-lepton DV".format(self.track_quality))
 		if self.do_cosmic_veto_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(12, "cosmic veto")
-		if self.do_trilepton_mass_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(13, "m_{lll}")
+			self.CutFlow.GetXaxis().SetBinLabel(11, "cosmic veto")
 		if self.do_dv_mass_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(14, "m_{DV}")
+			self.CutFlow.GetXaxis().SetBinLabel(12, "m_{DV}")
+		if self.do_track_quality_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(13, "{}-lepton DV".format(self.track_quality))
+		if self.do_trilepton_mass_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(14, "m_{lll}")
+		
 		self.CutFlow.GetXaxis().SetBinLabel(15, "truth matched")
 
 		# Store LNC and LNV cutflows in the observables collection
@@ -1046,7 +1002,6 @@ class run2Analysis(Analysis):
 				# Has the cutflow already been filled for this event?
 				if not self.passed_fidvol_cut:
 					self._fill_cutflow(6)
-					# self.h['CutFlow'][self.ch].Fill(6)
 					self.passed_fidvol_cut = True
 			# If this cut doesn't pass, don't continue to check other cuts
 			else:
@@ -1056,7 +1011,6 @@ class run2Analysis(Analysis):
 			if self._ntrk_cut():
 				if not self.passed_ntrk_cut:
 					self._fill_cutflow(7)
-					# self.h['CutFlow'][self.ch].Fill(7)
 					self.passed_ntrk_cut = True
 			else:
 				return
@@ -1065,67 +1019,63 @@ class run2Analysis(Analysis):
 			if self._charge_cut():
 				if not self.passed_charge_cut:
 					self._fill_cutflow(8)
-					# self.h['CutFlow'][self.ch].Fill(8)
 					self.passed_charge_cut = True
 			else:
 				return
-
-		# self._fill_selected_dv_histos("charge")
 
 		if self.do_dv_type_cut:
 			if self._dv_type_cut():
 				if not self.passed_dv_type_cut:
 					self._fill_cutflow(9)
-					# self.h['CutFlow'][self.ch].Fill(9)
 					self.passed_dv_type_cut = True
 			else:
 				return
 	
 		self._fill_selected_dv_histos("DVtype")
-
-		if self.do_track_quality_cut:
-			if self._track_quality_cut():
-				if not self.passed_track_quality_cut:
-					self._fill_cutflow(10)
-					# self.h['CutFlow'][self.ch].Fill(10)
-					self.passed_track_quality_cut = True
-			else:
-				return
 		
-		self._fill_selected_dv_histos("trkqual")
-
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
-					self._fill_cutflow(11)
-					# self.h['CutFlow'][self.ch].Fill(11)
+					self._fill_cutflow(10)
 					self.passed_cosmic_veto_cut = True
 			else:
 				return
 
 		self._fill_selected_dv_histos("cosmic")
 
+		if self.do_dv_mass_cut:
+			if self._dv_mass_cut():
+				if not self.passed_dv_mass_cut:
+					self._fill_cutflow(11)
+					self.passed_dv_mass_cut = True
+			else:
+				return
+		self._fill_selected_dv_histos("mDV")
+
+		
+		if self.do_track_quality_cut:
+			if self._track_quality_cut():
+				if not self.passed_track_quality_cut:
+					self._fill_cutflow(12)
+					self.passed_track_quality_cut = True
+			else:
+				return
+
+		self._fill_selected_dv_histos("trkqual")
+
 
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
-					self._fill_cutflow(12)
-					# self.h['CutFlow'][self.ch].Fill(12)
+					self._fill_cutflow(13)
 					self.passed_trilepton_mass_cut = True
 			else:
 				return
 	
-		self._fill_selected_dv_histos("mlll")
+		# self._fill_selected_dv_histos("mlll")
 
 
-		if self.do_dv_mass_cut:
-			if self._dv_mass_cut():
-				if not self.passed_dv_mass_cut:
-					self._fill_cutflow(13)
-					# self.h['CutFlow'][self.ch].Fill(13)
-					self.passed_dv_mass_cut = True
-			else:
-				return
+		
 
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data:

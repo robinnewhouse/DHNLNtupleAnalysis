@@ -42,9 +42,6 @@ class Tree:
 		self.all_entries = self.cutflow[1]  
 		self.init_entries = self.cutflow[2]  # init entries
 		self.vtx_container = ""
-		self.mass_lt_weight = self.get_weight(mass, ctau) 
-		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
-
 		
 
 
@@ -127,35 +124,6 @@ class Tree:
 
 	def __setitem__(self, key, value):
 		raise AttributeError("Can't set attribute")
-
-	def get_weight(self, mass, ctau, lnv=False):
-		"""
-		Calculates the weight of the event based on the Gronau parametrization
-		https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
-		Sets the weight of events for this tree
-		:param mass: HNL sample mass
-		:param ctau: HNL sample lifetime
-		:param lnv: Use Lepton Number Violating calculation
-		:return: calculated weight.
-		"""
-		if self.is_data:  # you are running on data
-			self.weight = 1
-		else:  # you are running on MC file
-			if self.mass == -1 or ctau == -1:  # MC weighting error
-				self.logger.debug("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
-				self.weight = 1
-			else:
-				mW = 80.379  # mass of W boson in GeV
-				U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
-				if (lnv): U2 = 0.5 * U2Gronau
-				else: U2 = U2Gronau
-
-				xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-				print self.all_entries
-				self.weight = 1 * xsec / (self.all_entries / 2)  # scale to 1 fb^-1  of luminosity, 
-															 	# scale all entries /2 becuase we are splitting events into 100% LNC & 100% LNV
-
-		return self.weight
 
 	@property
 	def numentries(self):
