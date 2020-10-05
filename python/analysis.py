@@ -263,52 +263,28 @@ class Analysis(object):
 			hist.SetBinContent(1, hist.GetBinContent(1) + hist.GetBinContent(0)) # merge underflow into first bin
 
 
-		# for h_dict in self.h.values():
-		# 	for hist in h_dict.values():
+		# make acceptance Histograms 
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'] = self.CutFlow_LNV.Clone()
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'] = self.CutFlow_LNC.Clone()
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'] = self.CutFlow.Clone()
 
-		# 		
-		# self.histogram_dict[directory + hist_name]
-		# self.h['CutFlow_all_acceptance'] = {}
-		# self.h['CutFlow_all_acceptance'][self.ch] = self.CutFlow.Clone()
-		# self.h['CutFlow_all_acceptance'][self.ch].SetName("CutFlow_all_acceptance"+"_"+self.ch)
-		# self.h['CutFlow_all_acceptance'][self.ch].SetDirectory(0)
-		# if self.CutFlow.GetBinContent(1) != 0: # Protect against zero-division
-		# 	self.h['CutFlow_all_acceptance'][self.ch].Scale(1.0/self.CutFlow.GetBinContent(1))
-		# self.logger.info('Done with Channel("{}")'.format(self.ch))
-		# meta = []
-		# if self.region:
-		# 	meta.append('Region: {}'.format(self.region))
-		# if self.period:
-		# 	meta.append('Period: {}'.format(self.period))
-		# if self.bcategory != None:
-		# 	meta.append('B-tagging Categroy: {}'.format(self.bcategory))
-		# self.logger.info('\t' + ' | '.join(meta))
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'].SetName("CutFlow_acceptance"+"_"+self.ch)
 
-		# gives warning messages if histograms are unfilled
-		# for histName in self.h:
-		# 	if self.h[histName][self.ch].GetEntries() == 0:
-		# 		self.logger.debug('\tUnfilled HIST({}<{}>)!'.format(histName, self.ch))
-
-		# y_err = ROOT.Double()
-		# for s in self.histSuffixes:
-		# 	h = self.h['finalNEvents'][s]
-		# 	self.logger.info('\tFinal NEvents <{syst}>: {y}'.format(syst = s, y = h.Integral()))
-		# 	h = self.h['finalYields'][s]
-		# 	self.logger.info('\tFinal Yields <{syst}>: {y:.4g}+/-{y_err:.2g}'.format(syst = s, y = h.IntegralAndError(0, h.GetNbinsX()+1, y_err), y_err = y_err))
+		if self.CutFlow_LNV.GetBinContent(1) != 0: # Protect against zero-division
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].Scale(1.0/self.CutFlow_LNV.GetBinContent(1))
+		if self.CutFlow_LNC.GetBinContent(1) != 0: # Protect against zero-division
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'].Scale(1.0/self.CutFlow_LNC.GetBinContent(1))
+		if self.CutFlow.GetBinContent(1) != 0: # Protect against zero-division
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'].Scale(1.0/self.CutFlow.GetBinContent(1))
+		
 		self.write()
 
 		# Clean up memory
-		del self.h
+		del self.observables.histogram_dict
 		del self.micro_ntuples
 
-
-		# head, sep, tail = self._outputFile.partition('file://')
-		# f = tail if head == '' else self._outputFile
-		# f = tail if head == '' else self._outputFile
-		# try:
-		# 	os.rename(f + '.part', f)
-		# except OSError as e:
-		# 	self.logger.error(e, exc_info=True)
 
 
 	# Protected function to create the selection object and return its success
@@ -454,9 +430,9 @@ class Analysis(object):
 		if not self.tree.is_data:
 			self._fill_truth_histos(sel='truth/all')
 			if self.MCEventType.isLNC: 
-				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries)  # all events
+				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
 			if self.MCEventType.isLNV:
-				self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries)  # all events
+				self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries/2)  # all events
 			self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
 		
 
@@ -745,9 +721,9 @@ class Analysis(object):
 			self.fill_hist(sel, 'lep2_trk_pt', self.MCEventType.p_3.Pt())
 			self.fill_hist(sel, 'lep2_trk_eta', self.MCEventType.p_3.Eta())
 			self.fill_hist(sel, 'lep2_trk_phi', self.MCEventType.p_3.Phi())
-			self.fill_hist(sel, 'nu_trk_pt', truth_info.dNu_vec.Pt())
-			self.fill_hist(sel, 'nu_trk_eta', truth_info.dNu_vec.Eta())
-			self.fill_hist(sel, 'nu_trk_phi', truth_info.dNu_vec.Phi())
+			self.fill_hist(sel, 'nu_trk_pt', self.MCEventType.p_4.Pt())
+			self.fill_hist(sel, 'nu_trk_eta', self.MCEventType.p_4.Eta())
+			self.fill_hist(sel, 'nu_trk_phi', self.MCEventType.p_4.Phi())
 			if self.MCEventType.weight > 5: 
 				self.fill_hist(sel, 'largew_plep_pt', truth_info.plep_vec.Pt())
 				self.fill_hist(sel, 'largew_plep_eta', truth_info.plep_vec.Eta())
@@ -758,9 +734,9 @@ class Analysis(object):
 				self.fill_hist(sel, 'largew_lep2_trk_pt', self.MCEventType.p_3.Pt())
 				self.fill_hist(sel, 'largew_lep2_trk_eta', self.MCEventType.p_3.Eta())
 				self.fill_hist(sel, 'largew_lep2_trk_phi', self.MCEventType.p_3.Phi())
-				self.fill_hist(sel, 'largew_nu_trk_pt', truth_info.dNu_vec.Pt())
-				self.fill_hist(sel, 'largew_nu_trk_eta', truth_info.dNu_vec.Eta())
-				self.fill_hist(sel, 'largew_nu_trk_phi', truth_info.dNu_vec.Phi())
+				self.fill_hist(sel, 'largew_nu_trk_pt', self.MCEventType.p_4.Pt())
+				self.fill_hist(sel, 'largew_nu_trk_eta', self.MCEventType.p_4.Eta())
+				self.fill_hist(sel, 'largew_nu_trk_phi', self.MCEventType.p_4.Phi())
 
 			disp_lep = [self.MCEventType.p_2,self.MCEventType.p_3,self.MCEventType.p_4]
 			# pt order the displaced leptons
@@ -984,9 +960,9 @@ class run2Analysis(Analysis):
 		# Define cutflow histogram "by hand"
 		# TODO Maybe the directory here needs to change, or the selection needs to be set
 		
-		cutflow_dir = self.ch + '/CutFlow/'
-		self.observables.histogram_dict[cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 15, -0.5, 14.5)
-		self.CutFlow = self.observables.histogram_dict[cutflow_dir + 'CutFlow']
+		self.cutflow_dir = self.ch + '/CutFlow/'
+		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 15, -0.5, 14.5)
+		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
 		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
 		if self.do_trigger_cut:
@@ -1031,8 +1007,8 @@ class run2Analysis(Analysis):
 		self.CutFlow_LNC = self.CutFlow.Clone()
 		self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
 		self.CutFlow_LNC.SetName("CutFlow_LNC"+"_"+self.ch)
-		self.observables.histogram_dict[cutflow_dir+'CutFlow_LNV'] = self.CutFlow_LNV
-		self.observables.histogram_dict[cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV'] = self.CutFlow_LNV
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
 
 	def DVSelection(self):
 

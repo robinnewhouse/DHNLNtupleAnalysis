@@ -628,8 +628,9 @@ def compare_TRUTH_histograms(config_file, selection):
 		# 			 output_dir= outputDir
 		# 			 )
 		var_prefix = [""]
-		# var_prefix = ["","largew_"]
-		for i in range(1): 
+		var_prefix = ["","largew_"]
+		nprefix = len(var_prefix)
+		for i in range(nprefix): 
 			print var_prefix
 			plotting.compare(hist_channels,
 					 variable=var_prefix[i] + 'event_type_MCweight',
@@ -754,7 +755,7 @@ def compare_TRUTH_histograms(config_file, selection):
 					 drawRatio = drawRatio,
 					 ratioLabel = ratioLabel,
 					 normalize = normalize,
-					 nRebin =2,
+					 nRebin =4,
 					 draw_channel_info= draw_channel_info,
 					 output_dir= outputDir
 					 )
@@ -788,19 +789,7 @@ def compare_TRUTH_histograms(config_file, selection):
 					 )
 
 
-			plotting.compare(hist_channels,
-					 variable=var_prefix[i] + 'lep1_trk_pt',
-					 setrange=(0,50),
-					 setlogy = setlogy,
-					 scalelumi = scalelumi,
-					 datalumi = datalumi,
-					 drawRatio = drawRatio,
-					 ratioLabel = ratioLabel,
-					 normalize = normalize,
-					 nRebin =2,
-					 draw_channel_info= draw_channel_info,
-					 output_dir= outputDir
-					 )
+
 
 			plotting.compare(hist_channels,
 					 variable=var_prefix[i] + 'dlep1_pt',
@@ -842,7 +831,19 @@ def compare_TRUTH_histograms(config_file, selection):
 					 output_dir= outputDir
 					 )
 
-
+			plotting.compare(hist_channels,
+					 variable=var_prefix[i] + 'lep1_trk_pt',
+					 setrange=(0,50),
+					 setlogy = setlogy,
+					 scalelumi = scalelumi,
+					 datalumi = datalumi,
+					 drawRatio = drawRatio,
+					 ratioLabel = ratioLabel,
+					 normalize = normalize,
+					 nRebin =4,
+					 draw_channel_info= draw_channel_info,
+					 output_dir= outputDir
+					 )
 			plotting.compare(hist_channels,
 					 variable=var_prefix[i] + 'lep1_trk_eta',
 					 setrange=(-10,10),
@@ -881,7 +882,7 @@ def compare_TRUTH_histograms(config_file, selection):
 					 drawRatio = drawRatio,
 					 ratioLabel = ratioLabel,
 					 normalize = normalize,
-					 nRebin =2,
+					 nRebin =4,
 					 draw_channel_info= draw_channel_info,
 					 output_dir= outputDir
 					 )
@@ -922,7 +923,7 @@ def compare_TRUTH_histograms(config_file, selection):
 				 drawRatio = drawRatio,
 				 ratioLabel = ratioLabel,
 				 normalize = normalize,
-				 nRebin =2,
+				 nRebin =4,
 				 draw_channel_info= draw_channel_info,
 				 output_dir= outputDir
 				 )
