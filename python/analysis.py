@@ -15,10 +15,11 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples, debug_level):
+	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples, debug_level,weight_override=None):
 		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=debug_level)
 		selections.set_debug_level(debug_level)
 		self.name = name
+		self.weight_override = weight_override
 		self.sel = selection_list
 		self.outputFile = outputFile
 		self.fi = ROOT.TFile.Open(outputFile, 'update')
@@ -27,7 +28,7 @@ class Analysis(object):
 		self.h = {}
 		self.micro_ntuples = {}
 		self.tree = tree
-		self.weight = 1
+		# self.weight = 1
 		self.saveNtuples = saveNtuples
 		self._locked = UNLOCKED
 		# create an instance of Observables to store histograms
@@ -498,8 +499,10 @@ class Analysis(object):
 		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree,logger=self.logger, lnv=False) 
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
-		
-		self.weight = self.mass_lt_weight*self.MCEventType.weight 
+		if self.weight_override == None: 
+			self.weight = self.mass_lt_weight*self.MCEventType.weight 
+		else: 
+			self.weight = self.weight_override
 		
 
 	def DVSelection(self):
@@ -953,9 +956,9 @@ class Analysis(object):
 
 
 class run2Analysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level):
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
 		
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
 
 		# Define cutflow histogram "by hand"
@@ -1126,8 +1129,8 @@ class run2Analysis(Analysis):
 
 
 class KShort(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level):
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level)
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
 		self.logger.info('Running KShort Analysis cuts', level=debug_level)
 
 		self.add('CutFlow', 17, -0.5, 16.5)

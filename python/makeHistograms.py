@@ -48,7 +48,7 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau, weight_override=options.weight)
+		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau)
 
 		# create one output file per channel in your config file
 		if "SSdata" in options.config.split("config")[1]:
@@ -94,7 +94,7 @@ def main():
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
-			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file,options.saveNtuples, debug_level)
+			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file,options.saveNtuples, debug_level,weight_override=options.weight)
 
 			# Loop over each event
 			while tree.ievt < entries:

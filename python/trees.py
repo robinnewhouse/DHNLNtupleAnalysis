@@ -6,7 +6,7 @@ import logging
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, debug_level, mc_campaign=None, mass=1.0, ctau=1.0, weight_override=None):
+	def __init__(self, file_name, tree_name, max_entries, debug_level, mc_campaign=None, mass=1.0, ctau=1.0):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -23,7 +23,6 @@ class Tree:
 		:param max_entries: The maximum number of entries to load when reading a tree from the file.
 		:param mass: The HNL mass of the sample
 		:param ctau: The mean lifetime of the sample
-		:param weight_override: Use this if you want to override the weight calculation.
 		"""
 		# Set class attributes
 		self.logger = helpers.getLogger('dHNLAnalysis.trees',level=debug_level)
