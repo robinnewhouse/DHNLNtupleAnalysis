@@ -497,7 +497,7 @@ class Analysis(object):
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
 		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
 		# calculate mass lifetime weight 
-		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree,logger=self.logger, lnv=False) 
+		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree,logger=self.logger, both_lnc_lnv=False) 
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
 		if self.weight_override == None: 
