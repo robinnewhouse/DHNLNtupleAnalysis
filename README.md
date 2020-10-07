@@ -74,7 +74,7 @@ To add a new selection, make a new class in `selections.py`.
 
 Event weighting for monte carlo samples is implemented in the framework. There are currently 2 different weight that are calculated specifically for MC weighting.
 
-1. Mass-Lifetime weight
+**1. Mass-lifetime weight**
 
 In order properly calculate the cross section for the signal model, the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
 
@@ -83,9 +83,9 @@ In order properly calculate the cross section for the signal model, the mass and
 ```
 this is becuase your file is not appropriately named. Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_WmuHNL_DAOD_RPVLLonly_updatedRECO.txt) for naming conventions.
 
-2. Truth weight for spin correlations and leptons ordering bug fix
+**2. Truth weight for spin correlations and leptons ordering bug fix**
 
-Truth reweighting was introducted to add spin correlations with Pythia did not take into acount when simulating the truth distributions. This reweighting also fixed a lepton ordering bug that was also found in our official Pythia MC samples. For more details about this effects please see [this talk](https://indico.cern.ch/event/944478/contributions/3968769/attachments/2102276/3534533/MC_Reweighting_Sept15_20.pdf) and [this talk](https://indico.cern.ch/event/944479/contributions/3968779/attachments/2106444/3542592/MC_Reweighting_Sept22_20.pdf). 
+Truth reweighting was introducted to add spin correlations with Pythia did not take into acount when simulating the truth distributions. This reweighting also fixed a lepton ordering bug that was also found in our official Pythia MC samples. For more details about these effects please see [this talk](https://indico.cern.ch/event/944478/contributions/3968769/attachments/2102276/3534533/MC_Reweighting_Sept15_20.pdf) and [this talk](https://indico.cern.ch/event/944479/contributions/3968779/attachments/2106444/3542592/MC_Reweighting_Sept22_20.pdf). 
 
 In `selections.py` a class called `MCEventType` will determine is the current events is LNC or LNV and accordingly calcute a weight based on the truth distributions from the particular event. 
 
