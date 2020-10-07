@@ -104,7 +104,7 @@ python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.js
 
 N.B This "allcuts" option makes the histogram output files much larger, especially when running on data. But the feature if available if you would like to use it. 
 
-Here is a list of cuts that you can update the code using the --saveNtuples option: 
+Here is a list of cuts that you can update the code using the `-s` or `--saveNtuples` option: 
 
 - all 
 - charge
@@ -164,16 +164,15 @@ For comparing histograms:
 
 | **Option** | **Action** |
 | ---------- | ---------- |
-| `config` | input config file for makeHisotgrams.py (required) |
-| `i` | path to input DHNL ntuple that was produced with DHNL Algorithm (required) |
-| `o` | output directory to store histograms. |
-| `f` | overwrite previous histograms output file if it exists. (default: False) |
-| `a` | name of the analysis you want to run (default: Old 36 inverse fb analysis) |
-| `s` | name of cut after which you want to save the micro-ntuples. (default: DVtype) |
-| `d` | Debug level. Options included are CRITICAL, ERROR, WARNING, INFO, DEBUG (default: INFO) |
-| `nevents` | max number of events to be processed |
-| `weight` | override the dHNL signal weight calculation for this sample. |
-
+| `--config` | input config file for makeHisotgrams.py (required) |
+| `-i` or `--input` | path to input DHNL ntuple that was produced with DHNL Algorithm (required) |
+| `-o` or `--output` | output directory to store histograms. |
+| `-f` or `--force` | overwrite previous histograms output file if it exists. (default: False) |
+| `-a` or `--analysis` | name of the analysis you want to run (default: Full run 2 analysis) |
+| `-s` or `--saveNtuples` | name of cut after which you want to save the micro-ntuples. (default: DVtype) |
+| `-d` or `--debug`| Debug level. Options included are CRITICAL, ERROR, WARNING, INFO, DEBUG (default: INFO) |
+| `--nevents` | max number of events to be processed |
+| `--weight` | Use this flag to override the dHNL signal weight calculation for this sample. |
 
 
 ## Note about colour logs
