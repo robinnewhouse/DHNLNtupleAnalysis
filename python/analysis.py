@@ -681,10 +681,10 @@ class Analysis(object):
 		self.fill_hist(sel, 'W_eta', truth_info.W_vec.Eta())
 		self.fill_hist(sel, 'W_phi', truth_info.W_vec.Phi())
 		self.fill_hist(sel, 'W_mass', truth_info.W_vec.M())
-		self.fill_hist(sel, 'HNL_pt', truth_info.HNL_vec.Pt())
-		self.fill_hist(sel, 'HNL_eta', truth_info.HNL_vec.Eta())
-		self.fill_hist(sel, 'HNL_phi', truth_info.HNL_vec.Phi())
-		self.fill_hist(sel, 'HNL_mass', truth_info.HNL_vec.M())
+		self.fill_hist(sel, 'HNLpt', truth_info.HNL_vec.Pt())
+		self.fill_hist(sel, 'HNLeta', truth_info.HNL_vec.Eta())
+		self.fill_hist(sel, 'HNLphi', truth_info.HNL_vec.Phi())
+		self.fill_hist(sel, 'HNLm', truth_info.HNL_vec.M())
 
 		self.fill_hist(sel, 'mHNLcalc', truth_info.mhnl)
 		self.fill_hist(sel, 'DV_mass', truth_info.dvmass)
@@ -700,6 +700,17 @@ class Analysis(object):
 		self.fill_hist(sel, 'plep_phi', truth_info.plep_vec.Phi())
 		self.fill_hist(sel, 'plep_mass', truth_info.plep_vec.M())
 		
+		# print truth_info.W_charge
+		if truth_info.W_charge == 1: 
+			self.fill_hist(sel, 'Wplus_HNLpt', truth_info.HNL_vec.Pt())
+			self.fill_hist(sel, 'Wplus_HNLeta', truth_info.HNL_vec.Eta())
+			self.fill_hist(sel, 'Wplus_HNLphi', truth_info.HNL_vec.Phi())
+
+
+		if truth_info.W_charge == -1: 
+			self.fill_hist(sel, 'Wminus_HNLpt', truth_info.HNL_vec.Pt())
+			self.fill_hist(sel, 'Wminus_HNLeta', truth_info.HNL_vec.Eta())
+			self.fill_hist(sel, 'Wminus_HNLphi', truth_info.HNL_vec.Phi())
 
 		if len(truth_info.trkVec) == 2: 
 			DV_4vec= truth_info.trkVec[1]+ truth_info.trkVec[0]

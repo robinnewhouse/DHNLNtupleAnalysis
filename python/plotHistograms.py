@@ -596,7 +596,6 @@ def compare_TRUTH_histograms(config_file, selection):
 
 		# hist_channels.append([config_file["mcFiles"][3], config_file["mcLabels"][3], vtx_channel, selection])
 		# hist_channels.append([config_file["mcFiles"][4], config_file["mcLabels"][4], vtx_channel, selection])
-		print "hellooooo"
 		hist_channels.append([config_file["mcFiles"][9], "LNV decays", vtx_channel, selection+"_LNV"])
 		hist_channels.append([config_file["mcFiles"][9], "LNC decays", vtx_channel, selection+"_LNC"])
 
@@ -630,8 +629,22 @@ def compare_TRUTH_histograms(config_file, selection):
 		var_prefix = [""]
 		var_prefix = ["","largew_"]
 		nprefix = len(var_prefix)
+		plotting.compare(hist_channels,
+					 variable='Wminus_HNLeta',
+					 setrange=(-9,9),
+					 setlogy = setlogy,
+					 scalelumi = scalelumi,
+					 datalumi = datalumi,
+					 scaleymax = 1.4,
+					 drawRatio = drawRatio,
+					 ratioLabel = ratioLabel,
+					 normalize = normalize,
+					 nRebin =4,
+					 draw_channel_info= draw_channel_info,
+					 output_dir= outputDir
+					 )
+
 		for i in range(nprefix): 
-			print var_prefix
 			plotting.compare(hist_channels,
 					 variable=var_prefix[i] + 'event_type_MCweight',
 					 setrange=(-1,5),

@@ -220,7 +220,9 @@ def histColours(nhist):
 	if nhist== 3:
 		ncolor = color.GetColor("#B576FF")
 	if nhist== 2:
-		ncolor = color.GetColor("#3AB1FF") 
+		# ncolor = color.GetColor("#3AB1FF")
+		ncolor = color.GetColor("#EF3B38")
+		 
 	return ncolor
 
 def bkgColours(nhist): 

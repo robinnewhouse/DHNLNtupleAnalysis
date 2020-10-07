@@ -335,6 +335,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 				# ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_mass > 2)')  # fill histogram with data from ttree. weighted with DV_weight
 			ntup_hist.SetTitle("")
 			histograms.append(ntup_hist)
+
 		else:
 			histogram = tfiles[nhist].Get(hist_path)
 			if not histogram:  # no histogram object. don't even try
@@ -342,9 +343,19 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 				return
 			histogram.SetTitle("")
 			histograms.append(histogram)  # get variable with suffix
+			if variable == "Wminus_HNLeta":
+				hist_path_2 = hist_path = "{}/{}/all/{}/{}".format(vtx_alg, selection,event_type, "Wplus_HNLeta")
+				histogram_2 = tfiles[nhist].Get(hist_path_2)
+				histogram_2.SetTitle("")
+				histograms.append(histogram_2)
 		# channels.append(channel)
 		filenames.append(filename)
-		labels.append(label)
+		
+		if variable == "Wminus_HNLeta":
+			labels.append(label + "  mu- mu- mu+")
+			labels.append(label + "  mu+ mu- mu+")
+		else:
+			labels.append(label)
 
 	if do_cut_significance: 
 		makeAsimov(histograms[0],histograms[1],variable,selection, vtx_alg, scalelumi,datalumi, output_dir)
@@ -363,6 +374,8 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 
 	# format legend
 	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
+
+	leg01 = ROOT.TLegend(0.62, 0.71, 0.92, 0.92)
 	leg01.SetTextSize(0.025)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
@@ -430,9 +443,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	for i in h_idx:
 		if 'SS bkg' not in labels[i]: 
 			if normalize: 
-				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"f")
+				leg01.AddEntry(histograms[i],"\\bf{%s}"%(labels[i]),"l")
 			else:
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"f")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"l")
 		
 
 	# set the common x limits for all histograms
@@ -471,7 +484,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		if not variable: histograms[i].GetXaxis().SetTitle(save_name)
 		histograms[i].GetYaxis().SetTitle("entries")
 		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
-		# histograms[i].GetYaxis().SetRangeUser(0,400)
+		# histograms[i].GetYaxis().SetRangeUser(0,0.1)
 		histograms[i].Draw("HIST SAME E0")
 		print "# of events! ", histograms[i].GetEntries()
 		# if variable == 'lep1_trk_pt':
