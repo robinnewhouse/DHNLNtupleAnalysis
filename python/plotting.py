@@ -1,5 +1,4 @@
 # plotting functions
-from __future__ import division
 import argparse
 import os
 import math
@@ -22,9 +21,18 @@ from pylab import *
 logger = helpers.getLogger('dHNLAnalysis.plotting')
 shapelist = [22, 21, 33, 29, 30, 31, 32, 34, 35]
 
-def plot_cutflow(file, vertextype, output_dir="../output/"):
+def plot_cutflow(file, selection,vertextype, output_dir="../output/"):
 	Tfile = ROOT.TFile(file)
-	hcutflow = Tfile.Get('{}/CutFlow/CutFlow_{}'.format(vertextype,vertextype))
+	
+	if selection == "mixed": 
+		hcutflow1 = Tfile.Get('{}/CutFlow/{}/CutFlow_{}_{}'.format(vertextype,"LNC","LNC",vertextype))
+		hcutflow2 = Tfile.Get('{}/CutFlow/{}/CutFlow_{}_{}'.format(vertextype,"LNV","LNV",vertextype))
+		hcutflow1.Scale(0.5)
+		hcutflow2.Scale(0.5)
+		hcutflow = hcutflow1 + hcutflow2
+	else:
+		hcutflow = Tfile.Get('{}/CutFlow/{}/CutFlow_{}_{}'.format(vertextype,selection,selection,vertextype))
+
 	# hcutflow = Tfile.Get('{}/CutFlow/acceptance'.format(vertextype))
 	MyC01= ROOT.TCanvas("MyC01","cutflow",1200,400)
 	# MyC01= ROOT.TCanvas("MyC01","cutflow",900,400)
@@ -40,23 +48,24 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 	hcutflow.GetYaxis().SetTickLength(0.)
 	hcutflow.SetMarkerSize(2.2)
 	# hcutflow.Scale(140*0.00087499) # TO DO: get scaling weight for the histograms automatically from the DV_weight variable!
+	hcutflow.Scale(140)
 	hcutflow.GetXaxis().SetLabelSize(0.05)
-	hcutflow.GetXaxis().SetRange(1,12)
+	hcutflow.GetXaxis().SetRange(1,10)
 	# hcutflow.SeFF7E00
 	# hcutflow.LabelsOption("v")
 
 	#get rounded numbers to draw on histogram
-	hcutflow.Draw("HIST SAME")
-	text = ROOT.TLatex()
-	text.SetTextAlign(21)
-	text.SetTextColor(hcutflow.GetMarkerColor());
-	text.SetTextSize(0.03*hcutflow.GetMarkerSize());
-	# text.SetTextAngle(35)
-	for j in xrange(1, hcutflow.GetNbinsX()+1):
-		x  = hcutflow.GetXaxis().GetBinCenter(j)
-		y  = hcutflow.GetBinContent(j)
-		if y != 0.0: 
-			text.DrawLatex(x, y+0.5, '%.1f' % y)
+	hcutflow.Draw("HIST SAME TEXT0")
+	# text = ROOT.TLatex()
+	# text.SetTextAlign(21)
+	# text.SetTextColor(hcutflow.GetMarkerColor());
+	# text.SetTextSize(0.03*hcutflow.GetMarkerSize());
+	# # text.SetTextAngle(35)
+	# for j in xrange(1, hcutflow.GetNbinsX()+1):
+	# 	x  = hcutflow.GetXaxis().GetBinCenter(j)
+	# 	y  = hcutflow.GetBinContent(j)
+	# 	if y != 0.0: 
+	# 		text.DrawLatex(x, y+0.5, '%.1f' % y)
 
 	channel = file.split(".root")[0].split("histograms_")[1]
 
@@ -66,7 +75,7 @@ def plot_cutflow(file, vertextype, output_dir="../output/"):
 	else:
 		plotting_helpers.drawNotesMC(fileInfo.MC_campaign,vertextype,channel,fileInfo.mass_str,fileInfo.ctau_str)
 
-	savefilename= "CutFlow_" + channel
+	savefilename= selection+"_CutFlow_" + channel
 
 	output_dir = os.path.join(os.path.abspath(output_dir),"Cutflows/", '{}/'.format(vertextype) )
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
@@ -278,7 +287,16 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		selection = hist_channels[nhist][3]
 		# channel = filename.split(".root")[0].split("_")[len(filename.split(".root")[0].split("_")) - 1]
 		tfiles.append(ROOT.TFile(filename))  # get file
-		hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
+		if "LNC" in selection or "LNV" in selection: 
+			print selection
+			event_type = selection.split('_')[1]
+			selection = selection.split('_')[0]
+			if "truth" in selection: 
+				hist_path = "{}/{}/all/{}/{}".format(vtx_alg, selection,event_type, variable)
+			else: 
+				hist_path = "{}/{}/{}/{}".format(vtx_alg, selection,event_type, variable)
+		else: 
+			hist_path = "{}/{}/{}".format(vtx_alg, selection, variable)
 
 		# block that is used if you want to use the micro-ntuple to plot
 		if 'use_ntuple' in kwargs and kwargs['use_ntuple']:
@@ -322,6 +340,7 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			if not histogram:  # no histogram object. don't even try
 				print("cannot find {}. Exiting".format(variable))
 				return
+			histogram.SetTitle("")
 			histograms.append(histogram)  # get variable with suffix
 		# channels.append(channel)
 		filenames.append(filename)
@@ -442,9 +461,9 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 			histograms[i].SetLineWidth(2)
 			# histograms[i].SetMarkerStyle(20)
 		else: 
-			histograms[i].SetLineWidth(1)
-			histograms[i].SetFillColor(plotting_helpers.histColours(i))
-			histograms[i].SetLineColor(ROOT.kBlack)
+			histograms[i].SetLineWidth(2)
+			histograms[i].SetLineColor(plotting_helpers.histColours(i))
+			# histograms[i].SetLineColor(ROOT.kBlack)
 			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
 			histograms[i].SetMarkerStyle(shapelist[i])
 		if customVariable == False:
@@ -453,7 +472,22 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 		histograms[i].GetYaxis().SetTitle("entries")
 		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
 		# histograms[i].GetYaxis().SetRangeUser(0,400)
-		histograms[i].Draw("HIST SAME")
+		histograms[i].Draw("HIST SAME E0")
+		print "# of events! ", histograms[i].GetEntries()
+		# if variable == 'lep1_trk_pt':
+
+		# for j in xrange(1, histograms[i].GetNbinsX()+1):
+		# 	print "---------"
+		# 	print "N: ", histograms[i].GetBinContent(j)
+		# 	print "sqrtN: ",sqrt(histograms[i].GetBinContent(j))
+		# 	print  "err: ",histograms[i].GetBinError(j)
+		# print variable
+		# print labels[i]
+		print "mean: ", histograms[i].GetMean()
+		print "std dev: ", histograms[i].GetStdDev()
+		print "rms: ", histograms[i].GetRMS()
+
+
 		# histograms[i].Draw("E0 HIST SAME") # plot with errors
 
 		# get rounded numbers to draw on histogram
@@ -496,14 +530,18 @@ def compare(hist_channels, variable="", setrange=None, scaleymax=1.2, nRebin=1, 
 	notes_x = 0.25
 	notes_y = 0.87
 
+	if "truth" in selection: 
+		truth_plot = True
+	else: 
+		truth_plot = False
 	if normalize: 
-		plotting_helpers.drawNotes(vtx_alg, "")
+		plotting_helpers.drawNotes(vtx_alg, "", truth_plot)
 	else: 
 		# if "VSI_" in vtx_alg:
 		# 	vtx = "VSI"
 		# if "VSI_Leptons_" in vtx_alg:
 		# 	vtx = "VSI_Leptons"
-		plotting_helpers.drawNotes(vtx_alg, scalelumi)
+		plotting_helpers.drawNotes(vtx_alg, scalelumi, truth_plot)
 
 	if 'notes' in kwargs:
 		for note in kwargs['notes']:

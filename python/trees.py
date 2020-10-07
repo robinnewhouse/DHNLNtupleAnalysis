@@ -6,7 +6,7 @@ import logging
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, debug_level, mc_campaign=None, mass=1.0, ctau=1.0, weight_override=None):
+	def __init__(self, file_name, tree_name, max_entries, debug_level, mc_campaign=None, mass=1.0, ctau=1.0):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -23,7 +23,6 @@ class Tree:
 		:param max_entries: The maximum number of entries to load when reading a tree from the file.
 		:param mass: The HNL mass of the sample
 		:param ctau: The mean lifetime of the sample
-		:param weight_override: Use this if you want to override the weight calculation.
 		"""
 		# Set class attributes
 		self.logger = helpers.getLogger('dHNLAnalysis.trees',level=debug_level)
@@ -38,12 +37,12 @@ class Tree:
 		# Open and load uproot trees
 		self.file = uproot.open(file_name)
 		self.tree = self.file[tree_name]
-		self.cutflow = self.file["cutflow"]
+		self.cutflow = self.file["cutflow"] 
 		self.all_entries = self.cutflow[1]  
 		self.init_entries = self.cutflow[2]  # init entries
 		self.vtx_container = ""
-		self.weight = self.get_weight(mass, ctau) if not weight_override else weight_override
-		self.logger.debug('Event weight for this signal sample is: {}'.format(self.weight))
+		
+
 
 	def increment_event(self):
 		self.ievt += 1
@@ -124,33 +123,6 @@ class Tree:
 
 	def __setitem__(self, key, value):
 		raise AttributeError("Can't set attribute")
-
-	def get_weight(self, mass, ctau, lnv=False):
-		"""
-		Calculates the weight of the event based on the Gronau parametrization
-		https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
-		Sets the weight of events for this tree
-		:param mass: HNL sample mass
-		:param ctau: HNL sample lifetime
-		:param lnv: Use Lepton Number Violating calculation
-		:return: calculated weight.
-		"""
-		if self.is_data:  # you are running on data
-			self.weight = 1
-		else:  # you are running on MC file
-			if self.mass == -1 or ctau == -1:  # MC weighting error
-				self.logger.debug("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
-				self.weight = 1
-			else:
-				mW = 80.379  # mass of W boson in GeV
-				U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
-				if (lnv): U2 = 0.5 * U2Gronau
-				else: U2 = U2Gronau
-
-				xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-				self.weight = 1 * xsec / self.all_entries  # scale to 1 fb^-1  of luminosity
-
-		return self.weight
 
 	@property
 	def numentries(self):
