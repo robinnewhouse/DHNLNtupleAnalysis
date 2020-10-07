@@ -72,13 +72,24 @@ To add a new selection, make a new class in `selections.py`.
 
 ## A note about MC weighting
 
-Event weighting for monte carlo samples is implemented in the framework. In order to properly do the weighting the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
+Event weighting for monte carlo samples is implemented in the framework. There are currently 2 different weight that are calculated specifically for MC weighting.
+
+1. Mass-Lifetime weight
+
+In order properly calculate the cross section for the signal model, the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
 
 ```
-"Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!"
+"Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!"
 ```
-this is becuase your file is not appropriately named. Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_DAOD_RPVLLonly_corr_new.txt) for naming conventions.
+this is becuase your file is not appropriately named. Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_WmuHNL_DAOD_RPVLLonly_updatedRECO.txt) for naming conventions.
 
+2. Truth weight for spin correlations and leptons ordering bug fix
+
+Truth reweighting was introducted to add spin correlations with Pythia did not take into acount when simulating the truth distributions. This reweighting also fixed a lepton ordering bug that was also found in our official Pythia MC samples. For more details about this effects please see [this talk](https://indico.cern.ch/event/944478/contributions/3968769/attachments/2102276/3534533/MC_Reweighting_Sept15_20.pdf) and [this talk](https://indico.cern.ch/event/944479/contributions/3968779/attachments/2106444/3542592/MC_Reweighting_Sept22_20.pdf). 
+
+In `selections.py` a class called `MCEventType` will determine is the current events is LNC or LNV and accordingly calcute a weight based on the truth distributions from the particular event. 
+
+The overall MC event weight is calculated in `analysis.py` the function called `calculate_event_weight` and takes into account both the mass-lifetime weight for the events and the MCtype (LNC or LNV) weight. 
 ## Inverted Prompt Lepton Control Region
 To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
 
@@ -140,7 +151,31 @@ To run with the new container names use the customVSI configuration files in dat
 cd python 
 python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_customVSI_uuu.json
 ```
+### Output File Structure 
 
+When you run makeHistograms.py on a dHNL nutple you will get an output file located in the `DHNLNtupleAnalysis/ouput/` folder. This ouput file will contain variaous folders full of different histograms that were filled when you ran the event selection cuts in `analysis.py`. When you run on HNL signal samples you should get the following folder structure: 
+
+```
+├── VSI_ntuples_DVtype <-- ntuples from VSI DVs that are saved after the DVtype cut 
+├── VSI <-- folder that contains all histograms filled by VSI DVs
+│   ├──truth <-- folder containing all truth histograms
+│       ├──all <-- all truth histograms
+│           ├──LNC <--LNC truth histograms 
+│           └──LNV <-- LNV truth histograms
+|       └── presel <-- truth histograms after preselection 
+│   ├── all <-- reco histograms from all events and all DVs
+│   ├── DVtype <-- reco histograms from events and all DVs after DVtype selection is applied
+│       ├──LNC <--LNC truth histograms 
+│       └──LNV <-- LNV truth histograms
+│   ... (more folders the same structure for all the differnt cuts)
+│   └── CutFlow <-- VSI cutflows
+├── VSI_Leptons_ntuples_DVtype <-- ntuples from VSI Lepton DVs that are saved after the DVtype cut 
+├── VSI Leptons <-- folder that contains all histograms filled by VSI Leptons DVs
+│   ├── truth
+│   ├── all
+│   ...
+│   └── CutFlow <-- VSI Leptons cutflows 
+```
 
 ## Making Pretty Plots
 
