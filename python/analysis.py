@@ -265,18 +265,18 @@ class Analysis(object):
 
 
 		# make acceptance Histograms 
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'] = self.CutFlow_LNV.Clone()
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'] = self.CutFlow_LNC.Clone()
+		if not self.tree.is_data:
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'] = self.CutFlow_LNV.Clone()
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'] = self.CutFlow_LNC.Clone()
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
+			if self.CutFlow_LNV.GetBinContent(1) != 0: # Protect against zero-division
+				self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].Scale(1.0/self.CutFlow_LNV.GetBinContent(1))
+			if self.CutFlow_LNC.GetBinContent(1) != 0: # Protect against zero-division
+				self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'].Scale(1.0/self.CutFlow_LNC.GetBinContent(1))
+
 		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'] = self.CutFlow.Clone()
-
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
 		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'].SetName("CutFlow_acceptance"+"_"+self.ch)
-
-		if self.CutFlow_LNV.GetBinContent(1) != 0: # Protect against zero-division
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].Scale(1.0/self.CutFlow_LNV.GetBinContent(1))
-		if self.CutFlow_LNC.GetBinContent(1) != 0: # Protect against zero-division
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'].Scale(1.0/self.CutFlow_LNC.GetBinContent(1))
 		if self.CutFlow.GetBinContent(1) != 0: # Protect against zero-division
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'].Scale(1.0/self.CutFlow.GetBinContent(1))
 		
@@ -434,7 +434,8 @@ class Analysis(object):
 				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries/2)  # all events
-			self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
+		
+		self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
 		
 
 		######################################################################################################
@@ -639,18 +640,6 @@ class Analysis(object):
 		sel = 'all'
 		# self.fill_hist(sel, 'charge_ntrk', self.tree.dv('charge'), self.tree.dv('ntrk'))
 		
-		for i in xrange(self.tree.ntrk): 
-			#if self.tree.dv('trk_electronIndex')[i] >= 0: 
-			# if self.tree.dv('trk_muonIndex')[i] >= 0:
-			self.fill_hist(sel, 'DV_trk_{}_pt'.format(i), self.tree.dv('trk_pt_wrtSV')[i])
-			self.fill_hist(sel, 'DV_trk_{}_eta'.format(i), self.tree.dv('trk_eta_wrtSV')[i])
-			self.fill_hist(sel, 'DV_trk_{}_phi'.format(i), self.tree.dv('trk_phi_wrtSV')[i])
-			self.fill_hist(sel, 'DV_trk_{}_d0'.format(i), self.tree.dv('trk_d0')[i])
-			self.fill_hist(sel, 'DV_trk_{}_z0'.format(i), self.tree.dv('trk_z0')[i])
-			self.fill_hist(sel, 'DV_trk_{}_charge'.format(i), self.tree.dv('trk_charge')[i])
-			self.fill_hist(sel, 'DV_trk_{}_chi2'.format(i), self.tree.dv('trk_chi2_toSV')[i])
-				
-
 		self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
 		self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
 		self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
@@ -961,9 +950,7 @@ class run2Analysis(Analysis):
 		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
 
-		# Define cutflow histogram "by hand"
-		# TODO Maybe the directory here needs to change, or the selection needs to be set
-		
+		# Define cutflow histogram "by hand"		
 		self.cutflow_dir = self.ch + '/CutFlow/'
 		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 15, -0.5, 14.5)
 		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
@@ -1007,12 +994,13 @@ class run2Analysis(Analysis):
 		self.CutFlow.GetXaxis().SetBinLabel(15, "truth matched")
 
 		# Store LNC and LNV cutflows in the observables collection
-		self.CutFlow_LNV = self.CutFlow.Clone()
-		self.CutFlow_LNC = self.CutFlow.Clone()
-		self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
-		self.CutFlow_LNC.SetName("CutFlow_LNC"+"_"+self.ch)
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV'] = self.CutFlow_LNV
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
+		if not self.tree.is_data: 
+			self.CutFlow_LNV = self.CutFlow.Clone()
+			self.CutFlow_LNC = self.CutFlow.Clone()
+			self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
+			self.CutFlow_LNC.SetName("CutFlow_LNC"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV'] = self.CutFlow_LNV
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
 
 	def DVSelection(self):
 
@@ -1112,9 +1100,6 @@ class run2Analysis(Analysis):
 				return
 	
 		# self._fill_selected_dv_histos("mlll")
-
-
-		
 
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data:
