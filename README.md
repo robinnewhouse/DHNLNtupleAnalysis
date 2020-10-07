@@ -175,3 +175,18 @@ For comparing histograms:
 | `weight` | override the dHNL signal weight calculation for this sample. |
 
 
+
+## Note about colour logs
+
+This analysis code uses a python package called `coloredlogs` to output colourful logs to easily flag warning and error messages. To check if your python environment has the `coloredlogs` package installed run: 
+
+```
+python
+>>> import coloredlogs
+```
+
+If you see the error message `ImportError: No module named coloredlogs`, then you can try to install the package via pip (or however you usually install python pacakges): 
+
+```
+pip install coloredlogs
+```
