@@ -210,9 +210,10 @@ class Analysis(object):
 			# Note: selection and hist_name will be overridden by full_name
 			# Need selection to define ntuple tree
 			# TODO redo this method to use the directory correctly
-			self.fill_ntuple(selection, hist_name, variable_1)
-
-	def fill_ntuple(self, selection, ntuple_name, variable, full_name=""):
+			if self.MCEventType.isLNC: self.fill_ntuple(selection, hist_name, variable_1,MCtype="LNC")
+			elif self.MCEventType.isLNV: self.fill_ntuple(selection, hist_name, variable_1,MCtype="LNV")
+			else: self.fill_ntuple(selection, hist_name, variable_1)
+	def fill_ntuple(self, selection, ntuple_name, variable,MCtype=None, full_name=""):
 		"""
 		A helper function for filling micro-ntuples. Often called from the fill_hist function.
 		If you are using this in you analysis,
@@ -225,6 +226,9 @@ class Analysis(object):
 		if not selection:
 			raise ValueError("You must indicate a selection in order to store the ntuple. Use 'all' if no selection.")
 		# Retrieve the ntuple for this selection. If it doesn't exist, create it.
+		if MCtype !=None: 
+			selection = MCtype + "_" + 	selection 
+
 		if selection not in self.micro_ntuples:
 			self.micro_ntuples[selection] = ntuples.Ntuples('ntuples_{}_{}'.format(selection, self.ch))  # temp name. not written
 		# The name of the ntuple
@@ -265,6 +269,7 @@ class Analysis(object):
 
 
 		# make acceptance Histograms 
+		# TOD: it doesnt looks like on data the acceptance histograms are working as expected. -DT
 		if not self.tree.is_data:
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'] = self.CutFlow_LNV.Clone()
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'] = self.CutFlow_LNC.Clone()
@@ -657,7 +662,10 @@ class Analysis(object):
 		# self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
 		
 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
-			self.micro_ntuples[sel].fill()
+			if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
+			elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
+			else: self.micro_ntuples[sel].fill()
+			
 
 	def _fill_truth_histos(self, sel):
 		truth_info = helpers.Truth()
@@ -753,7 +761,9 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
 			# TODO: figure out a ntuple scheme that can store these variables as well
 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
-			self.micro_ntuples[sel].fill()
+			if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
+			elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
+			else: self.micro_ntuples[sel].fill()
 
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
@@ -938,7 +948,9 @@ class Analysis(object):
 			
 			# fill TTree with ntuple information. Already set by fill_hist
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':  
-				self.micro_ntuples[sel].fill()
+				if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
+				elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
+				else: self.micro_ntuples[sel].fill()
 
 			if sel == "sel":
 				self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
@@ -1203,7 +1215,9 @@ class KShort(Analysis):
 			self.fill_hist(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
 
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
-				self.micro_ntuples[sel].fill()
+				if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
+				elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
+				else: self.micro_ntuples[sel].fill()
 
 
 	#########################################################################################################################
