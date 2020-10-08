@@ -99,7 +99,7 @@ def compare(hist_channels,
 			save_name="", 
 			vertical_lines=[], 
 			labels=[], 
-			normalize=False, 
+			normalize=True, 
 			drawRatio=False, 
 			customVariable = False, 
 			scalelumi=1.0,
@@ -181,6 +181,7 @@ def compare(hist_channels,
 		###################################################################################################	
 		else:
 			histogram = tfiles[nhist].Get(hist_path)
+			print hist_path
 			if not histogram:  # no histogram object. don't even try
 				print('cannot find {}. Exiting'.format(variable))
 				return
@@ -188,12 +189,20 @@ def compare(hist_channels,
 			histograms.append(histogram)  # get variable with suffix
 
 		filenames.append(filename)
+		labels.append(label)
 		
-		if variable == "Wminus_HNLeta":
-			labels.append(label + "  mu- mu- mu+")
-			labels.append(label + "  mu+ mu- mu+")
-		else:
-			labels.append(label)
+		# hack for W +- asymmetry plots
+		# if "HNLpt" in variable: variable2 = "Wminus_HNLpt"
+		# if "HNLeta" in variable: variable2 = "Wminus_HNLeta"
+		# if "HNLphi" in variable: variable2 = "Wminus_HNLphi"
+		# if "HNLE" in variable: variable2 = "Wminus_HNLE"
+		# hist_path_2 = "{}/{}/all/{}/{}".format(vtx_alg, selection,MCtype, variable2)
+		# histogram2 = tfiles[nhist].Get(hist_path_2)
+		# histograms.append(histogram2)
+		# labels.append(label + "  mu+ mu- mu+")
+		# labels.append(label + "  mu- mu- mu+")
+		
+		
 
 	if do_cut_significance: 
 		makeAsimov(histograms[0],histograms[1],variable,selection, vtx_alg, scalelumi,datalumi, output_dir)
@@ -324,23 +333,8 @@ def compare(hist_channels,
 		histograms[i].GetYaxis().SetTitle("entries")
 		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
 		# histograms[i].GetYaxis().SetRangeUser(0,0.1)
-		histograms[i].Draw("HIST SAME E0")
-		print "# of events! ", histograms[i].GetEntries()
-		# if variable == 'lep1_trk_pt':
-
-		# for j in xrange(1, histograms[i].GetNbinsX()+1):
-		# 	print "---------"
-		# 	print "N: ", histograms[i].GetBinContent(j)
-		# 	print "sqrtN: ",sqrt(histograms[i].GetBinContent(j))
-		# 	print  "err: ",histograms[i].GetBinError(j)
-		# print variable
-		# print labels[i]
-		print "mean: ", histograms[i].GetMean()
-		print "std dev: ", histograms[i].GetStdDev()
-		print "rms: ", histograms[i].GetRMS()
-
-
-		# histograms[i].Draw("E0 HIST SAME") # plot with errors
+		histograms[i].Draw("HIST SAME")
+		# histograms[i].Draw("E0 HIST SAME E0") # plot with errors
 
 	if debug: 
 		print("Making histogram for {}: ".format(variable))

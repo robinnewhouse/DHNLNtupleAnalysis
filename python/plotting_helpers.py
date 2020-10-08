@@ -203,9 +203,10 @@ def histColours(nhist):
 	if nhist== 4:	
 		ncolor = color.GetColor("#FFE425") # yellow
 	if nhist== 5:	
-		ncolor = color.GetColor("#ADDE7F") # green
+		ncolor = color.GetColor("#39A230")# green
 	if nhist== 0:
 		ncolor = color.GetColor("#3ACEFF") # light blue
+		# ncolor = color.GetColor("#2479B5") # dark blue
 	if nhist== 1:
 		ncolor = color.GetColor("#B576FF") # purple
 	

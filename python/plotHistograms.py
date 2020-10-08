@@ -565,21 +565,6 @@ def compare_truth_histograms(config_file, selection):
 						 output_dir= outputDir
 						 )
 
-		# plotting.compare(hist_channels,
-		# 			 variable='all_DV_mass',
-		# 			 setrange=(0,20),
-		# 			 setlogy = setlogy,
-		# 			 scalelumi = scalelumi,
-		# 			 datalumi = datalumi,
-		# 			 drawRatio = drawRatio,
-		# 			 ratioLabel = ratioLabel,
-		# 			 normalize = normalize,
-		# 			 draw_channel_info= draw_channel_info,
-		# 			 output_dir= outputDir
-		# 			 )
-		var_prefix = [""]
-		var_prefix = ["","largew_"]
-		nprefix = len(var_prefix)
 		plotting.compare(hist_channels,
 						 variable='lep2_trk_pt',
 						 setrange=(0,50),
@@ -710,6 +695,54 @@ def compare_truth_histograms(config_file, selection):
 						 )
 
 
+def compare_Wboson_asymmetry(config_file, selection):
+	# vtx_channels = ["VSI", "VSI_Leptons"]
+	vtx_channels = ["VSI"]
+	for vtx_channel in vtx_channels:
+		hist_channels = []
+		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>,<MCtype (LNC or LNV) if needed>)
+		hist_channels.append([config_file["mcFiles"][8], "LNC:  " + config_file["mcLabels"][8], vtx_channel,selection,"LNC"])
+		hist_channels.append([config_file["mcFiles"][8], "LNV:  " + config_file["mcLabels"][8], vtx_channel, selection,"LNV",])
+		
+		#get integrated luminosity to scale MC files to (ideally this should come from a value in the nutple TD DO) - DT
+		scalelumi = config_file["scaleLumi"] # luminosity you want to scale everything to 
+		datalumi = config_file["dataLumi"] #  lumi of the data you are looking at
+
+		plotting.compare(hist_channels,
+						 variable='Wplus_HNLpt',
+						 setrange=(0, 200),
+						 scalelumi = scalelumi,
+						 datalumi = datalumi,
+						 nRebin=2,
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='Wplus_HNLeta',
+						 setrange=(-7, 7),
+						 scaleymax=1.5,
+						 scalelumi = scalelumi,
+						 datalumi = datalumi,
+						 nRebin=4,
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='Wplus_HNLphi',
+						 setrange=(-3,3),
+						 scalelumi = scalelumi,
+						 datalumi = datalumi,
+						 output_dir= outputDir
+						 )
+
+		plotting.compare(hist_channels,
+						 variable='Wplus_HNLE',
+						 setrange=(0,2000),
+						 scalelumi = scalelumi,
+						 datalumi = datalumi,
+						 nRebin=100,
+						 output_dir= outputDir
+						 )
 
 
 
@@ -758,6 +791,7 @@ if __name__ == '__main__':
 	makeCutflows(config_file)
 	compare_reco_histograms(config_file, 'DVtype')
 	compare_truth_histograms(config_file, 'truth')
+	# compare_Wboson_asymmetry(config_file, 'truth')
 	# check_rerunningVSI(config_file,"all")
 
 	

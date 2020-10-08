@@ -702,13 +702,15 @@ class Analysis(object):
 			self.fill_hist(sel, 'Wplus_HNLpt', truth_info.HNL_vec.Pt())
 			self.fill_hist(sel, 'Wplus_HNLeta', truth_info.HNL_vec.Eta())
 			self.fill_hist(sel, 'Wplus_HNLphi', truth_info.HNL_vec.Phi())
+			self.fill_hist(sel, 'Wplus_HNLE', truth_info.HNL_vec.E())
 
 
 		if truth_info.W_charge == -1: 
 			self.fill_hist(sel, 'Wminus_HNLpt', truth_info.HNL_vec.Pt())
 			self.fill_hist(sel, 'Wminus_HNLeta', truth_info.HNL_vec.Eta())
 			self.fill_hist(sel, 'Wminus_HNLphi', truth_info.HNL_vec.Phi())
-
+			self.fill_hist(sel, 'Wminus_HNLE', truth_info.HNL_vec.E())
+			
 		if len(truth_info.trkVec) == 2: 
 			DV_4vec= truth_info.trkVec[1]+ truth_info.trkVec[0]
 			lep12 = truth_info.dLepVec[0] + truth_info.dLepVec[1] 
