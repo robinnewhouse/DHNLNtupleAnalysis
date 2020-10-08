@@ -37,14 +37,14 @@ def set_debug_level(level):
 	return debug_level
 
 
-def get_mass_lt_weight(tree,logger, lnv=False):
+def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 	"""
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
 	Sets the weight of events for this tree
 	:param mass: HNL sample mass
 	:param ctau: HNL sample lifetime
-	:param lnv: Use Lepton Number Violating calculation
+	:param both_lnc_lnv: If true then lnc & lnv decays are possible so coupling is reduced by a factor 2.
 	:return: calculated weight.
 	"""
 	mass = tree.mass
@@ -53,12 +53,12 @@ def get_mass_lt_weight(tree,logger, lnv=False):
 		weight = 1
 	else:  # you are running on MC file
 		if mass == -1 or ctau == -1:  # MC weighting error
-			logger.debug("Can't determine the mass and lifetime of signal sample. MC weight will be set to 1!!")
+			logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
 			weight = 1
 		else:
 			mW = 80.379  # mass of W boson in GeV
 			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
-			if (lnv): U2 = 0.5 * U2Gronau
+			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
 			xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
 			weight = 1 * xsec / (tree.all_entries / 2)  # scale to 1 fb^-1  of luminosity, 
@@ -180,8 +180,6 @@ class Truth():
 											tree['truthVtx_parent_phi'][ivx],
 											tree['truthVtx_parent_M'][ivx]
 											)
-					self.W_charge = tree['truthVtx_parent_charge'][ivx]
-
 		# TO DO: bug with truth mHNL calculation
 		# try:
 		# 	import selections

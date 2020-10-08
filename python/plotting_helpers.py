@@ -194,43 +194,29 @@ def xlabelhistograms(hist):
 	else:
 		return ""
 
-# def histColours(nhist): 
-# 	if nhist== 0:
-# 		return ROOT.kRed
-# 	if nhist== 1:
-# 		return ROOT.kViolet+8
-# 	if nhist== 2:
-# 		return ROOT.kAzure+6
-# 	if nhist== 3:
-# 		return ROOT.kGreen+1
-# 	if nhist== 4:
-# 		return ROOT.kOrange -3
-# 	else: 
-# 		return ROOT.kBlack
-
-
 def histColours(nhist): 
 	color = ROOT.TColor()
-	if nhist== 1:
-		# ncolor = color.GetColor("#1522C0")
-		ncolor = color.GetColor("#6A77FF")
-		
-	if nhist== 0:
-		ncolor = color.GetColor("#FF7A43")
-	if nhist== 3:
-		ncolor = color.GetColor("#B576FF")
 	if nhist== 2:
-		# ncolor = color.GetColor("#3AB1FF")
-		ncolor = color.GetColor("#EF3B38")
-		 
+		ncolor = color.GetColor("#FF1B28") # red 
+	if nhist== 3:
+		ncolor = color.GetColor("#FF7A43") # orange
+	if nhist== 4:	
+		ncolor = color.GetColor("#FFE425") # yellow
+	if nhist== 5:	
+		ncolor = color.GetColor("#ADDE7F") # green
+	if nhist== 0:
+		ncolor = color.GetColor("#3ACEFF") # light blue
+	if nhist== 1:
+		ncolor = color.GetColor("#B576FF") # purple
+	
+	
 	return ncolor
 
 def bkgColours(nhist): 
 	color = ROOT.TColor()
 	if nhist== 0:
+		ncolor = color.GetColor("#3F4FC0") #deep blue 
 		# ncolor = color.GetColor("#c2a5cf") #light purple
-		
-		ncolor = color.GetColor("#3F4FC0") #light purple
 	if nhist== 1:
 		ncolor = color.GetColor("#a6dba0")# light green
 	if nhist== 2:

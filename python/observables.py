@@ -52,7 +52,7 @@ class Observables:
 				raise Exception("2D Hist binning need to be (nbinsx, xlow, xhigh, nbinsy, ylow, yhigh)")
 		else:
 			binning = (2000, -1000, 1000) if not is_2d else (2000, -1000, 1000, 2000, -1000, 1000)
-			self.logger.warning("No bins defined for histogram {}. Using defaults {}.".format(hist_name, binning))
+			self.logger.debug("No bins defined for histogram {}. Using defaults {}.".format(hist_name, binning))
 		# TODO if the name has to be unique for ROOT to understand, use this line to include the directory. Still testing
 		if not is_2d:
 			nbins, xlow, xhigh = binning
@@ -194,7 +194,11 @@ binning_definitions = {
 	'W_pt': (1000, 0, 1000),
 	'W_eta': (40, -10, 10),
 	'W_phi': (16, -4, 4),
+	'HNL_mass': (10000, 0, 5000),
 	'mHNLcalc': (10000, 0, 5000),
+	'HNL_pt': (1000, 0, 1000),
+	'HNL_eta': (40, -10, 10),
+	'HNL_phi': (16, -4, 4),
 	'plep_mass': (10000, 0, 5000),
 	'DV_trk_pt': (1000, 0, 1000),
 	'DV_trk_eta': (160, -10, 10),
@@ -326,7 +330,7 @@ binning_definitions = {
 }
 
 # add track binnings
-for trk_str in ['', '_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9', '_10',]:
+for trk_str in ['', '_0', '_1']:
 	binning_definitions['DV_trk{}_pt'.format(trk_str)] = (1000, 0, 1000)
 	binning_definitions['DV_trk{}_eta'.format(trk_str)] = (160, -10, 10)
 	binning_definitions['DV_trk{}_phi'.format(trk_str)] = (64, -4, 4)
