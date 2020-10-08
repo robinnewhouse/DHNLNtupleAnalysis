@@ -83,6 +83,7 @@ class Truth():
 		self.truth_pvz = -1
 		self.truth_pv = ROOT.TLorentzVector()
 		self.W_vec = ROOT.TLorentzVector()
+		self.W_charge =  -2
 		self.plep_vec = ROOT.TLorentzVector()
 		self.plep_charge = -99 
 		self.mhnl = -1

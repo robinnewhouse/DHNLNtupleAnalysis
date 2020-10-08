@@ -565,6 +565,21 @@ def compare_truth_histograms(config_file, selection):
 						 output_dir= outputDir
 						 )
 
+		# plotting.compare(hist_channels,
+		# 			 variable='all_DV_mass',
+		# 			 setrange=(0,20),
+		# 			 setlogy = setlogy,
+		# 			 scalelumi = scalelumi,
+		# 			 datalumi = datalumi,
+		# 			 drawRatio = drawRatio,
+		# 			 ratioLabel = ratioLabel,
+		# 			 normalize = normalize,
+		# 			 draw_channel_info= draw_channel_info,
+		# 			 output_dir= outputDir
+		# 			 )
+		var_prefix = [""]
+		var_prefix = ["","largew_"]
+		nprefix = len(var_prefix)
 		plotting.compare(hist_channels,
 						 variable='lep2_trk_pt',
 						 setrange=(0,50),
@@ -693,6 +708,7 @@ def compare_truth_histograms(config_file, selection):
 						 nRebin =2,
 						 output_dir= outputDir
 						 )
+
 
 
 
