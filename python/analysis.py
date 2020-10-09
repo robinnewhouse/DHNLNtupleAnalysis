@@ -1055,9 +1055,9 @@ class run2Analysis(Analysis):
 			# If this cut doesn't pass, don't continue to check other cuts
 			else:
 				return
-
-		if self._multitrk_2lep_cut(): # no return becuase this is not an analysis cut, only used for studying S & B 
-			self._fill_multitrk_histos()
+		if self.dv_type == "mumu":
+			if self._multitrk_2lep_cut(): # no return becuase this is not an analysis cut, only used for studying S & B, only worked for uuu samples -DT
+				self._fill_multitrk_histos()
 
 		if self.do_ntrk_cut:
 			if self._ntrk_cut():
