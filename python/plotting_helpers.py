@@ -25,10 +25,10 @@ def drawNotes(VtxConfig,lumi,truth_plot, channel=None):
 	
 	ax = 0.22
 	ay = 0.82
-	if lumi != "":
-		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
-	else: 
-		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV")
+	# if lumi != "":
+	# 	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
+	# else: 
+	# 	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV")
 	if not truth_plot:
 		if VtxConfig == "VSI_Leptons": 
 			b.DrawLatex(ax,ay-0.05,'VSI Leptons')
@@ -196,13 +196,13 @@ def xlabelhistograms(hist):
 
 def histColours(nhist): 
 	color = ROOT.TColor()
-	if nhist== 2:
+	if nhist== 5:
 		ncolor = color.GetColor("#FF1B28") # red 
-	if nhist== 3:
+	if nhist== 4:
 		ncolor = color.GetColor("#FF7A43") # orange
-	if nhist== 4:	
+	if nhist== 3:	
 		ncolor = color.GetColor("#FFE425") # yellow
-	if nhist== 5:	
+	if nhist== 2:	
 		ncolor = color.GetColor("#39A230")# green
 	if nhist== 0:
 		ncolor = color.GetColor("#3ACEFF") # light blue

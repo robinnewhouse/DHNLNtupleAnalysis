@@ -710,7 +710,6 @@ class Analysis(object):
 			self.fill_hist(sel, 'Wminus_HNLeta', truth_info.HNL_vec.Eta())
 			self.fill_hist(sel, 'Wminus_HNLphi', truth_info.HNL_vec.Phi())
 			self.fill_hist(sel, 'Wminus_HNLE', truth_info.HNL_vec.E())
-			
 		if len(truth_info.trkVec) == 2: 
 			DV_4vec= truth_info.trkVec[1]+ truth_info.trkVec[0]
 			lep12 = truth_info.dLepVec[0] + truth_info.dLepVec[1] 
@@ -788,6 +787,20 @@ class Analysis(object):
 			# fill event weight. storing this per dv as weights include dv scale factor.
 			self.fill_hist(sel, 'DV_weight', self.weight)
 
+
+			tracks = helpers.Tracks(self.tree)
+			tracks.getTracks()
+			trkVec = tracks.lepVec
+
+			muons = helpers.Tracks(self.tree)
+			muons.getMuons()
+			muVec = muons.lepVec
+
+			electrons = helpers.Tracks(self.tree)
+			electrons.getElectrons()
+			elVec = electrons.lepVec
+
+
 			# fill histograms that require a prompt lepton to be identified
 			if self.do_prompt_lepton_cut:
 				plep_vec = self.plep_sel.plepVec
@@ -801,18 +814,6 @@ class Analysis(object):
 				self.fill_hist(sel, 'plep_d0', plepd0)
 				self.fill_hist(sel, 'plep_z0', plepz0)
 				self.fill_hist(sel, 'plep_charge', plepcharge)
-
-				tracks = helpers.Tracks(self.tree)
-				tracks.getTracks()
-				trkVec = tracks.lepVec
-
-				muons = helpers.Tracks(self.tree)
-				muons.getMuons()
-				muVec = muons.lepVec
-
-				electrons = helpers.Tracks(self.tree)
-				electrons.getElectrons()
-				elVec = electrons.lepVec
 
 				if tracks.ntracks == 2:
 					Mlll = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
@@ -829,12 +830,7 @@ class Analysis(object):
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
 					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
 					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
-
-					deta = abs(tracks.eta[0] - tracks.eta[1])
-					dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
-					dpt = abs(tracks.pt[0] - tracks.pt[1])
 					dR = tracks.lepVec[0].DeltaR(tracks.lepVec[1])
-
 					if dR == 0.0:
 						self.fill_hist(sel, 'DV_redmass', -1)
 						self.fill_hist(sel, 'DV_redmassvis', -1)
@@ -844,86 +840,107 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_redmassvis', Mlll.mlll/dR)
 						self.fill_hist(sel, 'DV_redmassHNL', Mhnl.mhnl/dR)
 
-					self.fill_hist(sel, 'DV_trk_deta', deta)
-					self.fill_hist(sel, 'DV_trk_dphi', dphi)
-					self.fill_hist(sel, 'DV_trk_dpt', dpt)
-					self.fill_hist(sel, 'DV_trk_dR', dR)
+			if tracks.ntracks == 2:
+				deta = abs(tracks.eta[0] - tracks.eta[1])
+				dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
+				dpt = abs(tracks.pt[0] - tracks.pt[1])
+				dR = tracks.lepVec[0].DeltaR(tracks.lepVec[1])
 
-					self.fill_hist(sel, 'DV_trk_max_chi2_toSV', max(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_min_chi2_toSV', min(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_max_d0_wrtSV', max(self.tree.dv('trk_d0_wrtSV')[0],self.tree.dv('trk_d0_wrtSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_min_d0_wrtSV', min(self.tree.dv('trk_d0_wrtSV')[0],self.tree.dv('trk_d0_wrtSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_max_errd0_wrtSV', max(self.tree.dv('trk_errd0_wrtSV')[0],self.tree.dv('trk_errd0_wrtSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_min_errd0_wrtSV', min(self.tree.dv('trk_errd0_wrtSV')[0],self.tree.dv('trk_errd0_wrtSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_max_z0_wrtSV', max(self.tree.dv('trk_z0_wrtSV')[0],self.tree.dv('trk_z0_wrtSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_min_z0_wrtSV', min(self.tree.dv('trk_z0_wrtSV')[0],self.tree.dv('trk_z0_wrtSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_max_errz0_wrtSV', max(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
-					self.fill_hist(sel, 'DV_trk_min_errz0_wrtSV', min(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_deta', deta)
+				self.fill_hist(sel, 'DV_trk_dphi', dphi)
+				self.fill_hist(sel, 'DV_trk_dpt', dpt)
+				self.fill_hist(sel, 'DV_trk_dR', dR)
 
-					# pt order the visible leptons in the DV
-					if self.tree.dv('trk_pt_wrtSV')[1] > self.tree.dv('trk_pt_wrtSV')[0]:
-						self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[1])
-						self.fill_hist(sel, 'DV_trk_0_eta', self.tree.dv('trk_eta_wrtSV')[1])
-						self.fill_hist(sel, 'DV_trk_0_phi', self.tree.dv('trk_phi_wrtSV')[1])
-						self.fill_hist(sel, 'DV_trk_0_d0', self.tree.dv('trk_d0')[1])
-						self.fill_hist(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[1])
-						self.fill_hist(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[1])
-						self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[1])
-						self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[1])
-						self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[1])
+				self.fill_hist(sel, 'DV_trk_max_chi2_toSV', max(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_min_chi2_toSV', min(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_max_d0_wrtSV', max(self.tree.dv('trk_d0_wrtSV')[0],self.tree.dv('trk_d0_wrtSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_min_d0_wrtSV', min(self.tree.dv('trk_d0_wrtSV')[0],self.tree.dv('trk_d0_wrtSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_max_errd0_wrtSV', max(self.tree.dv('trk_errd0_wrtSV')[0],self.tree.dv('trk_errd0_wrtSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_min_errd0_wrtSV', min(self.tree.dv('trk_errd0_wrtSV')[0],self.tree.dv('trk_errd0_wrtSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_max_z0_wrtSV', max(self.tree.dv('trk_z0_wrtSV')[0],self.tree.dv('trk_z0_wrtSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_min_z0_wrtSV', min(self.tree.dv('trk_z0_wrtSV')[0],self.tree.dv('trk_z0_wrtSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_max_errz0_wrtSV', max(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
+				self.fill_hist(sel, 'DV_trk_min_errz0_wrtSV', min(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
 
-						self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[0])
-						self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[0])
-						self.fill_hist(sel, 'DV_trk_1_phi', self.tree.dv('trk_phi_wrtSV')[0])
-						self.fill_hist(sel, 'DV_trk_1_d0', self.tree.dv('trk_d0')[0])
-						self.fill_hist(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[0])
-						self.fill_hist(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[0])
-						self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[0])
-						self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[0])
-						self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[0])
-					else:
-						self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[0])
-						self.fill_hist(sel, 'DV_trk_0_eta', self.tree.dv('trk_eta_wrtSV')[0])
-						self.fill_hist(sel, 'DV_trk_0_phi', self.tree.dv('trk_phi_wrtSV')[0])
-						self.fill_hist(sel, 'DV_trk_0_d0', self.tree.dv('trk_d0')[0])
-						self.fill_hist(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[0])
-						self.fill_hist(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[0])
-						self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[0])
-						self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[0])
-						self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[0])
+				DV_mumu = selections.DVtype(self.tree, dv_type="mumu").passes()
+				DV_ee = selections.DVtype(self.tree, dv_type="ee").passes()
+				DV_emu = selections.DVtype(self.tree, dv_type="emu").passes()
+				DV_1lep = len(muVec) != len(elVec)
+		
 
-						self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[1])
-						self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[1])
-						self.fill_hist(sel, 'DV_trk_1_phi', self.tree.dv('trk_phi_wrtSV')[1])
-						self.fill_hist(sel, 'DV_trk_1_d0', self.tree.dv('trk_d0')[1])
-						self.fill_hist(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[1])
-						self.fill_hist(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[1])
-						self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[1])
-						self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[1])
-						self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[1])
+				self.fill_hist(sel, 'DV_mumu', DV_mumu)
+				self.fill_hist(sel, 'DV_ee', DV_ee)
+				self.fill_hist(sel, 'DV_emu', DV_emu)
+				self.fill_hist(sel, 'DV_1lep', DV_1lep)
+				
 
-					for i in xrange(tracks.ntracks):
-						self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])
-						self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[i])
-						self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[i])
-						self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[i])
-						self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[i])
-						self.fill_hist(sel, 'DV_trk_absz0', abs(self.tree.dv('trk_z0')[i]))
-						self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[i])
-						self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2')[i])
-						self.fill_hist(sel, 'DV_trk_isLRT', self.tree.dv('trk_isLRT')[i])
-						self.fill_hist(sel, 'DV_trk_isSelected', self.tree.dv('trk_isSelected')[i])
-						self.fill_hist(sel, 'DV_trk_isAssociated', self.tree.dv('trk_isAssociated')[i])
-						self.fill_hist(sel, 'DV_trk_nPixelHits', self.tree.dv('trk_nPixelHits')[i])
-						self.fill_hist(sel, 'DV_trk_nSCTHits', self.tree.dv('trk_nSCTHits')[i])
-						# self.fill_hist(sel, 'DV_trk_nSCTHoles', self.tree.dv('trk_nSCTHoles')[i])
-						self.fill_hist(sel, 'DV_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i]+self.tree.dv('trk_nPixelHits')[i])
-						# self.fill_hist(sel, 'DV_trk_dTheta', self.tree.dv('trk_dTheta')[i])
-						self.fill_hist(sel, 'DV_trk_chi2_toSV'.format(i), self.tree.dv('trk_chi2_toSV')[i])
-						self.fill_hist(sel, 'DV_trk_d0_wrtSV'.format(i), self.tree.dv('trk_d0_wrtSV')[i])
-						self.fill_hist(sel, 'DV_trk_errd0_wrtSV'.format(i), self.tree.dv('trk_errd0_wrtSV')[i])
-						self.fill_hist(sel, 'DV_trk_z0_wrtSV'.format(i), self.tree.dv('trk_z0_wrtSV')[i])
-						self.fill_hist(sel, 'DV_trk_errz0_wrtSV'.format(i), self.tree.dv('trk_errz0_wrtSV')[i])
+				# pt order the visible leptons in the DV
+				if self.tree.dv('trk_pt_wrtSV')[1] > self.tree.dv('trk_pt_wrtSV')[0]:
+					self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[1])
+					self.fill_hist(sel, 'DV_trk_0_eta', self.tree.dv('trk_eta_wrtSV')[1])
+					self.fill_hist(sel, 'DV_trk_0_phi', self.tree.dv('trk_phi_wrtSV')[1])
+					self.fill_hist(sel, 'DV_trk_0_d0', self.tree.dv('trk_d0')[1])
+					self.fill_hist(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[1])
+					self.fill_hist(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[1])
+					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[1])
+					self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[1])
+					self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[1])
+
+					self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[0])
+					self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[0])
+					self.fill_hist(sel, 'DV_trk_1_phi', self.tree.dv('trk_phi_wrtSV')[0])
+					self.fill_hist(sel, 'DV_trk_1_d0', self.tree.dv('trk_d0')[0])
+					self.fill_hist(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[0])
+					self.fill_hist(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[0])
+					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[0])
+					self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[0])
+					self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[0])
+				else:
+					self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[0])
+					self.fill_hist(sel, 'DV_trk_0_eta', self.tree.dv('trk_eta_wrtSV')[0])
+					self.fill_hist(sel, 'DV_trk_0_phi', self.tree.dv('trk_phi_wrtSV')[0])
+					self.fill_hist(sel, 'DV_trk_0_d0', self.tree.dv('trk_d0')[0])
+					self.fill_hist(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[0])
+					self.fill_hist(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[0])
+					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[0])
+					self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[0])
+					self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[0])
+
+					self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[1])
+					self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[1])
+					self.fill_hist(sel, 'DV_trk_1_phi', self.tree.dv('trk_phi_wrtSV')[1])
+					self.fill_hist(sel, 'DV_trk_1_d0', self.tree.dv('trk_d0')[1])
+					self.fill_hist(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[1])
+					self.fill_hist(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[1])
+					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[1])
+					self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[1])
+					self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[1])
+
+
+
+			# fill standard track variable histograms
+			for i in xrange(tracks.ntracks):
+				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])
+				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[i])
+				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[i])
+				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[i])
+				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[i])
+				self.fill_hist(sel, 'DV_trk_absz0', abs(self.tree.dv('trk_z0')[i]))
+				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[i])
+				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2')[i])
+				self.fill_hist(sel, 'DV_trk_isLRT', self.tree.dv('trk_isLRT')[i])
+				self.fill_hist(sel, 'DV_trk_isSelected', self.tree.dv('trk_isSelected')[i])
+				self.fill_hist(sel, 'DV_trk_isAssociated', self.tree.dv('trk_isAssociated')[i])
+				self.fill_hist(sel, 'DV_trk_nPixelHits', self.tree.dv('trk_nPixelHits')[i])
+				self.fill_hist(sel, 'DV_trk_nSCTHits', self.tree.dv('trk_nSCTHits')[i])
+				# self.fill_hist(sel, 'DV_trk_nSCTHoles', self.tree.dv('trk_nSCTHoles')[i])
+				self.fill_hist(sel, 'DV_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i]+self.tree.dv('trk_nPixelHits')[i])
+				# self.fill_hist(sel, 'DV_trk_dTheta', self.tree.dv('trk_dTheta')[i])
+				self.fill_hist(sel, 'DV_trk_chi2_toSV'.format(i), self.tree.dv('trk_chi2_toSV')[i])
+				self.fill_hist(sel, 'DV_trk_d0_wrtSV'.format(i), self.tree.dv('trk_d0_wrtSV')[i])
+				self.fill_hist(sel, 'DV_trk_errd0_wrtSV'.format(i), self.tree.dv('trk_errd0_wrtSV')[i])
+				self.fill_hist(sel, 'DV_trk_z0_wrtSV'.format(i), self.tree.dv('trk_z0_wrtSV')[i])
+				self.fill_hist(sel, 'DV_trk_errz0_wrtSV'.format(i), self.tree.dv('trk_errz0_wrtSV')[i])
 
 			# fill standard dv histograms
 			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
@@ -1066,6 +1083,20 @@ class run2Analysis(Analysis):
 					self.passed_ntrk_cut = True
 			else:
 				return
+
+		if self.do_CR: 
+			self._fill_selected_dv_histos("2trk")
+			OS_sel = selections.ChargeDV(self.tree, sel="OS").passes()
+			SS_sel = selections.ChargeDV(self.tree, sel="SS").passes()
+			if OS_sel:
+				self._fill_selected_dv_histos("OS") # save OS histograms 
+				if self._dv_type_cut(): 
+					self._fill_selected_dv_histos("OS_DVtype") # save lepton OS histograms 
+			elif SS_sel:
+				self._fill_selected_dv_histos("SS") # save SS histograms 
+				if self._dv_type_cut(): 
+					self._fill_selected_dv_histos("SS_DVtype") # save lepton SS histograms 
+
 
 		if self.do_opposite_sign_cut or self.do_same_sign_cut:
 			if self._charge_cut():

@@ -25,7 +25,7 @@ logger = helpers.getLogger('dHNLAnalysis.plotHisotgrams')
 
 #############################################################################################################################################
 # globals
-outputDir = '../output/plotting_updates/' # change path here to save your histograms somewhere else!
+outputDir = '../output/OSvSS/' # change path here to save your histograms somewhere else!
 MATERIAL_LAYERS = [33.25, 50.5, 88.5, 122.5, 299]
 normalize = True
 setlogy = False
@@ -84,15 +84,37 @@ def check_rerunningVSI(config_file, selection):
 
 def compare_reco_histograms(config_file, selection):
 	
-	vtx_channels = ["VSI"]
+	vtx_channels = ["VSI_LeptonsMod_LRTR3_1p0","VSI_LRTR3_1p0","VSI","VSI_Leptons"]
 	for vtx_channel in vtx_channels:
 		hist_channels = []
 		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>,<MCtype (LNC or LNV) if needed>)
-		hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
+		# hist_channels.append([config_file["SSdataFile"],config_file["SSdataLabel"], vtx_channel, selection])
+		# hist_channels.append([config_file["OSdataFile"],config_file["OSdataLabel"], vtx_channel, selection])
+
+		
+		# hist_channels.append([config_file["dataFile"],"SS \\mu\\mu", vtx_channel, selection])
+		hist_channels.append([config_file["dataFile"],"OS \\mu\\mu", vtx_channel, selection])
+		
+		# hist_channels.append([config_file["dataFile"],"SS e\\mu", vtx_channel, selection])
+		hist_channels.append([config_file["dataFile"],"OS e\\mu", vtx_channel, selection])
+		
+		# hist_channels.append([config_file["dataFile"],"SS ee", vtx_channel, selection])
+		hist_channels.append([config_file["dataFile"],"OS ee", vtx_channel, selection])
+
+		# hist_channels.append([config_file["dataFile"],"SS 1-lep", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS 1-lep", vtx_channel, selection])
+
+		# hist_channels.append([config_file["dataFile"],"2-trk (\\mu\\mu", vtx_channel, selection])
+
+		# hist_channels.append([config_file["dataFile"],"SS (\\mu\\mu", vtx_channel, "SS"])
+		# hist_channels.append([config_file["dataFile"],"OS (\\mu\\mu", vtx_channel, "OS"])
+
+
 		# hist_channels.append([config_file["dataFile"],config_file["dataLabel"], "VSI_LeptonsMod_LRTR3_1p0", selection])
 
-		hist_channels.append([config_file["mcFiles"][8], "LNC:  " + config_file["mcLabels"][8], vtx_channel,selection,"LNC"])
-		hist_channels.append([config_file["mcFiles"][8], "LNV:  " + config_file["mcLabels"][8], vtx_channel, selection,"LNV",])
+		# hist_channels.append([config_file["mcFiles"][8], "LNC:  " + config_file["mcLabels"][8], vtx_channel,selection,"LNC"])
+		# hist_channels.append([config_file["mcFiles"][8], "LNV:  " + config_file["mcLabels"][8], vtx_channel, selection,"LNV",])
 		
 		# Get integrated luminosity to scale MC files to 
 		scalelumi = config_file["scaleLumi"] # luminosity you want to scale everything to 
@@ -113,7 +135,7 @@ def compare_reco_histograms(config_file, selection):
 						 vertical_lines=MATERIAL_LAYERS,
 						 vertical_legend="Material Layers",
 						 output_dir= outputDir,
-						 use_ntuple = False,
+						 use_ntuple = True,
 						 ntup_nbins=350,
 						 )
 		plotting.compare(hist_channels,
@@ -129,6 +151,9 @@ def compare_reco_histograms(config_file, selection):
 						 scalelumi = scalelumi,
 						 datalumi = datalumi,
 						 vertical_lines=[2],
+						 use_ntuple = True,
+						 ntup_nbins = 100,
+						#  nRebin= 10,
 						 vertical_legend="DV mass cut",
 						 output_dir= outputDir
 						 )
@@ -788,11 +813,10 @@ if __name__ == '__main__':
 
 
 	#execute plotting here, comment out functions in you dont want to plot them again.	
-	makeCutflows(config_file)
-	compare_reco_histograms(config_file, 'DVtype')
-	compare_truth_histograms(config_file, 'truth')
+	# makeCutflows(config_file)
+	compare_reco_histograms(config_file, '2trk')
+	# compare_truth_histograms(config_file, 'truth')
 	# compare_Wboson_asymmetry(config_file, 'truth')
 	# check_rerunningVSI(config_file,"all")
 
-	
 	
