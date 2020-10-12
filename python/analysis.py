@@ -146,8 +146,40 @@ class Analysis(object):
 		self.do_track_quality_cut = True
 		if '1-tight' in self.sel:
 			self.track_quality = '1-tight'
+		elif '1-medium' in self.sel:
+			self.track_quality = '1-medium'
+		elif '1-loose' in self.sel:
+			self.track_quality = '1-loose'
 		elif '2-tight' in self.sel:
 			self.track_quality = '2-tight'
+		elif '2-medium' in self.sel:
+			self.track_quality = '2-medium'
+		elif '2-loose' in self.sel:
+			self.track_quality = '2-loose'
+		elif 'tight-medium' in self.sel:
+			self.track_quality = 'tight-medium'
+		elif 'tight-loose' in self.sel:
+			self.track_quality = 'tight-loose'
+		elif 'medium-loose' in self.sel:
+			self.track_quality = 'medium-loose'
+		elif 'tight-veryloose' in self.sel:
+			self.track_quality = 'tight-veryloose'
+		elif 'medium-veryloose' in self.sel:
+			self.track_quality = 'medium-veryloose'
+		elif 'loose-veryloose' in self.sel:
+			self.track_quality = 'loose-veryloose'
+		elif 'tight-veryveryloose' in self.sel:
+			self.track_quality = 'tight-veryveryloose'
+		elif 'medium-veryveryloose' in self.sel:
+			self.track_quality = 'medium-veryveryloose'
+		elif 'loose-veryveryloose' in self.sel:
+			self.track_quality = 'loose-veryveryloose'
+		elif 'any-loose' in self.sel:
+			self.track_quality = 'any-loose'
+		elif 'any-veryveryloose' in self.sel:
+			self.track_quality = 'any-veryveryloose'
+		elif '2-any' in self.sel:
+			self.track_quality = '2-any'
 		else:
 			if "CR" not in self.sel:
 				self.logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
@@ -957,6 +989,15 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_1tight', trk_quality.DV_1tight)
 			self.fill_hist(sel, 'DV_1medium', trk_quality.DV_1medium)
 			self.fill_hist(sel, 'DV_1loose', trk_quality.DV_1loose)
+                        self.fill_hist(sel, 'DV_tight_loose', trk_quality.DV_tight_loose)
+                        self.fill_hist(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
+                        self.fill_hist(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
+                        self.fill_hist(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
+                        self.fill_hist(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
+                        self.fill_hist(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
+                        self.fill_hist(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
+                        self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
+                        self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
 
 			
 			# fill TTree with ntuple information. Already set by fill_hist
