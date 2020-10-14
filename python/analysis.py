@@ -865,8 +865,7 @@ class Analysis(object):
 				DV_mumu = selections.DVtype(self.tree, dv_type="mumu").passes()
 				DV_ee = selections.DVtype(self.tree, dv_type="ee").passes()
 				DV_emu = selections.DVtype(self.tree, dv_type="emu").passes()
-				DV_1lep = len(muVec) != len(elVec)
-		
+				DV_1lep = (len(muVec) ==  1 and len(elVec) == 0) or (len(muVec) ==  0 and len(elVec) == 1)
 
 				self.fill_hist(sel, 'DV_mumu', DV_mumu)
 				self.fill_hist(sel, 'DV_ee', DV_ee)
@@ -974,7 +973,15 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_1tight', trk_quality.DV_1tight)
 			self.fill_hist(sel, 'DV_1medium', trk_quality.DV_1medium)
 			self.fill_hist(sel, 'DV_1loose', trk_quality.DV_1loose)
-
+			self.fill_hist(sel, 'DV_2vvlSi', trk_quality.DV_2vvlSi)
+			self.fill_hist(sel, 'DV_2vvl', trk_quality.DV_2vvl)
+			self.fill_hist(sel, 'DV_2vl', trk_quality.DV_2vl)
+			self.fill_hist(sel, 'DV_loose_vl', trk_quality.DV_loose_vl)
+			self.fill_hist(sel, 'DV_loose_vvl', trk_quality.DV_loose_vvl)
+			self.fill_hist(sel, 'DV_loose_vvlSi', trk_quality.DV_loose_vvlSi)
+			self.fill_hist(sel, 'DV_med_vl', trk_quality.DV_med_vl)
+			self.fill_hist(sel, 'DV_med_vvl', trk_quality.DV_med_vvl)
+			self.fill_hist(sel, 'DV_med_vvlSi', trk_quality.DV_med_vvlSi)
 			
 			# fill TTree with ntuple information. Already set by fill_hist
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':  

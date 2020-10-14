@@ -460,6 +460,16 @@ class Trackqual():
 		self.DV_1medium = False
 		self.DV_2loose = False
 		self.DV_1loose = False
+		self.DV_med_vl = False
+		self.DV_med_vvl = False
+		self.DV_med_vvlSi = False
+		self.DV_loose_vl = False
+		self.DV_loose_vvl = False
+		self.DV_loose_vvlSi = False
+		self.DV_2vl = False
+		self.DV_2vvl = False
+		self.DV_2vvlSi = False
+
 
 
 		if self.decaymode == "leptonic": 
@@ -475,6 +485,9 @@ class Trackqual():
 			self.nel_tight = 0
 			self.nel_medium = 0
 			self.nel_loose = 0
+			self.nel_vl = 0
+			self.nel_vvl = 0
+			self.nel_vvlSi = 0
 
 			self.ndvmu = len(muons.lepVec)
 			self.ndvel = len(electrons.lepVec)
@@ -497,12 +510,21 @@ class Trackqual():
 				elisTight = tree['el_LHTight'][elindex]
 				elisMedium = tree['el_LHMedium'][elindex]
 				elisLoose = tree['el_LHLoose'][elindex]
+				elisvl = tree['el_isLHVeryLoose'][elindex]
+				elisvvl = tree['el_isLHVeryLoose_mod1'][elindex]
+				elisvvlSi = tree['el_isLHVeryLoose_modSi'][elindex]
 				if elisTight == 1:
 					self.nel_tight = self.nel_tight + 1
 				if elisMedium == 1:
 					self.nel_medium = self.nel_medium + 1
 				if elisLoose == 1:
 					self.nel_loose = self.nel_loose + 1
+				if elisvl ==1: 
+					self.nel_vl = self.nel_vl + 1
+				if elisvvl == 1: 
+					self.nel_vvl = self.nel_vvl + 1
+				if elisvvlSi == 1: 
+					self.nel_vvlSi = self.nel_vvlSi + 1
 
 			self.DV_2tight = self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1) 
 			self.DV_2medium = self.nmu_medium == 2 or self.nel_medium == 2 or (self.nmu_medium == 1 and self.nel_medium == 1)
@@ -510,7 +532,15 @@ class Trackqual():
 			self.DV_1tight = self.nmu_tight > 0 or self.nel_tight > 0
 			self.DV_1medium = self.nmu_medium > 0 or self.nel_medium > 0
 			self.DV_1loose = self.nmu_loose > 0 or self.nel_loose > 0
-
+			self.DV_2vvlSi =  self.nel_vvlSi  == 2
+			self.DV_2vvl =  self.nel_vvl  == 2
+			self.DV_2vl =  self.nel_vl  == 2
+			self.DV_loose_vl = self.nmu_loose == 1 and self.nel_vl == 1
+			self.DV_loose_vvl = self.nmu_loose == 1 and self.nel_vvl == 1
+			self.DV_loose_vvlSi = self.nmu_loose == 1 and self.nel_vvlSi == 1
+			self.DV_med_vl = self.nmu_medium == 1 and self.nel_vl == 1
+			self.DV_med_vvl = self.nmu_medium == 1 and self.nel_vvl == 1
+			self.DV_med_vvlSi = self.nmu_medium == 1 and self.nel_vvlSi == 1
 
 	def passes(self):
 		if self.quality == "2-tight":
