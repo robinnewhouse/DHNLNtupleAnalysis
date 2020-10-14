@@ -224,3 +224,6 @@ If you see the error message `ImportError: No module named coloredlogs`, then yo
 ```
 pip install coloredlogs
 ```
+
+## Running DHNL Algorithm on HTCondor 
+If you are interested in running `DHNLNtupleAnalysis` on the lxplus batch system, Christian has put together a few scripts for submitting jobs on the HT condor system. You can check out his scripts [here](https://gitlab.cern.ch/cappelt/hnlntupleanalysis_htcondor).
