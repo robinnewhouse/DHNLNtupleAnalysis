@@ -23,12 +23,13 @@ def drawNotes(VtxConfig,lumi,truth_plot, channel=None):
 	b = getNote(size=20)
 	c = getNote(size=20)
 	
-	ax = 0.22
+	ax = 0.22 # align left
+	# ax = 0.62 # align right
 	ay = 0.82
-	# if lumi != "":
-	# 	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
-	# else: 
-	# 	a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV")
+	if lumi != "":
+		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
+	else: 
+		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV")
 	if not truth_plot:
 		if VtxConfig == "VSI_Leptons": 
 			b.DrawLatex(ax,ay-0.05,'VSI Leptons')
@@ -48,7 +49,7 @@ def drawNotes(VtxConfig,lumi,truth_plot, channel=None):
 		elif "euu" in channel:
 			c.DrawLatex(ax,ay-0.1,'channel: e\mu\mu')
 
-	atlas_style.ATLASLabel(0.22,0.87,"Internal")
+	atlas_style.ATLASLabel(ax,0.87,"Internal")
 
 
 def drawNotesMC(MC_campaign,Vertextype, channel,mass,lifetime):

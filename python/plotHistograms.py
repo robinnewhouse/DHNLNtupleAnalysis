@@ -84,7 +84,7 @@ def check_rerunningVSI(config_file, selection):
 
 def compare_reco_histograms(config_file, selection):
 	
-	vtx_channels = ["VSI_LeptonsMod_LRTR3_1p0","VSI_LRTR3_1p0","VSI","VSI_Leptons"]
+	vtx_channels = ["VSI_LeptonsMod_LRTR3_1p0","VSI_LRTR3_1p0"]
 	for vtx_channel in vtx_channels:
 		hist_channels = []
 		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>,<MCtype (LNC or LNV) if needed>)
@@ -93,15 +93,29 @@ def compare_reco_histograms(config_file, selection):
 		# hist_channels.append([config_file["OSdataFile"],config_file["OSdataLabel"], vtx_channel, selection])
 
 		
+		# hist_channels.append([config_file["dataFile"],"SS ", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS", vtx_channel, selection])
+
+
 		# hist_channels.append([config_file["dataFile"],"SS \\mu\\mu", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"SS \\mu\\mu 2-med", vtx_channel, selection])
 		hist_channels.append([config_file["dataFile"],"OS \\mu\\mu", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS \\mu\\mu 2-med", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS \\mu\\mu 2-loose", vtx_channel, selection])
+		
 		
 		# hist_channels.append([config_file["dataFile"],"SS e\\mu", vtx_channel, selection])
 		hist_channels.append([config_file["dataFile"],"OS e\\mu", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS e\\mu loose-vvl", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS e\\mu med-vvlSi", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS e\\mu loose-vvlSi", vtx_channel, selection])
 		
 		# hist_channels.append([config_file["dataFile"],"SS ee", vtx_channel, selection])
 		hist_channels.append([config_file["dataFile"],"OS ee", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS ee 2-vvl", vtx_channel, selection])
+		# hist_channels.append([config_file["dataFile"],"OS ee 2-vvlSi", vtx_channel, selection])
 
+		
 		# hist_channels.append([config_file["dataFile"],"SS 1-lep", vtx_channel, selection])
 		# hist_channels.append([config_file["dataFile"],"OS 1-lep", vtx_channel, selection])
 
@@ -147,7 +161,7 @@ def compare_reco_histograms(config_file, selection):
 
 		plotting.compare(hist_channels,
 						 variable='DV_mass',
-						 setrange=(0, 10),
+						 setrange=(0.4, 0.6),
 						 scalelumi = scalelumi,
 						 datalumi = datalumi,
 						 vertical_lines=[2],
@@ -158,267 +172,267 @@ def compare_reco_histograms(config_file, selection):
 						 output_dir= outputDir
 						 )
 
-		#############################################
-		# DV Track Variables 
-		#############################################
-		plotting.compare(hist_channels,
-						 variable='DV_trk_pt',
-						 setrange=(0, 100),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
-		plotting.compare(hist_channels,
-						 variable='DV_trk_0_pt',
-						 setrange=(0, 100),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin=4,
-						 output_dir = outputDir
-						 )
+		# #############################################
+		# # DV Track Variables 
+		# #############################################
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_pt',
+		# 				 setrange=(0, 100),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_0_pt',
+		# 				 setrange=(0, 100),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin=4,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_1_pt',
-						 setrange=(0, 100),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin=4,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_1_pt',
+		# 				 setrange=(0, 100),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin=4,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_eta',
-						 setrange=(-3, 3),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 rebin = 2, 
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_eta',
+		# 				 setrange=(-3, 3),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 rebin = 2, 
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_phi',
-						 setrange=(-4, 4),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin = 2, 
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_phi',
+		# 				 setrange=(-4, 4),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin = 2, 
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_eta',
-						 setrange=(-3, 3),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_eta',
+		# 				 setrange=(-3, 3),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_d0',
-						 setrange=(-10, 10),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_d0',
+		# 				 setrange=(-10, 10),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_z0',
-						 setrange=(-500, 500),
-						 scaleymax=1.6,
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin = 4,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_z0',
+		# 				 setrange=(-500, 500),
+		# 				 scaleymax=1.6,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin = 4,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_absz0',
-						 setrange=(0, 250),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_absz0',
+		# 				 setrange=(0, 250),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_dTheta',
-						 setrange=(0, 3),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_dTheta',
+		# 				 setrange=(0, 3),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_nSCTHoles',
-						 setrange=(0, 3),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_nSCTHoles',
+		# 				 setrange=(0, 3),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_nSiHits',
-						 setrange=(0, 23),
-						 scaleymax=1.6,
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_nSiHits',
+		# 				 setrange=(0, 23),
+		# 				 scaleymax=1.6,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_nSCTHits',
-						 setrange=(0, 14),
-						 scaleymax=1.9,
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_nSCTHits',
+		# 				 setrange=(0, 14),
+		# 				 scaleymax=1.9,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_isLRT',
-						 setrange=(0, 2),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_isLRT',
+		# 				 setrange=(0, 2),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_chi2',
-						 setrange=(0, 10),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_chi2',
+		# 				 setrange=(0, 10),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_dpt',
-						 setrange=(0, 20),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin = 2, 
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_dpt',
+		# 				 setrange=(0, 20),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin = 2, 
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_deta',
-						 setrange=(0, 3.2),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin = 2, 
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_deta',
+		# 				 setrange=(0, 3.2),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin = 2, 
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_dphi',
-						 setrange=(0, 3.2),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir = outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_dphi',
+		# 				 setrange=(0, 3.2),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir = outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_trk_dR',
-						 setrange=(0, 10),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin = 10, 
-						 output_dir = outputDir
-						 )
-		#############################################
-		# Mass Variables 
-		#############################################
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_trk_dR',
+		# 				 setrange=(0, 10),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin = 10, 
+		# 				 output_dir = outputDir
+		# 				 )
+		# #############################################
+		# # Mass Variables 
+		# #############################################
 
-		plotting.compare(hist_channels,
-						 variable='mvis',
-						 nRebin=10,
-						 setrange=(0, 200),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir= outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='mvis',
+		# 				 nRebin=10,
+		# 				 setrange=(0, 200),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir= outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='mtrans',
-						 setrange=(0, 200),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin=5,
-						 output_dir= outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='mtrans',
+		# 				 setrange=(0, 200),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin=5,
+		# 				 output_dir= outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_redmass',
-						 setrange=(0, 50),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir= outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_redmass',
+		# 				 setrange=(0, 50),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir= outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='DV_redmassvis',
-						 setrange=(0, 200),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin=5,
-						 output_dir= outputDir
-						 )
-		plotting.compare(hist_channels,
-						 variable='DV_redmassHNL',
-						 setrange=(0, 50),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir= outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_redmassvis',
+		# 				 setrange=(0, 200),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin=5,
+		# 				 output_dir= outputDir
+		# 				 )
+		# plotting.compare(hist_channels,
+		# 				 variable='DV_redmassHNL',
+		# 				 setrange=(0, 50),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir= outputDir
+		# 				 )
 		
-		#############################################
-		# Reconstructed HNL variables
-		#############################################
-		plotting.compare(hist_channels,
-						 variable='HNLm',
-						 setrange=(0, 30),
-						 scaleymax=1.4,
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 # nRebin =2,
-						 output_dir= outputDir
-						 )
+		# #############################################
+		# # Reconstructed HNL variables
+		# #############################################
+		# plotting.compare(hist_channels,
+		# 				 variable='HNLm',
+		# 				 setrange=(0, 30),
+		# 				 scaleymax=1.4,
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 # nRebin =2,
+		# 				 output_dir= outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='HNLpt',
-						 setrange=(0, 200),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin=5,
-						 output_dir= outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='HNLpt',
+		# 				 setrange=(0, 200),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin=5,
+		# 				 output_dir= outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='HNLeta',
-						 setrange=(0, 50),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin=5,
-						 output_dir= outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='HNLeta',
+		# 				 setrange=(0, 50),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin=5,
+		# 				 output_dir= outputDir
+		# 				 )
 
-		plotting.compare(hist_channels,
-						 variable='HNLphi',
-						 setrange=(-3,3),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 output_dir= outputDir
-						 )
+		# plotting.compare(hist_channels,
+		# 				 variable='HNLphi',
+		# 				 setrange=(-3,3),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 output_dir= outputDir
+		# 				 )
 
-		#############################################
-		# Reconstructed Prompt lepton variables 
-		#############################################
-		plotting.compare(hist_channels,
-						 variable='plep_pt',
-						 setrange=(0,100),
-						 scalelumi = scalelumi,
-						 datalumi = datalumi,
-						 nRebin = 4,
-						 output_dir= outputDir
-						 )
+		# #############################################
+		# # Reconstructed Prompt lepton variables 
+		# #############################################
+		# plotting.compare(hist_channels,
+		# 				 variable='plep_pt',
+		# 				 setrange=(0,100),
+		# 				 scalelumi = scalelumi,
+		# 				 datalumi = datalumi,
+		# 				 nRebin = 4,
+		# 				 output_dir= outputDir
+		# 				 )
 
 def compare_truth_histograms(config_file, selection):
 	# vtx_channels = ["VSI", "VSI_Leptons"]
