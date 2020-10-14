@@ -38,7 +38,7 @@ do_cut_significane = True
 
 def makeCutflows(config_file):
 	# vtx_channels = ["VSI_LRTR3_1p0", "VSI_LeptonsMod_LRTR3_1p0"]
-	vtx_channels = ["VSI","VSI_LeptonsMod_LRTR3_1p0"]
+	vtx_channels = ["VSI","VSI_Leptons"]
 	for vtx_channel in vtx_channels:
 		plotting.plot_cutflow(file = config_file["dataFile"],
 							  selection="all",
@@ -84,15 +84,17 @@ def check_rerunningVSI(config_file, selection):
 
 def compare_reco_histograms(config_file, selection):
 	
-	vtx_channels = ["VSI"]
+	vtx_channels = ["VSI", "VSI_Leptons"]
 	for vtx_channel in vtx_channels:
 		hist_channels = []
 		# hist_channels[i] = (<filename>, <legend label>,<vertex directory>, <selection directory>,<MCtype (LNC or LNV) if needed>)
 		hist_channels.append([config_file["dataFile"],config_file["dataLabel"], vtx_channel, selection])
-		# hist_channels.append([config_file["dataFile"],config_file["dataLabel"], "VSI_LeptonsMod_LRTR3_1p0", selection])
-
 		hist_channels.append([config_file["mcFiles"][8], "LNC:  " + config_file["mcLabels"][8], vtx_channel,selection,"LNC"])
 		hist_channels.append([config_file["mcFiles"][8], "LNV:  " + config_file["mcLabels"][8], vtx_channel, selection,"LNV",])
+
+		# hist_channels.append([config_file["mcFiles"][0], config_file["mcLabels"][0], vtx_channel,selection,"LNC"])
+		# hist_channels.append([config_file["mcFiles"][1], config_file["mcLabels"][1], vtx_channel, selection,"LNC",])
+		# hist_channels.append([config_file["mcFiles"][2], config_file["mcLabels"][2], vtx_channel, selection,"LNC",])
 		
 		# Get integrated luminosity to scale MC files to 
 		scalelumi = config_file["scaleLumi"] # luminosity you want to scale everything to 

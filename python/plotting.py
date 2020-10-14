@@ -99,7 +99,7 @@ def compare(hist_channels,
 			save_name="", 
 			vertical_lines=[], 
 			labels=[], 
-			normalize=True, 
+			normalize=False,
 			drawRatio=False, 
 			customVariable = False, 
 			scalelumi=1.0,
@@ -284,7 +284,7 @@ def compare(hist_channels,
 			if normalize:
 				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"f")
 			else: 
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"f")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s}"%(labels[i],Yield[i]),"f")
 	#add non-data histograms to legend 
 	if draw_channel_info: leg01.AddEntry(histograms[0],"","")
 	for i in h_idx:
@@ -292,7 +292,7 @@ def compare(hist_channels,
 			if normalize: 
 				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"l")
 			else:
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s)}"%(labels[i],Yield[i]),"l")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s}"%(labels[i],Yield[i]),"pl")
 		
 
 	# set the common x limits for all histograms
@@ -333,7 +333,7 @@ def compare(hist_channels,
 		histograms[i].GetYaxis().SetTitle("entries")
 		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
 		# histograms[i].GetYaxis().SetRangeUser(0,0.1)
-		histograms[i].Draw("HIST SAME")
+		histograms[i].Draw("HIST SAME E0")
 		# histograms[i].Draw("E0 HIST SAME E0") # plot with errors
 
 	if debug: 
@@ -454,16 +454,7 @@ def compare(hist_channels,
 	else:
 		save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
 
-	# Clean output directory
-	# if vtx_alg == "VSI": 
-	if "VSI_LRT" in vtx_alg: 
-		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI/')
-	# elif vtx_alg == "VSI_Leptons": 
-	elif "VSI_Leptons_LRT" in vtx_alg: 
-		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI_Leptons/')
-	else:
-		output_dir = os.path.join(os.path.abspath(output_dir), 'plots/')
-	
+	output_dir = os.path.join(os.path.abspath(output_dir), 'plots/{}/'.format(vtx_alg))
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
 	if not os.path.exists(output_dir+"eps_files/"): os.mkdir(output_dir+"eps_files/")
 	
@@ -476,6 +467,7 @@ def compare(hist_channels,
 			cut_significance(variable,vtx_alg,scalelumi,histograms,filenames,labels,x_min,x_max, ncuts = ncuts)
 		else:
 			cut_significance(variable,vtx_alg,scalelumi,histograms,filenames,labels,x_min,x_max,output_dir,save_file_name)
+
 
 
 def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_max, output_dir, savefilename, ncuts=0):
