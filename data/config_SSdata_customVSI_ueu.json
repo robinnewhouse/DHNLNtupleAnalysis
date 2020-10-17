@@ -1,0 +1,10 @@
+{
+
+"ueu":{
+            "vtx_containers" :  ["VSI_LRTR3_1p0", "VSI_LeptonsMod_LRTR3_1p0"],
+            "selections":["alltriggers","pmuon", "4-filter", "nDV", "fidvol","2track","SS", "emu","medium-veryveryloose","cosmicveto", "mlll","DVmass" ]
+
+         }
+
+
+}
