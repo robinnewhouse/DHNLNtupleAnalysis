@@ -460,6 +460,16 @@ class Trackqual():
 		self.DV_1medium = False
 		self.DV_2loose = False
 		self.DV_1loose = False
+		self.DV_med_vl = False
+		self.DV_med_vvl = False
+		self.DV_med_vvlSi = False
+		self.DV_loose_vl = False
+		self.DV_loose_vvl = False
+		self.DV_loose_vvlSi = False
+		self.DV_2vl = False
+		self.DV_2vvl = False
+		self.DV_2vvlSi = False
+
 
 
 		if self.decaymode == "leptonic": 
