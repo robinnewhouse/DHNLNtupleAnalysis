@@ -92,14 +92,14 @@ def plot_cutflow(file, selection,vertextype, output_dir="../output/"):
 def compare(hist_channels, 
 			variable, 
 			setrange=None, 
-			scaleymax=1.2, 
+			scaleymax=2, 
 			nRebin=1, 
-			setlogy=False, 
+			setlogy=True, 
 			output_dir="../output/",
 			save_name="", 
 			vertical_lines=[], 
 			labels=[], 
-			normalize=False,
+			normalize=False, 
 			drawRatio=False, 
 			customVariable = False, 
 			scalelumi=1.0,
@@ -109,6 +109,7 @@ def compare(hist_channels,
 			**kwargs):
 	
 	draw_channel_info = not normalize
+	draw_channel_info = False
 	histograms = []
 	filenames = []
 	labels = []
@@ -170,8 +171,49 @@ def compare(hist_channels,
 				else: ttree = tfiles[nhist].Get('{}_ntuples_{}'.format(vtx_alg, selection))  # get TTree
 				if not ttree:
 					raise KeyError('Cannot find {}_ntuples_{} micro-ntuple in file {}'.format(vtx_alg, selection, tfiles[nhist]))
-			
-				ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
+				
+				if "OS" in label: 
+					if "\\mu\\mu" in label:
+						if "2-med" in label:
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_mumu == 1)*(DV_2medium == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+						elif "2-loose" in label: 
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_mumu == 1)*(DV_2loose == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+						else: 
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_mumu == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+					if "e\\mu" in label: 
+						if "OS e\\mu med-vvl" == label:
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_emu == 1)*(DV_med_vvl == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+						elif "OS e\\mu med-vvlSi" == label:
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_emu == 1)*(DV_med_vvlSi == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+						elif "OS e\\mu loose-vvl" == label:
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_emu == 1)*(DV_loose_vvl == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+						elif "OS e\\mu loose-vvlSi" == label:
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_emu == 1)*(DV_loose_vvlSi == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+						else: 
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_emu == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+					if "ee" in label: 
+						if "OS ee 2-vvl" == label:
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_ee == 1)*(DV_2vvl == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+						elif "OS ee 2-vvlSi" == label: 
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_ee == 1)*(DV_2vvlSi == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+						else: 
+							ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_ee == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+					if "1-lep" in label: 
+						ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)*(DV_1lep == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+					# ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge == 0)')
+				if "SS" in label: 
+					if "\\mu\\mu" in label:
+						ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge != 0)*(DV_mumu == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+					if "e\\mu" in label: 
+						ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge != 0)*(DV_emu == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+					if "ee" in label: 
+						ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge != 0)*(DV_ee == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+					if "1-lep" in label: 
+						ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge != 0)*(DV_1lep == 1)')  # fill histogram with data from ttree. weighted with DV_weight
+					# ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_charge != 0)')
+				if "2-trk" in label: 
+					ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight') 
+				# ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight')  # fill histogram with data from ttree. weighted with DV_weight
 				# ttree.Draw(variable+'>>'+tmp_hist_name, 'DV_weight*(DV_mass > 2)')  # fill histogram with data from ttree. weighted with DV_weight
 			ntup_hist.SetTitle("")
 			histograms.append(ntup_hist)
@@ -220,10 +262,12 @@ def compare(hist_channels,
 		pad1.cd()
 
 	# format legend
-	leg01 = ROOT.TLegend(0.57, 0.71, 0.92, 0.92)
+	
 
-	leg01 = ROOT.TLegend(0.62, 0.71, 0.92, 0.92)
+	leg01 = ROOT.TLegend(0.62, 0.71, 0.92, 0.92) # upper
+	# leg01 = ROOT.TLegend(0.62, 0.51, 0.92, 0.66) # lower
 	leg01.SetTextSize(0.025)
+	# leg01.SetTextSize(0.045)
 	leg01.SetBorderSize(0)
 	leg01.SetFillColor(kWhite)
 	leg01.SetShadowColor(kWhite)
@@ -282,9 +326,9 @@ def compare(hist_channels,
 		# if data in list, add it to the legend first
 		if 'SS bkg' in labels[i]: 
 			if normalize:
-				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"f")
+				leg01.AddEntry(histograms[i],"\\bf{%s )}"%(labels[i]),"l")
 			else: 
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s}"%(labels[i],Yield[i]),"f")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s}"%(labels[i],Yield[i]),"l")
 	#add non-data histograms to legend 
 	if draw_channel_info: leg01.AddEntry(histograms[0],"","")
 	for i in h_idx:
@@ -292,7 +336,7 @@ def compare(hist_channels,
 			if normalize: 
 				leg01.AddEntry(histograms[i],"\\bf{%s)}"%(labels[i]),"l")
 			else:
-				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s}"%(labels[i],Yield[i]),"pl")
+				leg01.AddEntry(histograms[i],"\\bf{%s}, \\bf{%s}"%(labels[i],Yield[i]),"l")
 		
 
 	# set the common x limits for all histograms
@@ -315,25 +359,36 @@ def compare(hist_channels,
 				histograms[i].GetXaxis().SetBinLabel(j+1, label)
 		histograms[i].SetMarkerSize(1.5)
 		if 'SS bkg' in labels[i]: 
-			histograms[i].SetLineColor(plotting_helpers.bkgColours(i))
-			histograms[i].SetFillColor(plotting_helpers.bkgColours(i))
-			histograms[i].SetMarkerColor(plotting_helpers.bkgColours(i))
-			histograms[i].SetLineColor(ROOT.kBlack)
-			histograms[i].SetLineWidth(1)
+			histograms[i].SetLineColor(plotting_helpers.bkgColours(0))
+			# histograms[i].SetFillColor(plotting_helpers.bkgColours(i))
+			histograms[i].SetMarkerColor(plotting_helpers.bkgColours(0))
+			# histograms[i].SetLineColor(ROOT.kBlack)
+			histograms[i].SetLineWidth(2)
 			# histograms[i].SetMarkerStyle(20)
 		else: 
 			histograms[i].SetLineWidth(2)
-			histograms[i].SetLineColor(plotting_helpers.histColours(i))
+			# histograms[i].SetLineColor(ROOT.kBlack)
+			# if i == 0: 
+			# 	histograms[i].SetLineStyle(3)
+			# if i == 1: 
+			# 	histograms[i].SetLineStyle(5)
+			# histograms[i].SetLineColor(plotting_helpers.histColours(2))
+			# histograms[i].SetMarkerColor(plotting_helpers.histColours(2))
+			# histograms[i].SetLineColor(plotting_helpers.histColours(i))
 			# histograms[i].SetLineColor(ROOT.kBlack)
 			histograms[i].SetMarkerColor(plotting_helpers.histColours(i))
+			histograms[i].SetLineColor(plotting_helpers.histColours(i))
+			# histograms[i].SetLineColor(plotting_helpers.bkgColours(0))
+			# histograms[i].SetMarkerColor(plotting_helpers.bkgColours(0))
 			histograms[i].SetMarkerStyle(shapelist[i])
 		if customVariable == False:
 			histograms[i].GetXaxis().SetTitle(plotting_helpers.get_x_label(variable))
 		if not variable: histograms[i].GetXaxis().SetTitle(save_name)
 		histograms[i].GetYaxis().SetTitle("entries")
-		histograms[i].GetYaxis().SetRangeUser(0.00001 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
-		# histograms[i].GetYaxis().SetRangeUser(0,0.1)
-		histograms[i].Draw("HIST SAME E0")
+		histograms[i].GetYaxis().SetRangeUser(0.1 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
+		# histograms[i].GetYaxis().SetRangeUser(1000 if setlogy else 0, y_max*10**scaleymax if setlogy else y_max*scaleymax)
+		# histograms[i].GetYaxis().SetRangeUser(0,180)
+		histograms[i].Draw("HIST SAME")
 		# histograms[i].Draw("E0 HIST SAME E0") # plot with errors
 
 	if debug: 
@@ -377,10 +432,12 @@ def compare(hist_channels,
 	l.SetNDC()
 	l.SetTextFont(43)
 	l.SetTextColor(1)
-	l.SetTextSize(15)
+	l.SetTextSize(17)
 
 	if draw_channel_info:
-		l.DrawLatex(0.7,0.82,"(m_{HNL} ,  c\\tau ,  chan.  ,   yield)")
+		# l.DrawLatex(0.69,0.82,"  (   m_{HNL},   c\\tau,   chan.,   yield)") # 2 signals
+		l.DrawLatex(0.69,0.78,"  (   m_{HNL},   c\\tau,   chan.,   yield)") # one signal
+		# l.DrawLatex(0.69,0.58,"  (   m_{HNL},   c\\tau,   chan.,   yield)") # one signal lower
 
 	notes_x = 0.25
 	notes_y = 0.87
@@ -421,7 +478,7 @@ def compare(hist_channels,
 		hratio.SetMarkerStyle(21)
 		hratio.SetLineStyle(1)
 		hratio.SetMarkerStyle(20)
-		hratio.SetMarkerSize(1)
+		hratio.SetMarkerSize(0.9)
 		if 'ratioLabel' in kwargs:
 			hratio.GetYaxis().SetTitle(kwargs['ratioLabel'][0])
 		else: 
@@ -437,14 +494,37 @@ def compare(hist_channels,
 		hratio.GetXaxis().SetTitleOffset(4.)
 		hratio.GetXaxis().SetLabelFont(43) # Absolute font size in pixel (precision 3)
 		hratio.GetXaxis().SetLabelSize(15)
-		hratio.GetYaxis().SetRangeUser(-1 ,3)
+		#mumu
+		# ymin = -50
+		# ymax = 100
+		# emu /ee
+		ymin = -2
+		ymax = 5
+
+		# 1-lep
+		# ymin = -4
+		# ymax = 10
+
+		# ymin = -1
+		# ymax = 3
+
+		hratio.GetYaxis().SetRangeUser(ymin ,ymax)
 		line1=TLine(x_min,1,x_max,1)
 		line1.SetLineStyle(1)
 
+		
 
-		hratio.SetMarkerColor(plotting_helpers.histColours("ratio"))
+
+		hratio.SetMarkerColor(ROOT.kBlack)
 		hratio.Draw("ep")
 		line1.Draw("SAME")
+
+		lines_ratio = []
+		for i, x in enumerate(vertical_lines):
+			lines_ratio.append(TLine(x, ymin, x, ymax))
+			lines_ratio[i].SetLineStyle(3)
+			lines_ratio[i].SetLineWidth(3)
+			lines_ratio[i].Draw("SAME")
 
 	if customVariable == True: 
 		if save_name == "": 
@@ -454,7 +534,18 @@ def compare(hist_channels,
 	else:
 		save_file_name = "{}_{}".format(selection, variable if save_name == "" else save_name)
 
+	# Clean output directory
+	# if vtx_alg == "VSI": 
+	# if "VSI_LRT" in vtx_alg: 
+	# 	output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI/')
+	# # elif vtx_alg == "VSI_Leptons": 
+	# elif "VSI_Leptons_LRT" in vtx_alg: 
+	# 	output_dir = os.path.join(os.path.abspath(output_dir), 'plots/VSI_Leptons/')
+	# else:
+	# 	output_dir = os.path.join(os.path.abspath(output_dir), 'plots/')
+
 	output_dir = os.path.join(os.path.abspath(output_dir), 'plots/{}/'.format(vtx_alg))
+	print output_dir
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
 	if not os.path.exists(output_dir+"eps_files/"): os.mkdir(output_dir+"eps_files/")
 	

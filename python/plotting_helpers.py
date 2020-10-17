@@ -23,7 +23,8 @@ def drawNotes(VtxConfig,lumi,truth_plot, channel=None):
 	b = getNote(size=20)
 	c = getNote(size=20)
 	
-	ax = 0.22
+	ax = 0.22 # align left
+	# ax = 0.62 # align right
 	ay = 0.82
 	if lumi != "":
 		a.DrawLatex(ax,ay,"\sqrt{s}  = 13 TeV, \int Ldt = %s fb^{-1}"%int(lumi))
@@ -48,7 +49,7 @@ def drawNotes(VtxConfig,lumi,truth_plot, channel=None):
 		elif "euu" in channel:
 			c.DrawLatex(ax,ay-0.1,'channel: e\mu\mu')
 
-	atlas_style.ATLASLabel(0.22,0.87,"Internal")
+	atlas_style.ATLASLabel(ax,0.87,"Internal")
 
 
 def drawNotesMC(MC_campaign,Vertextype, channel,mass,lifetime):
@@ -196,13 +197,13 @@ def xlabelhistograms(hist):
 
 def histColours(nhist): 
 	color = ROOT.TColor()
-	if nhist== 2:
+	if nhist== 5:
 		ncolor = color.GetColor("#FF1B28") # red 
-	if nhist== 3:
+	if nhist== 4:
 		ncolor = color.GetColor("#FF7A43") # orange
-	if nhist== 4:	
+	if nhist== 3:	
 		ncolor = color.GetColor("#FFE425") # yellow
-	if nhist== 5:	
+	if nhist== 2:	
 		ncolor = color.GetColor("#39A230")# green
 	if nhist== 0:
 		ncolor = color.GetColor("#3ACEFF") # light blue

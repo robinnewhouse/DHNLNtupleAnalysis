@@ -89,8 +89,8 @@ def main():
 			if blinded and tree.is_data and "CR" not in selections:
 				if "OS" in selections or "SS" not in selections:
 					logger.error("You are running on data and you cannot look at OS vertices!!! "
-								 "Please include SS, not OS in selections, "
-								 "or add CD if you are trying to look in the control region.")
+								 "Please include 'SS', not 'OS' in selections, "
+								 "or add 'CR' if you are trying to look in the control region.")
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
