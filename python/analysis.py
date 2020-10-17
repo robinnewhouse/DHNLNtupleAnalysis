@@ -180,6 +180,8 @@ class Analysis(object):
 			self.track_quality = 'any-veryveryloose'
 		elif '2-any' in self.sel:
 			self.track_quality = '2-any'
+		elif '2-veryveryloose' in self.sel:
+			self.track_quality = '2-veryveryloose'
 		else:
 			if "CR" not in self.sel:
 				self.logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
@@ -1124,7 +1126,7 @@ class run2Analysis(Analysis):
 			else:
 				return
 
-		if self.do_CR: 
+		if self.do_CR: # protect against saving OS DV when youre not looking in the CR
 			self._fill_selected_dv_histos("2trk")
 			OS_sel = selections.ChargeDV(self.tree, sel="OS").passes()
 			SS_sel = selections.ChargeDV(self.tree, sel="SS").passes()

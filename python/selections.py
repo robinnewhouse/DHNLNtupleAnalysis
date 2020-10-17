@@ -454,21 +454,21 @@ class Trackqual():
 
 		self.decaymode = decaymode
 		self.quality = quality 
-		self.DV_2tight = False
-		self.DV_1tight = False
-		self.DV_2medium = False
-		self.DV_1medium = False
-		self.DV_2loose = False
-		self.DV_1loose = False
-		self.DV_med_vl = False
-		self.DV_med_vvl = False
-		self.DV_med_vvlSi = False
-		self.DV_loose_vl = False
-		self.DV_loose_vvl = False
-		self.DV_loose_vvlSi = False
-		self.DV_2vl = False
-		self.DV_2vvl = False
-		self.DV_2vvlSi = False
+		# self.DV_2tight = False
+		# self.DV_1tight = False
+		# self.DV_2medium = False
+		# self.DV_1medium = False
+		# self.DV_2loose = False
+		# self.DV_1loose = False
+		# self.DV_med_vl = False
+		# self.DV_med_vvl = False
+		# self.DV_med_vvlSi = False
+		# self.DV_loose_vl = False
+		# self.DV_loose_vvl = False
+		# self.DV_loose_vvlSi = False
+		# self.DV_2vl = False
+		# self.DV_2vvl = False
+		# self.DV_2vvlSi = False
 
 
 
@@ -532,15 +532,16 @@ class Trackqual():
 			self.DV_1tight = self.nmu_tight > 0 or self.nel_tight > 0
 			self.DV_1medium = self.nmu_medium > 0 or self.nel_medium > 0
 			self.DV_1loose = self.nmu_loose > 0 or self.nel_loose > 0
-                        self.DV_tight_medium = (self.nmu_tight == 1 and self.nel_medium == 1) or (self.nmu_tight == 1 and self.nmu_medium >= 1)
-                        self.DV_tight_loose = (self.nmu_tight == 1 and self.nel_loose == 1) or (self.nmu_tight == 1 and self.nmu_loose >= 1)
-                        self.DV_medium_loose = (self.nmu_medium == 1 and self.nel_loose == 1) or (self.nmu_medium == 1 and self.nmu_loose >= 1) 
-                        self.DV_tight_veryloose = self.nmu_tight == 1 and self.nel_veryloose == 1
-                        self.DV_medium_veryloose = self.nmu_medium == 1 and self.nel_veryloose == 1
-                        self.DV_loose_veryloose = self.nmu_loose == 1 and self.nel_veryloose == 1
-                        self.DV_tight_veryveryloose = self.nmu_tight == 1 and self.nel_veryveryloose == 1
-                        self.DV_medium_veryveryloose = self.nmu_medium == 1 and self.nel_veryveryloose == 1
-                        self.DV_loose_veryveryloose = self.nmu_loose == 1 and self.nel_veryveryloose == 1
+			self.DV_tight_medium = (self.nmu_tight == 1 and self.nel_medium == 1) or (self.nmu_tight == 1 and self.nmu_medium >= 1)
+			self.DV_tight_loose = (self.nmu_tight == 1 and self.nel_loose == 1) or (self.nmu_tight == 1 and self.nmu_loose >= 1)
+			self.DV_medium_loose = (self.nmu_medium == 1 and self.nel_loose == 1) or (self.nmu_medium == 1 and self.nmu_loose >= 1) 
+			self.DV_tight_veryloose = self.nmu_tight == 1 and self.nel_veryloose == 1
+			self.DV_medium_veryloose = self.nmu_medium == 1 and self.nel_veryloose == 1
+			self.DV_loose_veryloose = self.nmu_loose == 1 and self.nel_veryloose == 1
+			self.DV_tight_veryveryloose = self.nmu_tight == 1 and self.nel_veryveryloose == 1
+			self.DV_medium_veryveryloose = self.nmu_medium == 1 and self.nel_veryveryloose == 1
+			self.DV_loose_veryveryloose = self.nmu_loose == 1 and self.nel_veryveryloose == 1
+			self.DV_2veryveryloose = self.nel_veryveryloose == 2
 
 
 	def passes(self):
@@ -584,6 +585,9 @@ class Trackqual():
 
 		if self.quality == "medium-veryveryloose":
 			return self.DV_medium_veryveryloose
+
+		if self.quality == "2-veryveryloose":
+			return self.DV_2veryveryloose
 
 		if self.quality == "loose-veryveryloose":
 			return self.DV_loose_veryveryloose
