@@ -38,7 +38,7 @@ do_cut_significane = True
 
 def makeCutflows(config_file):
 	# vtx_channels = ["VSI_LRTR3_1p0", "VSI_LeptonsMod_LRTR3_1p0"]
-	vtx_channels = ["VSI","VSI_LeptonsMod_LRTR3_1p0"]
+	vtx_channels = ["VSI","VSI_Leptons"]
 	for vtx_channel in vtx_channels:
 		plotting.plot_cutflow(file = config_file["dataFile"],
 							  selection="all",

@@ -560,6 +560,7 @@ def compare(hist_channels,
 			cut_significance(variable,vtx_alg,scalelumi,histograms,filenames,labels,x_min,x_max,output_dir,save_file_name)
 
 
+
 def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_max, output_dir, savefilename, ncuts=0):
 	h_idx = range(len(histograms))
 	
