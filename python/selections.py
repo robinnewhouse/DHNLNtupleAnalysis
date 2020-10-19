@@ -1139,7 +1139,7 @@ class MCEventType:
 		def M2_nocorr(MN, pW2, s24):
 		    return ( s24*(MN**2-s24)*(MN**2+2*MW**2)*(pW2-MN**2) ) / ( 6*MW**6 )
 
-		if not tree.is_data:
+		if not tree.is_data and not tree.notHNLmc:
 			truth_info = helpers.Truth()
 			truth_info.getTruthParticles(tree)
 			pW2 = truth_info.W_vec.Mag2()

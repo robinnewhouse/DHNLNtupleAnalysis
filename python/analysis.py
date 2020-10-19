@@ -304,7 +304,7 @@ class Analysis(object):
 
 		# make acceptance Histograms 
 		# TOD: it doesnt looks like on data the acceptance histograms are working as expected. -DT
-		if not self.tree.is_data:
+		if not self.tree.is_data and not self.tree.notHNLmc:
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'] = self.CutFlow_LNV.Clone()
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'] = self.CutFlow_LNC.Clone()
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
@@ -467,7 +467,7 @@ class Analysis(object):
 
 		self._fill_leptons()
 
-		if not self.tree.is_data:
+		if not self.tree.is_data and not self.tree.notHNLmc:
 			self._fill_truth_histos(sel='truth/all')
 			if self.MCEventType.isLNC: 
 				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
@@ -529,7 +529,7 @@ class Analysis(object):
 
 		# If you've made it here, preselection is passed
 		self.passed_preselection_cuts = True
-		if not self.tree.is_data:
+		if not self.tree.is_data and not self.tree.notHNLmc:
 			self._fill_truth_histos(sel='truth/presel')
 
 	def calculate_event_weight(self):
@@ -549,7 +549,7 @@ class Analysis(object):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
 
 	def _fill_cutflow(self, nbin):
-		if not self.tree.is_data:
+		if not self.tree.is_data and not self.tree.notHNLmc:
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin)
 			if self.MCEventType.isLNV:
@@ -1078,7 +1078,7 @@ class run2Analysis(Analysis):
 		self.CutFlow.GetXaxis().SetBinLabel(15, "truth matched")
 
 		# Store LNC and LNV cutflows in the observables collection
-		if not self.tree.is_data: 
+		if not self.tree.is_data and not self.tree.notHNLmc: 
 			self.CutFlow_LNV = self.CutFlow.Clone()
 			self.CutFlow_LNC = self.CutFlow.Clone()
 			self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
@@ -1200,7 +1200,7 @@ class run2Analysis(Analysis):
 		# self._fill_selected_dv_histos("mlll")
 
 		# Fill histos of truth-matched DVs
-		if not self.tree.is_data:
+		if not self.tree.is_data and not self.tree.notHNLmc:
 			if self._truth_match():
 				self._fill_cutflow(14)
 				# self.h['CutFlow'][self.ch].Fill(14)
@@ -1255,7 +1255,7 @@ class KShort(Analysis):
 
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
-		if not self.tree.is_data:
+		if not self.tree.is_data and not self.tree.notHNLmc:
 			if self.MCEventType.isLNC: 
 				sel =  sel + "_LNC" 
 			if self.MCEventType.isLNV:

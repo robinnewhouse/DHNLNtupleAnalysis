@@ -20,7 +20,7 @@ def main():
 	logger = helpers.getLogger('dHNLAnalysis.makeHistograms',level=debug_level)
 	logger.info("-> Calling main")
 
-	output_path = os.path.join(os.path.abspath(options.output), '')
+	output_path = os.path.join(os.path.abspath("../"+ options.output), '')
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
 		os.mkdir(output_path)
@@ -48,7 +48,7 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau)
+		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc)
 
 		# create one output file per channel in your config file
 		if "SSdata" in options.config.split("config")[1]:
@@ -166,7 +166,7 @@ if __name__ == "__main__":
 	parser.add_argument("-o", "--output",
 						dest="output",
 						type=str,
-						default = "../output/",
+						default = "output/",
 						help="Output directory to store histograms.")
 
 	parser.add_argument("-f", "--force",
@@ -207,6 +207,12 @@ if __name__ == "__main__":
 						default = 'INFO',
 						type = str,
 						help='debug level. Default is INFO. Options include are CRITICAL, ERROR, WARNING, INFO, DEBUG ')
+
+	parser.add_argument('--notHNLmc',
+						action="store_true",
+						dest="notHNLmc",
+						default = False,
+						help='Not running on HNL mc. Default: False. Useful for running on mc that is not HNL mc. Turn HNL specific truth info storing off.')
 	
 
 
