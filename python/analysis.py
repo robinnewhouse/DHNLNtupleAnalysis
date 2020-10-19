@@ -511,19 +511,19 @@ class Analysis(object):
 
 		if self.do_prompt_lepton_cut:
 			if self._prompt_lepton_cut():
-				self._fill_cutflow(4)
+				self._fill_cutflow(5)
 			else:
 				return
 
 		if self.do_invert_prompt_lepton_cut:
 			if self._invert_prompt_lepton_cut():
-				self._fill_cutflow(4)
+				self._fill_cutflow(5)
 			else:
 				return
 
 		if self.do_ndv_cut:
 			if self._ndv_cut():
-				self._fill_cutflow(5)
+				self._fill_cutflow(6)
 			else:
 				return
 
@@ -1036,7 +1036,7 @@ class run2Analysis(Analysis):
 
 		# Define cutflow histogram "by hand"		
 		self.cutflow_dir = self.ch + '/CutFlow/'
-		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 15, -0.5, 14.5)
+		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 16, -0.5, 15.5)
 		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
 		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
@@ -1052,30 +1052,31 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+		self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
 		if self.do_invert_prompt_lepton_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(5, "invert prompt lepton")
+			self.CutFlow.GetXaxis().SetBinLabel(6, "invert prompt lepton")
 		if self.do_ndv_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(6, "DV")
+			self.CutFlow.GetXaxis().SetBinLabel(7, "DV")
 		if self.do_fidvol_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(7, "fiducial")
+			self.CutFlow.GetXaxis().SetBinLabel(8, "fiducial")
 		if self.do_ntrk_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(8, "%s-track DV" % self.ntrk)
+			self.CutFlow.GetXaxis().SetBinLabel(9, "%s-track DV" % self.ntrk)
 		if self.do_opposite_sign_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(9, "OS DV")
+			self.CutFlow.GetXaxis().SetBinLabel(10, "OS DV")
 		if self.do_same_sign_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(9, "SS DV")
+			self.CutFlow.GetXaxis().SetBinLabel(10, "SS DV")
 		if self.do_dv_type_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(10, "%s DV" % self.dv_type)
+			self.CutFlow.GetXaxis().SetBinLabel(11, "%s DV" % self.dv_type)
 		if self.do_cosmic_veto_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(11, "cosmic veto")
+			self.CutFlow.GetXaxis().SetBinLabel(12, "cosmic veto")
 		if self.do_dv_mass_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(12, "m_{DV}")
+			self.CutFlow.GetXaxis().SetBinLabel(13, "m_{DV}")
 		if self.do_track_quality_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(13, "{}-lepton DV".format(self.track_quality))
+			self.CutFlow.GetXaxis().SetBinLabel(14, "{}-lepton DV".format(self.track_quality))
 		if self.do_trilepton_mass_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(14, "m_{lll}")
+			self.CutFlow.GetXaxis().SetBinLabel(15, "m_{lll}")
 		
-		self.CutFlow.GetXaxis().SetBinLabel(15, "truth matched")
+		self.CutFlow.GetXaxis().SetBinLabel(16, "truth matched")
 
 		# Store LNC and LNV cutflows in the observables collection
 		if not self.tree.is_data and not self.tree.notHNLmc: 
@@ -1109,7 +1110,7 @@ class run2Analysis(Analysis):
 			if self._fidvol_cut():
 				# Has the cutflow already been filled for this event?
 				if not self.passed_fidvol_cut:
-					self._fill_cutflow(6)
+					self._fill_cutflow(7)
 					self.passed_fidvol_cut = True
 			# If this cut doesn't pass, don't continue to check other cuts
 			else:
@@ -1121,7 +1122,7 @@ class run2Analysis(Analysis):
 		if self.do_ntrk_cut:
 			if self._ntrk_cut():
 				if not self.passed_ntrk_cut:
-					self._fill_cutflow(7)
+					self._fill_cutflow(8)
 					self.passed_ntrk_cut = True
 			else:
 				return
@@ -1143,7 +1144,7 @@ class run2Analysis(Analysis):
 		if self.do_opposite_sign_cut or self.do_same_sign_cut:
 			if self._charge_cut():
 				if not self.passed_charge_cut:
-					self._fill_cutflow(8)
+					self._fill_cutflow(9)
 					self.passed_charge_cut = True
 			else:
 				return
@@ -1151,7 +1152,7 @@ class run2Analysis(Analysis):
 		if self.do_dv_type_cut:
 			if self._dv_type_cut():
 				if not self.passed_dv_type_cut:
-					self._fill_cutflow(9)
+					self._fill_cutflow(10)
 					self.passed_dv_type_cut = True
 			else:
 				return
@@ -1161,7 +1162,7 @@ class run2Analysis(Analysis):
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
-					self._fill_cutflow(10)
+					self._fill_cutflow(11)
 					self.passed_cosmic_veto_cut = True
 			else:
 				return
@@ -1171,7 +1172,7 @@ class run2Analysis(Analysis):
 		if self.do_dv_mass_cut:
 			if self._dv_mass_cut():
 				if not self.passed_dv_mass_cut:
-					self._fill_cutflow(11)
+					self._fill_cutflow(12)
 					self.passed_dv_mass_cut = True
 			else:
 				return
@@ -1181,7 +1182,7 @@ class run2Analysis(Analysis):
 		if self.do_track_quality_cut:
 			if self._track_quality_cut():
 				if not self.passed_track_quality_cut:
-					self._fill_cutflow(12)
+					self._fill_cutflow(13)
 					self.passed_track_quality_cut = True
 			else:
 				return
@@ -1192,7 +1193,7 @@ class run2Analysis(Analysis):
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
-					self._fill_cutflow(13)
+					self._fill_cutflow(14)
 					self.passed_trilepton_mass_cut = True
 			else:
 				return
@@ -1202,7 +1203,7 @@ class run2Analysis(Analysis):
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data and not self.tree.notHNLmc:
 			if self._truth_match():
-				self._fill_cutflow(14)
+				self._fill_cutflow(15)
 				# self.h['CutFlow'][self.ch].Fill(14)
 				self._fill_selected_dv_histos("match")
 
