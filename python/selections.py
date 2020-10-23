@@ -157,6 +157,7 @@ class PromptLepton():
 		self.plepd0 = -2000
 		self.plepz0 = -2000
 		self.nPlep = 0
+		self.found_plep = False
 
 
 		lepquality = ""
@@ -225,6 +226,7 @@ class PromptLepton():
 			# if passPfilter[ilep] and passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
 			if passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
 				# Check the overlap between the prompt lepton and every displaced vertex track
+				self.found_plep = True
 				for idv in range(tree.ndv):
 					prefix = tree.dv_prefix + '_'
 					ntrks = tree.get_at(prefix+'ntrk', tree.ievt, idv)
@@ -318,7 +320,7 @@ class DVntracks():
 		self.decaymode = decaymode
 
 		self.ntracks = -1 
-
+		
 		if self.decaymode == "leptonic":
 			self.ntracks = tree.ntrk
 

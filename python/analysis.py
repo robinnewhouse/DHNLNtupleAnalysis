@@ -355,7 +355,9 @@ class Analysis(object):
 		return filter_sel.passes()
 
 	def _prompt_lepton_cut(self):
-		self.plep_sel = selections.PromptLepton(self.tree, lepton=self.plep)
+		self.found_plep = False # intitalize the plep each event 
+		self.plep_sel = selections.PromptLepton(self.tree, lepton=self.plep) # run plep selection 
+		self.found_plep = self.plep_sel.found_plep # check if you found any prompt leptons 
 		# Add to histogram all prompt leptons that pass selection.
 		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
 		if self.plep_sel.passes():
@@ -364,7 +366,7 @@ class Analysis(object):
 			self.fill_hist('all', 'plep_phi', self.plep_sel.plepVec.Phi())
 			self.fill_hist('all', 'plep_d0', self.plep_sel.plepd0)
 			self.fill_hist('all', 'plep_z0', self.plep_sel.plepz0)
-		return self.plep_sel.passes()
+		return self.plep_sel.passes() # full plep selection find the highest pt plep that doesnt overlap with any DVs
 
 	def _invert_prompt_lepton_cut(self):
 		self.invt_lep = selections.InvertedPromptLepton(self.tree)
@@ -510,7 +512,10 @@ class Analysis(object):
 				return
 
 		if self.do_prompt_lepton_cut:
-			if self._prompt_lepton_cut():
+			plep_cut = self._prompt_lepton_cut()
+			if self.found_plep: 
+				self._fill_cutflow(4)
+			if plep_cut:
 				self._fill_cutflow(5)
 			else:
 				return
@@ -1140,7 +1145,6 @@ class run2Analysis(Analysis):
 				if self._dv_type_cut(): 
 					self._fill_selected_dv_histos("SS_DVtype") # save lepton SS histograms 
 
-
 		if self.do_opposite_sign_cut or self.do_same_sign_cut:
 			if self._charge_cut():
 				if not self.passed_charge_cut:
@@ -1158,7 +1162,7 @@ class run2Analysis(Analysis):
 				return
 	
 		self._fill_selected_dv_histos("DVtype")
-		
+			
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
