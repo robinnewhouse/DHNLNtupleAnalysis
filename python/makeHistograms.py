@@ -20,7 +20,7 @@ def main():
 	logger = helpers.getLogger('dHNLAnalysis.makeHistograms',level=debug_level)
 	logger.info("-> Calling main")
 
-	output_path = os.path.join(os.path.abspath("../output/"+ options.output), '')
+	output_path = os.path.join(os.path.abspath(options.output), '')
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
 		os.mkdir(output_path)
@@ -166,7 +166,7 @@ if __name__ == "__main__":
 	parser.add_argument("-o", "--output",
 						dest="output",
 						type=str,
-						default = "",
+						default = "../output/",
 						help="Output directory to store histograms.")
 
 	parser.add_argument("-f", "--force",

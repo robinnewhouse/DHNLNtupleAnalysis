@@ -2,7 +2,10 @@
    "kshort": {
       "vtx_containers": [
          "VSI",
-         "VSI_2"
+         "VSI_LRTR3_1p0",
+         "VSI_Leptons",
+         "VSI_LeptonsMod_LRTR3_1p0"
+
       ],
       "selections": ["CR","alpha", "mass_window"]
    }

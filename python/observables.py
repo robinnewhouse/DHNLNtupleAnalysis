@@ -32,6 +32,8 @@ class Observables:
 		# fill 1d or 2d histogram
 		if variable_2 is None:
 			histogram.Fill(variable_1, weight)
+			# if hist_name == 'DV_mass' and '/mass/' in directory: # DEBUGGING
+			# 	self.logger.info('filling mass histogram: {}'.format(histogram.GetEntries()))
 		else:
 			histogram.Fill(variable_1, variable_2, weight)
 
@@ -82,6 +84,9 @@ class Observables:
 					root_file.mkdir(directory)	
 			root_file.cd(directory)
 			# write the histogram
+			# if 'DV_mass' in tokens and 'mass' in tokens: # DEBUGGING
+			# 	self.logger.info('writing mass histogram: {}'.format(histogram.GetEntries()))
+
 			histogram.Write(hist_name)
 
 

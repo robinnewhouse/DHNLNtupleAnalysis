@@ -231,8 +231,9 @@ class Analysis(object):
 		# define here the directory structure where this histogram is stored.
 		directory = '{ch}/{selection}/'.format(ch=self.ch, selection=selection)
 		# add LNC or LNV directory for simulation. Not used for data.
-		if self.MCEventType.isLNC: directory += 'LNC/'
-		if self.MCEventType.isLNV: directory += 'LNV/'
+		if hasattr(self, 'MCEventType'):
+			if self.MCEventType.isLNC: directory += 'LNC/'
+			if self.MCEventType.isLNV: directory += 'LNV/'
 
 		self.observables.fill_hist(directory, hist_name, variable_1, variable_2, self.weight)
 
@@ -244,10 +245,13 @@ class Analysis(object):
 			# Note: selection and hist_name will be overridden by full_name
 			# Need selection to define ntuple tree
 			# TODO redo this method to use the directory correctly
-			if self.MCEventType.isLNC: self.fill_ntuple(selection, hist_name, variable_1,MCtype="LNC")
-			elif self.MCEventType.isLNV: self.fill_ntuple(selection, hist_name, variable_1,MCtype="LNV")
-			else: self.fill_ntuple(selection, hist_name, variable_1)
-	def fill_ntuple(self, selection, ntuple_name, variable,MCtype=None, full_name=""):
+			if hasattr(self, 'MCEventType'):
+				if self.MCEventType.isLNC: self.fill_ntuple(selection, hist_name, variable_1,MCtype="LNC")
+				elif self.MCEventType.isLNV: self.fill_ntuple(selection, hist_name, variable_1,MCtype="LNV")
+			else:
+				self.fill_ntuple(selection, hist_name, variable_1)
+
+	def fill_ntuple(self, selection, ntuple_name, variable, MCtype=None, full_name=""):
 		"""
 		A helper function for filling micro-ntuples. Often called from the fill_hist function.
 		If you are using this in you analysis,
@@ -538,6 +542,11 @@ class Analysis(object):
 			self._fill_truth_histos(sel='truth/presel')
 
 	def calculate_event_weight(self):
+		# ignore weight for non-signal MC for now
+		if self.tree.notHNLmc:
+			self.weight = 1
+			return
+
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
 		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
 		# calculate mass lifetime weight 
@@ -1208,29 +1217,32 @@ class run2Analysis(Analysis):
 		if not self.tree.is_data and not self.tree.notHNLmc:
 			if self._truth_match():
 				self._fill_cutflow(15)
-				# self.h['CutFlow'][self.ch].Fill(14)
+				# self.CutFlow.Fill(14)
 				self._fill_selected_dv_histos("match")
 
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 		self._fill_selected_dv_histos("sel")
 
 
-
 class KShort(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
-		self.logger.info('Running KShort Analysis cuts', level=debug_level)
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level, weight_override=None):
+		Analysis.__init__(self, name, tree, vtx_container, selections,
+		                  outputFile, saveNtuples, debug_level, weight_override)
+		self.logger.info('Running KShort Analysis cuts')
 
-		self.add('CutFlow', 17, -0.5, 16.5)
+		# Define cutflow histogram "by hand"
+		self.cutflow_dir = self.ch + '/CutFlow/'
+		self.observables.histogram_dict[self.cutflow_dir + 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 16, -0.5, 15.5)
+		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
-		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(1, "all")
-		self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(2, "PV")
+		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
+		self.CutFlow.GetXaxis().SetBinLabel(2, "PV")
 		if self.do_invert_prompt_lepton_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(3, "invert prompt lepton")
+			self.CutFlow.GetXaxis().SetBinLabel(3, "invert prompt lepton")
 		if self.do_alpha_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(4, "alpha")
+			self.CutFlow.GetXaxis().SetBinLabel(4, "alpha")
 		if self.do_mass_window_cut:
-			self.h['CutFlow'][self.ch].GetXaxis().SetBinLabel(5, "K0 mass")
+			self.CutFlow.GetXaxis().SetBinLabel(5, "K0 mass")
 		# add other histograms
 
 	def _fill_leptons(self):
@@ -1258,58 +1270,44 @@ class KShort(Analysis):
 			if self.tree['el_LHLoose'][iel] == 1:  self.fill_hist(sel, 'el_quality', 1)
 			else: self.fill_hist(sel, 'el_quality', 0)
 
-
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
-		if not self.tree.is_data and not self.tree.notHNLmc:
-			if self.MCEventType.isLNC: 
-				sel =  sel + "_LNC" 
-			if self.MCEventType.isLNV:
-				sel =  sel + "_LNV" 
 
+		# sel refers to the last selection that was applied
+		for itrk in range(self.tree.ntrk):  # loop over tracks
+			self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
+			self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
 
-		if self._locked < FILL_LOCKED or not do_lock:
-			# these are the histograms you only want to fill ONCE per DV
+		self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
+		self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
+		self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
+		self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
+		self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
+		self.fill_hist(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
+		self.fill_hist(sel, 'DV_mass', self.tree.dv('mass'))
+		self.fill_hist(sel, 'DV_pt', self.tree.dv('pt'))
+		self.fill_hist(sel, 'DV_eta', self.tree.dv('eta'))
+		self.fill_hist(sel, 'DV_phi', self.tree.dv('phi'))
+		self.fill_hist(sel, 'DV_minOpAng', self.tree.dv('minOpAng'))
+		self.fill_hist(sel, 'DV_maxOpAng', self.tree.dv('maxOpAng'))
+		self.fill_hist(sel, 'DV_charge', self.tree.dv('charge'))
+		self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
+		# self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
+		self.fill_hist(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
 
-			# sel refers to the last selection that was applied
-			for itrk in range(self.tree.ntrk):  # loop over tracks
-				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_d0', self.tree.dv('trk_d0')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_z0', self.tree.dv('trk_z0')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[itrk], fill_ntuple=False)
-				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2_toSV')[itrk], fill_ntuple=False)
+		# kshort stuff
+		track_sum = selections.SumTrack(self.tree)
+		self.fill_hist(sel, 'DV_sum_track_pt', track_sum.sum_track_pt)
+		self.fill_hist(sel, 'DV_sum_track_pt_wrt_pv', track_sum.sum_track_pt_wrt_pv)
+		self.fill_hist(sel, 'DV_sum_track_pt_diff', track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt)
+		self.fill_hist(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
 
-
-			self.fill_hist(sel, 'DV_num_trks', self.tree.dv('ntrk'))
-			self.fill_hist(sel, 'DV_x', self.tree.dv('x'))
-			self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
-			self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
-			self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
-			self.fill_hist(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
-			self.fill_hist(sel, 'DV_mass', self.tree.dv('mass'))
-			self.fill_hist(sel, 'DV_pt', self.tree.dv('pt'))
-			self.fill_hist(sel, 'DV_eta', self.tree.dv('eta'))
-			self.fill_hist(sel, 'DV_phi', self.tree.dv('phi'))
-			self.fill_hist(sel, 'DV_minOpAng', self.tree.dv('minOpAng'))
-			self.fill_hist(sel, 'DV_maxOpAng', self.tree.dv('maxOpAng'))
-			self.fill_hist(sel, 'DV_charge', self.tree.dv('charge'))
-			self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
-			# self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
-			self.fill_hist(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
-
-			# kshort stuff
-			track_sum = selections.SumTrack(self.tree)
-			self.fill_hist(sel, 'DV_sum_track_pt', track_sum.sum_track_pt)
-			self.fill_hist(sel, 'DV_sum_track_pt_wrt_pv', track_sum.sum_track_pt_wrt_pv)
-			self.fill_hist(sel, 'DV_sum_track_pt_diff', track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt)
-			self.fill_hist(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
-
-			if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
-				if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
-				elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
-				else: self.micro_ntuples[sel].fill()
-
+		if sel == self.saveNtuples or self.saveNtuples == 'allcuts':
+			self.micro_ntuples[sel].fill()
 
 	#########################################################################################################################
 	# Define new cuts you want to apply here. This will overwrite whatever cuts are defined in the parent analysis class.
@@ -1317,6 +1315,7 @@ class KShort(Analysis):
 	def _mass_window_cut(self):
 		mass_min = .4977 - .01  # kshort mass +/- epsilon
 		mass_max = .4977 + .01
+		mass_min, mass_max = (0.3, 4.3)
 		dv_mass = self.tree.dv('mass')
 		return (dv_mass > mass_min) and (dv_mass < mass_max)
 
@@ -1325,20 +1324,37 @@ class KShort(Analysis):
 		return alpha_sel.passes()
 
 	def preSelection(self):
+
+		########################################
+		# get the event weight for each event
+		########################################
+		self.calculate_event_weight()
+
+		######################################################################################################
+		# Preselection are all the cuts that are requied per event
+		# Current cuts include: trigger, filter, plepton, DV cut
+		######################################################################################################
+
+		# initialize the cut bools for every event
+		self.initialize_cut_bools()
 		self.passed_preselection_cuts = False
 		self.passed_alpha_cut = False
 		self.passed_mass_window_cut = False
-		self.h['CutFlow'][self.ch].Fill(0)  # all
+
+		self._fill_leptons()
+
+		# Fill all entries of cutflow
+		self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
 
 		# Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
 		if self._pv_cut():
-			self.h['CutFlow'][self.ch].Fill(1)
+			self._fill_cutflow(1)
 		else:
 			return
 
 		if self.do_invert_prompt_lepton_cut:
 			if self._invert_prompt_lepton_cut():
-				self.h['CutFlow'][self.ch].Fill(2)
+				self._fill_cutflow(2)
 			else:
 				return
 
@@ -1357,24 +1373,21 @@ class KShort(Analysis):
 		# only do the DV selection if the preselction was passed for the event.
 		if not self.passed_preselection_cuts:
 			return
-
-		# self._fill_selected_dv_histos("presel", do_lock=False)
+		self._fill_selected_dv_histos("presel", do_lock=False)
 
 		if self.do_alpha_cut:
 			if self._alpha_cut():
-				self.h['CutFlow'][self.ch].Fill(3)
+				self._fill_cutflow(3)
 				self.passed_alpha_cut = True
 			else:
 				return
-		# self._fill_selected_dv_histos("alpha", do_lock=False)
+		self._fill_selected_dv_histos("alpha", do_lock=False)
 
 		if self.do_mass_window_cut:
 			if self._mass_window_cut():
-				self.h['CutFlow'][self.ch].Fill(4)
+				self._fill_cutflow(4)
 				self.passed_mass_window_cut = True
 			else:
 				return
-		# self._fill_selected_dv_histos("mass", do_lock=False)
-
-		self._fill_selected_dv_histos("sel", do_lock=False)
-		# self._fill_selected_dv_ntuples("sel", do_lock=False)
+		self._fill_selected_dv_histos("mass", do_lock=False)
+		# self._fill_selected_dv_histos("sel", do_lock=False)
