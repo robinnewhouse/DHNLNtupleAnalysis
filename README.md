@@ -179,6 +179,9 @@ When you run makeHistograms.py on a dHNL nutple you will get an output file loca
 
 ## Making Pretty Plots
 
+Please see `DHNLPlotting` repository for making plots. [DHNLPlotting](https://gitlab.cern.ch/dtrischu/dhnlplotting/-/tree/master).
+
+---Old Plotting Code---
 Plotting functions are defined in `plotting.py`. The steering code `plotHistograms.py` defines what kinds of plots to save in the default output directory `DHNLNtupleAnalysis/output/plots/`. Running plotHistograms.py you can plot different distribtions on the same canvas and save them to the output directory.
 
 Make sure you edit `DHNLNtupleAnalysis/data/config_plotting.json` to include the files you wish to plot.
