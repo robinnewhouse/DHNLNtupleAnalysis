@@ -73,6 +73,8 @@ class Truth():
 		self.trkVec = []
 		self.dLepVec = []
 		self.dLepCharge = []
+		self.dEl = []
+		self.dMu = []
 		self.truth_dvx = -1
 		self.truth_dvy = -1
 		self.truth_dvz = -1
@@ -92,8 +94,6 @@ class Truth():
 		
 
 	def getTruthParticles(self, tree):
-		dMu = []
-		dEl = []
 		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
 			# get the DV!
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50:  # PDGID 50: Heavy Neutral Lepton
@@ -117,7 +117,7 @@ class Truth():
 												tree['truthVtx_outP_phi'][ivx][i],
 												tree['truthVtx_outP_M'][ivx][i] 
 												)
-							dMu.append(TrkVec)
+							self.dMu.append(TrkVec)
 						if trk_pdgId == 11: 
 							TrkVec  =  ROOT.TLorentzVector()
 							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
@@ -125,7 +125,7 @@ class Truth():
 												tree['truthVtx_outP_phi'][ivx][i],
 												tree['truthVtx_outP_M'][ivx][i] 
 												)
-							dEl.append(TrkVec)
+							self.dEl.append(TrkVec)
 
 						if trk_pdgId == 13 or trk_pdgId == 11: # is track a muon of electron? Then these are our visible (charged) truth tracks
 							visTrkVec =  ROOT.TLorentzVector()

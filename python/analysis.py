@@ -34,6 +34,10 @@ class Analysis(object):
 		# create an instance of Observables to store histograms
 		self.observables = observables.Observables()
 
+		self.events_with_trig_match_plep = 0
+		self.events_with_trig_match_dlep = 0
+		self.events_with_trig_match_both_pdlep =0
+
 		# setting all the relevant variables for the cuts based on the input selections
 		# trigger cut
 		if 'alltriggers' in self.sel:
@@ -277,8 +281,9 @@ class Analysis(object):
 				sys.exit(1)  # abort because of error
 
 			if not self.do_prompt_lepton_cut:
-				self.logger.error("You cannot calculate mlll, HNLpt or HNLm without selecting a prompt lepton!")
-				sys.exit(1)  # abort because of error
+				if self.do_trilepton_mass_cut or self.do_HNL_mass_cut or do_HNL_pt_cut:
+					self.logger.warning("You cannot cut on mlll, HNLpt or HNLm without first selecting a prompt lepton. Apply a prompt lepton cut!")
+					sys.exit(1)  # abort because of error
 
 		if self.do_opposite_sign_cut and self.do_same_sign_cut:
 			self.logger.error("These cuts are mutually exclusive. You will get zero events!")
@@ -361,6 +366,11 @@ class Analysis(object):
 		# Add to histogram all prompt leptons that pass selection.
 		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
 		if self.plep_sel.passes():
+			trig_match = selections.TriggerMatching_prompt(self.tree, self.plep, self.plep_sel.plep_Index)
+			if trig_match.plep_isTrigMatched:
+				self.events_with_trig_match_plep = self.events_with_trig_match_plep + 1
+
+
 			self.fill_hist('all', 'plep_pt', self.plep_sel.plepVec.Pt())
 			self.fill_hist('all', 'plep_eta', self.plep_sel.plepVec.Eta())
 			self.fill_hist('all', 'plep_phi', self.plep_sel.plepVec.Phi())
@@ -390,6 +400,13 @@ class Analysis(object):
 
 	def _dv_type_cut(self):
 		dv_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
+
+		if dv_sel.passes():
+			trig_match = selections.TriggerMatching_disp(self.tree, self.dv_type, dv_sel.dMu_Index, dv_sel.dEl_Index)
+			if trig_match.dlep_isTrigMatched:
+				self.events_with_trig_match_dlep = self.events_with_trig_match_dlep + 1
+			count_trig_match_disp_event = True
+
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
@@ -451,9 +468,13 @@ class Analysis(object):
 		self.passed_dv_mass_cut = False
 		self.passed_HNL_mass_cut = False
 		self.passed_HNL_pt_cut = False
+		self.count_trig_match_disp_event = False
 
 
 	def preSelection(self):
+		# if self.tree.max_entries == self.tree.ievt +1:
+		# 	print "number of events with prompt lepton trigger matched: ", self.events_with_trig_match_plep
+		# 	print "number of events with disp. lepton trigger matched: ", self.events_with_trig_match_dlep
 		########################################
 		# get the event weight for each event
 		########################################
@@ -483,8 +504,6 @@ class Analysis(object):
 		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
 		######################################################################################################
-
-	
 
 		if self.do_trigger_cut:
 			if self._trigger_cut():
@@ -810,6 +829,17 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
+
+			for iel in range(len(truth_info.dEl)):
+				self.fill_hist(sel, 'DV_El_pt', truth_info.dEl[iel].Pt(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_El_eta', truth_info.dEl[iel].Eta(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_El_phi', truth_info.dEl[iel].Phi(), fill_ntuple=False)
+			
+			for imu in range(len(truth_info.dMu)):
+				self.fill_hist(sel, 'DV_Mu_pt', truth_info.dMu[imu].Pt(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_Mu_eta', truth_info.dMu[imu].Eta(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_Mu_phi', truth_info.dMu[imu].Phi(), fill_ntuple=False)
+
 			# TODO: figure out a ntuple scheme that can store these variables as well
 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
 			if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
@@ -1093,7 +1123,6 @@ class run2Analysis(Analysis):
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
 
 	def DVSelection(self):
-
 		######################################################################################################
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
