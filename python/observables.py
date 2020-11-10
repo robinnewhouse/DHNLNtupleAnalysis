@@ -218,6 +218,8 @@ binning_definitions = {
 	'DV_trk_pt': (1000, 0, 1000),
 	'DV_trk_eta': (160, -10, 10),
 	'DV_trk_phi': (64, -4, 4),
+	'DV_trk_d0': (2000, -200, 200),
+	'DV_d0_cut': (2, -0.5, 1.5),
 	'DV_El_pt': (1000, 0, 1000),
 	'DV_El_eta': (160, -10, 10),
 	'DV_El_phi': (64, -4, 4),

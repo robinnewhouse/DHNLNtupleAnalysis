@@ -75,6 +75,7 @@ class Truth():
 		self.dLepCharge = []
 		self.dEl = []
 		self.dMu = []
+		self.dTrk_d0 = []
 		self.truth_dvx = -1
 		self.truth_dvy = -1
 		self.truth_dvz = -1
@@ -152,6 +153,7 @@ class Truth():
 												)
 						self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
 						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
+						self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i])
 					
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],

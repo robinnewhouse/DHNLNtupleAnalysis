@@ -823,12 +823,17 @@ class Analysis(object):
 			self.fill_hist(sel, 'dlep3_eta', disp_lep[2].Eta())
 			self.fill_hist(sel, 'dlep3_phi', disp_lep[2].Phi())
 	
+			if (abs(truth_info.dTrk_d0[0]) < 2 and abs(truth_info.dTrk_d0[1]) < 2):
+				self.fill_hist(sel, 'DV_d0_cut',1, fill_ntuple=False)
+			else:
+				self.fill_hist(sel, 'DV_d0_cut',0, fill_ntuple=False)
 
-			
+
 			for itrk in range(2):
 				self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_d0',truth_info.dTrk_d0[itrk], fill_ntuple=False)
 
 			for iel in range(len(truth_info.dEl)):
 				self.fill_hist(sel, 'DV_El_pt', truth_info.dEl[iel].Pt(), fill_ntuple=False)
