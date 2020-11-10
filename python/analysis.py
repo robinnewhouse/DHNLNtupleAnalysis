@@ -82,6 +82,11 @@ class Analysis(object):
 			if 'CR' not in self.sel:
 				self.logger.warn('You did not specify a prompt lepton for this channel. Skipping prompt lepton selection.')
 			self.do_prompt_lepton_cut = False
+		
+		if "medium_plep" in self.sel: 
+			self.plep_quality = "medium"
+		else: 
+			self.plep_quality =  "tight"
 
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
 			self.do_CR = True
@@ -361,7 +366,7 @@ class Analysis(object):
 
 	def _prompt_lepton_cut(self):
 		self.found_plep = False # intitalize the plep each event 
-		self.plep_sel = selections.PromptLepton(self.tree, lepton=self.plep) # run plep selection 
+		self.plep_sel = selections.PromptLepton(self.tree, lepton=self.plep,quality=self.plep_quality) # run plep selection 
 		self.found_plep = self.plep_sel.found_plep # check if you found any prompt leptons 
 		# Add to histogram all prompt leptons that pass selection.
 		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
@@ -517,6 +522,8 @@ class Analysis(object):
 		else:
 			return
 
+		if self.tree.is_data: # when running on data skip over any events without any DVs to speed up running
+			if self.tree.ndv == 0: return
 
 		if self.do_invert_trigger_cut:
 			if self._invert_trigger_cut():
@@ -1086,7 +1093,7 @@ class run2Analysis(Analysis):
 		if self.do_filter_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(5, "tight prompt %s" % self.plep)
+			self.CutFlow.GetXaxis().SetBinLabel(5, "{} prompt {}".format(self.plep_quality,self.plep))
 		self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
 		if self.do_invert_prompt_lepton_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(6, "invert prompt lepton")
