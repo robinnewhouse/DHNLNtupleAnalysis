@@ -531,9 +531,6 @@ class Trackqual():
 				if elisVeryVeryLooseSi == 1:
 					self.nel_veryveryloosesi = self.nel_veryveryloosesi + 1
 
-#                        if self.nmu_medium < 2:
- #                               print "nmu_tight = ", self.nmu_tight, ", nmu_medium = ", self.nmu_medium, ", nmu_loose = ", self.nmu_loose
-
 			self.DV_2tight = self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1) 
 			self.DV_2medium = self.nmu_medium == 2 or self.nel_medium == 2 or (self.nmu_medium == 1 and self.nel_medium == 1)
 			self.DV_2loose = self.nmu_loose == 2 or self.nel_loose == 2 or (self.nmu_loose == 1 and self.nel_loose == 1)
@@ -600,14 +597,14 @@ class Trackqual():
 		if self.quality == "loose-veryveryloose":
 			return self.DV_loose_veryveryloose
 
-                if self.quality == "any-loose":
-                        return self.DV_any_loose
+		if self.quality == "any-loose":
+			return self.DV_any_loose
 
-                if self.quality == "any-veryveryloose":
-                        return self.DV_loose_veryveryloose
+		if self.quality == "any-veryveryloose":
+			return self.DV_loose_veryveryloose
 
-                if self.quality == "2-any":
-                        return self.DV_2any
+		if self.quality == "2-any":
+			return self.DV_2any
 
 
 class Cosmicveto():
