@@ -348,7 +348,7 @@ class FileInfo:
 		elif "4p5G" in infile:
 			self.mass = 4.5
 			self.mass_str = "4p5G"
-		elif "5G" in infile:
+		elif "_5G" in infile:
 			self.mass = 5.0
 			self.mass_str = "5G"
 		elif "7p5G" in infile:
