@@ -153,7 +153,8 @@ class Truth():
 												)
 						self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
 						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
-						self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i])
+						# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i]) 
+						self.dTrk_d0.append(-1) # fill with -1 for now, default DHNLalg does not have truth d0
 					
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],
