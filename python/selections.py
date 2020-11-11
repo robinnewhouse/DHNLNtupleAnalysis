@@ -531,15 +531,18 @@ class Trackqual():
 				if elisVeryVeryLooseSi == 1:
 					self.nel_veryveryloosesi = self.nel_veryveryloosesi + 1
 
+#                        if self.nmu_medium < 2:
+ #                               print "nmu_tight = ", self.nmu_tight, ", nmu_medium = ", self.nmu_medium, ", nmu_loose = ", self.nmu_loose
+
 			self.DV_2tight = self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1) 
 			self.DV_2medium = self.nmu_medium == 2 or self.nel_medium == 2 or (self.nmu_medium == 1 and self.nel_medium == 1)
 			self.DV_2loose = self.nmu_loose == 2 or self.nel_loose == 2 or (self.nmu_loose == 1 and self.nel_loose == 1)
 			self.DV_1tight = self.nmu_tight > 0 or self.nel_tight > 0
 			self.DV_1medium = self.nmu_medium > 0 or self.nel_medium > 0
 			self.DV_1loose = self.nmu_loose > 0 or self.nel_loose > 0
-			self.DV_tight_medium = (self.nmu_tight == 1 and self.nel_medium == 1) or (self.nmu_tight == 1 and self.nmu_medium >= 1)
-			self.DV_tight_loose = (self.nmu_tight == 1 and self.nel_loose == 1) or (self.nmu_tight == 1 and self.nmu_loose >= 1)
-			self.DV_medium_loose = (self.nmu_medium == 1 and self.nel_loose == 1) or (self.nmu_medium == 1 and self.nmu_loose >= 1) 
+			self.DV_tight_medium = (self.nmu_tight == 1 and self.nel_medium == 1) or (self.nel_tight == 1 and self.nmu_medium == 1) or (self.nmu_tight >= 1 and self.nmu_medium == 2)
+			self.DV_tight_loose = (self.nmu_tight == 1 and self.nel_loose == 1) or (self.nel_tight == 1 and self.nmu_loose == 1) or (self.nmu_tight >= 1 and self.nmu_loose == 2)
+			self.DV_medium_loose = (self.nmu_medium == 1 and self.nel_loose == 1) or (self.nel_medium == 1 and self.nmu_loose == 1) or (self.nmu_medium >= 1 and self.nmu_loose == 2) 
 			self.DV_tight_veryloose = self.nmu_tight == 1 and self.nel_veryloose == 1
 			self.DV_medium_veryloose = self.nmu_medium == 1 and self.nel_veryloose == 1
 			self.DV_loose_veryloose = self.nmu_loose == 1 and self.nel_veryloose == 1
