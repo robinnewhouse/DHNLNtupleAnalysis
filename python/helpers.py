@@ -95,9 +95,15 @@ class Truth():
 		
 
 	def getTruthParticles(self, tree):
+		print "-----"
+		print "ievt: ",  tree.ievt
 		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
 			# get the DV!
-			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50:  # PDGID 50: Heavy Neutral Lepton
+			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50 or abs(tree['truthVtx_parent_pdgId'][ivx]) == 9900012:  # PDGID = (50 , 9900012) for Heavy Neutral Lepton in (pythia8, MG)
+				print "parent pdgid: ", tree['truthVtx_parent_pdgId'][ivx]
+				print "number of outP from vertex ", len(tree['truthVtx_outP_pdgId'][ivx])
+				if len(tree['truthVtx_outP_pdgId'][ivx]) != 0: print tree['truthVtx_outP_pdgId'][ivx][0]
+
 				if len(tree['truthVtx_outP_pdgId'][ivx]) == 3:  # Has three children (two leptons and neutrino)
 
 					self.truth_dvx = tree['truthVtx_x'][ivx]

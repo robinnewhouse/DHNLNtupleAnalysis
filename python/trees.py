@@ -38,10 +38,12 @@ class Tree:
 		self.file = uproot.open(file_name)
 		self.tree = self.file[tree_name]
 		self.cutflow = self.file["cutflow"] 
-		self.all_entries = self.cutflow[1]  
+		self.all_entries = self.cutflow[2]  
 		self.init_entries = self.cutflow[2]  # init entries
 		self.vtx_container = ""
 		self.notHNLmc = notHNLmc
+
+	
 		
 
 

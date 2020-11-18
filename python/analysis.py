@@ -571,7 +571,7 @@ class Analysis(object):
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
 		if self.weight_override == None: 
-			self.weight = self.mass_lt_weight*self.MCEventType.weight 
+			self.weight = self.mass_lt_weight #*self.MCEventType.weight  dont use event type weight for now...	
 		else: 
 			self.weight = self.weight_override
 		

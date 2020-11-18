@@ -1150,8 +1150,12 @@ class MCEventType:
 			pW2 = truth_info.W_vec.Mag2()
 			MN = truth_info.HNL_vec.M()
 			# print "HNL mass ", MN
+
+			
+
 			charge_1 = truth_info.plep_charge # charge of prompt lepton
 			self.p_1 = truth_info.plep_vec # prompt lepton 
+			if len(truth_info.dLepVec) == 0: return # MG sometimes does NOT have HNL??? -DT
 			if wrong_lep_order: 
 				self.p_2 = truth_info.dLepVec[0]
 				self.p_3 = truth_info.dLepVec[1]
