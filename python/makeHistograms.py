@@ -94,7 +94,7 @@ def main():
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
-			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file,options.saveNtuples, debug_level,weight_override=options.weight)
+			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file,options.saveNtuples, debug_level,weight_override=options.weight,doTruthOnly=options.doTruthOnly)
 
 			# Loop over each event
 			while tree.ievt < entries:
@@ -105,20 +105,22 @@ def main():
 
 				# Run preselection cuts to avoid processing unnecessary events
 				presel = ana.preSelection()
+				# print tree.ievt
+				if not options.doTruthOnly: 
+					# Loop over each vertex in the event
+					while tree.idv < tree.ndv:
+						# DVevt = helpers.Event(tree=tree, ievt=tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
+						ana.DVSelection()
+						tree.increment_dv()
 
-				# Loop over each vertex in the event
-				while tree.idv < tree.ndv:
-					# DVevt = helpers.Event(tree=tree, ievt=tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
-					ana.DVSelection()
-					tree.increment_dv()
-
-				tree.reset_dv()
+					tree.reset_dv()
 				tree.increment_event()
 				ana.unlock()
 
 			# Call functions to finalize analysis
 			tree.reset_event()
 			ana.end()
+			if options.doTruthOnly: continue # no need to process different vertex configuration if you're only running on truth
 			# Store analysis in dictionary for possible later use
 			# This is a huge memory hog and will likely crash if too many histograms are declared
 			# Recommended not to use unless necessary and unless a minimal number of histograms are written. # RN
@@ -213,6 +215,11 @@ if __name__ == "__main__":
 						dest="notHNLmc",
 						default = False,
 						help='Not running on HNL mc. Default: False. Useful for running on mc that is not HNL mc. Turn HNL specific truth info storing off.')
+	parser.add_argument('--doTruthOnly',
+						action="store_true",
+						dest="doTruthOnly",
+						default = False,
+						help='Only make truth histograms.')
 	
 
 

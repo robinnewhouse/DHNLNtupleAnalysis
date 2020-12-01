@@ -1155,7 +1155,8 @@ class MCEventType:
 
 			charge_1 = truth_info.plep_charge # charge of prompt lepton
 			self.p_1 = truth_info.plep_vec # prompt lepton 
-			if len(truth_info.dLepVec) == 0: return # MG sometimes does NOT have HNL??? -DT
+			# print truth_info.plep_vec.Pt()
+			# if len(truth_info.dLepVec) == 0: return # MG sometimes does NOT have HNL??? -DT
 			if wrong_lep_order: 
 				self.p_2 = truth_info.dLepVec[0]
 				self.p_3 = truth_info.dLepVec[1]
@@ -1175,6 +1176,17 @@ class MCEventType:
 
 
 			p12 = self.p_1 + self.p_2
+			# print "-------"
+			# print "p1 pt ", self.p_1.Pt()
+			# print "p1 eta ", self.p_1.Eta()	
+			# print "p1 phi ", self.p_1.Phi()
+			# print "p1 M ", self.p_1.M()
+			# print ""
+			# print "p2 pt ",self.p_2.Pt()	
+			# print "p2 eta ",self.p_2.Eta()
+			# print "p2 phi ",self.p_2.Phi()
+			# print "p2 M ",self.p_2.M()
+			# print ""
 			p13 = self.p_1 + self.p_3
 			p14 = self.p_1 + self.p_4
 
@@ -1183,6 +1195,8 @@ class MCEventType:
 			p34 = self.p_3 + self.p_4
 
 			self.s12 = p12.Mag2()
+			# print "s12 ",self.s12
+
 			self.s13 = p13.Mag2()
 			self.s14 = p14.Mag2()
 			self.s23 = p23.Mag2()

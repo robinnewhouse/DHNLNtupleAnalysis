@@ -93,19 +93,29 @@ class Truth():
 		self.dvmass = -1
 		self.HNL_pdgID = 50
 		
-
+	
 	def getTruthParticles(self, tree):
-		print "-----"
-		print "ievt: ",  tree.ievt
+		# print "-----"
+		# print "ievt: ",  tree.ievt
+		# print len(tree['truthVtx_parent_pdgId'])
 		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
 			# get the DV!
+			# if abs(tree['truthVtx_parent_pdgId'][ivx]) == 443: # J/Psi truth vertex 
+			# 	Jpsi_dvx = tree['truthVtx_x'][ivx]
+			# 	Jpsi_dvy = tree['truthVtx_y'][ivx]
+			# 	Jpsi_dvz = tree['truthVtx_z'][ivx]
+			# 	Jpsi_dv = ROOT.TVector3( Jpsi_dvx, Jpsi_dvy, Jpsi_dvz )
+			# 	self.truth_dvr = np.sqrt(Jpsi_dvx**2 + Jpsi_dvy**2)
+				# print "rDV: ", Jpsi_dvr
+				# if len(tree['truthVtx_outP_pdgId'][ivx]) == 2:  # Has three children (two leptons and neutrino)
+				# 	print "Jpsi outP 1 pdgid: ", tree['truthVtx_outP_pdgId'][ivx][0]
+				# 	print "Jpsi outP 2 pdgid: ",tree['truthVtx_outP_pdgId'][ivx][1]
+
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50 or abs(tree['truthVtx_parent_pdgId'][ivx]) == 9900012:  # PDGID = (50 , 9900012) for Heavy Neutral Lepton in (pythia8, MG)
-				print "parent pdgid: ", tree['truthVtx_parent_pdgId'][ivx]
-				print "number of outP from vertex ", len(tree['truthVtx_outP_pdgId'][ivx])
-				if len(tree['truthVtx_outP_pdgId'][ivx]) != 0: print tree['truthVtx_outP_pdgId'][ivx][0]
-
+				# print "parent pdgid: ", tree['truthVtx_parent_pdgId'][ivx]
+				# print "number of outP from vertex ", len(tree['truthVtx_outP_pdgId'][ivx])
+				# if len(tree['truthVtx_outP_pdgId'][ivx]) != 0: print tree['truthVtx_outP_pdgId'][ivx][0]
 				if len(tree['truthVtx_outP_pdgId'][ivx]) == 3:  # Has three children (two leptons and neutrino)
-
 					self.truth_dvx = tree['truthVtx_x'][ivx]
 					self.truth_dvy = tree['truthVtx_y'][ivx]
 					self.truth_dvz = tree['truthVtx_z'][ivx]
@@ -172,24 +182,36 @@ class Truth():
 			# get the primary vertex
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 24:  # PDGID 24: W Boson
 				if len(tree['truthVtx_outP_pdgId'][ivx]) == 2:  # Has two children (HNL and lepton)
-					# TODO: Should we be checking if one of the children is an HNL?
-					self.truth_pvx = tree['truthVtx_x'][ivx]
-					self.truth_pvy = tree['truthVtx_y'][ivx]
-					self.truth_pvz = tree['truthVtx_z'][ivx]
-					self.truth_pv = ROOT.TVector3( self.truth_pvx, self.truth_pvy, self.truth_pvz )
+					# print tree['truthVtx_outP_pt'][ivx][0]
+					child_is_HNL_MG = (abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 9900012 or abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 9900012)
+					child_is_HNL_Pythia = (abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 50 or abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 50)
+					if child_is_HNL_MG or child_is_HNL_Pythia:
+						# TODO: Should we be checking if one of the children is an HNL?
+						self.truth_pvx = tree['truthVtx_x'][ivx]
+						self.truth_pvy = tree['truthVtx_y'][ivx]
+						self.truth_pvz = tree['truthVtx_z'][ivx]
+						self.truth_pv = ROOT.TVector3( self.truth_pvx, self.truth_pvy, self.truth_pvz )
 
-					self.plep_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][0],
-											   tree['truthVtx_outP_eta'][ivx][0],
-											   tree['truthVtx_outP_phi'][ivx][0],
-											   tree['truthVtx_outP_M'][ivx][0]
-											   )
-					self.plep_charge = tree['truthVtx_outP_charge'][ivx][0]
-					self.W_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
-											tree['truthVtx_parent_eta'][ivx],
-											tree['truthVtx_parent_phi'][ivx],
-											tree['truthVtx_parent_M'][ivx]
-											)
-					self.W_charge = tree['truthVtx_parent_charge'][ivx]
+						# print tree['truthVtx_outP_pt'][ivx][0]
+						if (abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 13 or abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 11): plep_index = 0
+						if (abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 13 or abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 11): plep_index = 1
+						
+						self.plep_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][plep_index],
+												tree['truthVtx_outP_eta'][ivx][plep_index],
+												tree['truthVtx_outP_phi'][ivx][plep_index],
+												tree['truthVtx_outP_M'][ivx][plep_index]
+												)
+						self.plep_charge = tree['truthVtx_outP_charge'][ivx][plep_index]
+
+
+						self.W_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
+												tree['truthVtx_parent_eta'][ivx],
+												tree['truthVtx_parent_phi'][ivx],
+												tree['truthVtx_parent_M'][ivx]
+												)
+						self.W_charge = tree['truthVtx_parent_charge'][ivx]
+
+					
 		# TO DO: bug with truth mHNL calculation
 		# try:
 		# 	import selections

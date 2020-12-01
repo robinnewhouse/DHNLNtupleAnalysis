@@ -15,7 +15,7 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples, debug_level,weight_override=None):
+	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples, debug_level,weight_override=None,doTruthOnly=False):
 		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=debug_level)
 		selections.set_debug_level(debug_level)
 		self.name = name
@@ -37,6 +37,7 @@ class Analysis(object):
 		self.events_with_trig_match_plep = 0
 		self.events_with_trig_match_dlep = 0
 		self.events_with_trig_match_both_pdlep =0
+		self.doTruthOnly = doTruthOnly
 
 		# setting all the relevant variables for the cuts based on the input selections
 		# trigger cut
@@ -485,23 +486,27 @@ class Analysis(object):
 		########################################
 		self.calculate_event_weight()
 
-		######################################################################################################
-		# Preselection are all the cuts that are requied per event
-		# Current cuts include: trigger, filter, plepton, DV cut
-		######################################################################################################
-
-		#initialize the cut bools for every event
-		self.initialize_cut_bools()
-
-		self._fill_leptons()
-
+		########################################
+		# Fill Truth Histograms
+		########################################
+	
 		if not self.tree.is_data and not self.tree.notHNLmc:
 			self._fill_truth_histos(sel='truth/all')
 			if self.MCEventType.isLNC: 
 				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries/2)  # all events
+		if self.doTruthOnly: return # if you only want to make histograms exit before looping over any reconstructed quantities
+		######################################################################################################
+		# Preselection are all the cuts that are requied per event
+		# Current cuts include: trigger, filter, plepton, DV cut
+		######################################################################################################
 		
+		#initialize the cut bools for every event
+		self.initialize_cut_bools()
+
+		self._fill_leptons()
+
 		self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
 		
 
@@ -571,7 +576,7 @@ class Analysis(object):
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
 		if self.weight_override == None: 
-			self.weight = self.mass_lt_weight #*self.MCEventType.weight  dont use event type weight for now...	
+			self.weight = self.mass_lt_weight #*self.MCEventType.weight  #dont use event type weight for now...	
 		else: 
 			self.weight = self.weight_override
 		
@@ -1077,9 +1082,9 @@ class Analysis(object):
 
 
 class run2Analysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None,doTruthOnly=False):
 		
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override, doTruthOnly)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
 
 		# Define cutflow histogram "by hand"		
@@ -1259,8 +1264,8 @@ class run2Analysis(Analysis):
 
 
 class KShort(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None,doTruthOnly=False):
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override,doTruthOnly)
 		self.logger.info('Running KShort Analysis cuts', level=debug_level)
 
 		self.add('CutFlow', 17, -0.5, 16.5)
