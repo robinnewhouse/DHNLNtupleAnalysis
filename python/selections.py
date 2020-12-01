@@ -931,8 +931,8 @@ class Mhnl():
 
 		# Get 3 vectors
 		if not use_truth: 	
-			pv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
-			dv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
+			dv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
+			pv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
 		else: 
 			pv = truth_pv
 			dv = truth_dv
@@ -1072,12 +1072,12 @@ class Mhnl():
 			pHNL2 = pnu2 + ptrk0 + ptrk1
 
 			plll = plep0 + ptrk0 + ptrk1
-		   
+	
 			# set the attributes of the class
-			self.mhnl =pHNL2.M()
-			self.hnlpt =pHNL2.Pt()
-			self.hnleta =pHNL2.Eta()
-			self.hnlphi =pHNL2.Phi()
+			self.mhnl =pHNL1.M()
+			self.hnlpt =pHNL1.Pt()
+			self.hnleta =pHNL1.Eta()
+			self.hnlphi =pHNL1.Phi()
 			self.mlll = plll.M()
 		  
 			self.alt_mhnl = pHNL1.M()
