@@ -932,6 +932,9 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_dpt', dpt)
 				self.fill_hist(sel, 'DV_trk_dR', dR)
 
+				cosmic_veto = selections.Cosmicveto(self.tree)
+				self.fill_hist(sel, 'DV_cosmic_sep', cosmic_veto.separation)
+
 				self.fill_hist(sel, 'DV_trk_max_chi2_toSV', max(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
 				self.fill_hist(sel, 'DV_trk_min_chi2_toSV', min(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
 				self.fill_hist(sel, 'DV_trk_max_d0_wrtSV', max(self.tree.dv('trk_d0_wrtSV')[0],self.tree.dv('trk_d0_wrtSV')[1] ) )

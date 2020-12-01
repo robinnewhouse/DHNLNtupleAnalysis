@@ -618,11 +618,13 @@ class Cosmicveto():
 		if self.decaymode == "leptonic":
 			ntracks = tree.ntrk
 			if ntracks == 2:
-				sumeta = tree.dv('trk_eta_wrtSV')[0] + tree.dv('trk_eta_wrtSV')[1]
-				dphi = abs(tree.dv('trk_phi_wrtSV')[0] - tree.dv('trk_phi_wrtSV')[1])
+				tracks = helpers.Tracks(tree)
+				tracks.getTracks()
+				trkVec = tracks.lepVec
 
+				sumeta = tracks.lepVec[0].Eta() + tracks.lepVec[1].Eta()
+				dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
 				self.separation = np.sqrt(sumeta ** 2 + (np.pi - dphi) ** 2)
-
 	def passes(self):
 		if self.separation > self.cosmicvetocut:
 			return True
