@@ -339,34 +339,34 @@ class FileInfo:
 			self.ctau = 100.0
 			self.ctau_str = "100mm"
 
-		if "3G" in infile:
+		if "_3G" in infile:
 			self.mass = 3.0
 			self.mass_str = "3G"
-		elif "4G" in infile:
+		elif "_4G" in infile:
 			self.mass = 4.0
 			self.mass_str = "4G"
-		elif "4p5G" in infile:
+		elif "_4p5G" in infile:
 			self.mass = 4.5
 			self.mass_str = "4p5G"
 		elif "_5G" in infile:
 			self.mass = 5.0
 			self.mass_str = "5G"
-		elif "7p5G" in infile:
+		elif "_7p5G" in infile:
 			self.mass = 7.5
 			self.mass_str = "7p5G"
-		elif "10G" in infile:
+		elif "_10G" in infile:
 			self.mass = 10.0
 			self.mass_str = "10G"
-		elif "12p5G" in infile:
+		elif "_12p5G" in infile:
 			self.mass = 12.5
 			self.mass_str = "12p5G"
-		elif "15G" in infile:
+		elif "_15G" in infile:
 			self.mass = 15.0
 			self.mass_str = "15G"
-		elif "17p5G" in infile:
+		elif "_17p5G" in infile:
 			self.mass = 17.5
 			self.mass_str = "17p5G"
-		elif "20G" in infile:
+		elif "_20G" in infile:
 			self.mass = 20.0
 			self.mass_str = "20G"
 
@@ -390,6 +390,8 @@ class FileInfo:
 		if (self.mass_str): self.output_filename += "_" + self.mass_str
 		if (self.ctau_str): self.output_filename += "_" + self.ctau_str
 		self.output_filename += "_" + channel + ".root"
+
+		print self.mass , self.ctau 
 
 
 # Define trigger lists here
