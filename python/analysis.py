@@ -1199,11 +1199,7 @@ class run2Analysis(Analysis):
 			else:
 				return
 
-<<<<<<< HEAD
-		if self.do_CR: 
-=======
 		if self.do_CR: # protect against saving OS DV when youre not looking in the CR
->>>>>>> master
 			self._fill_selected_dv_histos("2trk")
 			OS_sel = selections.ChargeDV(self.tree, sel="OS").passes()
 			SS_sel = selections.ChargeDV(self.tree, sel="SS").passes()
@@ -1216,10 +1212,6 @@ class run2Analysis(Analysis):
 				if self._dv_type_cut(): 
 					self._fill_selected_dv_histos("SS_DVtype") # save lepton SS histograms 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 		if self.do_opposite_sign_cut or self.do_same_sign_cut:
 			if self._charge_cut():
 				if not self.passed_charge_cut:

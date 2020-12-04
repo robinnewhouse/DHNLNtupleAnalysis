@@ -168,17 +168,6 @@ binning_definitions = {
 	'DV_1tight': (2, -0.5, 1.5),
 	'DV_1medium': (2, -0.5, 1.5),
 	'DV_1loose': (2, -0.5, 1.5),
-<<<<<<< HEAD
-	'DV_2vvlSi': (2, -0.5, 1.5),
-	'DV_2vvl': (2, -0.5, 1.5),
-	'DV_2vl': (2, -0.5, 1.5),
-	'DV_loose_vl': (2, -0.5, 1.5),
-	'DV_loose_vvl': (2, -0.5, 1.5),
-	'DV_loose_vvlSi': (2, -0.5, 1.5),
-	'DV_med_vl': (2, -0.5, 1.5),
-	'DV_med_vvl': (2, -0.5, 1.5),
-	'DV_med_vvlSi': (2, -0.5, 1.5),
-=======
 	'DV_tight_loose' : (2, -0.5, 1.5), 
 	'DV_tight_medium' : (2, -0.5, 1.5), 
 	'DV_medium_loose' : (2, -0.5, 1.5), 	
@@ -189,7 +178,6 @@ binning_definitions = {
 	'DV_medium_veryveryloose' : (2, -0.5, 1.5), 
 	'DV_loose_veryveryloose' : (2, -0.5, 1.5), 
 	'DV_2veryveryloose' : (2, -0.5, 1.5), 	
->>>>>>> master
 	'DV_mumu': (2, -0.5, 1.5),
 	'DV_ee': (2, -0.5, 1.5),
 	'DV_emu': (2, -0.5, 1.5),
