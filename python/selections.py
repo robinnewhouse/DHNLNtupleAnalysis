@@ -673,6 +673,23 @@ class Mlll():
 			return False
 
 
+class Mat_veto():
+	"""
+	Material Veto.
+	This cut rejects any vertices whose (r, z, phi) position coincides with the location of known detector elements. 
+	"""
+
+	def __init__(self,tree):
+		self.pass_mat = tree.dv('pass_mat')
+		# print self.pass_mat
+
+	def passes(self):
+		return self.pass_mat
+
+
+
+
+
 class Mltt():
 
 	def __init__(self, plep, trks, decaymode="leptonic", minmltt=50, maxmltt=84):

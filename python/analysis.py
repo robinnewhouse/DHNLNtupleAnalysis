@@ -205,6 +205,8 @@ class Analysis(object):
 		self.do_trilepton_mass_cut = 'mlll' in self.sel
 		if not self.do_trilepton_mass_cut  and "CR" not in self.sel:
 			self.logger.warn('You did not add a mlll cut for this channel. Skipping tri-lepton mass selection.')
+		# material veto cut
+		self.do_mat_veto_cut = "matveto" in self.sel
 
 		# DV mass cut
 		self.do_dv_mass_cut = 'DVmass' in self.sel
@@ -437,6 +439,10 @@ class Analysis(object):
 		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
 		return mlll_sel.passes()
 
+	def _mat_veto_cut(self):
+		return selections.Mat_veto(self.tree).passes()
+
+
 	def _dv_mass_cut(self):
 		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=2)
 		return dv_mass_sel.passes()
@@ -470,6 +476,7 @@ class Analysis(object):
 		self.passed_track_quality_cut = False
 		self.passed_cosmic_veto_cut = False
 		self.passed_trilepton_mass_cut = False
+		self.passed_mat_veto_cut = False
 		self.passed_dv_mass_cut = False
 		self.passed_HNL_mass_cut = False
 		self.passed_HNL_pt_cut = False
@@ -1049,6 +1056,20 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_ntrk_lrt', self.tree.dv('ntrk_lrt'))
 			self.fill_hist(sel, 'DV_ntrk_sel', self.tree.dv('ntrk_sel'))
 			self.fill_hist(sel, 'DV_ntrk_assoc', self.tree.dv('ntrk_assoc'))
+			self.fill_hist(sel, 'DV_pass_mat_veto', self.tree.dv('pass_mat'))
+
+			# compute alpha
+			dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
+			pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
+			decayV = dv-pv
+
+			dv_4vec = ROOT.TLorentzVector()
+			dv_4vec.SetPtEtaPhiM(self.tree.dv('pt'), self.tree.dv('eta'),self.tree.dv('phi'), self.tree.dv('mass'))
+			dv_mom_vec =  ROOT.TVector3( dv_4vec.Px(),  dv_4vec.Py(),  dv_4vec.Pz() )
+
+			alpha = decayV.Angle(dv_mom_vec)
+			self.fill_hist(sel, 'DV_alpha', alpha)
+
 
 			trk_quality = selections.Trackqual(self.tree)
 			self.fill_hist(sel, 'DV_2tight', trk_quality.DV_2tight)
@@ -1087,7 +1108,7 @@ class run2Analysis(Analysis):
 
 		# Define cutflow histogram "by hand"		
 		self.cutflow_dir = self.ch + '/CutFlow/'
-		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 16, -0.5, 15.5)
+		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 17, -0.5, 16.5)
 		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
 		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
@@ -1118,16 +1139,17 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(10, "SS DV")
 		if self.do_dv_type_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(11, "%s DV" % self.dv_type)
+		if self.do_mat_veto_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(12, "mat. veto")
 		if self.do_cosmic_veto_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(12, "cosmic veto")
+			self.CutFlow.GetXaxis().SetBinLabel(13, "cosmic veto")
 		if self.do_dv_mass_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(13, "m_{DV}")
+			self.CutFlow.GetXaxis().SetBinLabel(14, "m_{DV}")
 		if self.do_track_quality_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(14, "{}-lepton DV".format(self.track_quality))
+			self.CutFlow.GetXaxis().SetBinLabel(15, "{}-lepton DV".format(self.track_quality))
 		if self.do_trilepton_mass_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(15, "m_{lll}")
-		
-		self.CutFlow.GetXaxis().SetBinLabel(16, "truth matched")
+			self.CutFlow.GetXaxis().SetBinLabel(16, "m_{lll}")
+		self.CutFlow.GetXaxis().SetBinLabel(17, "truth matched")
 
 		# Store LNC and LNV cutflows in the observables collection
 		if not self.tree.is_data and not self.tree.notHNLmc: 
@@ -1207,11 +1229,21 @@ class run2Analysis(Analysis):
 				return
 	
 		self._fill_selected_dv_histos("DVtype")
-			
+
+		if self.do_mat_veto_cut:
+			if self._mat_veto_cut():
+				if not self.passed_mat_veto_cut:
+					self._fill_cutflow(11)
+					self.passed_mat_veto_cut = True
+			else:
+				return
+
+		self._fill_selected_dv_histos("mat_veto")
+
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
-					self._fill_cutflow(11)
+					self._fill_cutflow(12)
 					self.passed_cosmic_veto_cut = True
 			else:
 				return
@@ -1221,7 +1253,7 @@ class run2Analysis(Analysis):
 		if self.do_dv_mass_cut:
 			if self._dv_mass_cut():
 				if not self.passed_dv_mass_cut:
-					self._fill_cutflow(12)
+					self._fill_cutflow(13)
 					self.passed_dv_mass_cut = True
 			else:
 				return
@@ -1231,7 +1263,7 @@ class run2Analysis(Analysis):
 		if self.do_track_quality_cut:
 			if self._track_quality_cut():
 				if not self.passed_track_quality_cut:
-					self._fill_cutflow(13)
+					self._fill_cutflow(14)
 					self.passed_track_quality_cut = True
 			else:
 				return
@@ -1242,17 +1274,16 @@ class run2Analysis(Analysis):
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
-					self._fill_cutflow(14)
+					self._fill_cutflow(15)
 					self.passed_trilepton_mass_cut = True
 			else:
 				return
-	
 		# self._fill_selected_dv_histos("mlll")
-
+		 
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data and not self.tree.notHNLmc:
 			if self._truth_match():
-				self._fill_cutflow(15)
+				self._fill_cutflow(16)
 				# self.h['CutFlow'][self.ch].Fill(14)
 				self._fill_selected_dv_histos("match")
 
