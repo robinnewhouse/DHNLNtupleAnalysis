@@ -157,6 +157,8 @@ class PromptLepton():
 		self.plepd0 = -2000
 		self.plepz0 = -2000
 		self.nPlep = 0
+		self.found_plep = False
+		self.plep_Index = -1
 
 
 		lepquality = ""
@@ -188,6 +190,7 @@ class PromptLepton():
 		self.highestpt_lep = ROOT.TLorentzVector(0, 0, 0, 0)
 		self.highestpt_lep_d0 = -2000
 		self.highestpt_lep_z0 = -2000
+		self.highestpt_lep_Index = -1
 
 		for ilep in range(nleps): 
 			overlap = False
@@ -225,6 +228,7 @@ class PromptLepton():
 			# if passPfilter[ilep] and passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
 			if passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
 				# Check the overlap between the prompt lepton and every displaced vertex track
+				self.found_plep = True
 				for idv in range(tree.ndv):
 					prefix = tree.dv_prefix + '_'
 					ntrks = tree.get_at(prefix+'ntrk', tree.ievt, idv)
@@ -251,15 +255,7 @@ class PromptLepton():
 						self.highestpt_lep_z0 = lepz0
 						self.highestpt_lep_charge = charge
 						self.highestpt_lep_z0sintheta = lepz0sintheta
-
-				#for trigger matching
-						# if tree["muon_isTrigMatched"][ilep] == 0:
-						# 	print "is muon trig matched?", tree["muon_isTrigMatched"][ilep]
-						# 	print "pt of the highest pt TIGHT muon: ", self.highestpt_plep.Pt() 
-						# 	print "muon pt: ", self.evt.tree.muonpt[self.evt.ievt]
-						# 	print "trigger matched: ", tree["muon_isTrigMatched"]
-						# 	print "lepton quality: ", lepquality[self.evt.ievt]
-						# 	print "muon type: ", self.evt.tree.muontype[self.evt.ievt]
+						self.highestpt_lep_Index = ilep
 
 	def passes(self):
 		# check if you found a prompt lepton
@@ -268,6 +264,7 @@ class PromptLepton():
 			self.plepd0 = self.highestpt_lep_d0
 			self.plepz0 = self.highestpt_lep_z0
 			self.plepcharge = self.highestpt_lep_charge
+			self.plep_Index = self.highestpt_lep_Index
 			return True
 		else: 
 			return False
@@ -318,7 +315,7 @@ class DVntracks():
 		self.decaymode = decaymode
 
 		self.ntracks = -1 
-
+		
 		if self.decaymode == "leptonic":
 			self.ntracks = tree.ntrk
 
@@ -377,6 +374,8 @@ class DVtype():
 		self.decaymode = decaymode
 		self.dv_type = dv_type
 		self.lepton_charge = []
+		self.dEl_Index = []
+		self.dMu_Index = []
 
 		if self.decaymode == "leptonic":
 			self.ntracks = self.tree.ntrk
@@ -401,6 +400,8 @@ class DVtype():
 				if mu1_type == combined:  # Only count combined muons 
 					self.lepton_charge.append(self.electrons.lepCharge[0])
 					self.lepton_charge.append(self.muons.lepCharge[0])
+					self.dEl_Index.append(self.electrons.lepIndex[0])
+					self.dMu_Index.append(self.muons.lepIndex[0])
 					return True
 				else:
 					return False
@@ -415,6 +416,8 @@ class DVtype():
 				if mu1_type == combined and mu2_type == combined:  # Only count combined muons
 					self.lepton_charge.append(self.muons.lepCharge[0])
 					self.lepton_charge.append(self.muons.lepCharge[1])
+					self.dMu_Index.append(self.muons.lepIndex[0])
+					self.dMu_Index.append(self.muons.lepIndex[1])
 					return True
 				else:
 					return False
@@ -423,16 +426,18 @@ class DVtype():
 
 		elif self.dv_type == "ee":
 			if self.nel == 2: 
+				self.lepton_charge.append(self.electrons.lepCharge[0])
+				self.lepton_charge.append(self.electrons.lepCharge[1])
+				self.dEl_Index.append(self.electrons.lepIndex[0])
+				self.dEl_Index.append(self.electrons.lepIndex[1])
 				return True
-				lepton_charge.append(self.electrons.lepCharge[0])
-				lepton_charge.append(self.electrons.lepCharge[1])
 			else:
 				return False
 
 		elif self.dv_type == "mumu-notcomb":
 			if self.nmu == 2:
-				lepton_charge.append(self.muons.lepCharge[0])
-				lepton_charge.append(self.muons.lepCharge[1])
+				self.lepton_charge.append(self.muons.lepCharge[0])
+				self.lepton_charge.append(self.muons.lepCharge[1])
 				return True
 			else: 
 				return False
@@ -454,21 +459,21 @@ class Trackqual():
 
 		self.decaymode = decaymode
 		self.quality = quality 
-		self.DV_2tight = False
-		self.DV_1tight = False
-		self.DV_2medium = False
-		self.DV_1medium = False
-		self.DV_2loose = False
-		self.DV_1loose = False
-		self.DV_med_vl = False
-		self.DV_med_vvl = False
-		self.DV_med_vvlSi = False
-		self.DV_loose_vl = False
-		self.DV_loose_vvl = False
-		self.DV_loose_vvlSi = False
-		self.DV_2vl = False
-		self.DV_2vvl = False
-		self.DV_2vvlSi = False
+		# self.DV_2tight = False
+		# self.DV_1tight = False
+		# self.DV_2medium = False
+		# self.DV_1medium = False
+		# self.DV_2loose = False
+		# self.DV_1loose = False
+		# self.DV_med_vl = False
+		# self.DV_med_vvl = False
+		# self.DV_med_vvlSi = False
+		# self.DV_loose_vl = False
+		# self.DV_loose_vvl = False
+		# self.DV_loose_vvlSi = False
+		# self.DV_2vl = False
+		# self.DV_2vvl = False
+		# self.DV_2vvlSi = False
 
 
 
@@ -532,15 +537,16 @@ class Trackqual():
 			self.DV_1tight = self.nmu_tight > 0 or self.nel_tight > 0
 			self.DV_1medium = self.nmu_medium > 0 or self.nel_medium > 0
 			self.DV_1loose = self.nmu_loose > 0 or self.nel_loose > 0
-                        self.DV_tight_medium = (self.nmu_tight == 1 and self.nel_medium == 1) or (self.nmu_tight == 1 and self.nmu_medium >= 1)
-                        self.DV_tight_loose = (self.nmu_tight == 1 and self.nel_loose == 1) or (self.nmu_tight == 1 and self.nmu_loose >= 1)
-                        self.DV_medium_loose = (self.nmu_medium == 1 and self.nel_loose == 1) or (self.nmu_medium == 1 and self.nmu_loose >= 1) 
-                        self.DV_tight_veryloose = self.nmu_tight == 1 and self.nel_veryloose == 1
-                        self.DV_medium_veryloose = self.nmu_medium == 1 and self.nel_veryloose == 1
-                        self.DV_loose_veryloose = self.nmu_loose == 1 and self.nel_veryloose == 1
-                        self.DV_tight_veryveryloose = self.nmu_tight == 1 and self.nel_veryveryloose == 1
-                        self.DV_medium_veryveryloose = self.nmu_medium == 1 and self.nel_veryveryloose == 1
-                        self.DV_loose_veryveryloose = self.nmu_loose == 1 and self.nel_veryveryloose == 1
+			self.DV_tight_medium = (self.nmu_tight == 1 and self.nel_medium == 1) or (self.nel_tight == 1 and self.nmu_medium == 1) or (self.nmu_tight >= 1 and self.nmu_medium == 2)
+			self.DV_tight_loose = (self.nmu_tight == 1 and self.nel_loose == 1) or (self.nel_tight == 1 and self.nmu_loose == 1) or (self.nmu_tight >= 1 and self.nmu_loose == 2)
+			self.DV_medium_loose = (self.nmu_medium == 1 and self.nel_loose == 1) or (self.nel_medium == 1 and self.nmu_loose == 1) or (self.nmu_medium >= 1 and self.nmu_loose == 2) 
+			self.DV_tight_veryloose = self.nmu_tight == 1 and self.nel_veryloose == 1
+			self.DV_medium_veryloose = self.nmu_medium == 1 and self.nel_veryloose == 1
+			self.DV_loose_veryloose = self.nmu_loose == 1 and self.nel_veryloose == 1
+			self.DV_tight_veryveryloose = self.nmu_tight == 1 and self.nel_veryveryloose == 1
+			self.DV_medium_veryveryloose = self.nmu_medium == 1 and self.nel_veryveryloose == 1
+			self.DV_loose_veryveryloose = self.nmu_loose == 1 and self.nel_veryveryloose == 1
+			self.DV_2veryveryloose = self.nel_veryveryloose == 2
 
 
 	def passes(self):
@@ -585,17 +591,20 @@ class Trackqual():
 		if self.quality == "medium-veryveryloose":
 			return self.DV_medium_veryveryloose
 
+		if self.quality == "2-veryveryloose":
+			return self.DV_2veryveryloose
+
 		if self.quality == "loose-veryveryloose":
 			return self.DV_loose_veryveryloose
 
-                if self.quality == "any-loose":
-                        return self.DV_any_loose
+		if self.quality == "any-loose":
+			return self.DV_any_loose
 
-                if self.quality == "any-veryveryloose":
-                        return self.DV_loose_veryveryloose
+		if self.quality == "any-veryveryloose":
+			return self.DV_loose_veryveryloose
 
-                if self.quality == "2-any":
-                        return self.DV_2any
+		if self.quality == "2-any":
+			return self.DV_2any
 
 
 class Cosmicveto():
@@ -609,11 +618,13 @@ class Cosmicveto():
 		if self.decaymode == "leptonic":
 			ntracks = tree.ntrk
 			if ntracks == 2:
-				sumeta = tree.dv('trk_eta_wrtSV')[0] + tree.dv('trk_eta_wrtSV')[1]
-				dphi = abs(tree.dv('trk_phi_wrtSV')[0] - tree.dv('trk_phi_wrtSV')[1])
+				tracks = helpers.Tracks(tree)
+				tracks.getTracks()
+				trkVec = tracks.lepVec
 
+				sumeta = tracks.lepVec[0].Eta() + tracks.lepVec[1].Eta()
+				dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
 				self.separation = np.sqrt(sumeta ** 2 + (np.pi - dphi) ** 2)
-
 	def passes(self):
 		if self.separation > self.cosmicvetocut:
 			return True
@@ -660,6 +671,23 @@ class Mlll():
 			return True
 		else:
 			return False
+
+
+class Mat_veto():
+	"""
+	Material Veto.
+	This cut rejects any vertices whose (r, z, phi) position coincides with the location of known detector elements. 
+	"""
+
+	def __init__(self,tree):
+		self.pass_mat = tree.dv('pass_mat')
+		# print self.pass_mat
+
+	def passes(self):
+		return self.pass_mat
+
+
+
 
 
 class Mltt():
@@ -922,8 +950,8 @@ class Mhnl():
 
 		# Get 3 vectors
 		if not use_truth: 	
-			pv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
-			dv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
+			dv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
+			pv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
 		else: 
 			pv = truth_pv
 			dv = truth_dv
@@ -1063,12 +1091,12 @@ class Mhnl():
 			pHNL2 = pnu2 + ptrk0 + ptrk1
 
 			plll = plep0 + ptrk0 + ptrk1
-		   
+	
 			# set the attributes of the class
-			self.mhnl =pHNL2.M()
-			self.hnlpt =pHNL2.Pt()
-			self.hnleta =pHNL2.Eta()
-			self.hnlphi =pHNL2.Phi()
+			self.mhnl =pHNL1.M()
+			self.hnlpt =pHNL1.Pt()
+			self.hnleta =pHNL1.Eta()
+			self.hnlphi =pHNL1.Phi()
 			self.mlll = plll.M()
 		  
 			self.alt_mhnl = pHNL1.M()
@@ -1135,7 +1163,7 @@ class MCEventType:
 		def M2_nocorr(MN, pW2, s24):
 		    return ( s24*(MN**2-s24)*(MN**2+2*MW**2)*(pW2-MN**2) ) / ( 6*MW**6 )
 
-		if not tree.is_data:
+		if not tree.is_data and not tree.notHNLmc:
 			truth_info = helpers.Truth()
 			truth_info.getTruthParticles(tree)
 			pW2 = truth_info.W_vec.Mag2()
@@ -1192,7 +1220,30 @@ class MCEventType:
 			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is becuase M2_nocorr as calculated includes LNC + LNV decays
 
 		
+class TriggerMatching_prompt:
+	def __init__(self, tree,plep,pelp_Index):
+		self.plep_isTrigMatched = False
+		if plep == "muon": 
+			lep_matched = tree["muon_isTrigMatched"]
+		if plep == "electron": 
+			lep_matched = tree["el_isTrigMatched"]
+		if lep_matched[pelp_Index] == 1: 
+			self.plep_isTrigMatched = True
 
+
+class TriggerMatching_disp:
+	def __init__(self, tree,dv_type,dMu_Index,dEl_Index):
+		self.dlep_isTrigMatched = False
+		if dv_type == "emu": 
+			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]]== 1 or tree["el_isTrigMatched"][dEl_Index[0]]== 1
+		if dv_type == "ee": 
+			self.dlep_isTrigMatched = tree["el_isTrigMatched"][dEl_Index[0]]==1 or tree["el_isTrigMatched"][dEl_Index[1]]==1
+		if dv_type == "mumu": 
+			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]]== 1 or tree["muon_isTrigMatched"][dMu_Index[1]]== 1
+				
+
+
+		
 
 class SumTrack:
 	def __init__(self, tree):
