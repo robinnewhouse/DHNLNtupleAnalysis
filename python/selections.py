@@ -18,31 +18,31 @@ class Trigger():
 		self.invert = invert
 		if trigger == "muononly":
 			if tree.mc_campaign == "mc16a":
-				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2015_2016
+				self.allowed_trigger_list = helpers.SingleMuonTriggerlist_2015_2016
 			if tree.mc_campaign == "mc16d":
-				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2017
+				self.allowed_trigger_list = helpers.SingleMuonTriggerlist_2017
 			if tree.mc_campaign == "mc16e":
-				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2018
+				self.allowed_trigger_list = helpers.SingleMuonTriggerlist_2018
 			else:
-				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist
+				self.allowed_trigger_list = helpers.SingleMuonTriggerlist
 		elif trigger == "electrononly":
 			if tree.mc_campaign == "mc16a":
-				self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist_2015_2016
+				self.allowed_trigger_list = helpers.SingleElectronTriggerlist_2015_2016
 			if tree.mc_campaign == "mc16d":
-				self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist_2017
+				self.allowed_trigger_list = helpers.SingleElectronTriggerlist_2017
 			if tree.mc_campaign == "mc16e":
-				self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist_2018
+				self.allowed_trigger_list = helpers.SingleElectronTriggerlist_2018
 			else:
-				self.allowed_trigger_list = helpers.apiSingleElectronTriggerlist
+				self.allowed_trigger_list = helpers.SingleElectronTriggerlist
 		elif trigger == "all":
 			if tree.mc_campaign == "mc16a":
-				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2015_2016 + helpers.apiSingleElectronTriggerlist_2015_2016
+				self.allowed_trigger_list = helpers.SingleMuonTriggerlist_2015_2016 + helpers.SingleElectronTriggerlist_2015_2016
 			if tree.mc_campaign == "mc16d":
-				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2017 + helpers.apiSingleElectronTriggerlist_2017
+				self.allowed_trigger_list = helpers.SingleMuonTriggerlist_2017 + helpers.SingleElectronTriggerlist_2017
 			if tree.mc_campaign == "mc16e":
-				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist_2018 + helpers.apiSingleElectronTriggerlist_2018
+				self.allowed_trigger_list = helpers.SingleMuonTriggerlist_2018 + helpers.SingleElectronTriggerlist_2018
 			else:
-				self.allowed_trigger_list = helpers.apiSingleMuonTriggerlist + helpers.apiSingleElectronTriggerlist
+				self.allowed_trigger_list = helpers.SingleMuonTriggerlist + helpers.SingleElectronTriggerlist
 
 		elif trigger == "DAOD_RPVLL":
 			self.allowed_trigger_list = helpers.DAOD_RPVLLTriggerlist
