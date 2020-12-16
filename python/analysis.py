@@ -1058,7 +1058,14 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_ntrk_assoc', self.tree.dv('ntrk_assoc'))
 			self.fill_hist(sel, 'DV_pass_mat_veto', self.tree.dv('pass_mat'))
 
-			# compute alpha
+			#is truth matched: 
+			if not self.tree.is_data:
+				maxlinkTruth_score = self.tree.dv('maxlinkTruth_score')
+				maxlinkTruth_parent_pdgId = abs(self.tree.dv('maxlinkTruth_parent_pdgId'))
+				is_truth_matched =  self.tree.dv('maxlinkTruth_score') > 0.75 and abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
+				self.fill_hist(sel, 'DV_truth_matched', is_truth_matched)
+
+			# compute alpha (3D angle between DV 3-momentum and rDV)
 			dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
 			pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
 			decayV = dv-pv
@@ -1066,8 +1073,8 @@ class Analysis(object):
 			dv_4vec = ROOT.TLorentzVector()
 			dv_4vec.SetPtEtaPhiM(self.tree.dv('pt'), self.tree.dv('eta'),self.tree.dv('phi'), self.tree.dv('mass'))
 			dv_mom_vec =  ROOT.TVector3( dv_4vec.Px(),  dv_4vec.Py(),  dv_4vec.Pz() )
-
 			alpha = decayV.Angle(dv_mom_vec)
+
 			self.fill_hist(sel, 'DV_alpha', alpha)
 
 
