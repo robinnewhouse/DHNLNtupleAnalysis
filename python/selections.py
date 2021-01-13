@@ -383,11 +383,11 @@ class DVtype():
 			self.nel = -1
 			self.nmu = -1
 
-			self.muons = helpers.Tracks(self.tree)
+			self.muons = helpers.Tracks(self.tree, self.fakeAOD)
 			self.muons.getMuons()
 			self.nmu = len(self.muons.lepVec)
 
-			self.electrons = helpers.Tracks(self.tree)
+			self.electrons = helpers.Tracks(self.tree, self.fakeAOD)
 			self.electrons.getElectrons()
 			self.nel = len(self.electrons.lepVec)
 
