@@ -369,13 +369,14 @@ class ChargeDV():
 
 
 class DVtype():
-	def __init__(self, tree, dv_type, decaymode="leptonic"):
+	def __init__(self, tree, dv_type, decaymode="leptonic",fakeAOD = False):
 		self.tree = tree
 		self.decaymode = decaymode
 		self.dv_type = dv_type
 		self.lepton_charge = []
 		self.dEl_Index = []
 		self.dMu_Index = []
+		self.fakeAOD = fakeAOD
 
 		if self.decaymode == "leptonic":
 			self.ntracks = self.tree.ntrk
@@ -395,32 +396,38 @@ class DVtype():
 
 		if self.dv_type == "emu": 
 			if self.nel == 1 and self.nmu == 1: 
-				mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
-
-				if mu1_type == combined:  # Only count combined muons 
-					self.lepton_charge.append(self.electrons.lepCharge[0])
-					self.lepton_charge.append(self.muons.lepCharge[0])
-					self.dEl_Index.append(self.electrons.lepIndex[0])
-					self.dMu_Index.append(self.muons.lepIndex[0])
+				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
 					return True
 				else:
-					return False
+					mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
+
+					if mu1_type == combined:  # Only count combined muons 
+						self.lepton_charge.append(self.electrons.lepCharge[0])
+						self.lepton_charge.append(self.muons.lepCharge[0])
+						self.dEl_Index.append(self.electrons.lepIndex[0])
+						self.dMu_Index.append(self.muons.lepIndex[0])
+						return True
+					else:
+						return False
 			else:
 				return False
 
 		elif self.dv_type == "mumu":
 			if self.nmu == 2: 
-				mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
-				mu2_type = self.tree['muon_type'][self.muons.lepIndex[1]]
-
-				if mu1_type == combined and mu2_type == combined:  # Only count combined muons
-					self.lepton_charge.append(self.muons.lepCharge[0])
-					self.lepton_charge.append(self.muons.lepCharge[1])
-					self.dMu_Index.append(self.muons.lepIndex[0])
-					self.dMu_Index.append(self.muons.lepIndex[1])
+				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
 					return True
 				else:
-					return False
+					mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
+					mu2_type = self.tree['muon_type'][self.muons.lepIndex[1]]
+
+					if mu1_type == combined and mu2_type == combined:  # Only count combined muons
+						self.lepton_charge.append(self.muons.lepCharge[0])
+						self.lepton_charge.append(self.muons.lepCharge[1])
+						self.dMu_Index.append(self.muons.lepIndex[0])
+						self.dMu_Index.append(self.muons.lepIndex[1])
+						return True
+					else:
+						return False
 			else:
 				return False
 

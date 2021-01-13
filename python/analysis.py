@@ -90,14 +90,25 @@ class Analysis(object):
 
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
 			self.do_CR = True
+			self.fakeAOD = False
 			self.do_trigger_cut = False  # do not apply trigger cut
 			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
 			self.do_filter_cut = False  # do not apply filter cut
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = True  # invert prompt lepton cut
 			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
+		elif "CR_BE" in self.sel: # if running on fakeAOD that already has CR cuts applied (be careful with this setting!!!!!)
+			self.fakeAOD = True
+			self.do_CR = True
+			self.do_trigger_cut = False  # do not apply trigger cut
+			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
+			self.do_filter_cut = False  # do not apply filter cut
+			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
+			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
+			self.logger.info('You are running on a fakeAOD created from events in the invertex prompt lepton control region!')
 		else:
 			self.do_CR = False
+			self.fakeAOD = False
 			self.do_invert_prompt_lepton_cut = False
 			self.do_invert_trigger_cut = False
 
@@ -406,13 +417,14 @@ class Analysis(object):
 		return charge_sel.passes()
 
 	def _dv_type_cut(self):
-		dv_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
+		dv_sel = selections.DVtype(self.tree, dv_type=self.dv_type,fakeAOD = self.fakeAOD)
 
 		if dv_sel.passes():
-			trig_match = selections.TriggerMatching_disp(self.tree, self.dv_type, dv_sel.dMu_Index, dv_sel.dEl_Index)
-			if trig_match.dlep_isTrigMatched:
-				self.events_with_trig_match_dlep = self.events_with_trig_match_dlep + 1
-			count_trig_match_disp_event = True
+			if self.fakeAOD == False: 
+				trig_match = selections.TriggerMatching_disp(self.tree, self.dv_type, dv_sel.dMu_Index, dv_sel.dEl_Index)
+				if trig_match.dlep_isTrigMatched:
+					self.events_with_trig_match_dlep = self.events_with_trig_match_dlep + 1
+				count_trig_match_disp_event = True
 
 		return dv_sel.passes()
 
@@ -428,11 +440,11 @@ class Analysis(object):
 	def _trilepton_mass_cut(self):
 		plep_vec = self.plep_sel.plepVec
 
-		muons = helpers.Tracks(self.tree)
+		muons = helpers.Tracks(self.tree,self.fakeAOD)
 		muons.getMuons()
 		muVec = muons.lepVec
 
-		electrons = helpers.Tracks(self.tree)
+		electrons = helpers.Tracks(self.tree,self.fakeAOD)
 		electrons.getElectrons()
 		elVec = electrons.lepVec
 
@@ -449,7 +461,7 @@ class Analysis(object):
 
 	def _multitrk_2lep_cut(self):
 		if self.tree.dv('ntrk') >= 2:  # 2+ trk vertex
-			dv_type_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
+			dv_type_sel = selections.DVtype(self.tree, dv_type=self.dv_type,fakeAOD = self.fakeAOD)
 			if dv_type_sel.passes():  # 2 leptons in the DV
 				sign_pair = "SS" if self.do_same_sign_cut else "OS"
 				charge_sel = selections.ChargeDV(self.tree, sel=sign_pair, trk_charge=dv_type_sel.lepton_charge)
@@ -598,7 +610,7 @@ class Analysis(object):
 
 	def _fill_multitrk_histos(self):
 		self.fill_hist('2lepMultitrk', 'num_trks', self.tree.dv('ntrk'))
-		muons = helpers.Tracks(self.tree)
+		muons = helpers.Tracks(self.tree,self.fakeAOD)
 		muons.getMuons()
 		if muons.lepisAssoc[0] == 1 and muons.lepisAssoc[1] == 1:
 			self.fill_hist('2lepMultitrk', 'bothmuon_isAssociated', 1)
@@ -606,7 +618,7 @@ class Analysis(object):
 			self.fill_hist('2lepMultitrk', 'bothmuon_isAssociated', 0)
 		if muons.lepisAssoc[0] == 0 and muons.lepisAssoc[1] == 0:
 			self.fill_hist('2lepMultitrk', 'nomuon_isAssociated', 1)
-			tracks = helpers.Tracks(self.tree)
+			tracks = helpers.Tracks(self.tree,self.fakeAOD)
 			tracks.getTracks()
 			trk_assoc = tracks.lepisAssoc
 			num_trk_assoc  = sum(trk_assoc)
@@ -876,15 +888,15 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_weight', self.weight)
 
 
-			tracks = helpers.Tracks(self.tree)
+			tracks = helpers.Tracks(self.tree,self.fakeAOD)
 			tracks.getTracks()
 			trkVec = tracks.lepVec
 
-			muons = helpers.Tracks(self.tree)
+			muons = helpers.Tracks(self.tree,self.fakeAOD)
 			muons.getMuons()
 			muVec = muons.lepVec
 
-			electrons = helpers.Tracks(self.tree)
+			electrons = helpers.Tracks(self.tree,self.fakeAOD)
 			electrons.getElectrons()
 			elVec = electrons.lepVec
 
@@ -953,9 +965,9 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_max_errz0_wrtSV', max(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
 				self.fill_hist(sel, 'DV_trk_min_errz0_wrtSV', min(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
 
-				DV_mumu = selections.DVtype(self.tree, dv_type="mumu").passes()
-				DV_ee = selections.DVtype(self.tree, dv_type="ee").passes()
-				DV_emu = selections.DVtype(self.tree, dv_type="emu").passes()
+				DV_mumu = selections.DVtype(self.tree, dv_type="mumu",fakeAOD = self.fakeAOD).passes()
+				DV_ee = selections.DVtype(self.tree, dv_type="ee",fakeAOD = self.fakeAOD).passes()
+				DV_emu = selections.DVtype(self.tree, dv_type="emu",fakeAOD = self.fakeAOD).passes()
 				DV_1lep = (len(muVec) ==  1 and len(elVec) == 0) or (len(muVec) ==  0 and len(elVec) == 1)
 
 				self.fill_hist(sel, 'DV_mumu', DV_mumu)
@@ -1077,24 +1089,24 @@ class Analysis(object):
 
 			self.fill_hist(sel, 'DV_alpha', alpha)
 
-
-			trk_quality = selections.Trackqual(self.tree)
-			self.fill_hist(sel, 'DV_2tight', trk_quality.DV_2tight)
-			self.fill_hist(sel, 'DV_2medium', trk_quality.DV_2medium)
-			self.fill_hist(sel, 'DV_2loose', trk_quality.DV_2loose)
-			self.fill_hist(sel, 'DV_1tight', trk_quality.DV_1tight)
-			self.fill_hist(sel, 'DV_1medium', trk_quality.DV_1medium)
-			self.fill_hist(sel, 'DV_1loose', trk_quality.DV_1loose)
-			self.fill_hist(sel, 'DV_tight_loose', trk_quality.DV_tight_loose)
-			self.fill_hist(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
-			self.fill_hist(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
-			self.fill_hist(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
-			self.fill_hist(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
-			self.fill_hist(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
-			self.fill_hist(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
-			self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
-			self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
-			self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
+			if self.fakeAOD == False: 
+				trk_quality = selections.Trackqual(self.tree)
+				self.fill_hist(sel, 'DV_2tight', trk_quality.DV_2tight)
+				self.fill_hist(sel, 'DV_2medium', trk_quality.DV_2medium)
+				self.fill_hist(sel, 'DV_2loose', trk_quality.DV_2loose)
+				self.fill_hist(sel, 'DV_1tight', trk_quality.DV_1tight)
+				self.fill_hist(sel, 'DV_1medium', trk_quality.DV_1medium)
+				self.fill_hist(sel, 'DV_1loose', trk_quality.DV_1loose)
+				self.fill_hist(sel, 'DV_tight_loose', trk_quality.DV_tight_loose)
+				self.fill_hist(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
+				self.fill_hist(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
+				self.fill_hist(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
+				self.fill_hist(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
+				self.fill_hist(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
+				self.fill_hist(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
+				self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
+				self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
+				self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
 
 			
 			# fill TTree with ntuple information. Already set by fill_hist
@@ -1195,6 +1207,7 @@ class run2Analysis(Analysis):
 			else:
 				return
 		if self.dv_type == "mumu":
+
 			if self._multitrk_2lep_cut(): # no return becuase this is not an analysis cut, only used for studying S & B, only worked for uuu samples -DT
 				self._fill_multitrk_histos()
 
