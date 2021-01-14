@@ -413,6 +413,7 @@ class DVtype():
 				return False
 
 		elif self.dv_type == "mumu":
+
 			if self.nmu == 2: 
 				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
 					return True
