@@ -23,30 +23,26 @@ If you are running on a local cluster the complier version might change (i.e. gc
 
 ### Running makeHistograms.py
 
-To make histograms from DHNL ntuples do the following: 
+To make histograms from DHNL ntuples for a specific channel (eg. uuu) do the following: 
 ```
 cd python 
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_all.json
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu.json
 ```
-One root file per channel will be saved in DHNLNtupleAnalysis/output/ folder. 
+One root file will be saved in DHNLNtupleAnalysis/output/ folder. 
 
-
-If you only want to run on a single channel (e.g. uuu channel) then run: 
-```
-cd python 
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json
-```
-For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_uuu.root. To see a full list of channels see this [section](#list-of-configuration-files).
+For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_mc16x_uuu.root. To see a full list of channels see this [section](#list-of-configuration-files). (The x will be either a,d or e depending on what nutple was given as an input).
 
 For a full list of configurable options for `makeHistograms.py` see this list of [options](#list-of-makehistogramspy-options).
 
 ### Running plotHistograms.py
 
+Note: plotHistograms is very out of date. Only use as an example. Check out the separate plotting repository for upto date plotting code: [DHNLPlotting](https://gitlab.cern.ch/dtrischu/dhnlplotting/-/tree/master)
+
 Once you have run makeHistograms.py edit `../data/config_plotting.json` to include a path to the histogram files you want to plot, as well as an identifying label for each file.
 
 Then run:
 ```
-python plotHistograms.py --config ../data/config_plotting.json
+python plotHistograms.py --config ../data/other/config_plotting.json
 ```
 
 The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting functions in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
@@ -59,7 +55,7 @@ The `makeHistogram.py` file is the steering code for making histograms. To run t
 
 To add a new channel, edit the corresponding config file and make a new channel that includes the cuts you wish to apply. 
 
-For example if you edit `../data/config_mc_uuu.json` and add "my_new_channel", when you run `makeHistograms.py -i inputFile --config ../data/config_mc_uuu.json`, a new histograms file will be created called `histograms_my_new_channel.root` in the output directory. This output file will include histograms with your new cuts. 
+For example if you edit `../data/mc/config_mc_uuu.json` and add "my_new_channel", when you run `makeHistograms.py -i inputFile --config ../data/mc/config_mc_uuu.json`, a new histograms file will be created called `histograms_my_new_channel.root` in the output directory. This output file will include histograms with your new cuts. 
 
 N.B If you wish to apply a new set of cuts that are not implemented you may wish to make a new analysis class. See Toy Analysis Class in `analysis.py` as an example.
 
@@ -90,6 +86,7 @@ Truth reweighting was introducted to add spin correlations with Pythia did not t
 In `selections.py` a class called `MCEventType` will determine is the current events is LNC or LNV and accordingly calcute a weight based on the truth distributions from the particular event. 
 
 The overall MC event weight is calculated in `analysis.py` the function called `calculate_event_weight` and takes into account both the mass-lifetime weight for the events and the MCtype (LNC or LNV) weight. 
+
 ## Inverted Prompt Lepton Control Region
 To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
 
@@ -104,13 +101,13 @@ Inside of the histogram output file you will find the micro-ntuple trees in:
 To change the cut where the micro-ntuples are saved (e.g. save ntuples after the trkqual cut), you can run: 
 
 ```
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json --saveNtuples trkqual
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu.json --saveNtuples trkqual
 ```
 
 Or if you want to save them after EVERY cut: 
 
 ```
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_uuu.json --saveNtuples allcuts
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu.json --saveNtuples allcuts
 ```
 
 N.B This "allcuts" option makes the histogram output files much larger, especially when running on data. But the feature if available if you would like to use it. 
@@ -149,7 +146,7 @@ N.B An additonal container called "VSI_LeptonsLRTR3_1p0" also exisits in the dHN
 To run with the new container names use the customVSI configuration files in data/. For example: 
 ```
 cd python 
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/config_mc_customVSI_uuu.json
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_customVSI_uuu.json
 ```
 ### Output File Structure 
 
