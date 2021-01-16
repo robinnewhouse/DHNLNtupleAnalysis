@@ -1,9 +1,0 @@
-{
-   
-"euu":{
-            "vtx_containers" : ["VSI", "VSI_Leptons"],
-            "selections":["alltriggers","pelectron", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-tight","cosmicveto", "mlll","DVmass" ]
-
-         }
-
-}
