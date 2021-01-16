@@ -108,7 +108,7 @@ class Analysis(object):
 			self.do_filter_cut = False  # do not apply filter cut
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
-			self.logger.info('You are running on a fakeAOD created from events in the invertex prompt lepton control region!')
+			self.logger.info('You are running on a fakeAOD created from events in the inverted prompt lepton control region!')
 		else:
 			self.do_CR = False
 			self.fakeAOD = False
@@ -1005,7 +1005,24 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_ee', DV_ee)
 				self.fill_hist(sel, 'DV_emu', DV_emu)
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
-				
+
+				dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
+				pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
+				decayV = dv-pv
+				decayV_mag = decayV.Mag()
+				pvec_0 = ROOT.TVector3( tracks.lepVec[0].Px(), tracks.lepVec[0].Py(),  tracks.lepVec[0].Pz())
+				pvec_0_mag = pvec_0.Mag()
+				mom_perp_vec_0 = pvec_0.Cross(decayV)
+				mom_perp_0 = mom_perp_vec_0.Mag()/decayV_mag
+				mom_parall_0 = pvec_0.Dot(decayV)/decayV_mag
+				mom_frac_parall_0 = mom_parall_0/pvec_0_mag
+
+				pvec_1 = ROOT.TVector3( tracks.lepVec[1].Px(), tracks.lepVec[1].Py(),  tracks.lepVec[1].Pz())
+				pvec_1_mag = pvec_1.Mag()
+				mom_perp_vec_1 = pvec_1.Cross(decayV)
+				mom_perp_1 = mom_perp_vec_1.Mag()/decayV_mag
+				mom_parall_1 = pvec_1.Dot(decayV)/decayV_mag
+				mom_frac_parall_1 = mom_parall_1/pvec_1_mag
 
 				# pt order the visible leptons in the DV
 				if self.tree.dv('trk_pt_wrtSV')[1] > self.tree.dv('trk_pt_wrtSV')[0]:
@@ -1018,6 +1035,10 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[1])
 					self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[1])
 					self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[1])
+					self.fill_hist(sel, 'DV_trk_0_mom_parall', mom_parall_1)
+					self.fill_hist(sel, 'DV_trk_0_mom_perp', mom_perp_1)
+					self.fill_hist(sel, 'DV_trk_0_mom_mag', pvec_1_mag)
+					self.fill_hist(sel, 'DV_trk_0_mom_frac_parall', mom_frac_parall_1)
 
 					self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[0])
 					self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[0])
@@ -1028,6 +1049,10 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[0])
 					self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[0])
 					self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[0])
+					self.fill_hist(sel, 'DV_trk_1_mom_parall', mom_parall_0)
+					self.fill_hist(sel, 'DV_trk_1_mom_perp', mom_perp_0)
+					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_0_mag)
+					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_0)
 				else:
 					self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[0])
 					self.fill_hist(sel, 'DV_trk_0_eta', self.tree.dv('trk_eta_wrtSV')[0])
@@ -1038,6 +1063,10 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[0])
 					self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[0])
 					self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[0])
+					self.fill_hist(sel, 'DV_trk_0_mom_parall', mom_parall_0)
+					self.fill_hist(sel, 'DV_trk_0_mom_perp', mom_perp_0)
+					self.fill_hist(sel, 'DV_trk_0_mom_mag', pvec_0_mag)
+					self.fill_hist(sel, 'DV_trk_0_mom_frac_parall', mom_frac_parall_0)
 
 					self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[1])
 					self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[1])
@@ -1048,6 +1077,10 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[1])
 					self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[1])
 					self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[1])
+					self.fill_hist(sel, 'DV_trk_1_mom_parall', mom_parall_1)
+					self.fill_hist(sel, 'DV_trk_1_mom_perp', mom_perp_1)
+					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_1_mag)
+					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_1)
 
 
 
@@ -1625,7 +1658,6 @@ class BEAnalysis(Analysis):
 
 		self._fill_selected_dv_histos(self.be_region) 
 
-		
 		if self.do_dv_type_cut:
 			if self._dv_type_cut():
 				if not self.passed_dv_type_cut:
@@ -1633,9 +1665,9 @@ class BEAnalysis(Analysis):
 					self.passed_dv_type_cut = True
 			else:
 				return
-	
-		self._fill_selected_dv_histos("DVtype")
 
+		self._fill_selected_dv_histos("DVtype")
+		
 		if self.do_mat_veto_cut:
 			if self._mat_veto_cut():
 				if not self.passed_mat_veto_cut:
@@ -1665,7 +1697,7 @@ class BEAnalysis(Analysis):
 				return
 		self._fill_selected_dv_histos("mDV")
 
-		
+
 		if self.do_track_quality_cut:
 			if self._track_quality_cut():
 				if not self.passed_track_quality_cut:
@@ -1689,4 +1721,3 @@ class BEAnalysis(Analysis):
 
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 		self._fill_selected_dv_histos("sel")
-
