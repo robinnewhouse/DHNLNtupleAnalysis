@@ -149,6 +149,80 @@ class InvertedPromptLepton():
 	def passes(self):
 		return self.n_prompt_leptons == 0
 
+class PromptTrack():
+	def __init__(self, tree, lepton="any", quality="tight", min_dR=0.05):
+		self.trkVec = ROOT.TLorentzVector(0,0,0,0)
+		self.trkd0 = -2000
+		self.trkz0 = -2000
+		self.nPtrk = 0
+		self.found_trk = False
+		self.trk_Index = -1
+
+		ntrk = len(tree['tracks_pt'])
+		# variable for the highest pt lepton				
+		self.highestpt_trk = ROOT.TLorentzVector(0, 0, 0, 0)
+		self.highestpt_trk_d0 = -2000
+		self.highestpt_trk_z0 = -2000
+		self.highestpt_trk_Index = -1
+
+		for itrk in range(ntrk):
+			overlap = False
+			trkVec_i = ROOT.TLorentzVector()
+			pt = tree['tracks_pt'][itrk]
+			eta = tree['tracks_eta'][itrk]
+			phi = tree['tracks_phi'][itrk]
+			mass = 0.139 # pion mass in GeV 
+			trkVec_i.SetPtEtaPhiM(pt, eta, phi, mass)
+			
+			trkd0 = tree['tracks_d0'][itrk]
+			trkz0 = tree['tracks_z0'][itrk]
+			trktheta = tree['tracks_theta'][itrk]
+			trkz0sintheta = trkz0*np.sin(trktheta)
+			# print trktheta,np.sin(trktheta)
+			# print trkz0sintheta
+			if  abs(trkd0) < 3 and abs(trkz0sintheta) < 0.5:
+				# Check the overlap between the prompt lepton and every displaced vertex track
+				self.found_trk = True
+				for idv in range(tree.ndv):
+					prefix = tree.dv_prefix + '_'
+					ntrks = tree.get_at(prefix+'ntrk', tree.ievt, idv)
+					for itrk in range(ntrks):
+						# Currently the only live example of get_at() which gives full control over the tree access.
+						pt = tree.get_at(prefix + 'trk_pt', tree.ievt, idv, itrk)
+						eta = tree.get_at(prefix + 'trk_eta', tree.ievt, idv, itrk)
+						phi = tree.get_at(prefix + 'trk_phi', tree.ievt, idv, itrk)
+						M = tree.get_at(prefix + 'trk_M', tree.ievt, idv, itrk)
+						track_vector = ROOT.TLorentzVector()
+						track_vector.SetPtEtaPhiM(pt, eta, phi, M)
+
+						dR = track_vector.DeltaR(trkVec_i)
+						if dR < min_dR:  # set overlap to true if muon overlaps with displaced track
+							overlap = True
+		
+				# if lepton doesnt overlap with and DV tracks
+				if not overlap:
+					self.nPtrk = self.nPtrk + 1
+					# if pt is larger then the previous prompt lepton found
+					if trkVec_i.Pt() > self.highestpt_trk.Pt():
+						self.highestpt_trk = trkVec_i  # get highest pt prompt lepton!
+						self.highestpt_trk_d0 = trkd0
+						self.highestpt_trk_z0 = trkz0
+						self.highestpt_trk_z0sintheta = trkz0sintheta
+						self.highestpt_trk_Index = itrk
+
+	def passes(self):
+		# check if you found a prompt lepton
+		if self.nPtrk > 0 and self.highestpt_trk.Pt() > 0:
+			self.trkVec = self.highestpt_trk
+			self.trkd0 = self.highestpt_trk_d0
+			self.trkz0 = self.highestpt_trk_z0
+			self.trk_Index = self.highestpt_trk_Index
+			return True
+		else: 
+			return False
+	
+
+
 
 class PromptLepton():
 	def __init__(self, tree, lepton="any", quality="tight", min_dR=0.05):
@@ -930,7 +1004,7 @@ class Mhnl_old():
 			return False
 
 class Mhnl():
-	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 4,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3() ):
+	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 4,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(),trks=[],use_tracks=False ):
 		# Global W pole mass
 		MW = 80.379
 		MW2 = MW**2
@@ -944,17 +1018,22 @@ class Mhnl():
 		self.mlll = -1
 
 		dtrks = []
-		if dv_type == "emu":
-			dtrks.append(dEl[0])
-			dtrks.append(dMu[0])
+		if use_tracks: 
+			dtrks.append(trks[0])
+			dtrks.append(trks[1])
+		else:
+			if dv_type == "emu":
+				dtrks.append(dEl[0])
+				dtrks.append(dMu[0])
 
-		if dv_type == "mumu":
-			dtrks.append(dMu[0])
-			dtrks.append(dMu[1])
+			if dv_type == "mumu":
+				dtrks.append(dMu[0])
+				dtrks.append(dMu[1])
 
-		if dv_type == "ee":
-			dtrks.append(dEl[0])
-			dtrks.append(dEl[1])
+			if dv_type == "ee":
+				dtrks.append(dEl[0])
+				dtrks.append(dEl[1])
+
 
 		# Get 3 vectors
 		if not use_truth: 	

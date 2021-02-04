@@ -99,6 +99,7 @@ class Analysis(object):
 			self.do_filter_cut = False  # do not apply filter cut
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = True  # invert prompt lepton cut
+			self.do_prompt_track_cut = True # apply prompt track cut
 			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
 		elif "CR_BE" in self.sel: # if running on fakeAOD that already has CR cuts applied (be careful with this setting!!!!!)
 			self.fakeAOD = True
@@ -108,12 +109,14 @@ class Analysis(object):
 			self.do_filter_cut = False  # do not apply filter cut
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
+			self.do_prompt_track_cut = False # do not apply prompt track cut
 			self.logger.info('You are running on a fakeAOD created from events in the inverted prompt lepton control region!')
 		else:
 			self.do_CR = False
 			self.fakeAOD = False
 			self.do_invert_prompt_lepton_cut = False
 			self.do_invert_trigger_cut = False
+			self.do_prompt_track_cut = False 
 
 		# alpha cut
 		self.do_alpha_cut = 'alpha' in self.sel
@@ -152,24 +155,27 @@ class Analysis(object):
 		
 		if self.do_CR: 
 			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
-				self.be_region = "RegionC"
-			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
-				self.be_region = "RegionD"
+				self.be_region = "RegionAprime"
 			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionBprime"
+			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
 				self.be_region = "RegionCprime"
 			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
 				self.be_region = "RegionDprime"
 		else: 
 			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
 				self.be_region = "RegionA"
-			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
-				self.be_region = "RegionB"
+				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
 			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
-				self.be_region = "RegionAprime"
+				self.be_region = "RegionB"
+			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionC"
+				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
 			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
-				self.be_region = "RegionBprime"
+				self.be_region = "RegionD"
+		
 		if "CR_BE" in self.sel: 
-			self.saveNtuples = self.be_region # update saveNtuples selection
+			self.saveNtuples = self.be_region # saveNtuples selection
 		else:
 			self.saveNtuples = saveNtuples
 
@@ -422,6 +428,22 @@ class Analysis(object):
 			self.fill_hist('all', 'plep_d0', self.plep_sel.plepd0)
 			self.fill_hist('all', 'plep_z0', self.plep_sel.plepz0)
 		return self.plep_sel.passes() # full plep selection find the highest pt plep that doesnt overlap with any DVs
+	
+	def _prompt_track_cut(self):
+		self.found_ptrk = False # intitalize the plep each event 
+		self.ptrk_sel = selections.PromptTrack(self.tree) # run ptrack selection 
+		self.found_ptrk = self.ptrk_sel.found_trk # check if you found any prompt leptons 
+		# Add to histogram all prompt leptons that pass selection.
+		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
+		if self.ptrk_sel.passes():
+			self.fill_hist('all', 'ptrk_pt', self.ptrk_sel.trkVec.Pt())
+			self.fill_hist('all', 'ptrk_eta', self.ptrk_sel.trkVec.Eta())
+			self.fill_hist('all', 'ptrk_phi', self.ptrk_sel.trkVec.Phi())
+			self.fill_hist('all', 'ptrk_d0', self.ptrk_sel.trkd0)
+			self.fill_hist('all', 'ptrk_z0', self.ptrk_sel.trkz0)
+
+
+		return self.ptrk_sel.passes() # full plep selection find the highest pt plep that doesnt overlap with any DVs
 
 	def _invert_prompt_lepton_cut(self):
 		self.invt_lep = selections.InvertedPromptLepton(self.tree)
@@ -444,6 +466,7 @@ class Analysis(object):
 		return charge_sel.passes()
 	
 	def _be_event_type_cut(self): 
+		
 		return True # fill this in when tree is ready!
 
 
@@ -595,12 +618,24 @@ class Analysis(object):
 				self._fill_cutflow(5)
 			else:
 				return
+		
+		
 
 		if self.do_invert_prompt_lepton_cut:
 			if self._invert_prompt_lepton_cut():
-				self._fill_cutflow(5)
+				self._fill_cutflow(3)
 			else:
 				return
+
+			if self.do_prompt_track_cut: 
+				ptrk_cut = self._prompt_track_cut()
+				if self.found_ptrk: 
+					self._fill_cutflow(4)
+				if ptrk_cut:
+					self._fill_cutflow(5)
+				else:
+					return
+
 
 		if self.do_ndv_cut:
 			if self._ndv_cut():
@@ -970,13 +1005,33 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_redmass', self.tree.dv('mass')/dR)
 						self.fill_hist(sel, 'DV_redmassvis', Mlll.mlll/dR)
 						self.fill_hist(sel, 'DV_redmassHNL', Mhnl.mhnl/dR)
+			
+			if self.do_prompt_track_cut: 
+				ptrk_vec = self.ptrk_sel.trkVec
+				ptrkd0 = self.ptrk_sel.trkd0
+				ptrkz0 = self.ptrk_sel.trkz0
+				self.fill_hist(sel, 'ptrk_pt', ptrk_vec.Pt())
+				self.fill_hist(sel, 'ptrk_eta', ptrk_vec.Eta())
+				self.fill_hist(sel, 'ptrk_phi', ptrk_vec.Phi())
+				self.fill_hist(sel, 'ptrk_d0', ptrkd0)
+				self.fill_hist(sel, 'ptrk_z0', ptrkz0)
+
+				if tracks.ntracks == 2:
+
+					Mhnl = selections.Mhnl(self.tree, self.dv_type, plep=ptrk_vec, dMu=muVec,dEl=elVec,use_tracks=True,trks=tracks.lepVec)
+					self.fill_hist(sel, 'HNLm', Mhnl.mhnl)
+					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
+					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
+					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
+
+
+
 
 			if tracks.ntracks == 2:
 				deta = abs(tracks.eta[0] - tracks.eta[1])
 				dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
 				dpt = abs(tracks.pt[0] - tracks.pt[1])
 				dR = tracks.lepVec[0].DeltaR(tracks.lepVec[1])
-
 				self.fill_hist(sel, 'DV_trk_deta', deta)
 				self.fill_hist(sel, 'DV_trk_dphi', dphi)
 				self.fill_hist(sel, 'DV_trk_dpt', dpt)
@@ -1013,14 +1068,20 @@ class Analysis(object):
 				pvec_0 = ROOT.TVector3( tracks.lepVec[0].Px(), tracks.lepVec[0].Py(),  tracks.lepVec[0].Pz())
 				pvec_0_mag = pvec_0.Mag()
 				mom_perp_vec_0 = pvec_0.Cross(decayV)
-				mom_perp_0 = mom_perp_vec_0.Mag()/decayV_mag
+				theta_0 = mom_perp_vec_0.Theta()
+				if theta_0 > np.pi/2.0: sign_perp_0 = 1
+				if theta_0 < np.pi/2.0: sign_perp_0 = -1
+				mom_perp_0 = sign_perp_0*mom_perp_vec_0.Mag()/decayV_mag
 				mom_parall_0 = pvec_0.Dot(decayV)/decayV_mag
 				mom_frac_parall_0 = mom_parall_0/pvec_0_mag
 
 				pvec_1 = ROOT.TVector3( tracks.lepVec[1].Px(), tracks.lepVec[1].Py(),  tracks.lepVec[1].Pz())
 				pvec_1_mag = pvec_1.Mag()
 				mom_perp_vec_1 = pvec_1.Cross(decayV)
-				mom_perp_1 = mom_perp_vec_1.Mag()/decayV_mag
+				theta_1 = mom_perp_vec_1.Theta()
+				if theta_1 > np.pi/2.0: sign_perp_1 = 1
+				if theta_1 < np.pi/2.0: sign_perp_1 = -1
+				mom_perp_1 = sign_perp_1*mom_perp_vec_1.Mag()/decayV_mag
 				mom_parall_1 = pvec_1.Dot(decayV)/decayV_mag
 				mom_frac_parall_1 = mom_parall_1/pvec_1_mag
 
@@ -1209,7 +1270,11 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(5, "{} prompt {}".format(self.plep_quality,self.plep))
 		self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
 		if self.do_invert_prompt_lepton_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(6, "invert prompt lepton")
+			self.CutFlow.GetXaxis().SetBinLabel(4, "invert prompt lepton")
+			if self.do_prompt_track_cut:
+				self.CutFlow.GetXaxis().SetBinLabel(5, "prompt track")
+				self.CutFlow.GetXaxis().SetBinLabel(6, "no ptrk overlap with DV")	
+			
 		if self.do_ndv_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(7, "DV")
 		if self.do_fidvol_cut:
@@ -1270,7 +1335,7 @@ class run2Analysis(Analysis):
 			# If this cut doesn't pass, don't continue to check other cuts
 			else:
 				return
-		if self.dv_type == "mumu":
+		if self.do_dv_type_cut and self.dv_type == "mumu":
 
 			if self._multitrk_2lep_cut(): # no return becuase this is not an analysis cut, only used for studying S & B, only worked for uuu samples -DT
 				self._fill_multitrk_histos()
@@ -1570,6 +1635,7 @@ class BEAnalysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(6, "invert prompt lepton")
 		if self.do_ndv_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(7, "DV")
+		print self.do_fidvol_cut, " fid vol cut"
 		if self.do_fidvol_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(8, "fiducial")
 		if self.do_ntrk_cut:
