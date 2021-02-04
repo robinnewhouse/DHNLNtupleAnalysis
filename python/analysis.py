@@ -90,7 +90,7 @@ class Analysis(object):
 		self.do_same_event_cut =  "SE" in self.sel
 		self.do_different_event_cut =  "DE" in self.sel
 	
-			
+		
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
 			self.do_CR = True
 			self.fakeAOD = False
@@ -99,7 +99,10 @@ class Analysis(object):
 			self.do_filter_cut = False  # do not apply filter cut
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = True  # invert prompt lepton cut
-			self.do_prompt_track_cut = True # apply prompt track cut
+			if 'ptrack' in self.sel: 
+				self.do_prompt_track_cut = True # apply prompt track cut
+			else: 
+				self.do_prompt_track_cut = False # apply prompt track cut
 			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
 		elif "CR_BE" in self.sel: # if running on fakeAOD that already has CR cuts applied (be careful with this setting!!!!!)
 			self.fakeAOD = True
