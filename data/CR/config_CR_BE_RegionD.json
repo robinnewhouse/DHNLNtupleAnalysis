@@ -1,0 +1,12 @@
+{
+   
+    "RegionD":{
+                "vtx_containers" : [ "VSI_LeptonsMod"],
+                "selections":["CR_BE", "fid_vol","nDV","2track","OS","DE", "mumu"]
+    
+             }
+    
+    
+    
+    }
+    

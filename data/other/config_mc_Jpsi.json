@@ -1,0 +1,11 @@
+{
+   
+    "Jpsi":{
+    
+                "vtx_containers" : ["VSI","VSI_Leptons"],
+                "selections":["nDV","2track","OS", "mumu"]
+    
+             }
+    
+    }
+    

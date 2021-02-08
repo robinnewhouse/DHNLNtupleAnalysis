@@ -73,6 +73,9 @@ class Truth():
 		self.trkVec = []
 		self.dLepVec = []
 		self.dLepCharge = []
+		self.dEl = []
+		self.dMu = []
+		self.dTrk_d0 = []
 		self.truth_dvx = -1
 		self.truth_dvy = -1
 		self.truth_dvz = -1
@@ -92,8 +95,6 @@ class Truth():
 		
 
 	def getTruthParticles(self, tree):
-		dMu = []
-		dEl = []
 		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
 			# get the DV!
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50:  # PDGID 50: Heavy Neutral Lepton
@@ -117,7 +118,7 @@ class Truth():
 												tree['truthVtx_outP_phi'][ivx][i],
 												tree['truthVtx_outP_M'][ivx][i] 
 												)
-							dMu.append(TrkVec)
+							self.dMu.append(TrkVec)
 						if trk_pdgId == 11: 
 							TrkVec  =  ROOT.TLorentzVector()
 							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
@@ -125,7 +126,7 @@ class Truth():
 												tree['truthVtx_outP_phi'][ivx][i],
 												tree['truthVtx_outP_M'][ivx][i] 
 												)
-							dEl.append(TrkVec)
+							self.dEl.append(TrkVec)
 
 						if trk_pdgId == 13 or trk_pdgId == 11: # is track a muon of electron? Then these are our visible (charged) truth tracks
 							visTrkVec =  ROOT.TLorentzVector()
@@ -152,6 +153,8 @@ class Truth():
 												)
 						self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
 						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
+						# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i]) 
+						self.dTrk_d0.append(-1) # fill with -1 for now, default DHNLalg does not have truth d0
 					
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],
@@ -336,34 +339,34 @@ class FileInfo:
 			self.ctau = 100.0
 			self.ctau_str = "100mm"
 
-		if "3G" in infile:
+		if "_3G" in infile:
 			self.mass = 3.0
 			self.mass_str = "3G"
-		elif "4G" in infile:
+		elif "_4G" in infile:
 			self.mass = 4.0
 			self.mass_str = "4G"
-		elif "4p5G" in infile:
+		elif "_4p5G" in infile:
 			self.mass = 4.5
 			self.mass_str = "4p5G"
-		elif "5G" in infile:
+		elif "_5G" in infile:
 			self.mass = 5.0
 			self.mass_str = "5G"
-		elif "7p5G" in infile:
+		elif "_7p5G" in infile:
 			self.mass = 7.5
 			self.mass_str = "7p5G"
-		elif "10G" in infile:
+		elif "_10G" in infile:
 			self.mass = 10.0
 			self.mass_str = "10G"
-		elif "12p5G" in infile:
+		elif "_12p5G" in infile:
 			self.mass = 12.5
 			self.mass_str = "12p5G"
-		elif "15G" in infile:
+		elif "_15G" in infile:
 			self.mass = 15.0
 			self.mass_str = "15G"
-		elif "17p5G" in infile:
+		elif "_17p5G" in infile:
 			self.mass = 17.5
 			self.mass_str = "17p5G"
-		elif "20G" in infile:
+		elif "_20G" in infile:
 			self.mass = 20.0
 			self.mass_str = "20G"
 
@@ -393,19 +396,42 @@ class FileInfo:
 # trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
 # seperated by year using comments from the above link and cross checking with this twiki: https://twiki.cern.ch/twiki/bin/view/Atlas/LowestUnprescaled
 
-# muon triggers 
+# Single muon triggers used in DHNL analysis
+SingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_imedium",
+						 "HLT_mu24_ivarmedium","HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly"]
+
+SingleMuonTriggerlist_2018 = ["HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly" ]
+
+SingleMuonTriggerlist_2017 = ["HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly" ]
+
+SingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", 
+								  "HLT_mu24_imedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly"]
+
+# Single electron triggers used in DHNL analysis
+SingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0",
+                                "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+
+SingleElectronTriggerlist_2018 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e60_lhmedium_nod0", 
+									 "HLT_e140_lhloose_nod0"]
+
+SingleElectronTriggerlist_2017 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+
+SingleElectronTriggerlist_2015_2016 = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", 
+									"HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+
+
+
+
+# full list of triggers from DHNL filter. Some high-threshold triggers removed from the list as they did not provide addtional signal efficiency
+# muons triggers
 apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_imedium","HLT_mu24_ivarmedium",
 							"HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50",
 							"HLT_mu60_0eta105_msonly"]
-
 apiSingleMuonTriggerlist_2018 = ["HLT_mu26_ivarmedium", "HLT_mu50", "HLT_mu60_0eta105_msonly" ]
-
 apiSingleMuonTriggerlist_2017 = ["HLT_mu26_ivarmedium", "HLT_mu50", "HLT_mu60_0eta105_msonly" ]
-
 apiSingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", 
 									       "HLT_mu24_imedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
-
-# electron triggers 
+#electron triggers
 apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0",
                                 "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium",
                                 "HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
