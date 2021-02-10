@@ -113,6 +113,17 @@ class Analysis(object):
 			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
 			self.do_prompt_track_cut = False # do not apply prompt track cut
 			self.logger.info('You are running on a fakeAOD created from events in the inverted prompt lepton control region!')
+		elif "BE" in self.sel: # if running on fakeAOD without any CR cuts applied
+			self.fakeAOD = True
+			self.do_trigger_cut = True  # apply a trigger cut
+			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
+			self.do_filter_cut = False  # do not apply filter cut, not sure if we need this for BE -DT
+			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut, dont apply this cut no prompt leptons in the fake DAODs yet... -DT
+			self.do_invert_prompt_lepton_cut = False  # no fake leptons in DAODs... -DT
+			self.do_prompt_track_cut = False # do not apply prompt track cut
+			self.logger.info('You are running on a fakeAOD created from events in the signal region!')
+			if "OS" in self.sel: raise ValueError("This analysis is blinded! You cannot look at OS DV from data events!!") # another blinded check -DT
+
 		else:
 			self.do_CR = False
 			self.fakeAOD = False
@@ -176,7 +187,7 @@ class Analysis(object):
 			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
 				self.be_region = "RegionD"
 		
-		if "CR_BE" in self.sel: 
+		if "CR_BE" in self.sel or "BE" in self.sel:
 			self.saveNtuples = self.be_region # saveNtuples selection
 		else:
 			self.saveNtuples = saveNtuples
@@ -468,8 +479,10 @@ class Analysis(object):
 		return charge_sel.passes()
 	
 	def _be_event_type_cut(self): 
+		if self.do_same_event_cut: return not self.tree.dv('shuffled')
+		if self.do_different_event_cut: return self.tree.dv('shuffled')
 		
-		return True # fill this in when tree is ready!
+
 
 
 	def _dv_type_cut(self):
