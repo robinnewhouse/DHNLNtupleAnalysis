@@ -1271,7 +1271,7 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(5, "{} prompt {}".format(self.plep_quality,self.plep))
-		self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
+			self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
 		if self.do_invert_prompt_lepton_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(4, "invert prompt lepton")
 			if self.do_prompt_track_cut:
