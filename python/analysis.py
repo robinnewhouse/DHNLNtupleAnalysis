@@ -90,7 +90,6 @@ class Analysis(object):
 		self.do_same_event_cut =  "SE" in self.sel
 		self.do_different_event_cut =  "DE" in self.sel
 	
-		
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
 			self.do_CR = True
 			self.fakeAOD = False
@@ -102,7 +101,7 @@ class Analysis(object):
 			if 'ptrack' in self.sel: 
 				self.do_prompt_track_cut = True # apply prompt track cut
 			else: 
-				self.do_prompt_track_cut = False # apply prompt track cut
+				self.do_prompt_track_cut = False # DO NOT apply prompt track cut
 			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
 		elif "CR_BE" in self.sel: # if running on fakeAOD that already has CR cuts applied (be careful with this setting!!!!!)
 			self.fakeAOD = True
@@ -622,8 +621,6 @@ class Analysis(object):
 			else:
 				return
 		
-		
-
 		if self.do_invert_prompt_lepton_cut:
 			if self._invert_prompt_lepton_cut():
 				self._fill_cutflow(3)
@@ -1064,30 +1061,43 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_emu', DV_emu)
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
 
+				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
 				dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
 				pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
 				decayV = dv-pv
-				decayV_mag = decayV.Mag()
 				pvec_0 = ROOT.TVector3( tracks.lepVec[0].Px(), tracks.lepVec[0].Py(),  tracks.lepVec[0].Pz())
-				pvec_0_mag = pvec_0.Mag()
-				mom_perp_vec_0 = pvec_0.Cross(decayV)
-				theta_0 = mom_perp_vec_0.Theta()
-				if theta_0 > np.pi/2.0: sign_perp_0 = 1
-				if theta_0 < np.pi/2.0: sign_perp_0 = -1
-				mom_perp_0 = sign_perp_0*mom_perp_vec_0.Mag()/decayV_mag
-				mom_parall_0 = pvec_0.Dot(decayV)/decayV_mag
-				mom_frac_parall_0 = mom_parall_0/pvec_0_mag
-
 				pvec_1 = ROOT.TVector3( tracks.lepVec[1].Px(), tracks.lepVec[1].Py(),  tracks.lepVec[1].Pz())
-				pvec_1_mag = pvec_1.Mag()
-				mom_perp_vec_1 = pvec_1.Cross(decayV)
-				theta_1 = mom_perp_vec_1.Theta()
-				if theta_1 > np.pi/2.0: sign_perp_1 = 1
-				if theta_1 < np.pi/2.0: sign_perp_1 = -1
-				mom_perp_1 = sign_perp_1*mom_perp_vec_1.Mag()/decayV_mag
-				mom_parall_1 = pvec_1.Dot(decayV)/decayV_mag
-				mom_frac_parall_1 = mom_parall_1/pvec_1_mag
+				
+				def mom_perp(pvec, decayV): 
+					decayV_mag = decayV.Mag()
+					mom_perp_vec = pvec.Cross(decayV)
+					theta = mom_perp_vec.Theta()
+					if theta < np.pi/2.0: sign_pperp = 1
+					if theta > np.pi/2.0: sign_pperp = -1
+					mom_perp =  sign_pperp*mom_perp_vec.Mag()/decayV_mag
+					return mom_perp
 
+				def mom_parall(pvec, decayV): 
+					decayV_mag = decayV.Mag()
+					mom_parall = pvec.Dot(decayV)/decayV_mag
+					return mom_parall
+				
+				def mom_frac_parall(pvec, decayV): 
+					decayV_mag = decayV.Mag()
+					mom_parall = pvec.Dot(decayV)/decayV_mag
+					pvec_mag = pvec.Mag()
+					frac_parall = mom_parall/pvec_mag
+					return frac_parall
+
+				mom_perp_0 = mom_perp(pvec_0,decayV)
+				mom_parall_0 = mom_parall(pvec_0,decayV)
+				mom_frac_parall_0 = mom_frac_parall(pvec_0,decayV)
+
+				mom_perp_1 = mom_perp(pvec_1,decayV)
+				mom_parall_1 = mom_parall(pvec_1,decayV)
+				mom_frac_parall_1 = mom_frac_parall(pvec_1,decayV)
+
+				
 				# pt order the visible leptons in the DV
 				if self.tree.dv('trk_pt_wrtSV')[1] > self.tree.dv('trk_pt_wrtSV')[0]:
 					self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[1])
