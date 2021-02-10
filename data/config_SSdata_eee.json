@@ -1,9 +1,0 @@
-{
-   
-"eee":{
-            "vtx_containers" : ["VSI", "VSI_Leptons"],
-            "selections":["alltriggers","pelectron", "4-filter", "nDV", "fidvol","2track","SS", "ee","2-veryveryloose","cosmicveto", "mlll","DVmass" ]
-
-         }
-
-}
