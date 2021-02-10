@@ -1092,10 +1092,12 @@ class Analysis(object):
 				mom_perp_0 = mom_perp(pvec_0,decayV)
 				mom_parall_0 = mom_parall(pvec_0,decayV)
 				mom_frac_parall_0 = mom_frac_parall(pvec_0,decayV)
+				pvec_0_mag = pvec_0.Mag()
 
 				mom_perp_1 = mom_perp(pvec_1,decayV)
 				mom_parall_1 = mom_parall(pvec_1,decayV)
 				mom_frac_parall_1 = mom_frac_parall(pvec_1,decayV)
+				pvec_1_mag = pvec_1.Mag()
 
 				
 				# pt order the visible leptons in the DV
