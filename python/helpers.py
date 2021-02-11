@@ -208,6 +208,7 @@ class Tracks():
 		self.lepIndex = []
 		self.lepCharge = []
 		self.lepisAssoc = []
+		self.muonType = []
 		self.eta = []
 		self.phi = []
 		self.pt = []
@@ -239,6 +240,8 @@ class Tracks():
 				else:
 					self.lepIndex.append(-1) 
 
+				if self.fakeAOD:
+					muonType.append(self.tree.dv('trk_muonType')[itrk]) # add muon type to the track class if running on fakeAODs
 			
 				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
