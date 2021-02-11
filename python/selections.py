@@ -471,7 +471,7 @@ class DVtype():
 		if self.dv_type == "emu": 
 			if self.nel == 1 and self.nmu == 1: 
 				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
-					return True
+					mu1_type = self.muons.muonType[0]
 				else:
 					mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
 
@@ -490,7 +490,8 @@ class DVtype():
 
 			if self.nmu == 2: 
 				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
-					return True
+					mu1_type = self.muons.muonType[0]
+					mu1_type = self.muons.muonType[1]
 				else:
 					mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
 					mu2_type = self.tree['muon_type'][self.muons.lepIndex[1]]
