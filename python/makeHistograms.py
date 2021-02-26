@@ -59,6 +59,16 @@ def main():
 					output_file = output_path + "CR_histograms_data_{}.root".format(channel)
 				else:
 					output_file = output_path + "CR_" + file_info.output_filename
+			elif  "CR_BE" in config_file[channel]["selections"]:
+				if tree.is_data:
+					output_file = output_path + "CR_BE_histograms_data_{}.root".format(channel)
+				else:
+					output_file = output_path + "CR_BE" + file_info.output_filename
+			elif "BE" in config_file[channel]["selections"]:
+				if tree.is_data:
+					output_file = output_path + "BE_histograms_data_{}.root".format(channel)
+				else:
+					output_file = output_path + "CR_BE" + file_info.output_filename
 			else:
 				output_file = output_path + file_info.output_filename
 		if os.path.exists(output_file):
@@ -86,11 +96,15 @@ def main():
 			tree.vtx_container = vtx_container
 
 			# blinding flag to prevent accidental unblinding in data
-			if blinded and tree.is_data and "CR" not in selections:
+			do_CR = "CR" in selections or "CR_BE" in selections
+			if blinded and tree.is_data and not do_CR :
+				# if "CR_BE" in selections: 
+				# 	pass 
+				# else: 
 				if "OS" in selections or "SS" not in selections:
 					logger.error("You are running on data and you cannot look at OS vertices!!! "
-								 "Please include 'SS', not 'OS' in selections, "
-								 "or add 'CR' if you are trying to look in the control region.")
+								"Please include 'SS', not 'OS' in selections, "
+								"or add 'CR' if you are trying to look in the control region.")
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
