@@ -2,11 +2,9 @@
    
     "RegionD":{
                 "vtx_containers" : [ "VSI_LeptonsMod","VSI_Leptons"],
-                "selections":["BE", "fid_vol","nDV","2track","SS","DE", "mumu"]
+                "selections":["BE","fidvol","nDV","2track","SS","DE", "mumu"]
     
              }
-    
-    
     
     }
     
