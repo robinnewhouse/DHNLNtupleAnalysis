@@ -7,6 +7,7 @@ import helpers
 import selections
 import observables
 import ntuples
+import time
 
 
 UNLOCKED = 0
@@ -114,8 +115,13 @@ class Analysis(object):
 			self.do_prompt_track_cut = False # do not apply prompt track cut
 			self.logger.info('You are running on a fakeAOD created from events in the inverted prompt lepton control region!')
 		elif "BE" in self.sel: # if running on fakeAOD without any CR cuts applied
-			self.fakeAOD = True
-			self.do_trigger_cut = True  # apply a trigger cut
+			if "realDAOD" in self.sel:
+				self.fakeAOD = False
+				self.do_trigger_cut = False  # apply a trigger cut
+			else:
+				self.fakeAOD = True
+				self.do_trigger_cut = False  # apply a trigger cut
+			self.do_CR = False
 			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
 			self.do_filter_cut = False  # do not apply filter cut, not sure if we need this for BE -DT
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut, dont apply this cut no prompt leptons in the fake DAODs yet... -DT
@@ -591,8 +597,6 @@ class Analysis(object):
 				self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries/2)  # all events
 		
 		self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
-		
-
 		######################################################################################################
 		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
@@ -604,7 +608,7 @@ class Analysis(object):
 				self._fill_cutflow(1)
 			else:
 				return
-		
+	
 		if self._pv_cut(): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
 			self._fill_cutflow(2)
 		else:
@@ -1080,7 +1084,7 @@ class Analysis(object):
 				decayV = dv-pv
 				pvec_0 = ROOT.TVector3( tracks.lepVec[0].Px(), tracks.lepVec[0].Py(),  tracks.lepVec[0].Pz())
 				pvec_1 = ROOT.TVector3( tracks.lepVec[1].Px(), tracks.lepVec[1].Py(),  tracks.lepVec[1].Pz())
-				
+			
 				def mom_perp(pvec, decayV): 
 					decayV_mag = decayV.Mag()
 					mom_perp_vec = pvec.Cross(decayV)
@@ -1099,7 +1103,10 @@ class Analysis(object):
 					decayV_mag = decayV.Mag()
 					mom_parall = pvec.Dot(decayV)/decayV_mag
 					pvec_mag = pvec.Mag()
-					frac_parall = mom_parall/pvec_mag
+					if pvec_mag== 0.0: # protect against div by 0...
+						frac_parall = -1
+					else:
+						frac_parall = mom_parall/pvec_mag
 					return frac_parall
 
 				mom_perp_0 = mom_perp(pvec_0,decayV)
@@ -1663,7 +1670,6 @@ class BEAnalysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(6, "invert prompt lepton")
 		if self.do_ndv_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(7, "DV")
-		print self.do_fidvol_cut, " fid vol cut"
 		if self.do_fidvol_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(8, "fiducial")
 		if self.do_ntrk_cut:
@@ -1698,13 +1704,31 @@ class BEAnalysis(Analysis):
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
 
-		# only do the DV selection if the preselction was passed for the event.
-		if not self.passed_preselection_cuts:
-			return
+		# print "--------------------"
+		# print "ievt ", self.tree.ievt
+		# print "ntrk ", self.tree.ntrk
+		# print  "shuffled", self.tree.dv('shuffled')
+		# print "event cut", self._be_event_type_cut()
+		# if self.tree.ntrk <10: 
+		# 	for i in range(self.tree.ntrk): 
+		# 		print ".........."
+		# 		print self.tree.dv("trk_pt_wrtSV")[i]
+		# 		print self.tree.dv("trk_eta_wrtSV")[i]
+		# 		print self.tree.dv("trk_phi_wrtSV")[i]
+
+		# if self.tree.dv("ntrk") == 3:
+		# 	print "---------"
+		# 	print self.tree.ievt
+		# 	print self.tree.ntrk
+		# 	print self.tree.dv("r")
+		# 	print "trk pt ", self.tree.dv("trk_pt")
+		# 	print "trk eta ", self.tree.dv("trk_eta")
+		# 	print "trk phi ", self.tree.dv("trk_phi")
+			# if self.tree.ievt ==  304:
+			# 	exit()
 
 		# There is an extra bit of logic here since we look at several DVs
 		# but only want to fill the cutflow once per event
-
 		# Do we want to use this cut?
 		if self.do_fidvol_cut:
 			# Does this cut pass?
@@ -1735,6 +1759,7 @@ class BEAnalysis(Analysis):
 				self._fill_selected_dv_histos("allSS") # save SS histograms 
 
 		if self.do_opposite_sign_cut or self.do_same_sign_cut:
+			
 			if self._charge_cut():
 				if not self.passed_charge_cut:
 					self._fill_cutflow(9)
@@ -1743,6 +1768,7 @@ class BEAnalysis(Analysis):
 				return
 
 		if self.do_same_event_cut or self.do_different_event_cut:
+			
 			if self._be_event_type_cut():
 				if not self.passed_be_event_type_cut:
 					self._fill_cutflow(10)

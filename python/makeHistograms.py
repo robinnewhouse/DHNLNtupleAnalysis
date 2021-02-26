@@ -64,6 +64,11 @@ def main():
 					output_file = output_path + "CR_BE_histograms_data_{}.root".format(channel)
 				else:
 					output_file = output_path + "CR_BE" + file_info.output_filename
+			elif "BE" in config_file[channel]["selections"]:
+				if tree.is_data:
+					output_file = output_path + "BE_histograms_data_{}.root".format(channel)
+				else:
+					output_file = output_path + "CR_BE" + file_info.output_filename
 			else:
 				output_file = output_path + file_info.output_filename
 		if os.path.exists(output_file):
