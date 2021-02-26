@@ -470,19 +470,19 @@ class DVtype():
 		if self.dv_type == "emu": 
 			if self.nel == 1 and self.nmu == 1: 
 				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
-					return True
-					# mu1_type = self.muons.muonType[0]
+					# return True
+					mu1_type = self.muons.muonType[0]
 				else:
 					mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
 
-					if mu1_type == combined:  # Only count combined muons 
-						self.lepton_charge.append(self.electrons.lepCharge[0])
-						self.lepton_charge.append(self.muons.lepCharge[0])
-						self.dEl_Index.append(self.electrons.lepIndex[0])
-						self.dMu_Index.append(self.muons.lepIndex[0])
-						return True
-					else:
-						return False
+				if mu1_type == combined:  # Only count combined muons 
+					self.lepton_charge.append(self.electrons.lepCharge[0])
+					self.lepton_charge.append(self.muons.lepCharge[0])
+					self.dEl_Index.append(self.electrons.lepIndex[0])
+					self.dMu_Index.append(self.muons.lepIndex[0])
+					return True
+				else:
+					return False
 			else:
 				return False
 
@@ -490,21 +490,21 @@ class DVtype():
 
 			if self.nmu == 2: 
 				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
-					return True
-					# mu1_type = self.muons.muonType[0]
-					# mu1_type = self.muons.muonType[1]
+					# return True
+					mu1_type = self.muons.muonType[0]
+					mu1_type = self.muons.muonType[1]
 				else:
 					mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
 					mu2_type = self.tree['muon_type'][self.muons.lepIndex[1]]
 
-					if mu1_type == combined and mu2_type == combined:  # Only count combined muons
-						self.lepton_charge.append(self.muons.lepCharge[0])
-						self.lepton_charge.append(self.muons.lepCharge[1])
-						self.dMu_Index.append(self.muons.lepIndex[0])
-						self.dMu_Index.append(self.muons.lepIndex[1])
-						return True
-					else:
-						return False
+				if mu1_type == combined and mu2_type == combined:  # Only count combined muons
+					self.lepton_charge.append(self.muons.lepCharge[0])
+					self.lepton_charge.append(self.muons.lepCharge[1])
+					self.dMu_Index.append(self.muons.lepIndex[0])
+					self.dMu_Index.append(self.muons.lepIndex[1])
+					return True
+				else:
+					return False
 			else:
 				return False
 
