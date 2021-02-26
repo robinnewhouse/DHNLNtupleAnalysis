@@ -201,17 +201,19 @@ class Truth():
 
 
 class Tracks():
-	def __init__(self, tree):
+	def __init__(self, tree,fakeAOD = False ):
 		self.tree = tree
 		self.lepVec = []
 		truthlepCharge = []
 		self.lepIndex = []
 		self.lepCharge = []
 		self.lepisAssoc = []
+		self.muonType = []
 		self.eta = []
 		self.phi = []
 		self.pt = []
 		self.ntracks = -1
+		self.fakeAOD = fakeAOD
 
 	def getMuons(self):
 		self.ntracks = self.tree.ntrk
@@ -221,80 +223,83 @@ class Tracks():
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.tree['muon_index']) > 0:
+				# Default: use track quantities wrt SV
+				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
+				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
+				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+				M = self.tree.dv('trk_M')[itrk]
+
+				if len(self.tree['muon_index']) > 0 and self.fakeAOD == False:
 					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-
-					# use track quantities
-					pt = self.tree.dv('trk_pt_wrtSV')[itrk]
-					eta = self.tree.dv('trk_eta_wrtSV')[itrk]
-					phi = self.tree.dv('trk_phi_wrtSV')[itrk]
-					M = self.tree.dv('trk_M')[itrk]
-
+					self.lepIndex.append(muon_index)
 					# use calibrated muon quantities (not calculated wrt DV!)
 					# pt = self.tree['muon_pt'][muon_index]
 					# eta = self.tree['muon_eta'][muon_index]
 					# phi = self.tree['muon_phi'][muon_index]
 					# M = self.tree.dv('trk_M')[itrk]
-
-					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
-
-					self.pt.append(pt)
-					self.eta.append(eta)
-					self.phi.append(phi)
-
-					self.lepVec.append(lepVec)
-					self.lepIndex.append(muon_index)
-					self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
-					self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
-					
-
 				else:
-					continue
+					self.lepIndex.append(-1) 
+
+				if self.fakeAOD:
+					self.muonType.append(self.tree.dv('trk_muonType')[itrk]) # add muon type to the track class if running on fakeAODs
+			
+				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
+
+				self.pt.append(pt)
+				self.eta.append(eta)
+				self.phi.append(phi)
+
+				self.lepVec.append(lepVec)
+				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
+				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
+			else:
+				continue
 
 	def getElectrons(self):
 		self.ntracks = self.tree.ntrk
 
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
-
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
+				# remove electrons that are also matched to muons!
+				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
+					if len(self.tree['muon_index']) > 0 and self.fakeAOD == False: # dont think we need this unless debugging overlapping muons -DT
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+						# print muon_index
+						# print "track is matched to both muon and electron!"
+					continue
+				
+				# Default: use track quantities wrt SV
+				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
+				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
+				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+				M = self.tree.dv('trk_M')[itrk]
+
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.tree['el_index']) > 0:
+				if len(self.tree['el_index']) > 0 and self.fakeAOD == False:
 					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
-
-					# remove electrons that are also matched to muons!
-					if self.tree.dv('trk_muonIndex')[itrk] >= 0:
-						if len(self.tree['muon_index']) > 0:
-							muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-							# print muon_index
-							# print "track is matched to both muon and electron!"
-							continue
-
-					# use track quantities
-					pt = self.tree.dv('trk_pt_wrtSV')[itrk]
-					eta = self.tree.dv('trk_eta_wrtSV')[itrk]
-					phi = self.tree.dv('trk_phi_wrtSV')[itrk]
-					M = self.tree.dv('trk_M')[itrk]
-
 					# use calibrated muon quantities (not calculated wrt DV!)
 					# pt = self.tree['el_pt'][el_index]
 					# eta = self.tree['el_eta'][el_index]
 					# phi = self.tree['el_phi'][el_index]
 					# M = self.tree.dv('trk_M')[itrk]
-
-					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
-
-					self.pt.append(pt)
-					self.eta.append(eta)
-					self.phi.append(phi)
-
-					self.lepVec.append(lepVec)
 					self.lepIndex.append(el_index)
-					self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
-					self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
-				else:
-					continue
+				else: 
+					self.lepIndex.append(-1)
+
+				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
+
+				self.pt.append(pt)
+				self.eta.append(eta)
+				self.phi.append(phi)
+
+				self.lepVec.append(lepVec)
+				
+				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
+				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
+			else:
+				continue
 
 	def getTracks(self, idv=-1):
 		"""Fills the Track object with a collection of track vectors.
@@ -572,3 +577,4 @@ def decode_list(in_list, encoding='utf8'):
 		else:
 			out_list.append(item)
 	return out_list
+
