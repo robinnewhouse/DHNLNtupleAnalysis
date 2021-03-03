@@ -183,12 +183,16 @@ class Analysis(object):
 			self.track_quality = 'medium-veryveryloose'
 		elif 'loose-veryveryloose' in self.sel:
 			self.track_quality = 'loose-veryveryloose'
+		elif 'veryloose-veryveryloose' in self.sel:
+			self.track_quality = 'veryloose-veryveryloose'
 		elif 'any-loose' in self.sel:
 			self.track_quality = 'any-loose'
 		elif 'any-veryveryloose' in self.sel:
 			self.track_quality = 'any-veryveryloose'
 		elif '2-any' in self.sel:
 			self.track_quality = '2-any'
+		elif '2-veryloose' in self.sel:
+			self.track_quality = '2-veryloose'
 		elif '2-veryveryloose' in self.sel:
 			self.track_quality = '2-veryveryloose'
 		else:
@@ -1094,6 +1098,8 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
 			self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
 			self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
+			self.fill_hist(sel, 'DV_veryloose_veryveryloose', trk_quality.DV_veryloose_veryveryloose)
+			self.fill_hist(sel, 'DV_2veryloose', trk_quality.DV_2veryloose)
 			self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
 
 			

@@ -178,6 +178,7 @@ binning_definitions = {
 	'DV_tight_veryveryloose' : (2, -0.5, 1.5), 
 	'DV_medium_veryveryloose' : (2, -0.5, 1.5), 
 	'DV_loose_veryveryloose' : (2, -0.5, 1.5), 
+	'DV_veryloose_veryveryloose' : (2, -0.5, 1.5), 
 	'DV_2veryveryloose' : (2, -0.5, 1.5), 	
 	'DV_mumu': (2, -0.5, 1.5),
 	'DV_ee': (2, -0.5, 1.5),

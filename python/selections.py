@@ -545,7 +545,9 @@ class Trackqual():
 			self.DV_loose_veryloose = self.nmu_loose == 1 and self.nel_veryloose == 1
 			self.DV_tight_veryveryloose = self.nmu_tight == 1 and self.nel_veryveryloose == 1
 			self.DV_medium_veryveryloose = self.nmu_medium == 1 and self.nel_veryveryloose == 1
-			self.DV_loose_veryveryloose = self.nmu_loose == 1 and self.nel_veryveryloose == 1
+			self.DV_loose_veryveryloose = (self.nmu_loose == 1 and self.nel_veryveryloose == 1) or (self.nel_loose == 1 and self.nel_veryveryloose >= 1)
+			self.DV_veryloose_veryveryloose = self.nel_veryloose == 1 and self.nel_veryveryloose >= 1
+			self.DV_2veryloose = self.nel_veryloose == 2
 			self.DV_2veryveryloose = self.nel_veryveryloose == 2
 
 
@@ -591,17 +593,23 @@ class Trackqual():
 		if self.quality == "medium-veryveryloose":
 			return self.DV_medium_veryveryloose
 
+		if self.quality == "2-veryloose":
+			return self.DV_2veryloose
+
 		if self.quality == "2-veryveryloose":
 			return self.DV_2veryveryloose
 
 		if self.quality == "loose-veryveryloose":
 			return self.DV_loose_veryveryloose
 
+		if self.quality == "veryloose-veryveryloose":
+			return self.DV_veryloose_veryveryloose
+
 		if self.quality == "any-loose":
 			return self.DV_any_loose
 
 		if self.quality == "any-veryveryloose":
-			return self.DV_loose_veryveryloose
+			return self.DV_any_veryveryloose
 
 		if self.quality == "2-any":
 			return self.DV_2any
