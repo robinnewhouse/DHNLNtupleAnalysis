@@ -48,7 +48,7 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc)
+		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc,skip_events=options.skipEvents)
 
 		# create one output file per channel in your config file
 		if "SSdata" in options.config.split("config")[1]:
@@ -227,6 +227,11 @@ if __name__ == "__main__":
 						dest="notHNLmc",
 						default = False,
 						help='Not running on HNL mc. Default: False. Useful for running on mc that is not HNL mc. Turn HNL specific truth info storing off.')
+	parser.add_argument('--skipEvents',
+						dest="skipEvents",
+						default = None,
+						type = int,
+						help='Skip this number of events when processing inputfile.')
 	
 
 
