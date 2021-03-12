@@ -90,6 +90,7 @@ class Analysis(object):
 
 		self.do_same_event_cut =  "SE" in self.sel
 		self.do_different_event_cut =  "DE" in self.sel
+
 	
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
 			self.do_CR = True
@@ -113,12 +114,14 @@ class Analysis(object):
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
 			self.do_prompt_track_cut = False # do not apply prompt track cut
-			self.logger.info('You are running on a fakeAOD created from events in the inverted prompt lepton control region!')
+			self.logger.info('You are running on a fake AOD created from events in the inverted prompt lepton control region!')
 		elif "BE" in self.sel: # if running on fakeAOD without any CR cuts applied
 			if "realDAOD" in self.sel:
+				self.logger.info('You are running the background analysis on a real AOD created from events in the signal region!')
 				self.fakeAOD = False
 				self.do_trigger_cut = False  # apply a trigger cut
 			else:
+				self.logger.info('You are running the background analysis on a fake AOD created from events in the signal region!')
 				self.fakeAOD = True
 				self.do_trigger_cut = False  # apply a trigger cut
 			self.do_CR = False
@@ -127,7 +130,7 @@ class Analysis(object):
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut, dont apply this cut no prompt leptons in the fake DAODs yet... -DT
 			self.do_invert_prompt_lepton_cut = False  # no fake leptons in DAODs... -DT
 			self.do_prompt_track_cut = False # do not apply prompt track cut
-			self.logger.info('You are running on a fakeAOD created from events in the signal region!')
+			
 			if "OS" in self.sel: raise ValueError("This analysis is blinded! You cannot look at OS DV from data events!!") # another blinded check -DT
 
 		else:
@@ -136,7 +139,7 @@ class Analysis(object):
 			self.do_invert_prompt_lepton_cut = False
 			self.do_invert_trigger_cut = False
 			self.do_prompt_track_cut = False 
-
+		
 		# alpha cut
 		self.do_alpha_cut = 'alpha' in self.sel
 
@@ -503,7 +506,7 @@ class Analysis(object):
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
-		track_quality_sel = selections.Trackqual(self.tree, quality=self.track_quality)
+		track_quality_sel = selections.Trackqual(self.tree, quality=self.track_quality,fakeAOD=self.fakeAOD)
 		return track_quality_sel.passes()
 
 	def _cosmic_veto_cut(self):
@@ -1089,9 +1092,9 @@ class Analysis(object):
 					decayV_mag = decayV.Mag()
 					mom_perp_vec = pvec.Cross(decayV)
 					theta = mom_perp_vec.Theta()
-					if theta < np.pi/2.0: sign_pperp = 1
-					if theta > np.pi/2.0: sign_pperp = -1
-					mom_perp =  sign_pperp*mom_perp_vec.Mag()/decayV_mag
+					if theta < np.pi/2.0: mom_perp = mom_perp_vec.Mag()/decayV_mag
+					elif theta > np.pi/2.0: mom_perp = -1*mom_perp_vec.Mag()/decayV_mag
+					else: mom_perp = -1
 					return mom_perp
 
 				def mom_parall(pvec, decayV): 
@@ -1249,24 +1252,26 @@ class Analysis(object):
 
 			self.fill_hist(sel, 'DV_alpha', alpha)
 
-			if self.fakeAOD == False: 
-				trk_quality = selections.Trackqual(self.tree)
-				self.fill_hist(sel, 'DV_2tight', trk_quality.DV_2tight)
-				self.fill_hist(sel, 'DV_2medium', trk_quality.DV_2medium)
-				self.fill_hist(sel, 'DV_2loose', trk_quality.DV_2loose)
-				self.fill_hist(sel, 'DV_1tight', trk_quality.DV_1tight)
-				self.fill_hist(sel, 'DV_1medium', trk_quality.DV_1medium)
-				self.fill_hist(sel, 'DV_1loose', trk_quality.DV_1loose)
-				self.fill_hist(sel, 'DV_tight_loose', trk_quality.DV_tight_loose)
-				self.fill_hist(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
-				self.fill_hist(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
-				self.fill_hist(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
-				self.fill_hist(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
-				self.fill_hist(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
-				self.fill_hist(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
-				self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
-				self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
-				self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
+			
+			trk_quality = selections.Trackqual(self.tree,fakeAOD=self.fakeAOD)
+
+			self.fill_hist(sel, 'DV_2tight', trk_quality.DV_2tight)
+			self.fill_hist(sel, 'DV_2medium', trk_quality.DV_2medium)
+			self.fill_hist(sel, 'DV_2loose', trk_quality.DV_2loose)
+			self.fill_hist(sel, 'DV_1tight', trk_quality.DV_1tight)
+			self.fill_hist(sel, 'DV_1medium', trk_quality.DV_1medium)
+			self.fill_hist(sel, 'DV_1loose', trk_quality.DV_1loose)
+			self.fill_hist(sel, 'DV_tight_loose', trk_quality.DV_tight_loose)
+			self.fill_hist(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
+			self.fill_hist(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
+			self.fill_hist(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
+			self.fill_hist(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
+			self.fill_hist(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
+			self.fill_hist(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
+			self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
+			self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
+			self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
+			self.fill_hist(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
 
 			
 			# fill TTree with ntuple information. Already set by fill_hist
@@ -1704,30 +1709,7 @@ class BEAnalysis(Analysis):
 
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
-
-		# print "--------------------"
-		# print "ievt ", self.tree.ievt
-		# print "ntrk ", self.tree.ntrk
-		# print  "shuffled", self.tree.dv('shuffled')
-		# print "event cut", self._be_event_type_cut()
-		# if self.tree.ntrk <10: 
-		# 	for i in range(self.tree.ntrk): 
-		# 		print ".........."
-		# 		print self.tree.dv("trk_pt_wrtSV")[i]
-		# 		print self.tree.dv("trk_eta_wrtSV")[i]
-		# 		print self.tree.dv("trk_phi_wrtSV")[i]
-
-		# if self.tree.dv("ntrk") == 3:
-		# 	print "---------"
-		# 	print self.tree.ievt
-		# 	print self.tree.ntrk
-		# 	print self.tree.dv("r")
-		# 	print "trk pt ", self.tree.dv("trk_pt")
-		# 	print "trk eta ", self.tree.dv("trk_eta")
-		# 	print "trk phi ", self.tree.dv("trk_phi")
-			# if self.tree.ievt ==  304:
-			# 	exit()
-
+	
 		# There is an extra bit of logic here since we look at several DVs
 		# but only want to fill the cutflow once per event
 		# Do we want to use this cut?

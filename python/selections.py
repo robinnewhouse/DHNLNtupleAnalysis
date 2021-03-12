@@ -492,7 +492,7 @@ class DVtype():
 				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
 					# return True
 					mu1_type = self.muons.muonType[0]
-					mu1_type = self.muons.muonType[1]
+					mu2_type = self.muons.muonType[1]
 				else:
 					mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
 					mu2_type = self.tree['muon_type'][self.muons.lepIndex[1]]
@@ -539,7 +539,7 @@ class DVtype():
 
 
 class Trackqual():
-	def __init__(self, tree, decaymode="leptonic", quality="2-tight"):
+	def __init__(self, tree, decaymode="leptonic", quality="2-tight",fakeAOD=False):
 
 		self.decaymode = decaymode
 		self.quality = quality 
@@ -562,10 +562,10 @@ class Trackqual():
 
 
 		if self.decaymode == "leptonic": 
-			muons = helpers.Tracks(tree)
+			muons = helpers.Tracks(tree,fakeAOD=fakeAOD)
 			muons.getMuons()
 
-			electrons = helpers.Tracks(tree)
+			electrons = helpers.Tracks(tree,fakeAOD=fakeAOD)
 			electrons.getElectrons()
 
 			self.nmu_tight = 0
@@ -582,10 +582,15 @@ class Trackqual():
 			self.ndvel = len(electrons.lepVec)
 		
 			for imu in range(self.ndvmu):
-				muindex = muons.lepIndex[imu]
-				muisTight = tree['muon_isTight'][muindex]
-				muisMedium = tree['muon_isMedium'][muindex]
-				muisLoose = tree['muon_isLoose'][muindex]
+				if fakeAOD: # get quality infomation from info decorated on tracks
+					muisTight = muons.muon_isTight[imu]
+					muisMedium = muons.muon_isMedium[imu]
+					muisLoose = muons.muon_isLoose[imu]
+				else: # get quality infomation from matching muons
+					muindex = muons.lepIndex[imu]
+					muisTight = tree['muon_isTight'][muindex]
+					muisMedium = tree['muon_isMedium'][muindex]
+					muisLoose = tree['muon_isLoose'][muindex]
 				# check if Tight == 1 to incase safeFill was used and isTight == -1 (which is also not Tight!) -DT
 				if muisTight == 1:
 					self.nmu_tight = self.nmu_tight + 1
@@ -595,13 +600,22 @@ class Trackqual():
 					self.nmu_loose = self.nmu_loose + 1
 
 			for iel in range(self.ndvel):
-				elindex = electrons.lepIndex[iel]
-				elisTight = tree['el_LHTight'][elindex]
-				elisMedium = tree['el_LHMedium'][elindex]
-				elisLoose = tree['el_LHLoose'][elindex]
-				elisVeryLoose = tree['el_isLHVeryLoose'][elindex]
-				elisVeryVeryLoose = tree['el_isLHVeryLoose_mod1'][elindex]
-				elisVeryVeryLooseSi = tree['el_isLHVeryLoose_modSi'][elindex]
+				if fakeAOD: # get quality infomation from info decorated on tracks
+					elisTight = electrons.el_isTight[iel]
+					elisMedium = electrons.el_isMedium[iel]
+					elisLoose = electrons.el_isLoose[iel]
+					elisVeryLoose = electrons.el_isveryLoose[iel]
+					elisVeryVeryLoose = electrons.el_isveryveryLoose[iel]
+					elisVeryVeryLooseSi= electrons.el_isveryveryLooseSi[iel]
+				else: # get quality infomation from matching electrons
+					elindex = electrons.lepIndex[iel]
+					elisTight = tree['el_LHTight'][elindex]
+					elisMedium = tree['el_LHMedium'][elindex]
+					elisLoose = tree['el_LHLoose'][elindex]
+					elisVeryLoose = tree['el_isLHVeryLoose'][elindex]
+					elisVeryVeryLoose = tree['el_isLHVeryLoose_mod1'][elindex]
+					elisVeryVeryLooseSi = tree['el_isLHVeryLoose_modSi'][elindex]
+
 				if elisTight == 1:
 					self.nel_tight = self.nel_tight + 1
 				if elisMedium == 1:
@@ -631,6 +645,7 @@ class Trackqual():
 			self.DV_medium_veryveryloose = self.nmu_medium == 1 and self.nel_veryveryloose == 1
 			self.DV_loose_veryveryloose = self.nmu_loose == 1 and self.nel_veryveryloose == 1
 			self.DV_2veryveryloose = self.nel_veryveryloose == 2
+			self.DV_1veryveryloose = self.nel_veryveryloose == 1
 
 
 	def passes(self):

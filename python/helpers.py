@@ -214,6 +214,15 @@ class Tracks():
 		self.pt = []
 		self.ntracks = -1
 		self.fakeAOD = fakeAOD
+		self.muon_isTight = []
+		self.muon_isLoose = []
+		self.muon_isMedium = []
+		self.el_isTight = []
+		self.el_isLoose = []
+		self.el_isveryLoose = []
+		self.el_isveryveryLoose = []
+		self.el_isveryveryLooseSi = []
+		self.el_isMedium = []
 
 	def getMuons(self):
 		self.ntracks = self.tree.ntrk
@@ -242,7 +251,9 @@ class Tracks():
 
 				if self.fakeAOD:
 					self.muonType.append(self.tree.dv('trk_muonType')[itrk]) # add muon type to the track class if running on fakeAODs
-			
+					self.muon_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
+					self.muon_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
+					self.muon_isLoose.append(self.tree.dv('trk_isLoose')[itrk])
 				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 				self.pt.append(pt)
@@ -287,6 +298,14 @@ class Tracks():
 					self.lepIndex.append(el_index)
 				else: 
 					self.lepIndex.append(-1)
+
+				if self.fakeAOD:
+					self.el_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
+					self.el_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
+					self.el_isLoose.append(self.tree.dv('trk_isLoose')[itrk])
+					self.el_isveryLoose.append(self.tree.dv('trk_isVeryLoose')[itrk])
+					self.el_isveryveryLoose.append(self.tree.dv('trk_isVeryVeryLoose')[itrk])
+					self.el_isveryveryLooseSi.append(self.tree.dv('trk_isVeryVeryLooseSi')[itrk])
 
 				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
