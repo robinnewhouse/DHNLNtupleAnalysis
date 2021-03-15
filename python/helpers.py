@@ -99,6 +99,9 @@ class Truth():
 		self.mhnl = -1
 		self.dvmass = -1
 		self.HNL_pdgID = 50
+		self.gamma = 1
+		self.beta = 1
+		self.properLifetime = -1
 		
 
 	def getTruthParticles(self, tree):
@@ -110,6 +113,10 @@ class Truth():
 					self.truth_dvx = tree['truthVtx_x'][ivx]
 					self.truth_dvy = tree['truthVtx_y'][ivx]
 					self.truth_dvz = tree['truthVtx_z'][ivx]
+					# mod by Christian for proper lifetime calculation
+					self.gamma = tree['truthVtx_parent_E'][ivx] / tree['truthVtx_parent_M'][ivx]
+					self.beta = np.sqrt(1 - 1 / self.gamma ** 2)
+
 					self.truth_dv = ROOT.TVector3( self.truth_dvx, self.truth_dvy, self.truth_dvz )
 					self.truth_dvr = np.sqrt(self.truth_dvx**2 + self.truth_dvy**2)
 					visTrkVec =  ROOT.TLorentzVector()
@@ -191,6 +198,14 @@ class Truth():
 											tree['truthVtx_parent_M'][ivx]
 											)
 					self.W_charge = tree['truthVtx_parent_charge'][ivx]
+					
+			# calculate proper lifetime
+			dx = np.abs(self.truth_pvx - self.truth_dvx)
+			dy = np.abs(self.truth_pvy - self.truth_dvy)
+			dz = np.abs(self.truth_pvz - self.truth_dvz)
+			dr = np.sqrt(dx**2 + dy**2 + dz**2)
+			self.properLifetime = dr/(self.gamma * self.beta)
+
 		# TO DO: bug with truth mHNL calculation
 		# try:
 		# 	import selections
