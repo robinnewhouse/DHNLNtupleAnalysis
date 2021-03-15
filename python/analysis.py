@@ -974,9 +974,6 @@ class Analysis(object):
 			# fill event weight. storing this per dv as weights include dv scale factor.
 			self.fill_hist(sel, 'DV_weight', self.weight)
 
-			truth_info = helpers.Truth()
-			truth_info.getTruthParticles(self.tree)
-
 			tracks = helpers.Tracks(self.tree,self.fakeAOD)
 			tracks.getTracks()
 			trkVec = tracks.lepVec
@@ -1243,6 +1240,12 @@ class Analysis(object):
 				is_truth_matched =  self.tree.dv('maxlinkTruth_score') > 0.75 and abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
 				self.fill_hist(sel, 'DV_truth_matched', is_truth_matched)
 
+				# add proper lifetime
+				truth_info = helpers.Truth()
+				truth_info.getTruthParticles(self.tree)
+				self.fill_hist(sel, 'properLifetime', truth_info.properLifetime)
+
+
 			# compute alpha (3D angle between DV 3-momentum and rDV)
 			dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
 			pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
@@ -1254,8 +1257,6 @@ class Analysis(object):
 			alpha = decayV.Angle(dv_mom_vec)
 
 			self.fill_hist(sel, 'DV_alpha', alpha)
-
-			self.fill_hist(sel, 'properLifetime', truth_info.properLifetime)
 			
 			trk_quality = selections.Trackqual(self.tree,fakeAOD=self.fakeAOD)
 
