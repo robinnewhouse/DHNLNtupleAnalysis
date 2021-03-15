@@ -866,6 +866,7 @@ class Analysis(object):
 		self.fill_hist(sel, 'plep_eta', truth_info.plep_vec.Eta())
 		self.fill_hist(sel, 'plep_phi', truth_info.plep_vec.Phi())
 		self.fill_hist(sel, 'plep_mass', truth_info.plep_vec.M())
+		self.fill_hist(sel, 'properLifetime', truth_info.properLifetime)
 		
 		# print truth_info.W_charge
 		if truth_info.W_charge == 1: 
@@ -973,6 +974,8 @@ class Analysis(object):
 			# fill event weight. storing this per dv as weights include dv scale factor.
 			self.fill_hist(sel, 'DV_weight', self.weight)
 
+			truth_info = helpers.Truth()
+			truth_info.getTruthParticles(self.tree)
 
 			tracks = helpers.Tracks(self.tree,self.fakeAOD)
 			tracks.getTracks()
@@ -1252,6 +1255,7 @@ class Analysis(object):
 
 			self.fill_hist(sel, 'DV_alpha', alpha)
 
+			self.fill_hist(sel, 'properLifetime', truth_info.properLifetime)
 			
 			trk_quality = selections.Trackqual(self.tree,fakeAOD=self.fakeAOD)
 
