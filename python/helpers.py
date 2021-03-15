@@ -49,6 +49,13 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 	"""
 	mass = tree.mass
 	ctau = tree.ctau
+	mc_campaign = tree.mc_campaign
+	lumi = {}
+	lumi["mc16a"] = 36.20766  #c16a (2015-2016) fb-1
+	lumi["mc16d"] = 44.30740 #c16d (2017) fb-1
+	lumi["mc16e"] = 58.45010 #c16e (2018) fb-1
+	lumi_tot = sum(lumi.values())
+
 	if tree.is_data:  # you are running on data
 		weight = 1
 	else:  # you are running on MC file
@@ -61,7 +68,7 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
 			xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-			weight = 1 * xsec / (tree.all_entries / 2)  # scale to 1 fb^-1  of luminosity, 
+			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)  # scale to 1 fb^-1 * % of fraction of total lumi in givent mc campaign, 
 														# scale all entries /2 becuase we are splitting events into 100% LNC & 100% LNV
 	return weight
 
@@ -344,53 +351,58 @@ class Tracks():
 			self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 
 
+
+
 class FileInfo:
-	def __init__(self, infile, channel):
+	def __init__(self, infile, channel=""):
 		self.mass = -1  # signal mass of HNL in GeV
 		self.ctau = -1  # in mm
-
+		self.dsid = [int(s) for s in infile.split(".") if s.isdigit()][0]
+		 
 		self.MC_campaign = None
 		self.ctau_str = ""
 		self.mass_str = ""
+		self.file_ch = mc_info(logger, self.dsid).ch_str
+		sig_info = mc_info(logger, self.dsid)
 
-		if "lt1dd" in infile or "1mm" in infile:
+		if "lt1dd" in infile or "1mm" in infile or sig_info.ctau_str == "lt1dd":
 			self.ctau = 1.0
 			self.ctau_str = "1mm"
-		elif "lt10dd" in infile or "10mm" in infile:
+		elif "lt10dd" in infile or "10mm" in infile or sig_info.ctau_str == "lt10dd":
 			self.ctau = 10.0
 			self.ctau_str = "10mm"
-		elif "lt100dd" in infile or "100mm" in infile:
+		elif "lt100dd" in infile or "100mm" in infile or sig_info.ctau_str == "lt100dd":
 			self.ctau = 100.0
 			self.ctau_str = "100mm"
 
-		if "_3G" in infile:
+		if "_3G" in infile or sig_info.mass_str == "3G":
 			self.mass = 3.0
 			self.mass_str = "3G"
-		elif "_4G" in infile:
+		elif "_4G" in infile or sig_info.mass_str == "4G":
 			self.mass = 4.0
 			self.mass_str = "4G"
-		elif "_4p5G" in infile:
+		elif "_4p5G" in infile or sig_info.mass_str == "4p5G":
 			self.mass = 4.5
 			self.mass_str = "4p5G"
-		elif "_5G" in infile:
+		elif "_5G" in infile or sig_info.mass_str == "5G":
 			self.mass = 5.0
 			self.mass_str = "5G"
-		elif "_7p5G" in infile:
+		elif "_7p5G" in infile or sig_info.mass_str == "7p5G":
 			self.mass = 7.5
 			self.mass_str = "7p5G"
-		elif "_10G" in infile:
+		elif "_10G" in infile or sig_info.mass_str == "10G":
 			self.mass = 10.0
 			self.mass_str = "10G"
-		elif "_12p5G" in infile:
+		elif "_12p5G" in infile or sig_info.mass_str == "12p5G":
 			self.mass = 12.5
 			self.mass_str = "12p5G"
-		elif "_15G" in infile:
+		elif "_15G" in infile or sig_info.mass_str == "15G":
 			self.mass = 15.0
 			self.mass_str = "15G"
-		elif "_17p5G" in infile:
+		elif "_17p5G" in infile or sig_info.mass_str == "17p5G":
 			self.mass = 17.5
 			self.mass_str = "17p5G"
-		elif "_20G" in infile:
+		elif "_20G" in infile or sig_info.mass_str == "20G":
 			self.mass = 20.0
 			self.mass_str = "20G"
 
@@ -414,6 +426,147 @@ class FileInfo:
 		if (self.mass_str): self.output_filename += "_" + self.mass_str
 		if (self.ctau_str): self.output_filename += "_" + self.ctau_str
 		self.output_filename += "_" + channel + ".root"
+
+
+class mc_info:
+	def __init__(self,logger, dsid):
+		mc_info = {}
+		mc_info[311602] = [ "uuu", "3G", "lt1dd"]
+		mc_info[311603] = [ "uuu", "3G", "lt10dd"]
+		mc_info[311604] = [ "uuu", "3G", "lt100dd"]
+		mc_info[311605] = [ "uue", "3G", "lt1dd"]
+		mc_info[311606] = [ "uue", "3G", "lt10dd"]
+		mc_info[311607] = [ "uue", "3G", "lt100dd"]
+		mc_info[311608] = [ "uuu", "4G", "lt1dd"]
+		mc_info[311609] = [ "uuu", "4G", "lt10dd"]
+		mc_info[311610] = [ "uuu", "4G", "lt100dd"]
+		mc_info[311611] = [ "uue", "4G", "lt1dd"]
+		mc_info[311612] = [ "uue", "4G", "lt10dd"]
+		mc_info[311613] = [ "uue", "4G", "lt100dd"]
+		mc_info[311614] = [ "uuu", "4p5G", "lt1dd"]
+		mc_info[311615] = [ "uuu", "4p5G", "lt10dd"]
+		mc_info[311616] = [ "uuu", "4p5G", "lt100dd"]
+		mc_info[311617] = [ "uue", "4p5G", "lt1dd"]
+		mc_info[311618] = [ "uue", "4p5G", "lt10dd"]
+		mc_info[311619] = [ "uue", "4p5G", "lt100dd"]
+		mc_info[311620] = [ "uuu", "5G", "lt1dd"]
+		mc_info[311621] = [ "uuu", "5G", "lt10dd"]
+		mc_info[311622] = [ "uuu", "5G", "lt100dd"]
+		mc_info[311623] = [ "uue", "5G", "lt1dd"]
+		mc_info[311624] = [ "uue", "5G", "lt10dd"]
+		mc_info[311625] = [ "uue", "5G", "lt100dd"]
+		mc_info[311626] = [ "uuu", "7p5G", "lt1dd"]
+		mc_info[311627] = [ "uuu", "7p5G", "lt10dd"]
+		mc_info[311628] = [ "uuu", "7p5G", "lt100dd"]
+		mc_info[311629] = [ "uue", "7p5G", "lt1dd"]
+		mc_info[311630] = [ "uue", "7p5G", "lt10dd"]
+		mc_info[311631] = [ "uue", "7p5G", "lt100dd"]
+		mc_info[311632] = [ "uuu", "10G", "lt1dd"]
+		mc_info[311633] = [ "uuu", "10G", "lt10dd"]
+		mc_info[311634] = [ "uuu", "10G", "lt100dd"]
+		mc_info[311635] = [ "uue", "10G", "lt1dd"]
+		mc_info[311636] = [ "uue", "10G", "lt10dd"]
+		mc_info[311637] = [ "uue", "10G", "lt100dd"]
+		mc_info[311638] = [ "uuu", "12p5G", "lt1dd"]
+		mc_info[311639] = [ "uuu", "12p5G", "lt10dd"]
+		mc_info[311640] = [ "uuu", "12p5G", "lt100dd"]
+		mc_info[311641] = [ "uue", "12p5G", "lt1dd"]
+		mc_info[311642] = [ "uue", "12p5G", "lt10dd"]
+		mc_info[311643] = [ "uue", "12p5G", "lt100dd"]
+		mc_info[311644] = [ "uuu", "15G", "lt1dd"]
+		mc_info[311645] = [ "uuu", "15G", "lt10dd"]
+		mc_info[311646] = [ "uuu", "15G", "lt100dd"]
+		mc_info[311647] = [ "uue", "15G", "lt1dd"]
+		mc_info[311648] = [ "uue", "15G", "lt10dd"]
+		mc_info[311649] = [ "uue", "15G", "lt100dd"]
+		mc_info[311650] = [ "uuu", "17p5G", "lt1dd"]
+		mc_info[311651] = [ "uuu", "17p5G", "lt10dd"]
+		mc_info[311652] = [ "uuu", "17p5G", "lt100dd"]
+		mc_info[311653] = [ "uue", "17p5G", "lt1dd"]
+		mc_info[311654] = [ "uue", "17p5G", "lt10dd"]
+		mc_info[311655] = [ "uue", "17p5G", "lt100dd"]
+		mc_info[311656] = [ "uuu", "20G", "lt1dd"]
+		mc_info[311657] = [ "uuu", "20G", "lt10dd"]
+		mc_info[311658] = [ "uuu", "20G", "lt100dd"]
+		mc_info[311659] = [ "uue", "20G", "lt1dd"]
+		mc_info[311660] = [ "uue", "20G", "lt10dd"]
+		mc_info[311661] = [ "uue", "20G", "lt100dd"]
+		mc_info[312956] = ["eee", "3G", "lt1dd"]
+		mc_info[312957] = ["eee", "3G", "lt10dd"]
+		mc_info[312958] = ["eee", "3G", "lt100dd"]
+		mc_info[312959] = ["eeu", "3G", "lt1dd"]
+		mc_info[312960] = ["eeu", "3G", "lt10dd"]
+		mc_info[312961] = ["eeu", "3G", "lt100dd"]
+		mc_info[312962] = ["eee", "4G", "lt1dd"]
+		mc_info[312963] = ["eee", "4G", "lt10dd"]
+		mc_info[312964] = ["eee", "4G", "lt100dd"]
+		mc_info[312965] = ["eeu", "4G", "lt1dd"]
+		mc_info[312966] = ["eeu", "4G", "lt10dd"]
+		mc_info[312967] = ["eeu", "4G", "lt100dd"]
+		mc_info[312968] = ["eee", "4p5G", "lt1dd"]
+		mc_info[312969] = ["eee", "4p5G", "lt10dd"]
+		mc_info[312970] = ["eee", "4p5G", "lt100dd"]
+		mc_info[312971] = ["eeu", "4p5G", "lt1dd"]
+		mc_info[312972] = ["eeu", "4p5G", "lt10dd"]
+		mc_info[312973] = ["eeu", "4p5G", "lt100dd"]
+		mc_info[312974] = ["eee", "5G", "lt1dd"]
+		mc_info[312975] = ["eee", "5G", "lt10dd"]
+		mc_info[312976] = ["eee", "5G", "lt100dd"]
+		mc_info[312977] = ["eeu", "5G", "lt1dd"]
+		mc_info[312978] = ["eeu", "5G", "lt10dd"]
+		mc_info[312979] = ["eeu", "5G", "lt100dd"]
+		mc_info[312980] = ["eee", "7p5G", "lt1dd"]
+		mc_info[312981] = ["eee", "7p5G", "lt10dd"]
+		mc_info[312982] = ["eee", "7p5G", "lt100dd"]
+		mc_info[312983] = ["eeu", "7p5G", "lt1dd"]
+		mc_info[312984] = ["eeu", "7p5G", "lt10dd"]
+		mc_info[312985] = ["eeu", "7p5G", "lt100dd"]
+		mc_info[312986] = ["eee", "10G", "lt1dd"]
+		mc_info[312987] = ["eee", "10G", "lt10dd"]
+		mc_info[312988] = ["eee", "10G", "lt100dd"]
+		mc_info[312989] = ["eeu", "10G", "lt1dd"]
+		mc_info[312990] = ["eeu", "10G", "lt10dd"]
+		mc_info[312991] = ["eeu", "10G", "lt100dd"]
+		mc_info[312992] = ["eee", "12p5G", "lt1dd"]
+		mc_info[312993] = ["eee", "12p5G", "lt10dd"]
+		mc_info[312994] = ["eee", "12p5G", "lt100dd"]
+		mc_info[312995] = ["eeu", "12p5G", "lt1dd"]
+		mc_info[312996] = ["eeu", "12p5G", "lt10dd"]
+		mc_info[312997] = ["eeu", "12p5G", "lt100dd"]
+		mc_info[312998] = ["eee", "15G", "lt1dd"]
+		mc_info[312999] = ["eee", "15G", "lt10dd"]
+		mc_info[313000] = ["eee", "15G", "lt100dd"]
+		mc_info[313001] = ["eeu", "15G", "lt1dd"]
+		mc_info[313002] = ["eeu", "15G", "lt10dd"]
+		mc_info[313003] = ["eeu", "15G", "lt100dd"]
+		mc_info[313004] = ["eee", "17p5G", "lt1dd"]
+		mc_info[313005] = ["eee", "17p5G", "lt10dd"]
+		mc_info[313006] = ["eee", "17p5G", "lt100dd"]
+		mc_info[313007] = ["eeu", "17p5G", "lt1dd"]
+		mc_info[313008] = ["eeu", "17p5G", "lt10dd"]
+		mc_info[313009] = ["eeu", "17p5G", "lt100dd"]
+		mc_info[313010] = ["eee", "20G", "lt1dd"]
+		mc_info[313011] = ["eee", "20G", "lt10dd"]
+		mc_info[313012] = ["eee", "20G", "lt100dd"]
+		mc_info[313013] = ["eeu", "20G", "lt1dd"]
+		mc_info[313014] = ["eeu", "20G", "lt10dd"]
+		mc_info[313015] = ["eeu", "20G", "lt100dd"]
+
+		pmuon_dsid = (311602 <=  dsid) and  (dsid <= 311661)
+		pel_dsid = (312956 <= dsid) and  (dsid <= 313015)
+
+		if pmuon_dsid or pel_dsid:
+			self.mass_str = mc_info[dsid][1]
+			self.ctau_str = mc_info[dsid][2]
+			self.ch_str = mc_info[dsid][0]
+		else:
+			logger.warning("dsid {} is not registered. Please check your signal sample".format(dsid))
+			self.mass_str = None
+			self.ctau_str = None
+			self.ch_str = None
+
+			
+
 
 
 # Define trigger lists here
