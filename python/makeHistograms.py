@@ -51,8 +51,8 @@ def main():
 		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc,skip_events=options.skipEvents)
 
 		# create one output file per channel in your config file
-		if "SSdata" in options.config.split("config")[1]:
-			output_file = output_path + "histograms_SSdata_{}.root".format(channel)
+		if "SSbkg" in options.config.split("config")[1]:
+			output_file = output_path + "histograms_SSbkg_{}.root".format(channel)
 		else:
 			if "CR" in config_file[channel]["selections"]:
 				if tree.is_data:
