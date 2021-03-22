@@ -575,7 +575,7 @@ class mc_info:
 			self.ctau_str = mc_info[dsid][2]
 			self.ch_str = mc_info[dsid][0]
 		else:
-			logger.warning("dsid {} is not registered. Please check your signal sample".format(dsid))
+			logger.warning("dsid {} is not registered. If running on HNL signal, please check your signal sample".format(dsid))
 			self.mass_str = None
 			self.ctau_str = None
 			self.ch_str = None
