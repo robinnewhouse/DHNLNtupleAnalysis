@@ -83,6 +83,7 @@ def main():
 		if entries is None or tree.numentries < entries:
 			entries = tree.numentries
 		# specify this to reduce number of entries loaded in each array
+		if options.skipEvents != None: entries = entries + options.skipEvents # if skipping events then entries needs to be updated
 		tree.max_entries = entries
 		logger.info('Going to process {}  events'.format(entries))
 
