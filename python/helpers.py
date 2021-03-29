@@ -51,9 +51,9 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 	ctau = tree.ctau
 	mc_campaign = tree.mc_campaign
 	lumi = {}
-	lumi["mc16a"] = 36.20766  #c16a (2015-2016) fb-1
-	lumi["mc16d"] = 44.30740 #c16d (2017) fb-1
-	lumi["mc16e"] = 58.45010 #c16e (2018) fb-1
+	lumi["mc16a"] = 36.20766  # mc16a (2015-2016) fb-1
+	lumi["mc16d"] = 44.30740 # mc16d (2017) fb-1
+	lumi["mc16e"] = 58.45010 # mc16e (2018) fb-1
 	lumi_tot = sum(lumi.values())
 
 	if tree.is_data:  # you are running on data
