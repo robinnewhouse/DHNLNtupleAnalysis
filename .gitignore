@@ -9,6 +9,5 @@ python/*.txt
 python/histograms
 python/plotHistograms.py
 output/
-setup.sh
 venv/
 run/

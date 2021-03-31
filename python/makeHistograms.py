@@ -20,7 +20,7 @@ def main():
 	logger = helpers.getLogger('dHNLAnalysis.makeHistograms',level=debug_level)
 	logger.info("-> Calling main")
 
-	output_path = os.path.join(os.path.abspath("../output/"+ options.output), '')
+	output_path = os.path.join(os.path.abspath(options.output), '')
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
 		os.mkdir(output_path)
@@ -113,23 +113,28 @@ def main():
 
 			# Loop over each event
 			while tree.ievt < entries:
-				if tree.ievt % 1000 == 0:
-					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
-				# Create an event instance to keep track of basic event properties
-				# evt = helpers.Event(tree=tree, ievt=tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
+				try:
+					if tree.ievt % 1000 == 0:
+						logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
+					# Create an event instance to keep track of basic event properties
+					# evt = helpers.Event(tree=tree, ievt=tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
 
-				# Run preselection cuts to avoid processing unnecessary events
-				presel = ana.preSelection()
+					# Run preselection cuts to avoid processing unnecessary events
+					presel = ana.preSelection()
 
-				# Loop over each vertex in the event
-				while tree.idv < tree.ndv:
-					# DVevt = helpers.Event(tree=tree, ievt=tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
-					ana.DVSelection()
-					tree.increment_dv()
+					# Loop over each vertex in the event
+					while tree.idv < tree.ndv:
+						# DVevt = helpers.Event(tree=tree, ievt=tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
+						ana.DVSelection()
+						tree.increment_dv()
 
-				tree.reset_dv()
-				tree.increment_event()
-				ana.unlock()
+					tree.reset_dv()
+					tree.increment_event()
+					ana.unlock()
+				except TypeError as e:
+					print("Failed on event", tree.ievt)
+					print(e)
+					raise e
 
 			# Call functions to finalize analysis
 			tree.reset_event()
