@@ -16,9 +16,12 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples, debug_level,weight_override=None):
-		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=debug_level)
-		selections.set_debug_level(debug_level)
+	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples ,weight_override=None):
+		# set up logger for self
+		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=helpers.logger_debug_level)
+		# set up logger for helper module
+		selections.logger.setLevel(helpers.logger_debug_level)
+
 		self.name = name
 		self.weight_override = weight_override
 		self.sel = selection_list
@@ -354,7 +357,7 @@ class Analysis(object):
 				sys.exit(1)  # abort because of error
 
 			if not self.do_prompt_lepton_cut:
-				if self.do_trilepton_mass_cut or self.do_HNL_mass_cut or do_HNL_pt_cut:
+				if self.do_trilepton_mass_cut or self.do_HNL_mass_cut or self.do_HNL_pt_cut:
 					self.logger.warning("You cannot cut on mlll, HNLpt or HNLm without first selecting a prompt lepton. Apply a prompt lepton cut!")
 					sys.exit(1)  # abort because of error
 
@@ -672,7 +675,7 @@ class Analysis(object):
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
 		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
 		# calculate mass lifetime weight 
-		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree,logger=self.logger, both_lnc_lnv=False) 
+		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree, both_lnc_lnv=False)
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
 		if self.weight_override == None: 
@@ -1184,7 +1187,7 @@ class Analysis(object):
 
 
 			# fill standard track variable histograms
-			for i in xrange(tracks.ntracks):
+			for i in range(tracks.ntracks):
 				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])
 				self.fill_hist(sel, 'DV_trk_eta', self.tree.dv('trk_eta_wrtSV')[i])
 				self.fill_hist(sel, 'DV_trk_phi', self.tree.dv('trk_phi_wrtSV')[i])
@@ -1293,9 +1296,9 @@ class Analysis(object):
 
 
 class run2Analysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
 		
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
 
 		# Define cutflow histogram "by hand"		
@@ -1491,9 +1494,9 @@ class run2Analysis(Analysis):
 
 
 class KShort(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
-		self.logger.info('Running KShort Analysis cuts', level=debug_level)
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
+		self.logger.info('Running KShort Analysis cuts')
 
 		self.add('CutFlow', 17, -0.5, 16.5)
 		# Bin labels are 1 greater than histogram bins
@@ -1656,9 +1659,9 @@ class KShort(Analysis):
 
 
 class BEAnalysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
 		
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
 		self.logger.info('Running Background Estimate Analysis Cuts')
 
 		# Define cutflow histogram "by hand"		

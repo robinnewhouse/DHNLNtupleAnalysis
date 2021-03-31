@@ -5,12 +5,7 @@ import helpers
 import logging
 
 #make a global logger variable for all selection classes
-logger = helpers.getLogger('dHNLAnalysis.selections', level=logging.WARNING)
-
-def set_debug_level(level): 
-	#update debug level to match debug level set at run time
-	logger = helpers.getLogger('dHNLAnalysis.selections', level=level)
-
+logger = helpers.getLogger('dHNLAnalysis.selections', level=logging.INFO)
 
 class Trigger():
 	def __init__(self, tree, trigger, invert=False):

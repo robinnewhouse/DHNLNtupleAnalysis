@@ -6,7 +6,7 @@ import logging
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, debug_level, skip_events=None, mc_campaign=None, mass=1.0, ctau=1.0,notHNLmc=False):
+	def __init__(self, file_name, tree_name, max_entries, skip_events=None, mc_campaign=None, mass=1.0, ctau=1.0,notHNLmc=False):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -25,7 +25,7 @@ class Tree:
 		:param ctau: The mean lifetime of the sample
 		"""
 		# Set class attributes
-		self.logger = helpers.getLogger('dHNLAnalysis.trees',level=debug_level)
+		self.logger = helpers.getLogger('dHNLAnalysis.trees',level=helpers.logger_debug_level)
 		if skip_events != None: self.ievt = skip_events
 		else: self.ievt = 0
 		self.idv = 0
