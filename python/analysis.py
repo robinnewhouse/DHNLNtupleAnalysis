@@ -97,7 +97,7 @@ class Analysis(object):
 	
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
 			self.do_CR = True
-			self.fakeAOD = False
+			self.tree.fake_aod = False
 			self.do_trigger_cut = False  # do not apply trigger cut
 			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
 			self.do_filter_cut = False  # do not apply filter cut
@@ -109,7 +109,7 @@ class Analysis(object):
 				self.do_prompt_track_cut = False # DO NOT apply prompt track cut
 			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
 		elif "CR_BE" in self.sel: # if running on fakeAOD that already has CR cuts applied (be careful with this setting!!!!!)
-			self.fakeAOD = True
+			self.tree.fake_aod = True
 			self.do_CR = True
 			self.do_trigger_cut = False  # do not apply trigger cut
 			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
@@ -121,11 +121,11 @@ class Analysis(object):
 		elif "BE" in self.sel: # if running on fakeAOD without any CR cuts applied
 			if "realDAOD" in self.sel:
 				self.logger.info('You are running the background analysis on a real AOD created from events in the signal region!')
-				self.fakeAOD = False
+				self.tree.fake_aod = False
 				self.do_trigger_cut = False  # apply a trigger cut
 			else:
 				self.logger.info('You are running the background analysis on a fake AOD created from events in the signal region!')
-				self.fakeAOD = True
+				self.tree.fake_aod = True
 				self.do_trigger_cut = False  # apply a trigger cut
 			self.do_CR = False
 			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
@@ -138,7 +138,7 @@ class Analysis(object):
 
 		else:
 			self.do_CR = False
-			self.fakeAOD = False
+			self.tree.fake_aod = False
 			self.do_invert_prompt_lepton_cut = False
 			self.do_invert_trigger_cut = False
 			self.do_prompt_track_cut = False 
@@ -298,7 +298,7 @@ class Analysis(object):
 		return self.tree[key]
 
 	# hist filling helper functions
-	def fill_hist(self, selection, hist_name, variable_1, variable_2=None, fill_ntuple=True,beAnalysis=False):
+	def fill_hist(self, selection, hist_name, variable_1, variable_2=None, fill_ntuple=True, weight=None):
 		"""
 		A helper function for filling registered histograms
 		:param selection: the step of selection the analysis it at. May be "None" in which case there will be no prefix.
@@ -306,6 +306,7 @@ class Analysis(object):
 		:param variable_1: variable you want to fill the histogram with.
 		:param variable_2: if histogram is 2d, variable you want to fill the second axis of the histogram with
 		:param fill_ntuple: set to True if you want to simultaneously fill an ntuple with this variable
+		:param weight: Used to override weight calculation. Useful for storing actual weights which should not be themselves weighted.
 		"""
 
 		# define here the directory structure where this histogram is stored.
@@ -314,37 +315,41 @@ class Analysis(object):
 		if self.MCEventType.isLNC: directory += 'LNC/'
 		if self.MCEventType.isLNV: directory += 'LNV/'
 
-		self.observables.fill_hist(directory, hist_name, variable_1, variable_2, self.weight)
+		# use calculated weight for this event unless a weight is specified
+		event_weight = self.weight if weight is None else weight
+		self.observables.fill_hist(directory, hist_name, variable_1, variable_2, event_weight)
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
 		# TODO Can we clean this up in some way?
 		save_sel = self.saveNtuples == selection or 'truth_'+self.saveNtuples == selection or self.saveNtuples == 'allcuts'
-		if fill_ntuple and variable_2 is None and save_sel:
-			# Note: selection and hist_name will be overridden by full_name
+		if fill_ntuple and (variable_2 is None) and save_sel:
 			# Need selection to define ntuple tree
 			# TODO redo this method to use the directory correctly
-			if self.MCEventType.isLNC: self.fill_ntuple(selection, hist_name, variable_1,MCtype="LNC")
-			elif self.MCEventType.isLNV: self.fill_ntuple(selection, hist_name, variable_1,MCtype="LNV")
+			if self.MCEventType.isLNC: self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNC")
+			elif self.MCEventType.isLNV: self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNV")
 			else: self.fill_ntuple(selection, hist_name, variable_1)
-	def fill_ntuple(self, selection, ntuple_name, variable,MCtype=None, full_name=""):
+
+	def fill_ntuple(self, selection, ntuple_name, variable, mc_type=None, full_name=""):
 		"""
 		A helper function for filling micro-ntuples. Often called from the fill_hist function.
-		If you are using this in you analysis,
+		If you are using this in your analysis,
 		please check that it is not also being called by fill_hist to prevent double-counting.
 		:param selection: the step of selection the analysis it at. May be "None" in which case there will be no prefix.
 		:param ntuple_name: base name of the ntuple. When saved, a prefix and suffix will be appended.
 		:param variable: variable you want to fill the histogram with.
+		:param mc_type: defines whether the vertex is lepton-number conserving (LNC) or violating (LNV)
 		:param full_name: override the automatic naming of the ntuple.
 		"""
 		if not selection:
 			raise ValueError("You must indicate a selection in order to store the ntuple. Use 'all' if no selection.")
-		# Retrieve the ntuple for this selection. If it doesn't exist, create it.
-		if MCtype !=None: 
-			selection = MCtype + "_" + 	selection 
+		if mc_type is not None:
+			selection = mc_type + "_" + selection
 
+		# Retrieve the ntuple for this selection. If it doesn't exist, create it.
 		if selection not in self.micro_ntuples:
-			self.micro_ntuples[selection] = ntuples.Ntuples('ntuples_{}_{}'.format(selection, self.ch))  # temp name. not written
+			# temp name. not written
+			self.micro_ntuples[selection] = ntuples.Ntuples('ntuples_{}_{}'.format(selection, self.ch))
 		# The name of the ntuple
 		if not full_name:
 			full_name = ntuple_name
@@ -385,7 +390,7 @@ class Analysis(object):
 
 		# make acceptance Histograms 
 		# TOD: it doesnt looks like on data the acceptance histograms are working as expected. -DT
-		if not self.tree.is_data and not self.tree.notHNLmc:
+		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'] = self.CutFlow_LNV.Clone()
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'] = self.CutFlow_LNC.Clone()
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
@@ -498,9 +503,9 @@ class Analysis(object):
 
 
 	def _dv_type_cut(self):
-		dv_sel = selections.DVtype(self.tree, dv_type=self.dv_type,fakeAOD = self.fakeAOD)
+		dv_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
 		if dv_sel.passes():
-			if self.fakeAOD == False: 
+			if self.tree.fake_aod == False:
 				trig_match = selections.TriggerMatching_disp(self.tree, self.dv_type, dv_sel.dMu_Index, dv_sel.dEl_Index)
 				if trig_match.dlep_isTrigMatched:
 					self.events_with_trig_match_dlep = self.events_with_trig_match_dlep + 1
@@ -509,7 +514,7 @@ class Analysis(object):
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
-		track_quality_sel = selections.Trackqual(self.tree, quality=self.track_quality,fakeAOD=self.fakeAOD)
+		track_quality_sel = selections.Trackqual(self.tree, quality=self.track_quality)
 		return track_quality_sel.passes()
 
 	def _cosmic_veto_cut(self):
@@ -520,11 +525,11 @@ class Analysis(object):
 	def _trilepton_mass_cut(self):
 		plep_vec = self.plep_sel.plepVec
 
-		muons = helpers.Tracks(self.tree,self.fakeAOD)
+		muons = helpers.Tracks(self.tree)
 		muons.getMuons()
 		muVec = muons.lepVec
 
-		electrons = helpers.Tracks(self.tree,self.fakeAOD)
+		electrons = helpers.Tracks(self.tree)
 		electrons.getElectrons()
 		elVec = electrons.lepVec
 
@@ -541,7 +546,7 @@ class Analysis(object):
 
 	def _multitrk_2lep_cut(self):
 		if self.tree.dv('ntrk') >= 2:  # 2+ trk vertex
-			dv_type_sel = selections.DVtype(self.tree, dv_type=self.dv_type,fakeAOD = self.fakeAOD)
+			dv_type_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
 			if dv_type_sel.passes():  # 2 leptons in the DV
 				sign_pair = "SS" if self.do_same_sign_cut else "OS"
 				charge_sel = selections.ChargeDV(self.tree, sel=sign_pair, trk_charge=dv_type_sel.lepton_charge)
@@ -595,7 +600,7 @@ class Analysis(object):
 
 		self._fill_leptons()
 
-		if not self.tree.is_data and not self.tree.notHNLmc:
+		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self._fill_truth_histos(sel='truth/all')
 			if self.MCEventType.isLNC: 
 				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
@@ -668,7 +673,7 @@ class Analysis(object):
 
 		# If you've made it here, preselection is passed
 		self.passed_preselection_cuts = True
-		if not self.tree.is_data and not self.tree.notHNLmc:
+		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self._fill_truth_histos(sel='truth/presel')
 
 	def calculate_event_weight(self):
@@ -678,7 +683,7 @@ class Analysis(object):
 		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree, both_lnc_lnv=False)
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
-		if self.weight_override == None: 
+		if self.weight_override == None:
 			self.weight = self.mass_lt_weight*self.MCEventType.weight 
 		else: 
 			self.weight = self.weight_override
@@ -688,7 +693,7 @@ class Analysis(object):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
 
 	def _fill_cutflow(self, nbin):
-		if not self.tree.is_data and not self.tree.notHNLmc:
+		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin)
 			if self.MCEventType.isLNV:
@@ -699,7 +704,7 @@ class Analysis(object):
 
 	def _fill_multitrk_histos(self):
 		self.fill_hist('2lepMultitrk', 'num_trks', self.tree.dv('ntrk'))
-		muons = helpers.Tracks(self.tree,self.fakeAOD)
+		muons = helpers.Tracks(self.tree)
 		muons.getMuons()
 		if muons.lepisAssoc[0] == 1 and muons.lepisAssoc[1] == 1:
 			self.fill_hist('2lepMultitrk', 'bothmuon_isAssociated', 1)
@@ -707,7 +712,7 @@ class Analysis(object):
 			self.fill_hist('2lepMultitrk', 'bothmuon_isAssociated', 0)
 		if muons.lepisAssoc[0] == 0 and muons.lepisAssoc[1] == 0:
 			self.fill_hist('2lepMultitrk', 'nomuon_isAssociated', 1)
-			tracks = helpers.Tracks(self.tree,self.fakeAOD)
+			tracks = helpers.Tracks(self.tree)
 			tracks.getTracks()
 			trk_assoc = tracks.lepisAssoc
 			num_trk_assoc  = sum(trk_assoc)
@@ -977,15 +982,15 @@ class Analysis(object):
 			# fill event weight. storing this per dv as weights include dv scale factor.
 			self.fill_hist(sel, 'DV_weight', self.weight)
 
-			tracks = helpers.Tracks(self.tree,self.fakeAOD)
+			tracks = helpers.Tracks(self.tree)
 			tracks.getTracks()
 			trkVec = tracks.lepVec
 
-			muons = helpers.Tracks(self.tree,self.fakeAOD)
+			muons = helpers.Tracks(self.tree)
 			muons.getMuons()
 			muVec = muons.lepVec
 
-			electrons = helpers.Tracks(self.tree,self.fakeAOD)
+			electrons = helpers.Tracks(self.tree)
 			electrons.getElectrons()
 			elVec = electrons.lepVec
 
@@ -1074,9 +1079,9 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_max_errz0_wrtSV', max(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
 				self.fill_hist(sel, 'DV_trk_min_errz0_wrtSV', min(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
 
-				DV_mumu = selections.DVtype(self.tree, dv_type="mumu",fakeAOD = self.fakeAOD).passes()
-				DV_ee = selections.DVtype(self.tree, dv_type="ee",fakeAOD = self.fakeAOD).passes()
-				DV_emu = selections.DVtype(self.tree, dv_type="emu",fakeAOD = self.fakeAOD).passes()
+				DV_mumu = selections.DVtype(self.tree, dv_type="mumu").passes()
+				DV_ee = selections.DVtype(self.tree, dv_type="ee").passes()
+				DV_emu = selections.DVtype(self.tree, dv_type="emu").passes()
 				DV_1lep = (len(muVec) ==  1 and len(elVec) == 0) or (len(muVec) ==  0 and len(elVec) == 1)
 
 				self.fill_hist(sel, 'DV_mumu', DV_mumu)
@@ -1264,7 +1269,7 @@ class Analysis(object):
 
 			self.fill_hist(sel, 'DV_alpha', alpha)
 			
-			trk_quality = selections.Trackqual(self.tree,fakeAOD=self.fakeAOD)
+			trk_quality = selections.Trackqual(self.tree)
 
 			self.fill_hist(sel, 'DV_2tight', trk_quality.DV_2tight)
 			self.fill_hist(sel, 'DV_2medium', trk_quality.DV_2medium)
@@ -1352,7 +1357,7 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(16, "truth matched")
 
 		# Store LNC and LNV cutflows in the observables collection
-		if not self.tree.is_data and not self.tree.notHNLmc: 
+		if not self.tree.is_data and not self.tree.not_hnl_mc: 
 			self.CutFlow_LNV = self.CutFlow.Clone()
 			self.CutFlow_LNC = self.CutFlow.Clone()
 			self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
@@ -1482,7 +1487,7 @@ class run2Analysis(Analysis):
 		# self._fill_selected_dv_histos("mlll")
 		 
 		# Fill histos of truth-matched DVs
-		if not self.tree.is_data and not self.tree.notHNLmc:
+		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			if self._truth_match():
 				self._fill_cutflow(15)
 				# self.h['CutFlow'][self.ch].Fill(14)
@@ -1537,7 +1542,7 @@ class KShort(Analysis):
 
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
-		if not self.tree.is_data and not self.tree.notHNLmc:
+		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			if self.MCEventType.isLNC: 
 				sel =  sel + "_LNC" 
 			if self.MCEventType.isLNV:

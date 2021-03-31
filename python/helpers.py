@@ -224,7 +224,7 @@ class Truth():
 
 
 class Tracks():
-	def __init__(self, tree,fakeAOD = False ):
+	def __init__(self, tree ):
 		self.tree = tree
 		self.lepVec = []
 		truthlepCharge = []
@@ -236,7 +236,6 @@ class Tracks():
 		self.phi = []
 		self.pt = []
 		self.ntracks = -1
-		self.fakeAOD = fakeAOD
 		self.muon_isTight = []
 		self.muon_isLoose = []
 		self.muon_isMedium = []
@@ -261,7 +260,7 @@ class Tracks():
 				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
 				M = self.tree.dv('trk_M')[itrk]
 
-				if len(self.tree['muon_index']) > 0 and self.fakeAOD == False:
+				if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
 					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 					self.lepIndex.append(muon_index)
 					# use calibrated muon quantities (not calculated wrt DV!)
@@ -272,7 +271,7 @@ class Tracks():
 				else:
 					self.lepIndex.append(-1)
 
-				if self.fakeAOD:
+				if self.tree.fake_aod:
 					self.muonType.append(self.tree.dv('trk_muonType')[itrk]) # add muon type to the track class if running on fakeAODs
 					self.muon_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
 					self.muon_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
@@ -297,7 +296,7 @@ class Tracks():
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
 				# remove electrons that are also matched to muons!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
-					if len(self.tree['muon_index']) > 0 and self.fakeAOD == False: # dont think we need this unless debugging overlapping muons -DT
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 						# print muon_index
 						# print "track is matched to both muon and electron!"
@@ -311,7 +310,7 @@ class Tracks():
 
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.tree['el_index']) > 0 and self.fakeAOD == False:
+				if len(self.tree['el_index']) > 0 and self.tree.fake_aod == False:
 					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
 					# use calibrated muon quantities (not calculated wrt DV!)
 					# pt = self.tree['el_pt'][el_index]
@@ -322,7 +321,7 @@ class Tracks():
 				else:
 					self.lepIndex.append(-1)
 
-				if self.fakeAOD:
+				if self.tree.fake_aod:
 					self.el_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
 					self.el_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
 					self.el_isLoose.append(self.tree.dv('trk_isLoose')[itrk])

@@ -51,7 +51,7 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc,skip_events=options.skipEvents)
+		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,not_hnl_mc=options.notHNLmc,skip_events=options.skipEvents)
 
 		# create one output file per channel in your config file
 		if "SSbkg" in options.config.split("config")[1]:
