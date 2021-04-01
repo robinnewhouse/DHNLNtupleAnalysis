@@ -785,3 +785,42 @@ def mom_frac_parall(pvec, decay_vector):
 		return -1
 	else:
 		return mom_parall(pvec, decay_vector) / pvec.Mag()
+
+# make vertexing systematics map
+# messy to have this on its own in a module, but so be it
+def get_vertexing_syst_map():
+	"""build the lookup table to be used for vertexing + tracking systematic uncertainty"""
+	dvr_bins = [0, 24, 44, 64, 84, 104, 124, 144, 164, 184, 204, 224, 244, 264, 284, 300]
+	pt_bins = [0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 35]
+	syst_map = np.ones(shape=(len(pt_bins), len(dvr_bins)))
+	# base value: (vtx syst + trk syst) in quadrature
+	syst_map *= (1 - np.sqrt(.12 ** 2 + .04 ** 2))
+	# set the bins that only use the tracking systematic
+	syst_map[:, 0:2] = 1 - .04
+	syst_map[np.digitize(25, pt_bins, right=True):, 2:3] = 1 - .04
+	return syst_map
+
+
+vertexing_syst_map = get_vertexing_syst_map()
+
+
+def get_vertexing_uncertainty(r, pt):
+	"""retrieve the calculated vertexing + tracking uncertainty using numpy's digitize"""
+	dvr_bins = [0, 24, 44, 64, 84, 104, 124, 144, 164, 184, 204, 224, 244, 264, 284, 300]
+	pt_bins = [0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 35]
+	return vertexing_syst_map[
+		max(np.digitize(pt, pt_bins) - 1, 0),
+		max(np.digitize(r, dvr_bins) - 1, 0)]
+
+
+def plot_vertexing_uncertainty():
+	"""a utility for plotting the vertexing uncertainty if you want to see it"""
+	import matplotlib.pyplot as plt
+	dvr_bins = [0, 24, 44, 64, 84, 104, 124, 144, 164, 184, 204, 224, 244, 264, 284, 300]
+	pt_bins = [0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 35]
+	plt.figure(figsize=[10, 7])
+	plt.pcolormesh(dvr_bins, pt_bins, vertexing_syst_map)
+	plt.colorbar()
+	plt.xlabel('DV Radius [mm]')
+	plt.ylabel('DV pT [GeV]')
+	plt.title('vertexing systematics map')

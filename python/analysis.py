@@ -383,12 +383,11 @@ class Analysis(object):
 		self.fi.Close()
 
 	def end(self):
-		for hist in self.observables.histogram_dict.values(): 
-			hist.SetBinContent(hist.GetNbinsX(), hist.GetBinContent(hist.GetNbinsX()) + hist.GetBinContent(hist.GetNbinsX() + 1)) # merge overflow into last bin
-			hist.SetBinContent(1, hist.GetBinContent(1) + hist.GetBinContent(0)) # merge underflow into first bin
+		# for hist in self.observables.histogram_dict.values():
+		# 	hist.SetBinContent(hist.GetNbinsX(), hist.GetBinContent(hist.GetNbinsX()) + hist.GetBinContent(hist.GetNbinsX() + 1)) # merge overflow into last bin
+		# 	hist.SetBinContent(1, hist.GetBinContent(1) + hist.GetBinContent(0)) # merge underflow into first bin
 
-
-		# make acceptance Histograms 
+		# make acceptance Histograms
 		# TOD: it doesnt looks like on data the acceptance histograms are working as expected. -DT
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'] = self.CutFlow_LNV.Clone()
@@ -1262,6 +1261,10 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
 			self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
 			self.fill_hist(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
+
+			# Calculate weight for tracking/vertexing uncertainties
+			vertexing_uncertainty = helpers.get_vertexing_uncertainty(self.tree.dv('r'), self.tree.dv('pt'))
+			self.fill_hist(sel, 'DV_vertexing_uncertainty', vertexing_uncertainty, weight=1)
 
 			# fill TTree with ntuple information. Already set by fill_hist
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':

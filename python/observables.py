@@ -216,6 +216,7 @@ binning_definitions = {
 	'DV_trk_deta': (160, 0, 20),
 	'DV_trk_dphi': (64, 0, 8),
 	'DV_trk_dR': (1010, -5, 10),
+	'DV_vertexing_uncertainty': (100, -1, 1),
 	'event_type_MCweight': (1000, -5, 5),
 	'M2_spin_corr_MCweight': (1000, -0.02, 0.02),
 	'M2_nocorr_MCweight': (100000, -5, 5),

@@ -1313,40 +1313,36 @@ class MCEventType:
 			# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
 			# For official samples, swap s24 -> s34 
 				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2,s24= self.s34) # wrong matrix used when generating pythia samples, includes lepton permutation
-			else: 
+			else:
 				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24) # wrong matrix used when generating pythia samples, NO lepton permutation
 
 			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is becuase M2_nocorr as calculated includes LNC + LNV decays
 
-		
+
 class TriggerMatching_prompt:
 	def __init__(self, tree,plep,pelp_Index):
 		self.plep_isTrigMatched = False
-		if plep == "muon": 
+		if plep == "muon":
 			lep_matched = tree["muon_isTrigMatched"]
-		if plep == "electron": 
+		if plep == "electron":
 			lep_matched = tree["el_isTrigMatched"]
-		if lep_matched[pelp_Index] == 1: 
+		if lep_matched[pelp_Index] == 1:
 			self.plep_isTrigMatched = True
 
 
 class TriggerMatching_disp:
 	def __init__(self, tree,dv_type,dMu_Index,dEl_Index):
 		self.dlep_isTrigMatched = False
-		if dv_type == "emu": 
+		if dv_type == "emu":
 			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]]== 1 or tree["el_isTrigMatched"][dEl_Index[0]]== 1
-		if dv_type == "ee": 
+		if dv_type == "ee":
 			self.dlep_isTrigMatched = tree["el_isTrigMatched"][dEl_Index[0]]==1 or tree["el_isTrigMatched"][dEl_Index[1]]==1
-		if dv_type == "mumu": 
+		if dv_type == "mumu":
 			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]]== 1 or tree["muon_isTrigMatched"][dMu_Index[1]]== 1
-				
 
-
-		
 
 class SumTrack:
 	def __init__(self, tree):
-
 		self.sum_track_pt = 0
 		n_tracks = tree.ntrk
 		self.sum_track_pt_wrt_pv = 0
@@ -1357,7 +1353,11 @@ class SumTrack:
 			self.sum_track_pt_wrt_pv += tree.dv('trk_pt')[k]
 			self.sum_track_charge += tree.dv('trk_charge')[k]
 
-
-
-
-
+# class VertexingUncertainty:
+# 	def __init__(self, tree):
+# 		self.tree = tree
+#
+# 		self.tree.dv('r')
+# 		self.tree.dv('pt')
+#
+# 		self.uncertainty_value = helpers.get_vertexing_uncertainty(self.tree.dv('r'), self.tree.dv('pt'))

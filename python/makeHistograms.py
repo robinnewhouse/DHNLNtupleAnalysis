@@ -51,7 +51,8 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,not_hnl_mc=options.notHNLmc,skip_events=options.skipEvents)
+		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass,
+											ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents)
 
 		# create one output file per channel in your config file
 		if "SSbkg" in options.config.split("config")[1]:
@@ -86,7 +87,7 @@ def main():
 		if entries is None or tree.numentries < entries:
 			entries = tree.numentries
 		# specify this to reduce number of entries loaded in each array
-		if options.skipEvents != None: entries = entries + options.skipEvents # if skipping events then entries needs to be updated
+		if options.skipEvents is not None: entries = entries + options.skipEvents  # if skipping events then entries needs to be updated
 		tree.max_entries = entries
 		logger.info('Going to process {}  events'.format(entries))
 
@@ -127,7 +128,6 @@ def main():
 
 					# Loop over each vertex in the event
 					while tree.idv < tree.ndv:
-						# DVevt = helpers.Event(tree=tree, ievt=tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
 						ana.DVSelection()
 						tree.increment_dv()
 
