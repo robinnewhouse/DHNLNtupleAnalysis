@@ -602,30 +602,32 @@ class Analysis(object):
 
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self._fill_truth_histos(sel='truth/all')
-			if self.MCEventType.isLNC: 
+			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries/2)  # all events
-		
+
 		self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
 		######################################################################################################
-		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
+		# Selection code is designed so that it will pass the selection only if the cut true or cut is unused
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
 		######################################################################################################
 
 		if self.do_trigger_cut:
 			if self._trigger_cut():
-				# Fill the plot at the specified bin
+				# Fill the cutflow plot at the specified bin
 				self._fill_cutflow(1)
 			else:
 				return
-	
-		if self._pv_cut(): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
+
+		# Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
+		if self._pv_cut():
 			self._fill_cutflow(2)
 		else:
 			return
 
-		if self.tree.is_data: # when running on data skip over any events without any DVs to speed up running
+		# when running on data skip over any events without any DVs to speed up running
+		if self.tree.is_data:
 			if self.tree.ndv == 0: return
 
 		if self.do_invert_trigger_cut:
@@ -642,28 +644,27 @@ class Analysis(object):
 
 		if self.do_prompt_lepton_cut:
 			plep_cut = self._prompt_lepton_cut()
-			if self.found_plep: 
+			if self.found_plep:
 				self._fill_cutflow(4)
 			if plep_cut:
 				self._fill_cutflow(5)
 			else:
 				return
-		
+
 		if self.do_invert_prompt_lepton_cut:
 			if self._invert_prompt_lepton_cut():
 				self._fill_cutflow(3)
 			else:
 				return
 
-			if self.do_prompt_track_cut: 
+			if self.do_prompt_track_cut:
 				ptrk_cut = self._prompt_track_cut()
-				if self.found_ptrk: 
+				if self.found_ptrk:
 					self._fill_cutflow(4)
 				if ptrk_cut:
 					self._fill_cutflow(5)
 				else:
 					return
-
 
 		if self.do_ndv_cut:
 			if self._ndv_cut():
@@ -1090,47 +1091,22 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
 
 				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
-				dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
-				pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
-				decayV = dv-pv
-				pvec_0 = ROOT.TVector3( tracks.lepVec[0].Px(), tracks.lepVec[0].Py(),  tracks.lepVec[0].Pz())
-				pvec_1 = ROOT.TVector3( tracks.lepVec[1].Px(), tracks.lepVec[1].Py(),  tracks.lepVec[1].Pz())
-			
-				def mom_perp(pvec, decayV): 
-					decayV_mag = decayV.Mag()
-					mom_perp_vec = pvec.Cross(decayV)
-					theta = mom_perp_vec.Theta()
-					if theta < np.pi/2.0: mom_perp = mom_perp_vec.Mag()/decayV_mag
-					elif theta > np.pi/2.0: mom_perp = -1*mom_perp_vec.Mag()/decayV_mag
-					else: mom_perp = -1
-					return mom_perp
+				dv = ROOT.TVector3(self.tree.dv('x'), self.tree.dv('y'), self.tree.dv('z'))
+				pv = ROOT.TVector3(self.tree['vertex_x'], self.tree['vertex_y'], self.tree['vertex_z'])
+				decay_vector = dv - pv
+				pvec_0 = ROOT.TVector3(tracks.lepVec[0].Px(), tracks.lepVec[0].Py(), tracks.lepVec[0].Pz())
+				pvec_1 = ROOT.TVector3(tracks.lepVec[1].Px(), tracks.lepVec[1].Py(), tracks.lepVec[1].Pz())
 
-				def mom_parall(pvec, decayV): 
-					decayV_mag = decayV.Mag()
-					mom_parall = pvec.Dot(decayV)/decayV_mag
-					return mom_parall
-				
-				def mom_frac_parall(pvec, decayV): 
-					decayV_mag = decayV.Mag()
-					mom_parall = pvec.Dot(decayV)/decayV_mag
-					pvec_mag = pvec.Mag()
-					if pvec_mag== 0.0: # protect against div by 0...
-						frac_parall = -1
-					else:
-						frac_parall = mom_parall/pvec_mag
-					return frac_parall
-
-				mom_perp_0 = mom_perp(pvec_0,decayV)
-				mom_parall_0 = mom_parall(pvec_0,decayV)
-				mom_frac_parall_0 = mom_frac_parall(pvec_0,decayV)
+				mom_perp_0 = helpers.mom_perp(pvec_0, decay_vector)
+				mom_parall_0 = helpers.mom_parall(pvec_0, decay_vector)
+				mom_frac_parall_0 = helpers.mom_frac_parall(pvec_0, decay_vector)
 				pvec_0_mag = pvec_0.Mag()
 
-				mom_perp_1 = mom_perp(pvec_1,decayV)
-				mom_parall_1 = mom_parall(pvec_1,decayV)
-				mom_frac_parall_1 = mom_frac_parall(pvec_1,decayV)
+				mom_perp_1 = helpers.mom_perp(pvec_1, decay_vector)
+				mom_parall_1 = helpers.mom_parall(pvec_1, decay_vector)
+				mom_frac_parall_1 = helpers.mom_frac_parall(pvec_1, decay_vector)
 				pvec_1_mag = pvec_1.Mag()
 
-				
 				# pt order the visible leptons in the DV
 				if self.tree.dv('trk_pt_wrtSV')[1] > self.tree.dv('trk_pt_wrtSV')[0]:
 					self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[1])
@@ -1189,8 +1165,6 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_1_mag)
 					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_1)
 
-
-
 			# fill standard track variable histograms
 			for i in range(tracks.ntracks):
 				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])
@@ -1207,7 +1181,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_nPixelHits', self.tree.dv('trk_nPixelHits')[i])
 				self.fill_hist(sel, 'DV_trk_nSCTHits', self.tree.dv('trk_nSCTHits')[i])
 				# self.fill_hist(sel, 'DV_trk_nSCTHoles', self.tree.dv('trk_nSCTHoles')[i])
-				self.fill_hist(sel, 'DV_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i]+self.tree.dv('trk_nPixelHits')[i])
+				self.fill_hist(sel, 'DV_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i] + self.tree.dv('trk_nPixelHits')[i])
 				# self.fill_hist(sel, 'DV_trk_dTheta', self.tree.dv('trk_dTheta')[i])
 				self.fill_hist(sel, 'DV_trk_chi2_toSV'.format(i), self.tree.dv('trk_chi2_toSV')[i])
 				self.fill_hist(sel, 'DV_trk_d0_wrtSV'.format(i), self.tree.dv('trk_d0_wrtSV')[i])
@@ -1260,12 +1234,12 @@ class Analysis(object):
 			# compute alpha (3D angle between DV 3-momentum and rDV)
 			dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
 			pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
-			decayV = dv-pv
+			decay_vector = dv-pv
 
 			dv_4vec = ROOT.TLorentzVector()
 			dv_4vec.SetPtEtaPhiM(self.tree.dv('pt'), self.tree.dv('eta'),self.tree.dv('phi'), self.tree.dv('mass'))
 			dv_mom_vec =  ROOT.TVector3( dv_4vec.Px(),  dv_4vec.Py(),  dv_4vec.Pz() )
-			alpha = decayV.Angle(dv_mom_vec)
+			alpha = decay_vector.Angle(dv_mom_vec)
 
 			self.fill_hist(sel, 'DV_alpha', alpha)
 			
@@ -1289,9 +1263,8 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
 			self.fill_hist(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
 
-			
 			# fill TTree with ntuple information. Already set by fill_hist
-			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':  
+			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':
 				if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
 				elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
 				else: self.micro_ntuples[sel].fill()

@@ -765,3 +765,23 @@ def decode_list(in_list, encoding='utf8'):
 			out_list.append(item)
 	return out_list
 
+
+def mom_perp(pvec, decay_vector):
+	mom_perp_vec = pvec.Cross(decay_vector)
+	if mom_perp_vec.Theta() < np.pi / 2.0:
+		return mom_perp_vec.Mag() / decay_vector.Mag()
+	elif mom_perp_vec.Theta() > np.pi / 2.0:
+		return -1 * mom_perp_vec.Mag() / decay_vector.Mag()
+	else:
+		return -1
+
+
+def mom_parall(pvec, decay_vector):
+	return pvec.Dot(decay_vector) / decay_vector.Mag()
+
+
+def mom_frac_parall(pvec, decay_vector):
+	if pvec.Mag() == 0.0:  # protect against div by 0...
+		return -1
+	else:
+		return mom_parall(pvec, decay_vector) / pvec.Mag()
