@@ -23,15 +23,20 @@ def main():
 	helpers.logger.setLevel(helpers.logger_debug_level)
 	logger.info("-> Calling main")
 
-	output_path = os.path.join(os.path.abspath(options.output), '')
-	if not os.path.exists(output_path):
-		logger.info('Making output directory')
-		os.mkdir(output_path)
-
 	with open(options.config, 'r') as json_config:
 		# load JSON config file that contains a channel name mapped to a list of selections
 		config_file = json.load(json_config)
 
+	output_path = os.path.join(os.path.abspath(options.output), '')
+	if options.output_file:
+		output_path = os.path.join(os.path.dirname(options.output_file), '')  # override
+		if len(config_file.items()) > 1:
+			logger.error("Writing multiple channels to one file. This will overwrite previous channels. Please reconsider.")
+			exit(1)
+
+	if not os.path.exists(output_path):
+		logger.info('Making output directory')
+		os.makedirs(output_path, exist_ok=True)
 	analysisCode = {}
 	# Define that we're using a specific type of analysis
 	anaClass = getattr(analysis, options.analysis)
@@ -40,7 +45,6 @@ def main():
 	logger.info("Running event selection on: {}".format(input_file))
 	treename = "outTree"  # define tree name
 	
-
 
 	# loop over all the channels in the config file
 	for channel, configs in config_file.items():
@@ -75,6 +79,10 @@ def main():
 					output_file = output_path + "CR_BE" + file_info.output_filename
 			else:
 				output_file = output_path + file_info.output_filename
+
+		# override if available
+		if options.output_file:output_file = os.path.abspath(options.output_file)
+
 		if os.path.exists(output_file):
 			if not options.force:
 				logger.error("Output {} file already exists. Either re-run with -f/--force OR choose a different output path.".format(output_file))
@@ -192,6 +200,12 @@ if __name__ == "__main__":
 						default = "",
 						help="Output directory to store histograms.")
 
+	parser.add_argument("--output_file",
+						dest="output_file",
+						type=str,
+						default = "",
+						help="Overrides the output filename and output directory.")
+
 	parser.add_argument("-f", "--force",
 						action="store_true",
 						dest="force",
@@ -236,6 +250,7 @@ if __name__ == "__main__":
 						dest="notHNLmc",
 						default = False,
 						help='Not running on HNL mc. Default: False. Useful for running on mc that is not HNL mc. Turn HNL specific truth info storing off.')
+
 	parser.add_argument('--skipEvents',
 						dest="skipEvents",
 						default = None,
