@@ -50,11 +50,15 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 	mass = tree.mass
 	ctau = tree.ctau
 	mc_campaign = tree.mc_campaign
+
+	# define luminosity for the different mc campaigns
 	lumi = {}
 	lumi["mc16a"] = 36.20766  # mc16a (2015-2016) fb-1
 	lumi["mc16d"] = 44.30740 # mc16d (2017) fb-1
 	lumi["mc16e"] = 58.45010 # mc16e (2018) fb-1
 	lumi_tot = sum(lumi.values())
+	# by default mc campagin is set to 1; if you dont set your mc campaign, then scale using L= 1 fb^-1
+	lumi[None] = 1.0
 
 	if tree.is_data:  # you are running on data
 		weight = 1
@@ -65,11 +69,15 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 		else:
 			mW = 80.379  # mass of W boson in GeV
 			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
 			xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)  # scale to 1 fb^-1 * % of fraction of total lumi in givent mc campaign, 
-														# scale all entries /2 becuase we are splitting events into 100% LNC & 100% LNV
+			# mass-lifetime weight = L * xsec / total num. of MC events
+			# split up Pythia sample into separate LNC and LNV branches
+			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
+			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)
+
 	return weight
 
 
@@ -372,7 +380,12 @@ class FileInfo:
 	def __init__(self, infile, channel=""):
 		self.mass = -1  # signal mass of HNL in GeV
 		self.ctau = -1  # in mm
-		self.dsid = [int(s) for s in infile.split(".") if s.isdigit()][0]
+
+		# read dsids from offical samples by splitting according to '.' in sample name
+		if len([int(s) for s in infile.split(".") if s.isdigit()]) != 0:
+			self.dsid = [int(s) for s in infile.split(".") if s.isdigit()][0]
+		else:
+			self.dsid = None
 		 
 		self.MC_campaign = None
 		self.ctau_str = ""
