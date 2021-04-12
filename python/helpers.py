@@ -42,14 +42,15 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
 	Sets the weight of events for this tree
-	:param mass: HNL sample mass
-	:param ctau: HNL sample lifetime
+	:param mass: HNL sample mass in GeV
+	:param ctau: HNL sample lifetime in mm
 	:param both_lnc_lnv: If true then lnc & lnv decays are possible so coupling is reduced by a factor 2.
 	:return: calculated weight.
 	"""
 	mass = tree.mass
 	ctau = tree.ctau
 	mc_campaign = tree.mc_campaign
+	channel = tree.channel
 
 	# define luminosity for the different mc campaigns
 	lumi = {}
@@ -68,10 +69,18 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 			weight = 1
 		else:
 			mW = 80.379  # mass of W boson in GeV
-			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+
+			#calculate Gronau coupling; parametrization depends on coupling flavour you are probing
+			if channel == "uuu" or channel == "uue":
+				U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+			if channel == "eee" or channel == "eeu":
+				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
+			print U2Gronau
+
 			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
+
 			xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
 			# mass-lifetime weight = L * xsec / total num. of MC events
 			# split up Pythia sample into separate LNC and LNV branches
