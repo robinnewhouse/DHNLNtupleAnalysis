@@ -75,7 +75,6 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 				U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
 			if channel == "eee" or channel == "eeu":
 				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
-			print U2Gronau
 
 			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
