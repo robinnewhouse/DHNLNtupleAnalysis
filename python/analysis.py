@@ -7,6 +7,7 @@ import helpers
 import selections
 import observables
 import ntuples
+import time
 
 
 UNLOCKED = 0
@@ -29,7 +30,6 @@ class Analysis(object):
 		self.micro_ntuples = {}
 		self.tree = tree
 		# self.weight = 1
-		self.saveNtuples = saveNtuples
 		self._locked = UNLOCKED
 		# create an instance of Observables to store histograms
 		self.observables = observables.Observables()
@@ -89,19 +89,58 @@ class Analysis(object):
 		else: 
 			self.plep_quality =  "tight"
 
+		self.do_same_event_cut =  "SE" in self.sel
+		self.do_different_event_cut =  "DE" in self.sel
+
+	
 		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
 			self.do_CR = True
+			self.fakeAOD = False
 			self.do_trigger_cut = False  # do not apply trigger cut
 			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
 			self.do_filter_cut = False  # do not apply filter cut
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = True  # invert prompt lepton cut
+			if 'ptrack' in self.sel: 
+				self.do_prompt_track_cut = True # apply prompt track cut
+			else: 
+				self.do_prompt_track_cut = False # DO NOT apply prompt track cut
 			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
+		elif "CR_BE" in self.sel: # if running on fakeAOD that already has CR cuts applied (be careful with this setting!!!!!)
+			self.fakeAOD = True
+			self.do_CR = True
+			self.do_trigger_cut = False  # do not apply trigger cut
+			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
+			self.do_filter_cut = False  # do not apply filter cut
+			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
+			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
+			self.do_prompt_track_cut = False # do not apply prompt track cut
+			self.logger.info('You are running on a fake AOD created from events in the inverted prompt lepton control region!')
+		elif "BE" in self.sel: # if running on fakeAOD without any CR cuts applied
+			if "realDAOD" in self.sel:
+				self.logger.info('You are running the background analysis on a real AOD created from events in the signal region!')
+				self.fakeAOD = False
+				self.do_trigger_cut = False  # apply a trigger cut
+			else:
+				self.logger.info('You are running the background analysis on a fake AOD created from events in the signal region!')
+				self.fakeAOD = True
+				self.do_trigger_cut = False  # apply a trigger cut
+			self.do_CR = False
+			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
+			self.do_filter_cut = False  # do not apply filter cut, not sure if we need this for BE -DT
+			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut, dont apply this cut no prompt leptons in the fake DAODs yet... -DT
+			self.do_invert_prompt_lepton_cut = False  # no fake leptons in DAODs... -DT
+			self.do_prompt_track_cut = False # do not apply prompt track cut
+			
+			if "OS" in self.sel: raise ValueError("This analysis is blinded! You cannot look at OS DV from data events!!") # another blinded check -DT
+
 		else:
 			self.do_CR = False
+			self.fakeAOD = False
 			self.do_invert_prompt_lepton_cut = False
 			self.do_invert_trigger_cut = False
-
+			self.do_prompt_track_cut = False 
+		
 		# alpha cut
 		self.do_alpha_cut = 'alpha' in self.sel
 
@@ -135,6 +174,33 @@ class Analysis(object):
 		self.do_same_sign_cut = 'SS' in self.sel
 		if not (self.do_opposite_sign_cut or self.do_same_sign_cut):
 			self.logger.warn('You did not add an SS or OS track cut. Skipping SS/OS track selection.')
+		
+		
+		if self.do_CR: 
+			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionAprime"
+			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionBprime"
+			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionCprime"
+			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionDprime"
+		else: 
+			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionA"
+				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
+			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionB"
+			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionC"
+				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
+			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionD"
+		
+		if "CR_BE" in self.sel or "BE" in self.sel:
+			self.saveNtuples = self.be_region # saveNtuples selection
+		else:
+			self.saveNtuples = saveNtuples
 
 		# DV type
 		self.do_dv_type_cut = True
@@ -206,6 +272,8 @@ class Analysis(object):
 		self.do_trilepton_mass_cut = 'mlll' in self.sel
 		if not self.do_trilepton_mass_cut  and "CR" not in self.sel:
 			self.logger.warn('You did not add a mlll cut for this channel. Skipping tri-lepton mass selection.')
+		# material veto cut
+		self.do_mat_veto_cut = "matveto" in self.sel
 
 		# DV mass cut
 		self.do_dv_mass_cut = 'DVmass' in self.sel
@@ -228,7 +296,7 @@ class Analysis(object):
 		return self.tree[key]
 
 	# hist filling helper functions
-	def fill_hist(self, selection, hist_name, variable_1, variable_2=None, fill_ntuple=True):
+	def fill_hist(self, selection, hist_name, variable_1, variable_2=None, fill_ntuple=True,beAnalysis=False):
 		"""
 		A helper function for filling registered histograms
 		:param selection: the step of selection the analysis it at. May be "None" in which case there will be no prefix.
@@ -383,6 +451,22 @@ class Analysis(object):
 			self.fill_hist('all', 'plep_d0', self.plep_sel.plepd0)
 			self.fill_hist('all', 'plep_z0', self.plep_sel.plepz0)
 		return self.plep_sel.passes() # full plep selection find the highest pt plep that doesnt overlap with any DVs
+	
+	def _prompt_track_cut(self):
+		self.found_ptrk = False # intitalize the plep each event 
+		self.ptrk_sel = selections.PromptTrack(self.tree) # run ptrack selection 
+		self.found_ptrk = self.ptrk_sel.found_trk # check if you found any prompt leptons 
+		# Add to histogram all prompt leptons that pass selection.
+		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
+		if self.ptrk_sel.passes():
+			self.fill_hist('all', 'ptrk_pt', self.ptrk_sel.trkVec.Pt())
+			self.fill_hist('all', 'ptrk_eta', self.ptrk_sel.trkVec.Eta())
+			self.fill_hist('all', 'ptrk_phi', self.ptrk_sel.trkVec.Phi())
+			self.fill_hist('all', 'ptrk_d0', self.ptrk_sel.trkd0)
+			self.fill_hist('all', 'ptrk_z0', self.ptrk_sel.trkz0)
+
+
+		return self.ptrk_sel.passes() # full plep selection find the highest pt plep that doesnt overlap with any DVs
 
 	def _invert_prompt_lepton_cut(self):
 		self.invt_lep = selections.InvertedPromptLepton(self.tree)
@@ -403,20 +487,27 @@ class Analysis(object):
 		sign_pair = "SS" if self.do_same_sign_cut else "OS"
 		charge_sel = selections.ChargeDV(self.tree, sel=sign_pair)
 		return charge_sel.passes()
+	
+	def _be_event_type_cut(self): 
+		if self.do_same_event_cut: return not self.tree.dv('shuffled')
+		if self.do_different_event_cut: return self.tree.dv('shuffled')
+		
+
+
 
 	def _dv_type_cut(self):
-		dv_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
-
+		dv_sel = selections.DVtype(self.tree, dv_type=self.dv_type,fakeAOD = self.fakeAOD)
 		if dv_sel.passes():
-			trig_match = selections.TriggerMatching_disp(self.tree, self.dv_type, dv_sel.dMu_Index, dv_sel.dEl_Index)
-			if trig_match.dlep_isTrigMatched:
-				self.events_with_trig_match_dlep = self.events_with_trig_match_dlep + 1
-			count_trig_match_disp_event = True
+			if self.fakeAOD == False: 
+				trig_match = selections.TriggerMatching_disp(self.tree, self.dv_type, dv_sel.dMu_Index, dv_sel.dEl_Index)
+				if trig_match.dlep_isTrigMatched:
+					self.events_with_trig_match_dlep = self.events_with_trig_match_dlep + 1
+				count_trig_match_disp_event = True
 
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
-		track_quality_sel = selections.Trackqual(self.tree, quality=self.track_quality)
+		track_quality_sel = selections.Trackqual(self.tree, quality=self.track_quality,fakeAOD=self.fakeAOD)
 		return track_quality_sel.passes()
 
 	def _cosmic_veto_cut(self):
@@ -427,16 +518,20 @@ class Analysis(object):
 	def _trilepton_mass_cut(self):
 		plep_vec = self.plep_sel.plepVec
 
-		muons = helpers.Tracks(self.tree)
+		muons = helpers.Tracks(self.tree,self.fakeAOD)
 		muons.getMuons()
 		muVec = muons.lepVec
 
-		electrons = helpers.Tracks(self.tree)
+		electrons = helpers.Tracks(self.tree,self.fakeAOD)
 		electrons.getElectrons()
 		elVec = electrons.lepVec
 
 		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
 		return mlll_sel.passes()
+
+	def _mat_veto_cut(self):
+		return selections.Mat_veto(self.tree).passes()
+
 
 	def _dv_mass_cut(self):
 		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=2)
@@ -444,7 +539,7 @@ class Analysis(object):
 
 	def _multitrk_2lep_cut(self):
 		if self.tree.dv('ntrk') >= 2:  # 2+ trk vertex
-			dv_type_sel = selections.DVtype(self.tree, dv_type=self.dv_type)
+			dv_type_sel = selections.DVtype(self.tree, dv_type=self.dv_type,fakeAOD = self.fakeAOD)
 			if dv_type_sel.passes():  # 2 leptons in the DV
 				sign_pair = "SS" if self.do_same_sign_cut else "OS"
 				charge_sel = selections.ChargeDV(self.tree, sel=sign_pair, trk_charge=dv_type_sel.lepton_charge)
@@ -468,9 +563,11 @@ class Analysis(object):
 		self.passed_ntrk_cut = False
 		self.passed_charge_cut = False
 		self.passed_dv_type_cut = False
+		self.passed_be_event_type_cut = False
 		self.passed_track_quality_cut = False
 		self.passed_cosmic_veto_cut = False
 		self.passed_trilepton_mass_cut = False
+		self.passed_mat_veto_cut = False
 		self.passed_dv_mass_cut = False
 		self.passed_HNL_mass_cut = False
 		self.passed_HNL_pt_cut = False
@@ -508,8 +605,6 @@ class Analysis(object):
 		self._fill_leptons()
 
 		self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
-		
-
 		######################################################################################################
 		# Selection code is deisgned so that it will pass the selection only if the cut true or cut is unused
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
@@ -521,7 +616,7 @@ class Analysis(object):
 				self._fill_cutflow(1)
 			else:
 				return
-		
+	
 		if self._pv_cut(): #Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
 			self._fill_cutflow(2)
 		else:
@@ -550,12 +645,22 @@ class Analysis(object):
 				self._fill_cutflow(5)
 			else:
 				return
-
+		
 		if self.do_invert_prompt_lepton_cut:
 			if self._invert_prompt_lepton_cut():
-				self._fill_cutflow(5)
+				self._fill_cutflow(3)
 			else:
 				return
+
+			if self.do_prompt_track_cut: 
+				ptrk_cut = self._prompt_track_cut()
+				if self.found_ptrk: 
+					self._fill_cutflow(4)
+				if ptrk_cut:
+					self._fill_cutflow(5)
+				else:
+					return
+
 
 		if self.do_ndv_cut:
 			if self._ndv_cut():
@@ -596,7 +701,7 @@ class Analysis(object):
 
 	def _fill_multitrk_histos(self):
 		self.fill_hist('2lepMultitrk', 'num_trks', self.tree.dv('ntrk'))
-		muons = helpers.Tracks(self.tree)
+		muons = helpers.Tracks(self.tree,self.fakeAOD)
 		muons.getMuons()
 		if muons.lepisAssoc[0] == 1 and muons.lepisAssoc[1] == 1:
 			self.fill_hist('2lepMultitrk', 'bothmuon_isAssociated', 1)
@@ -604,7 +709,7 @@ class Analysis(object):
 			self.fill_hist('2lepMultitrk', 'bothmuon_isAssociated', 0)
 		if muons.lepisAssoc[0] == 0 and muons.lepisAssoc[1] == 0:
 			self.fill_hist('2lepMultitrk', 'nomuon_isAssociated', 1)
-			tracks = helpers.Tracks(self.tree)
+			tracks = helpers.Tracks(self.tree,self.fakeAOD)
 			tracks.getTracks()
 			trk_assoc = tracks.lepisAssoc
 			num_trk_assoc  = sum(trk_assoc)
@@ -766,6 +871,7 @@ class Analysis(object):
 		self.fill_hist(sel, 'plep_eta', truth_info.plep_vec.Eta())
 		self.fill_hist(sel, 'plep_phi', truth_info.plep_vec.Phi())
 		self.fill_hist(sel, 'plep_mass', truth_info.plep_vec.M())
+		self.fill_hist(sel, 'properLifetime', truth_info.properLifetime)
 		
 		# print truth_info.W_charge
 		if truth_info.W_charge == 1: 
@@ -873,16 +979,15 @@ class Analysis(object):
 			# fill event weight. storing this per dv as weights include dv scale factor.
 			self.fill_hist(sel, 'DV_weight', self.weight)
 
-
-			tracks = helpers.Tracks(self.tree)
+			tracks = helpers.Tracks(self.tree,self.fakeAOD)
 			tracks.getTracks()
 			trkVec = tracks.lepVec
 
-			muons = helpers.Tracks(self.tree)
+			muons = helpers.Tracks(self.tree,self.fakeAOD)
 			muons.getMuons()
 			muVec = muons.lepVec
 
-			electrons = helpers.Tracks(self.tree)
+			electrons = helpers.Tracks(self.tree,self.fakeAOD)
 			electrons.getElectrons()
 			elVec = electrons.lepVec
 
@@ -926,16 +1031,55 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_redmassvis', Mlll.mlll/dR)
 						self.fill_hist(sel, 'DV_redmassHNL', Mhnl.mhnl/dR)
 
+				for el in xrange(len(elVec)):
+					el_plep_vec = elVec[el] + plep_vec
+					el_plep_same_charge = int(plepcharge) ==  int(electrons.lepCharge[el])
+					el_plep_diff_charge = not el_plep_same_charge
+					self.fill_hist(sel, 'mll_dEl_plep_OS', el_plep_diff_charge )
+					self.fill_hist(sel, 'mll_dEl_plep_SS', el_plep_same_charge )
+					self.fill_hist(sel, 'mll_dEl_plep', el_plep_vec.M() )
+
+				for mu in xrange(len(muVec)):
+					mu_plep_vec = muVec[mu] + plep_vec
+					mu_plep_same_charge = int(plepcharge) ==  int(muons.lepCharge[mu])
+					mu_plep_diff_charge = not mu_plep_same_charge
+					self.fill_hist(sel, 'mll_dMu_plep_OS', mu_plep_diff_charge )
+					self.fill_hist(sel, 'mll_dMu_plep_SS', mu_plep_same_charge )
+					self.fill_hist(sel, 'mll_dMu_plep', mu_plep_vec.M() )
+			
+			if self.do_prompt_track_cut: 
+				ptrk_vec = self.ptrk_sel.trkVec
+				ptrkd0 = self.ptrk_sel.trkd0
+				ptrkz0 = self.ptrk_sel.trkz0
+				self.fill_hist(sel, 'ptrk_pt', ptrk_vec.Pt())
+				self.fill_hist(sel, 'ptrk_eta', ptrk_vec.Eta())
+				self.fill_hist(sel, 'ptrk_phi', ptrk_vec.Phi())
+				self.fill_hist(sel, 'ptrk_d0', ptrkd0)
+				self.fill_hist(sel, 'ptrk_z0', ptrkz0)
+
+				if tracks.ntracks == 2:
+
+					Mhnl = selections.Mhnl(self.tree, self.dv_type, plep=ptrk_vec, dMu=muVec,dEl=elVec,use_tracks=True,trks=tracks.lepVec)
+					self.fill_hist(sel, 'HNLm', Mhnl.mhnl)
+					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
+					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
+					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
+
+
+
+
 			if tracks.ntracks == 2:
 				deta = abs(tracks.eta[0] - tracks.eta[1])
 				dphi = abs(tracks.lepVec[0].DeltaPhi(tracks.lepVec[1]))
 				dpt = abs(tracks.pt[0] - tracks.pt[1])
 				dR = tracks.lepVec[0].DeltaR(tracks.lepVec[1])
-
 				self.fill_hist(sel, 'DV_trk_deta', deta)
 				self.fill_hist(sel, 'DV_trk_dphi', dphi)
 				self.fill_hist(sel, 'DV_trk_dpt', dpt)
 				self.fill_hist(sel, 'DV_trk_dR', dR)
+
+				cosmic_veto = selections.Cosmicveto(self.tree)
+				self.fill_hist(sel, 'DV_cosmic_sep', cosmic_veto.separation)
 
 				self.fill_hist(sel, 'DV_trk_max_chi2_toSV', max(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
 				self.fill_hist(sel, 'DV_trk_min_chi2_toSV', min(self.tree.dv('trk_chi2_toSV')[0],self.tree.dv('trk_chi2_toSV')[1] ) )
@@ -948,17 +1092,58 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_max_errz0_wrtSV', max(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
 				self.fill_hist(sel, 'DV_trk_min_errz0_wrtSV', min(self.tree.dv('trk_errz0_wrtSV')[0],self.tree.dv('trk_errz0_wrtSV')[1] ) )
 
-				DV_mumu = selections.DVtype(self.tree, dv_type="mumu").passes()
-				DV_ee = selections.DVtype(self.tree, dv_type="ee").passes()
-				DV_emu = selections.DVtype(self.tree, dv_type="emu").passes()
+				DV_mumu = selections.DVtype(self.tree, dv_type="mumu",fakeAOD = self.fakeAOD).passes()
+				DV_ee = selections.DVtype(self.tree, dv_type="ee",fakeAOD = self.fakeAOD).passes()
+				DV_emu = selections.DVtype(self.tree, dv_type="emu",fakeAOD = self.fakeAOD).passes()
 				DV_1lep = (len(muVec) ==  1 and len(elVec) == 0) or (len(muVec) ==  0 and len(elVec) == 1)
 
 				self.fill_hist(sel, 'DV_mumu', DV_mumu)
 				self.fill_hist(sel, 'DV_ee', DV_ee)
 				self.fill_hist(sel, 'DV_emu', DV_emu)
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
-				
 
+				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
+				dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
+				pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
+				decayV = dv-pv
+				pvec_0 = ROOT.TVector3( tracks.lepVec[0].Px(), tracks.lepVec[0].Py(),  tracks.lepVec[0].Pz())
+				pvec_1 = ROOT.TVector3( tracks.lepVec[1].Px(), tracks.lepVec[1].Py(),  tracks.lepVec[1].Pz())
+			
+				def mom_perp(pvec, decayV): 
+					decayV_mag = decayV.Mag()
+					mom_perp_vec = pvec.Cross(decayV)
+					theta = mom_perp_vec.Theta()
+					if theta < np.pi/2.0: mom_perp = mom_perp_vec.Mag()/decayV_mag
+					elif theta > np.pi/2.0: mom_perp = -1*mom_perp_vec.Mag()/decayV_mag
+					else: mom_perp = -1
+					return mom_perp
+
+				def mom_parall(pvec, decayV): 
+					decayV_mag = decayV.Mag()
+					mom_parall = pvec.Dot(decayV)/decayV_mag
+					return mom_parall
+				
+				def mom_frac_parall(pvec, decayV): 
+					decayV_mag = decayV.Mag()
+					mom_parall = pvec.Dot(decayV)/decayV_mag
+					pvec_mag = pvec.Mag()
+					if pvec_mag== 0.0: # protect against div by 0...
+						frac_parall = -1
+					else:
+						frac_parall = mom_parall/pvec_mag
+					return frac_parall
+
+				mom_perp_0 = mom_perp(pvec_0,decayV)
+				mom_parall_0 = mom_parall(pvec_0,decayV)
+				mom_frac_parall_0 = mom_frac_parall(pvec_0,decayV)
+				pvec_0_mag = pvec_0.Mag()
+
+				mom_perp_1 = mom_perp(pvec_1,decayV)
+				mom_parall_1 = mom_parall(pvec_1,decayV)
+				mom_frac_parall_1 = mom_frac_parall(pvec_1,decayV)
+				pvec_1_mag = pvec_1.Mag()
+
+				
 				# pt order the visible leptons in the DV
 				if self.tree.dv('trk_pt_wrtSV')[1] > self.tree.dv('trk_pt_wrtSV')[0]:
 					self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[1])
@@ -970,6 +1155,10 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[1])
 					self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[1])
 					self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[1])
+					self.fill_hist(sel, 'DV_trk_0_mom_parall', mom_parall_1)
+					self.fill_hist(sel, 'DV_trk_0_mom_perp', mom_perp_1)
+					self.fill_hist(sel, 'DV_trk_0_mom_mag', pvec_1_mag)
+					self.fill_hist(sel, 'DV_trk_0_mom_frac_parall', mom_frac_parall_1)
 
 					self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[0])
 					self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[0])
@@ -980,6 +1169,10 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[0])
 					self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[0])
 					self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[0])
+					self.fill_hist(sel, 'DV_trk_1_mom_parall', mom_parall_0)
+					self.fill_hist(sel, 'DV_trk_1_mom_perp', mom_perp_0)
+					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_0_mag)
+					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_0)
 				else:
 					self.fill_hist(sel, 'DV_trk_0_pt', self.tree.dv('trk_pt_wrtSV')[0])
 					self.fill_hist(sel, 'DV_trk_0_eta', self.tree.dv('trk_eta_wrtSV')[0])
@@ -990,6 +1183,10 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[0])
 					self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[0])
 					self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[0])
+					self.fill_hist(sel, 'DV_trk_0_mom_parall', mom_parall_0)
+					self.fill_hist(sel, 'DV_trk_0_mom_perp', mom_perp_0)
+					self.fill_hist(sel, 'DV_trk_0_mom_mag', pvec_0_mag)
+					self.fill_hist(sel, 'DV_trk_0_mom_frac_parall', mom_frac_parall_0)
 
 					self.fill_hist(sel, 'DV_trk_1_pt', self.tree.dv('trk_pt_wrtSV')[1])
 					self.fill_hist(sel, 'DV_trk_1_eta', self.tree.dv('trk_eta_wrtSV')[1])
@@ -1000,9 +1197,20 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[1])
 					self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[1])
 					self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[1])
-
-
-
+					self.fill_hist(sel, 'DV_trk_1_mom_parall', mom_parall_1)
+					self.fill_hist(sel, 'DV_trk_1_mom_perp', mom_perp_1)
+					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_1_mag)
+					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_1)
+			# fill standard track variables for electrons
+			for lep in xrange(len(elVec)):
+				self.fill_hist(sel, 'DV_el_trk_pt', elVec[lep].Pt() )
+				self.fill_hist(sel, 'DV_el_trk_eta', elVec[lep].Eta() )
+				self.fill_hist(sel, 'DV_el_trk_phi', elVec[lep].Phi() )
+			# fill standard track variables for muons
+			for lep in xrange(len(muVec)):
+				self.fill_hist(sel, 'DV_mu_trk_pt', muVec[lep].Pt() )
+				self.fill_hist(sel, 'DV_mu_trk_eta', muVec[lep].Eta() )
+				self.fill_hist(sel, 'DV_mu_trk_phi', muVec[lep].Phi() )
 			# fill standard track variable histograms
 			for i in xrange(tracks.ntracks):
 				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])
@@ -1033,6 +1241,9 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
 			self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
 			self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
+			self.fill_hist(sel, 'PV_x', self.tree['vertex_x'])
+			self.fill_hist(sel, 'PV_y', self.tree['vertex_y'])
+			self.fill_hist(sel, 'PV_z', self.tree['vertex_z'])
 			self.fill_hist(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
 			self.fill_hist(sel, 'DV_mass', self.tree.dv('mass'))
 			self.fill_hist(sel, 'DV_pt', self.tree.dv('pt'))
@@ -1051,8 +1262,35 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_ntrk_lrt', self.tree.dv('ntrk_lrt'))
 			self.fill_hist(sel, 'DV_ntrk_sel', self.tree.dv('ntrk_sel'))
 			self.fill_hist(sel, 'DV_ntrk_assoc', self.tree.dv('ntrk_assoc'))
+			self.fill_hist(sel, 'DV_pass_mat_veto', self.tree.dv('pass_mat'))
 
-			trk_quality = selections.Trackqual(self.tree)
+			#is truth matched: 
+			if not self.tree.is_data:
+				maxlinkTruth_score = self.tree.dv('maxlinkTruth_score')
+				maxlinkTruth_parent_pdgId = abs(self.tree.dv('maxlinkTruth_parent_pdgId'))
+				is_truth_matched =  self.tree.dv('maxlinkTruth_score') > 0.75 and abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
+				self.fill_hist(sel, 'DV_truth_matched', is_truth_matched)
+
+				# add proper lifetime
+				truth_info = helpers.Truth()
+				truth_info.getTruthParticles(self.tree)
+				self.fill_hist(sel, 'properLifetime', truth_info.properLifetime)
+
+
+			# compute alpha (3D angle between DV 3-momentum and rDV)
+			dv = ROOT.TVector3( self.tree.dv('x'), self.tree.dv('y'),  self.tree.dv('z') )
+			pv = ROOT.TVector3( self.tree['vertex_x'], self.tree['vertex_y'],  self.tree['vertex_z'])
+			decayV = dv-pv
+
+			dv_4vec = ROOT.TLorentzVector()
+			dv_4vec.SetPtEtaPhiM(self.tree.dv('pt'), self.tree.dv('eta'),self.tree.dv('phi'), self.tree.dv('mass'))
+			dv_mom_vec =  ROOT.TVector3( dv_4vec.Px(),  dv_4vec.Py(),  dv_4vec.Pz() )
+			alpha = decayV.Angle(dv_mom_vec)
+
+			self.fill_hist(sel, 'DV_alpha', alpha)
+			
+			trk_quality = selections.Trackqual(self.tree,fakeAOD=self.fakeAOD)
+
 			self.fill_hist(sel, 'DV_2tight', trk_quality.DV_2tight)
 			self.fill_hist(sel, 'DV_2medium', trk_quality.DV_2medium)
 			self.fill_hist(sel, 'DV_2loose', trk_quality.DV_2loose)
@@ -1069,6 +1307,7 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
 			self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
 			self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
+			self.fill_hist(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
 
 			
 			# fill TTree with ntuple information. Already set by fill_hist
@@ -1089,7 +1328,7 @@ class run2Analysis(Analysis):
 
 		# Define cutflow histogram "by hand"		
 		self.cutflow_dir = self.ch + '/CutFlow/'
-		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 16, -0.5, 15.5)
+		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 17, -0.5, 16.5)
 		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
 		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
@@ -1105,9 +1344,13 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(5, "{} prompt {}".format(self.plep_quality,self.plep))
-		self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
+			self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
 		if self.do_invert_prompt_lepton_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(6, "invert prompt lepton")
+			self.CutFlow.GetXaxis().SetBinLabel(4, "invert prompt lepton")
+			if self.do_prompt_track_cut:
+				self.CutFlow.GetXaxis().SetBinLabel(5, "prompt track")
+				self.CutFlow.GetXaxis().SetBinLabel(6, "no ptrk overlap with DV")	
+			
 		if self.do_ndv_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(7, "DV")
 		if self.do_fidvol_cut:
@@ -1120,6 +1363,8 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(10, "SS DV")
 		if self.do_dv_type_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(11, "%s DV" % self.dv_type)
+		# if self.do_mat_veto_cut:
+		# 	self.CutFlow.GetXaxis().SetBinLabel(12, "mat. veto")
 		if self.do_cosmic_veto_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(12, "cosmic veto")
 		if self.do_dv_mass_cut:
@@ -1128,8 +1373,8 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(14, "{}-lepton DV".format(self.track_quality))
 		if self.do_trilepton_mass_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(15, "m_{lll}")
-		
-		self.CutFlow.GetXaxis().SetBinLabel(16, "truth matched")
+		if not self.tree.is_data:
+			self.CutFlow.GetXaxis().SetBinLabel(16, "truth matched")
 
 		# Store LNC and LNV cutflows in the observables collection
 		if not self.tree.is_data and not self.tree.notHNLmc: 
@@ -1167,7 +1412,8 @@ class run2Analysis(Analysis):
 			# If this cut doesn't pass, don't continue to check other cuts
 			else:
 				return
-		if self.dv_type == "mumu":
+		if self.do_dv_type_cut and self.dv_type == "mumu":
+
 			if self._multitrk_2lep_cut(): # no return becuase this is not an analysis cut, only used for studying S & B, only worked for uuu samples -DT
 				self._fill_multitrk_histos()
 
@@ -1209,7 +1455,17 @@ class run2Analysis(Analysis):
 				return
 	
 		self._fill_selected_dv_histos("DVtype")
-			
+
+		# if self.do_mat_veto_cut:
+		# 	if self._mat_veto_cut():
+		# 		if not self.passed_mat_veto_cut:
+		# 			self._fill_cutflow(11)
+		# 			self.passed_mat_veto_cut = True
+		# 	else:
+		# 		return
+
+		# self._fill_selected_dv_histos("mat_veto")
+
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
@@ -1248,9 +1504,8 @@ class run2Analysis(Analysis):
 					self.passed_trilepton_mass_cut = True
 			else:
 				return
-	
 		# self._fill_selected_dv_histos("mlll")
-
+		 
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data and not self.tree.notHNLmc:
 			if self._truth_match():
@@ -1425,3 +1680,183 @@ class KShort(Analysis):
 
 		self._fill_selected_dv_histos("sel", do_lock=False)
 		# self._fill_selected_dv_ntuples("sel", do_lock=False)
+
+
+
+class BEAnalysis(Analysis):
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
+		
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
+		self.logger.info('Running Background Estimate Analysis Cuts')
+
+		# Define cutflow histogram "by hand"		
+		self.cutflow_dir = self.ch + '/CutFlow/'
+		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 17, -0.5, 16.5)
+		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
+		# Bin labels are 1 greater than histogram bins
+		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
+		if self.do_trigger_cut:
+			if self.do_CR == False:
+				self.CutFlow.GetXaxis().SetBinLabel(2, "trigger")
+			else:
+				self.CutFlow.GetXaxis().SetBinLabel(2, "DAOD_RPVLL triggers")
+		if self.do_invert_trigger_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(2, "invert trigger")
+		self.CutFlow.GetXaxis().SetBinLabel(3, "PV")
+		if self.do_filter_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
+		if self.do_prompt_lepton_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(5, "{} prompt {}".format(self.plep_quality,self.plep))
+			self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
+		if self.do_invert_prompt_lepton_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(6, "invert prompt lepton")
+		if self.do_ndv_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(7, "DV")
+		if self.do_fidvol_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(8, "fiducial")
+		if self.do_ntrk_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(9, "%s-track DV" % self.ntrk)
+		if self.do_opposite_sign_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(10, "OS DV")
+		if self.do_same_sign_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(10, "SS DV")
+		if self.do_same_event_cut: 
+			self.CutFlow.GetXaxis().SetBinLabel(11, "Same-Event")
+		if self.do_different_event_cut: 
+			self.CutFlow.GetXaxis().SetBinLabel(11, "Different-Events")
+		if self.do_dv_type_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(12, "%s DV" % self.dv_type)
+		if self.do_mat_veto_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(13, "mat. veto")
+		if self.do_cosmic_veto_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(14, "cosmic veto")
+		if self.do_dv_mass_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(15, "m_{DV}")
+		if self.do_track_quality_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(16, "{}-lepton DV".format(self.track_quality))
+		if self.do_trilepton_mass_cut:
+			self.CutFlow.GetXaxis().SetBinLabel(17, "m_{lll}")
+
+	def DVSelection(self):
+		######################################################################################################
+		# DV Selection is any cuts that are done per DV
+		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
+		######################################################################################################
+
+		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
+		self._fill_all_dv_histos()
+	
+		# There is an extra bit of logic here since we look at several DVs
+		# but only want to fill the cutflow once per event
+		# Do we want to use this cut?
+		if self.do_fidvol_cut:
+			# Does this cut pass?
+			if self._fidvol_cut():
+				# Has the cutflow already been filled for this event?
+				if not self.passed_fidvol_cut:
+					self._fill_cutflow(7)
+					self.passed_fidvol_cut = True
+			# If this cut doesn't pass, don't continue to check other cuts
+			else:
+				return
+
+		if self.do_ntrk_cut:
+			if self._ntrk_cut():
+				if not self.passed_ntrk_cut:
+					self._fill_cutflow(8)
+					self.passed_ntrk_cut = True
+			else:
+				return
+
+		if self.do_CR: # protect against saving OS DV when youre not looking in the CR
+			self._fill_selected_dv_histos("2trk")
+			OS_sel = selections.ChargeDV(self.tree, sel="OS").passes()
+			SS_sel = selections.ChargeDV(self.tree, sel="SS").passes()
+			if OS_sel:
+				self._fill_selected_dv_histos("allOS") # save OS histograms 
+			elif SS_sel:
+				self._fill_selected_dv_histos("allSS") # save SS histograms 
+
+		if self.do_opposite_sign_cut or self.do_same_sign_cut:
+			
+			if self._charge_cut():
+				if not self.passed_charge_cut:
+					self._fill_cutflow(9)
+					self.passed_charge_cut = True
+			else:
+				return
+
+		if self.do_same_event_cut or self.do_different_event_cut:
+			
+			if self._be_event_type_cut():
+				if not self.passed_be_event_type_cut:
+					self._fill_cutflow(10)
+					self.passed_be_event_type_cut = True
+			else:
+				return
+
+		self._fill_selected_dv_histos(self.be_region) 
+
+		if self.do_dv_type_cut:
+			if self._dv_type_cut():
+				if not self.passed_dv_type_cut:
+					self._fill_cutflow(11)
+					self.passed_dv_type_cut = True
+			else:
+				return
+
+		self._fill_selected_dv_histos("DVtype")
+		
+		if self.do_mat_veto_cut:
+			if self._mat_veto_cut():
+				if not self.passed_mat_veto_cut:
+					self._fill_cutflow(12)
+					self.passed_mat_veto_cut = True
+			else:
+				return
+
+		self._fill_selected_dv_histos("mat_veto")
+
+		if self.do_cosmic_veto_cut:
+			if self._cosmic_veto_cut():
+				if not self.passed_cosmic_veto_cut:
+					self._fill_cutflow(13)
+					self.passed_cosmic_veto_cut = True
+			else:
+				return
+
+		self._fill_selected_dv_histos("cosmic")
+
+		if self.do_dv_mass_cut:
+			if self._dv_mass_cut():
+				if not self.passed_dv_mass_cut:
+					self._fill_cutflow(14)
+					self.passed_dv_mass_cut = True
+			else:
+				return
+		self._fill_selected_dv_histos("mDV")
+
+
+		if self.do_track_quality_cut:
+			if self._track_quality_cut():
+				if not self.passed_track_quality_cut:
+					self._fill_cutflow(15)
+					self.passed_track_quality_cut = True
+			else:
+				return
+
+		self._fill_selected_dv_histos("trkqual")
+
+
+		if self.do_trilepton_mass_cut:
+			if self._trilepton_mass_cut():
+				if not self.passed_trilepton_mass_cut:
+					self._fill_cutflow(16)
+					self.passed_trilepton_mass_cut = True
+			else:
+				return
+		# self._fill_selected_dv_histos("mlll")
+
+
+		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
+		self._fill_selected_dv_histos("sel")

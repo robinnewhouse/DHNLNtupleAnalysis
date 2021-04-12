@@ -42,13 +42,25 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
 	Sets the weight of events for this tree
-	:param mass: HNL sample mass
-	:param ctau: HNL sample lifetime
+	:param mass: HNL sample mass in GeV
+	:param ctau: HNL sample lifetime in mm
 	:param both_lnc_lnv: If true then lnc & lnv decays are possible so coupling is reduced by a factor 2.
 	:return: calculated weight.
 	"""
 	mass = tree.mass
 	ctau = tree.ctau
+	mc_campaign = tree.mc_campaign
+	channel = tree.channel
+
+	# define luminosity for the different mc campaigns
+	lumi = {}
+	lumi["mc16a"] = 36.20766  # mc16a (2015-2016) fb-1
+	lumi["mc16d"] = 44.30740 # mc16d (2017) fb-1
+	lumi["mc16e"] = 58.45010 # mc16e (2018) fb-1
+	lumi_tot = sum(lumi.values())
+	# by default mc campagin is set to 1; if you dont set your mc campaign, then scale using L= 1 fb^-1
+	lumi[None] = 1.0
+
 	if tree.is_data:  # you are running on data
 		weight = 1
 	else:  # you are running on MC file
@@ -57,12 +69,23 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 			weight = 1
 		else:
 			mW = 80.379  # mass of W boson in GeV
-			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+
+			#calculate Gronau coupling; parametrization depends on coupling flavour you are probing
+			if channel == "uuu" or channel == "uue":
+				U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+			if channel == "eee" or channel == "eeu":
+				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
+
+			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
+
 			xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-			weight = 1 * xsec / (tree.all_entries / 2)  # scale to 1 fb^-1  of luminosity, 
-														# scale all entries /2 becuase we are splitting events into 100% LNC & 100% LNV
+			# mass-lifetime weight = L * xsec / total num. of MC events
+			# split up Pythia sample into separate LNC and LNV branches
+			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
+			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)
+
 	return weight
 
 
@@ -92,6 +115,9 @@ class Truth():
 		self.mhnl = -1
 		self.dvmass = -1
 		self.HNL_pdgID = 50
+		self.gamma = 1
+		self.beta = 1
+		self.properLifetime = -1
 		
 	
 	def getTruthParticles(self, tree):
@@ -119,6 +145,10 @@ class Truth():
 					self.truth_dvx = tree['truthVtx_x'][ivx]
 					self.truth_dvy = tree['truthVtx_y'][ivx]
 					self.truth_dvz = tree['truthVtx_z'][ivx]
+					# mod by Christian for proper lifetime calculation
+					self.gamma = tree['truthVtx_parent_E'][ivx] / tree['truthVtx_parent_M'][ivx]
+					self.beta = np.sqrt(1 - 1 / self.gamma ** 2)
+
 					self.truth_dv = ROOT.TVector3( self.truth_dvx, self.truth_dvy, self.truth_dvz )
 					self.truth_dvr = np.sqrt(self.truth_dvx**2 + self.truth_dvy**2)
 					visTrkVec =  ROOT.TLorentzVector()
@@ -182,17 +212,14 @@ class Truth():
 			# get the primary vertex
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 24:  # PDGID 24: W Boson
 				if len(tree['truthVtx_outP_pdgId'][ivx]) == 2:  # Has two children (HNL and lepton)
-					# print tree['truthVtx_outP_pt'][ivx][0]
 					child_is_HNL_MG = (abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 9900012 or abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 9900012)
 					child_is_HNL_Pythia = (abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 50 or abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 50)
 					if child_is_HNL_MG or child_is_HNL_Pythia:
-						# TODO: Should we be checking if one of the children is an HNL?
 						self.truth_pvx = tree['truthVtx_x'][ivx]
 						self.truth_pvy = tree['truthVtx_y'][ivx]
 						self.truth_pvz = tree['truthVtx_z'][ivx]
 						self.truth_pv = ROOT.TVector3( self.truth_pvx, self.truth_pvy, self.truth_pvz )
 
-						# print tree['truthVtx_outP_pt'][ivx][0]
 						if (abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 13 or abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 11): plep_index = 0
 						if (abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 13 or abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 11): plep_index = 1
 						
@@ -211,35 +238,39 @@ class Truth():
 												)
 						self.W_charge = tree['truthVtx_parent_charge'][ivx]
 
-					
-		# TO DO: bug with truth mHNL calculation
-		# try:
-		# 	import selections
-		# 	if len(dMu) == 2: dv_type = "mumu"
-		# 	if len(dEl) == 2: dv_type = "ee"
-		# 	if len(dEl) == 1 and len(dMu) == 1: dv_type = "emu"
-		# 	Mhnl = selections.Mhnl(tree=tree, dv_type = dv_type, plep=self.plep_vec, dMu=dMu, dEl=dEl,use_truth=True,truth_pv=self.truth_pv,truth_dv=self.truth_dv)
-		# 	self.mhnl = Mhnl.alt_mhnl
-		# 	dv_vec = self.trkVec[0] + self.trkVec[1] 
-		# 	self.dvmass = dv_vec.M()
-		# except:
-		# 	pass
+			# calculate proper lifetime
+			dx = np.abs(self.truth_pvx - self.truth_dvx)
+			dy = np.abs(self.truth_pvy - self.truth_dvy)
+			dz = np.abs(self.truth_pvz - self.truth_dvz)
+			dr = np.sqrt(dx**2 + dy**2 + dz**2)
+			self.properLifetime = dr/(self.gamma * self.beta)
 
 
 
 
 class Tracks():
-	def __init__(self, tree):
+	def __init__(self, tree,fakeAOD = False ):
 		self.tree = tree
 		self.lepVec = []
 		truthlepCharge = []
 		self.lepIndex = []
 		self.lepCharge = []
 		self.lepisAssoc = []
+		self.muonType = []
 		self.eta = []
 		self.phi = []
 		self.pt = []
 		self.ntracks = -1
+		self.fakeAOD = fakeAOD
+		self.muon_isTight = []
+		self.muon_isLoose = []
+		self.muon_isMedium = []
+		self.el_isTight = []
+		self.el_isLoose = []
+		self.el_isveryLoose = []
+		self.el_isveryveryLoose = []
+		self.el_isveryveryLooseSi = []
+		self.el_isMedium = []
 
 	def getMuons(self):
 		self.ntracks = self.tree.ntrk
@@ -249,80 +280,93 @@ class Tracks():
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.tree['muon_index']) > 0:
+				# Default: use track quantities wrt SV
+				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
+				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
+				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+				M = self.tree.dv('trk_M')[itrk]
+
+				if len(self.tree['muon_index']) > 0 and self.fakeAOD == False:
 					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-
-					# use track quantities
-					pt = self.tree.dv('trk_pt_wrtSV')[itrk]
-					eta = self.tree.dv('trk_eta_wrtSV')[itrk]
-					phi = self.tree.dv('trk_phi_wrtSV')[itrk]
-					M = self.tree.dv('trk_M')[itrk]
-
+					self.lepIndex.append(muon_index)
 					# use calibrated muon quantities (not calculated wrt DV!)
 					# pt = self.tree['muon_pt'][muon_index]
 					# eta = self.tree['muon_eta'][muon_index]
 					# phi = self.tree['muon_phi'][muon_index]
 					# M = self.tree.dv('trk_M')[itrk]
-
-					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
-
-					self.pt.append(pt)
-					self.eta.append(eta)
-					self.phi.append(phi)
-
-					self.lepVec.append(lepVec)
-					self.lepIndex.append(muon_index)
-					self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
-					self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
-					
-
 				else:
-					continue
+					self.lepIndex.append(-1) 
+
+				if self.fakeAOD:
+					self.muonType.append(self.tree.dv('trk_muonType')[itrk]) # add muon type to the track class if running on fakeAODs
+					self.muon_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
+					self.muon_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
+					self.muon_isLoose.append(self.tree.dv('trk_isLoose')[itrk])
+				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
+
+				self.pt.append(pt)
+				self.eta.append(eta)
+				self.phi.append(phi)
+
+				self.lepVec.append(lepVec)
+				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
+				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
+			else:
+				continue
 
 	def getElectrons(self):
 		self.ntracks = self.tree.ntrk
 
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
-
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
+				# remove electrons that are also matched to muons!
+				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
+					if len(self.tree['muon_index']) > 0 and self.fakeAOD == False: # dont think we need this unless debugging overlapping muons -DT
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+						# print muon_index
+						# print "track is matched to both muon and electron!"
+					continue
+				
+				# Default: use track quantities wrt SV
+				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
+				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
+				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+				M = self.tree.dv('trk_M')[itrk]
+
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.tree['el_index']) > 0:
+				if len(self.tree['el_index']) > 0 and self.fakeAOD == False:
 					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
-
-					# remove electrons that are also matched to muons!
-					if self.tree.dv('trk_muonIndex')[itrk] >= 0:
-						if len(self.tree['muon_index']) > 0:
-							muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-							# print muon_index
-							# print "track is matched to both muon and electron!"
-							continue
-
-					# use track quantities
-					pt = self.tree.dv('trk_pt_wrtSV')[itrk]
-					eta = self.tree.dv('trk_eta_wrtSV')[itrk]
-					phi = self.tree.dv('trk_phi_wrtSV')[itrk]
-					M = self.tree.dv('trk_M')[itrk]
-
 					# use calibrated muon quantities (not calculated wrt DV!)
 					# pt = self.tree['el_pt'][el_index]
 					# eta = self.tree['el_eta'][el_index]
 					# phi = self.tree['el_phi'][el_index]
 					# M = self.tree.dv('trk_M')[itrk]
-
-					lepVec.SetPtEtaPhiM(pt, eta, phi, M)
-
-					self.pt.append(pt)
-					self.eta.append(eta)
-					self.phi.append(phi)
-
-					self.lepVec.append(lepVec)
 					self.lepIndex.append(el_index)
-					self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
-					self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
-				else:
-					continue
+				else: 
+					self.lepIndex.append(-1)
+
+				if self.fakeAOD:
+					self.el_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
+					self.el_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
+					self.el_isLoose.append(self.tree.dv('trk_isLoose')[itrk])
+					self.el_isveryLoose.append(self.tree.dv('trk_isVeryLoose')[itrk])
+					self.el_isveryveryLoose.append(self.tree.dv('trk_isVeryVeryLoose')[itrk])
+					self.el_isveryveryLooseSi.append(self.tree.dv('trk_isVeryVeryLooseSi')[itrk])
+
+				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
+
+				self.pt.append(pt)
+				self.eta.append(eta)
+				self.phi.append(phi)
+
+				self.lepVec.append(lepVec)
+				
+				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
+				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
+			else:
+				continue
 
 	def getTracks(self, idv=-1):
 		"""Fills the Track object with a collection of track vectors.
@@ -348,53 +392,63 @@ class Tracks():
 			self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 
 
+
+
 class FileInfo:
-	def __init__(self, infile, channel):
+	def __init__(self, infile, channel=""):
 		self.mass = -1  # signal mass of HNL in GeV
 		self.ctau = -1  # in mm
 
+		# read dsids from offical samples by splitting according to '.' in sample name
+		if len([int(s) for s in infile.split(".") if s.isdigit()]) != 0:
+			self.dsid = [int(s) for s in infile.split(".") if s.isdigit()][0]
+		else:
+			self.dsid = None
+		 
 		self.MC_campaign = None
 		self.ctau_str = ""
 		self.mass_str = ""
+		self.file_ch = mc_info(logger, self.dsid).ch_str
+		sig_info = mc_info(logger, self.dsid)
 
-		if "lt1dd" in infile or "1mm" in infile:
+		if "lt1dd" in infile or "1mm" in infile or sig_info.ctau_str == "lt1dd":
 			self.ctau = 1.0
 			self.ctau_str = "1mm"
-		elif "lt10dd" in infile or "10mm" in infile:
+		elif "lt10dd" in infile or "10mm" in infile or sig_info.ctau_str == "lt10dd":
 			self.ctau = 10.0
 			self.ctau_str = "10mm"
-		elif "lt100dd" in infile or "100mm" in infile:
+		elif "lt100dd" in infile or "100mm" in infile or sig_info.ctau_str == "lt100dd":
 			self.ctau = 100.0
 			self.ctau_str = "100mm"
 
-		if "3G" in infile:
+		if "_3G" in infile or sig_info.mass_str == "3G":
 			self.mass = 3.0
 			self.mass_str = "3G"
-		elif "4G" in infile:
+		elif "_4G" in infile or sig_info.mass_str == "4G":
 			self.mass = 4.0
 			self.mass_str = "4G"
-		elif "4p5G" in infile:
+		elif "_4p5G" in infile or sig_info.mass_str == "4p5G":
 			self.mass = 4.5
 			self.mass_str = "4p5G"
-		elif "_5G" in infile:
+		elif "_5G" in infile or sig_info.mass_str == "5G":
 			self.mass = 5.0
 			self.mass_str = "5G"
-		elif "7p5G" in infile:
+		elif "_7p5G" in infile or sig_info.mass_str == "7p5G":
 			self.mass = 7.5
 			self.mass_str = "7p5G"
-		elif "10G" in infile:
+		elif "_10G" in infile or sig_info.mass_str == "10G":
 			self.mass = 10.0
 			self.mass_str = "10G"
-		elif "12p5G" in infile:
+		elif "_12p5G" in infile or sig_info.mass_str == "12p5G":
 			self.mass = 12.5
 			self.mass_str = "12p5G"
-		elif "15G" in infile:
+		elif "_15G" in infile or sig_info.mass_str == "15G":
 			self.mass = 15.0
 			self.mass_str = "15G"
-		elif "17p5G" in infile:
+		elif "_17p5G" in infile or sig_info.mass_str == "17p5G":
 			self.mass = 17.5
 			self.mass_str = "17p5G"
-		elif "20G" in infile:
+		elif "_20G" in infile or sig_info.mass_str == "20G":
 			self.mass = 20.0
 			self.mass_str = "20G"
 
@@ -420,23 +474,187 @@ class FileInfo:
 		self.output_filename += "_" + channel + ".root"
 
 
+class mc_info:
+	def __init__(self,logger, dsid):
+		mc_info = {}
+		mc_info[311602] = [ "uuu", "3G", "lt1dd"]
+		mc_info[311603] = [ "uuu", "3G", "lt10dd"]
+		mc_info[311604] = [ "uuu", "3G", "lt100dd"]
+		mc_info[311605] = [ "uue", "3G", "lt1dd"]
+		mc_info[311606] = [ "uue", "3G", "lt10dd"]
+		mc_info[311607] = [ "uue", "3G", "lt100dd"]
+		mc_info[311608] = [ "uuu", "4G", "lt1dd"]
+		mc_info[311609] = [ "uuu", "4G", "lt10dd"]
+		mc_info[311610] = [ "uuu", "4G", "lt100dd"]
+		mc_info[311611] = [ "uue", "4G", "lt1dd"]
+		mc_info[311612] = [ "uue", "4G", "lt10dd"]
+		mc_info[311613] = [ "uue", "4G", "lt100dd"]
+		mc_info[311614] = [ "uuu", "4p5G", "lt1dd"]
+		mc_info[311615] = [ "uuu", "4p5G", "lt10dd"]
+		mc_info[311616] = [ "uuu", "4p5G", "lt100dd"]
+		mc_info[311617] = [ "uue", "4p5G", "lt1dd"]
+		mc_info[311618] = [ "uue", "4p5G", "lt10dd"]
+		mc_info[311619] = [ "uue", "4p5G", "lt100dd"]
+		mc_info[311620] = [ "uuu", "5G", "lt1dd"]
+		mc_info[311621] = [ "uuu", "5G", "lt10dd"]
+		mc_info[311622] = [ "uuu", "5G", "lt100dd"]
+		mc_info[311623] = [ "uue", "5G", "lt1dd"]
+		mc_info[311624] = [ "uue", "5G", "lt10dd"]
+		mc_info[311625] = [ "uue", "5G", "lt100dd"]
+		mc_info[311626] = [ "uuu", "7p5G", "lt1dd"]
+		mc_info[311627] = [ "uuu", "7p5G", "lt10dd"]
+		mc_info[311628] = [ "uuu", "7p5G", "lt100dd"]
+		mc_info[311629] = [ "uue", "7p5G", "lt1dd"]
+		mc_info[311630] = [ "uue", "7p5G", "lt10dd"]
+		mc_info[311631] = [ "uue", "7p5G", "lt100dd"]
+		mc_info[311632] = [ "uuu", "10G", "lt1dd"]
+		mc_info[311633] = [ "uuu", "10G", "lt10dd"]
+		mc_info[311634] = [ "uuu", "10G", "lt100dd"]
+		mc_info[311635] = [ "uue", "10G", "lt1dd"]
+		mc_info[311636] = [ "uue", "10G", "lt10dd"]
+		mc_info[311637] = [ "uue", "10G", "lt100dd"]
+		mc_info[311638] = [ "uuu", "12p5G", "lt1dd"]
+		mc_info[311639] = [ "uuu", "12p5G", "lt10dd"]
+		mc_info[311640] = [ "uuu", "12p5G", "lt100dd"]
+		mc_info[311641] = [ "uue", "12p5G", "lt1dd"]
+		mc_info[311642] = [ "uue", "12p5G", "lt10dd"]
+		mc_info[311643] = [ "uue", "12p5G", "lt100dd"]
+		mc_info[311644] = [ "uuu", "15G", "lt1dd"]
+		mc_info[311645] = [ "uuu", "15G", "lt10dd"]
+		mc_info[311646] = [ "uuu", "15G", "lt100dd"]
+		mc_info[311647] = [ "uue", "15G", "lt1dd"]
+		mc_info[311648] = [ "uue", "15G", "lt10dd"]
+		mc_info[311649] = [ "uue", "15G", "lt100dd"]
+		mc_info[311650] = [ "uuu", "17p5G", "lt1dd"]
+		mc_info[311651] = [ "uuu", "17p5G", "lt10dd"]
+		mc_info[311652] = [ "uuu", "17p5G", "lt100dd"]
+		mc_info[311653] = [ "uue", "17p5G", "lt1dd"]
+		mc_info[311654] = [ "uue", "17p5G", "lt10dd"]
+		mc_info[311655] = [ "uue", "17p5G", "lt100dd"]
+		mc_info[311656] = [ "uuu", "20G", "lt1dd"]
+		mc_info[311657] = [ "uuu", "20G", "lt10dd"]
+		mc_info[311658] = [ "uuu", "20G", "lt100dd"]
+		mc_info[311659] = [ "uue", "20G", "lt1dd"]
+		mc_info[311660] = [ "uue", "20G", "lt10dd"]
+		mc_info[311661] = [ "uue", "20G", "lt100dd"]
+		mc_info[312956] = ["eee", "3G", "lt1dd"]
+		mc_info[312957] = ["eee", "3G", "lt10dd"]
+		mc_info[312958] = ["eee", "3G", "lt100dd"]
+		mc_info[312959] = ["eeu", "3G", "lt1dd"]
+		mc_info[312960] = ["eeu", "3G", "lt10dd"]
+		mc_info[312961] = ["eeu", "3G", "lt100dd"]
+		mc_info[312962] = ["eee", "4G", "lt1dd"]
+		mc_info[312963] = ["eee", "4G", "lt10dd"]
+		mc_info[312964] = ["eee", "4G", "lt100dd"]
+		mc_info[312965] = ["eeu", "4G", "lt1dd"]
+		mc_info[312966] = ["eeu", "4G", "lt10dd"]
+		mc_info[312967] = ["eeu", "4G", "lt100dd"]
+		mc_info[312968] = ["eee", "4p5G", "lt1dd"]
+		mc_info[312969] = ["eee", "4p5G", "lt10dd"]
+		mc_info[312970] = ["eee", "4p5G", "lt100dd"]
+		mc_info[312971] = ["eeu", "4p5G", "lt1dd"]
+		mc_info[312972] = ["eeu", "4p5G", "lt10dd"]
+		mc_info[312973] = ["eeu", "4p5G", "lt100dd"]
+		mc_info[312974] = ["eee", "5G", "lt1dd"]
+		mc_info[312975] = ["eee", "5G", "lt10dd"]
+		mc_info[312976] = ["eee", "5G", "lt100dd"]
+		mc_info[312977] = ["eeu", "5G", "lt1dd"]
+		mc_info[312978] = ["eeu", "5G", "lt10dd"]
+		mc_info[312979] = ["eeu", "5G", "lt100dd"]
+		mc_info[312980] = ["eee", "7p5G", "lt1dd"]
+		mc_info[312981] = ["eee", "7p5G", "lt10dd"]
+		mc_info[312982] = ["eee", "7p5G", "lt100dd"]
+		mc_info[312983] = ["eeu", "7p5G", "lt1dd"]
+		mc_info[312984] = ["eeu", "7p5G", "lt10dd"]
+		mc_info[312985] = ["eeu", "7p5G", "lt100dd"]
+		mc_info[312986] = ["eee", "10G", "lt1dd"]
+		mc_info[312987] = ["eee", "10G", "lt10dd"]
+		mc_info[312988] = ["eee", "10G", "lt100dd"]
+		mc_info[312989] = ["eeu", "10G", "lt1dd"]
+		mc_info[312990] = ["eeu", "10G", "lt10dd"]
+		mc_info[312991] = ["eeu", "10G", "lt100dd"]
+		mc_info[312992] = ["eee", "12p5G", "lt1dd"]
+		mc_info[312993] = ["eee", "12p5G", "lt10dd"]
+		mc_info[312994] = ["eee", "12p5G", "lt100dd"]
+		mc_info[312995] = ["eeu", "12p5G", "lt1dd"]
+		mc_info[312996] = ["eeu", "12p5G", "lt10dd"]
+		mc_info[312997] = ["eeu", "12p5G", "lt100dd"]
+		mc_info[312998] = ["eee", "15G", "lt1dd"]
+		mc_info[312999] = ["eee", "15G", "lt10dd"]
+		mc_info[313000] = ["eee", "15G", "lt100dd"]
+		mc_info[313001] = ["eeu", "15G", "lt1dd"]
+		mc_info[313002] = ["eeu", "15G", "lt10dd"]
+		mc_info[313003] = ["eeu", "15G", "lt100dd"]
+		mc_info[313004] = ["eee", "17p5G", "lt1dd"]
+		mc_info[313005] = ["eee", "17p5G", "lt10dd"]
+		mc_info[313006] = ["eee", "17p5G", "lt100dd"]
+		mc_info[313007] = ["eeu", "17p5G", "lt1dd"]
+		mc_info[313008] = ["eeu", "17p5G", "lt10dd"]
+		mc_info[313009] = ["eeu", "17p5G", "lt100dd"]
+		mc_info[313010] = ["eee", "20G", "lt1dd"]
+		mc_info[313011] = ["eee", "20G", "lt10dd"]
+		mc_info[313012] = ["eee", "20G", "lt100dd"]
+		mc_info[313013] = ["eeu", "20G", "lt1dd"]
+		mc_info[313014] = ["eeu", "20G", "lt10dd"]
+		mc_info[313015] = ["eeu", "20G", "lt100dd"]
+
+		pmuon_dsid = (311602 <=  dsid) and  (dsid <= 311661)
+		pel_dsid = (312956 <= dsid) and  (dsid <= 313015)
+
+		if pmuon_dsid or pel_dsid:
+			self.mass_str = mc_info[dsid][1]
+			self.ctau_str = mc_info[dsid][2]
+			self.ch_str = mc_info[dsid][0]
+		else:
+			logger.warning("dsid {} is not registered. If running on HNL signal, please check your signal sample".format(dsid))
+			self.mass_str = None
+			self.ctau_str = None
+			self.ch_str = None
+
+			
+
+
+
 # Define trigger lists here
 # trigger lists taken from https://acode-browser1.usatlas.bnl.gov/lxr/source/athena/PhysicsAnalysis/SUSYPhys/LongLivedParticleDPDMaker/share/PhysDESDM_HNL.py?v=21.0#0008
 # seperated by year using comments from the above link and cross checking with this twiki: https://twiki.cern.ch/twiki/bin/view/Atlas/LowestUnprescaled
 
-# muon triggers 
+# Single muon triggers used in DHNL analysis
+SingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_imedium",
+						 "HLT_mu24_ivarmedium","HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly"]
+
+SingleMuonTriggerlist_2018 = ["HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly" ]
+
+SingleMuonTriggerlist_2017 = ["HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly" ]
+
+SingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", 
+								  "HLT_mu24_imedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly"]
+
+# Single electron triggers used in DHNL analysis
+SingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0",
+                                "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+
+SingleElectronTriggerlist_2018 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e60_lhmedium_nod0", 
+									 "HLT_e140_lhloose_nod0"]
+
+SingleElectronTriggerlist_2017 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+
+SingleElectronTriggerlist_2015_2016 = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", 
+									"HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+
+
+
+
+# full list of triggers from DHNL filter. Some high-threshold triggers removed from the list as they did not provide addtional signal efficiency
+# muons triggers
 apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_imedium","HLT_mu24_ivarmedium",
 							"HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50",
 							"HLT_mu60_0eta105_msonly"]
-
 apiSingleMuonTriggerlist_2018 = ["HLT_mu26_ivarmedium", "HLT_mu50", "HLT_mu60_0eta105_msonly" ]
-
 apiSingleMuonTriggerlist_2017 = ["HLT_mu26_ivarmedium", "HLT_mu50", "HLT_mu60_0eta105_msonly" ]
-
 apiSingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", 
 									       "HLT_mu24_imedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
-
-# electron triggers 
+#electron triggers
 apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0",
                                 "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium",
                                 "HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
@@ -577,3 +795,4 @@ def decode_list(in_list, encoding='utf8'):
 		else:
 			out_list.append(item)
 	return out_list
+

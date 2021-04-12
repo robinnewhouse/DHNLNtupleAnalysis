@@ -48,17 +48,27 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, debug_level, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc)
+		tree = trees.Tree(input_file, treename, entries, debug_level, channel=channel, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc,skip_events=options.skipEvents)
 
 		# create one output file per channel in your config file
-		if "SSdata" in options.config.split("config")[1]:
-			output_file = output_path + "histograms_SSdata_{}.root".format(channel)
+		if "SSbkg" in options.config.split("config")[1]:
+			output_file = output_path + "histograms_SSbkg_{}.root".format(channel)
 		else:
 			if "CR" in config_file[channel]["selections"]:
 				if tree.is_data:
 					output_file = output_path + "CR_histograms_data_{}.root".format(channel)
 				else:
 					output_file = output_path + "CR_" + file_info.output_filename
+			elif  "CR_BE" in config_file[channel]["selections"]:
+				if tree.is_data:
+					output_file = output_path + "CR_BE_histograms_data_{}.root".format(channel)
+				else:
+					output_file = output_path + "CR_BE" + file_info.output_filename
+			elif "BE" in config_file[channel]["selections"]:
+				if tree.is_data:
+					output_file = output_path + "BE_histograms_data_{}.root".format(channel)
+				else:
+					output_file = output_path + "CR_BE" + file_info.output_filename
 			else:
 				output_file = output_path + file_info.output_filename
 		if os.path.exists(output_file):
@@ -73,6 +83,7 @@ def main():
 		if entries is None or tree.numentries < entries:
 			entries = tree.numentries
 		# specify this to reduce number of entries loaded in each array
+		if options.skipEvents != None: entries = entries + options.skipEvents # if skipping events then entries needs to be updated
 		tree.max_entries = entries
 		logger.info('Going to process {}  events'.format(entries))
 
@@ -86,11 +97,15 @@ def main():
 			tree.vtx_container = vtx_container
 
 			# blinding flag to prevent accidental unblinding in data
-			if blinded and tree.is_data and "CR" not in selections:
+			do_CR = "CR" in selections or "CR_BE" in selections
+			if blinded and tree.is_data and not do_CR :
+				# if "CR_BE" in selections: 
+				# 	pass 
+				# else: 
 				if "OS" in selections or "SS" not in selections:
 					logger.error("You are running on data and you cannot look at OS vertices!!! "
-								 "Please include 'SS', not 'OS' in selections, "
-								 "or add 'CR' if you are trying to look in the control region.")
+								"Please include 'SS', not 'OS' in selections, "
+								"or add 'CR' if you are trying to look in the control region.")
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
@@ -220,6 +235,11 @@ if __name__ == "__main__":
 						dest="doTruthOnly",
 						default = False,
 						help='Only make truth histograms.')
+	parser.add_argument('--skipEvents',
+						dest="skipEvents",
+						default = None,
+						type = int,
+						help='Skip this number of events when processing inputfile.')
 	
 
 
