@@ -1025,6 +1025,22 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_redmass', self.tree.dv('mass')/dR)
 						self.fill_hist(sel, 'DV_redmassvis', Mlll.mlll/dR)
 						self.fill_hist(sel, 'DV_redmassHNL', Mhnl.mhnl/dR)
+
+				for el in xrange(len(elVec)):
+					el_plep_vec = elVec[el] + plep_vec
+					el_plep_same_charge = int(plepcharge) ==  int(electrons.lepCharge[el])
+					el_plep_diff_charge = not el_plep_same_charge
+					self.fill_hist(sel, 'mll_dEl_plep_OS', el_plep_diff_charge )
+					self.fill_hist(sel, 'mll_dEl_plep_SS', el_plep_same_charge )
+					self.fill_hist(sel, 'mll_dEl_plep', el_plep_vec.M() )
+
+				for mu in xrange(len(muVec)):
+					mu_plep_vec = muVec[mu] + plep_vec
+					mu_plep_same_charge = int(plepcharge) ==  int(muons.lepCharge[mu])
+					mu_plep_diff_charge = not mu_plep_same_charge
+					self.fill_hist(sel, 'mll_dMu_plep_OS', mu_plep_diff_charge )
+					self.fill_hist(sel, 'mll_dMu_plep_SS', mu_plep_same_charge )
+					self.fill_hist(sel, 'mll_dMu_plep', mu_plep_vec.M() )
 			
 			if self.do_prompt_track_cut: 
 				ptrk_vec = self.ptrk_sel.trkVec
@@ -1180,9 +1196,16 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_mom_perp', mom_perp_1)
 					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_1_mag)
 					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_1)
-
-
-
+			# fill standard track variables for electrons
+			for lep in xrange(len(elVec)):
+				self.fill_hist(sel, 'DV_el_trk_pt', elVec[lep].Pt() )
+				self.fill_hist(sel, 'DV_el_trk_eta', elVec[lep].Eta() )
+				self.fill_hist(sel, 'DV_el_trk_phi', elVec[lep].Phi() )
+			# fill standard track variables for muons
+			for lep in xrange(len(muVec)):
+				self.fill_hist(sel, 'DV_mu_trk_pt', muVec[lep].Pt() )
+				self.fill_hist(sel, 'DV_mu_trk_eta', muVec[lep].Eta() )
+				self.fill_hist(sel, 'DV_mu_trk_phi', muVec[lep].Phi() )
 			# fill standard track variable histograms
 			for i in xrange(tracks.ntracks):
 				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])
