@@ -94,6 +94,9 @@ binning_definitions = {
 	"""
 	'nmuon': (50, 0, 50),
 	'nel': (50, 0, 50),
+	'file_info_ctau': (101, -0.5, 100.5),
+	'file_info_lumi': (1410, -1.5, 140),
+	'file_info_mass': (201, -0.5, 200.5),
 	'muon_type': (6, -0.5, 5.5),
 	'muon_pt': (1000, 0, 1000),
 	'muon_eta': (40, -10, 10),

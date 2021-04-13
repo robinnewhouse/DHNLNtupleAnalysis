@@ -60,6 +60,11 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 	lumi_tot = sum(lumi.values())
 	# by default mc campagin is set to 1; if you dont set your mc campaign, then scale using L= 1 fb^-1
 	lumi[None] = 1.0
+	
+	# by default get luminsity for mc campaign you are running on
+	if tree.lumi == -1: lumi = lumi[mc_campaign]
+	# requrested to overwrite the default luminosity at run time, use lumi value in tree
+	else: lumi = tree.lumi
 
 	if tree.is_data:  # you are running on data
 		weight = 1
@@ -84,7 +89,7 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 			# mass-lifetime weight = L * xsec / total num. of MC events
 			# split up Pythia sample into separate LNC and LNV branches
 			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
-			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)
+			weight = lumi * xsec / (tree.all_entries / 2)
 
 	return weight
 
@@ -121,26 +126,8 @@ class Truth():
 		
 	
 	def getTruthParticles(self, tree):
-		# print "-----"
-		# print "ievt: ",  tree.ievt
-		# print len(tree['truthVtx_parent_pdgId'])
 		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
-			# get the DV!
-			# if abs(tree['truthVtx_parent_pdgId'][ivx]) == 443: # J/Psi truth vertex 
-			# 	Jpsi_dvx = tree['truthVtx_x'][ivx]
-			# 	Jpsi_dvy = tree['truthVtx_y'][ivx]
-			# 	Jpsi_dvz = tree['truthVtx_z'][ivx]
-			# 	Jpsi_dv = ROOT.TVector3( Jpsi_dvx, Jpsi_dvy, Jpsi_dvz )
-			# 	self.truth_dvr = np.sqrt(Jpsi_dvx**2 + Jpsi_dvy**2)
-				# print "rDV: ", Jpsi_dvr
-				# if len(tree['truthVtx_outP_pdgId'][ivx]) == 2:  # Has three children (two leptons and neutrino)
-				# 	print "Jpsi outP 1 pdgid: ", tree['truthVtx_outP_pdgId'][ivx][0]
-				# 	print "Jpsi outP 2 pdgid: ",tree['truthVtx_outP_pdgId'][ivx][1]
-
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50 or abs(tree['truthVtx_parent_pdgId'][ivx]) == 9900012:  # PDGID = (50 , 9900012) for Heavy Neutral Lepton in (pythia8, MG)
-				# print "parent pdgid: ", tree['truthVtx_parent_pdgId'][ivx]
-				# print "number of outP from vertex ", len(tree['truthVtx_outP_pdgId'][ivx])
-				# if len(tree['truthVtx_outP_pdgId'][ivx]) != 0: print tree['truthVtx_outP_pdgId'][ivx][0]
 				if len(tree['truthVtx_outP_pdgId'][ivx]) == 3:  # Has three children (two leptons and neutrino)
 					self.truth_dvx = tree['truthVtx_x'][ivx]
 					self.truth_dvy = tree['truthVtx_y'][ivx]
@@ -190,13 +177,14 @@ class Truth():
 												)
 							self.dNu_vec = nu_vec
 
+					# print "disp. leps: ",tree['truthVtx_outP_pdgId'][ivx][0], " ",	tree['truthVtx_outP_pdgId'][ivx][1], " ", tree['truthVtx_outP_pdgId'][ivx][2], " "	
 					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
 						dLepVec  =  ROOT.TLorentzVector()
 						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 												tree['truthVtx_outP_eta'][ivx][i],
 												tree['truthVtx_outP_phi'][ivx][i],
 												tree['truthVtx_outP_M'][ivx][i]
-												)
+												)				
 						self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
 						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
 						# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i]) 
@@ -223,11 +211,13 @@ class Truth():
 						if (abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 13 or abs(tree['truthVtx_outP_pdgId'][ivx][0]) == 11): plep_index = 0
 						if (abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 13 or abs(tree['truthVtx_outP_pdgId'][ivx][1]) == 11): plep_index = 1
 						
+						# print "prompt lep: ",tree['truthVtx_outP_pdgId'][ivx][plep_index]
 						self.plep_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][plep_index],
 												tree['truthVtx_outP_eta'][ivx][plep_index],
 												tree['truthVtx_outP_phi'][ivx][plep_index],
 												tree['truthVtx_outP_M'][ivx][plep_index]
 												)
+						# print self.plep_vec.Pt(), " ", self.plep_vec.Eta(), " ", self.plep_vec.Phi()
 						self.plep_charge = tree['truthVtx_outP_charge'][ivx][plep_index]
 
 

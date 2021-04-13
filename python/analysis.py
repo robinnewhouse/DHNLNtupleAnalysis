@@ -675,13 +675,16 @@ class Analysis(object):
 
 	def calculate_event_weight(self):
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
-		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
+		# if sample is: data or MG or not HNL signal, then MCEventType weight defaults to 1
+		if self.tree.isMG: wrong_lep_order = False
+		else: wrong_lep_order = True
+		self.MCEventType = selections.MCEventType(self.tree,wrong_lep_order=wrong_lep_order) 
 		# calculate mass lifetime weight 
 		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree,logger=self.logger, both_lnc_lnv=False) 
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
 		if self.weight_override == None: 
-			self.weight = self.mass_lt_weight #*self.MCEventType.weight  #dont use event type weight for now...	
+			self.weight = self.mass_lt_weight*self.MCEventType.weight
 		else: 
 			self.weight = self.weight_override
 		
@@ -846,6 +849,10 @@ class Analysis(object):
 		truth_info = helpers.Truth()
 		truth_info.getTruthParticles(self.tree)
 		
+		# save the info that was extracted from the file name
+		self.fill_hist(sel, 'file_info_mass', self.tree.mass)
+		self.fill_hist(sel, 'file_info_lumi', self.tree.lumi)
+		self.fill_hist(sel, 'file_info_ctau', self.tree.ctau)
 		self.fill_hist(sel, 'event_type_MCweight', self.MCEventType.weight)  #if not weight_override else weight_override
 		self.fill_hist(sel, 'M2_spin_corr_MCweight', self.MCEventType.M2_spin_corr)  #if not weight_override else weight_override
 		self.fill_hist(sel, 'M2_nocorr_MCweight', self.MCEventType.M2_nocorr)  #if not weight_override else weight_override
@@ -866,7 +873,7 @@ class Analysis(object):
 		self.fill_hist(sel, 'DV_x', truth_info.truth_dvx)
 		self.fill_hist(sel, 'DV_y', truth_info.truth_dvy)
 		self.fill_hist(sel, 'DV_z', truth_info.truth_dvz)
-
+		
 		self.fill_hist(sel, 'plep_pt', truth_info.plep_vec.Pt())
 		self.fill_hist(sel, 'plep_eta', truth_info.plep_vec.Eta())
 		self.fill_hist(sel, 'plep_phi', truth_info.plep_vec.Phi())

@@ -48,7 +48,7 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, debug_level, channel=channel, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc,skip_events=options.skipEvents)
+		tree = trees.Tree(input_file, treename, entries, debug_level, channel=channel, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc,skip_events=options.skipEvents, isMG= options.isMG, lumi=options.lumi )
 
 		# create one output file per channel in your config file
 		if "SSbkg" in options.config.split("config")[1]:
@@ -240,6 +240,16 @@ if __name__ == "__main__":
 						default = None,
 						type = int,
 						help='Skip this number of events when processing inputfile.')
+	parser.add_argument('--isMG',
+						action="store_true",
+						dest="isMG",
+						default = False,
+						help='Running on MG sample. Different weighting applied (e.g. no truth reweighting required).')
+	parser.add_argument('--lumi',
+						dest="lumi",
+						default = -1,
+						type = int,
+						help='total uminosity you want use in the weight. By default luminsoity is calculated based on mc campaign. If you want to overwrite this set lumi to some value.')
 	
 
 

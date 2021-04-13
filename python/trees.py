@@ -6,7 +6,7 @@ import logging
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, debug_level, channel, skip_events=None, mc_campaign=None, mass=1.0, ctau=1.0,notHNLmc=False):
+	def __init__(self, file_name, tree_name, max_entries, debug_level, channel, skip_events=None, mc_campaign=None, mass=1.0, ctau=1.0,notHNLmc=False, isMG=False, lumi=-1):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -44,6 +44,8 @@ class Tree:
 		self.vtx_container = ""
 		self.notHNLmc = notHNLmc
 		self.channel = channel
+		self.isMG = isMG
+		self.lumi = lumi
 		
 
 

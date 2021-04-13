@@ -1284,10 +1284,15 @@ class MCEventType:
 				self.p_2 = truth_info.dLepVec[0]
 				self.p_3 = truth_info.dLepVec[1]
 				self.p_4 = truth_info.dLepVec[2]
+			# else: 
+			# 	self.p_2 = truth_info.dLepVec[2]
+			# 	self.p_3 = truth_info.dLepVec[0]
+			# 	self.p_4 = truth_info.dLepVec[1]
 			else: 
-				self.p_2 = truth_info.dLepVec[2]
+				self.p_2 = truth_info.dLepVec[1]
 				self.p_3 = truth_info.dLepVec[0]
-				self.p_4 = truth_info.dLepVec[1]
+				self.p_4 = truth_info.dLepVec[2]
+			
 
 			if charge_1 != truth_info.dLepCharge[0]: 
 				self.isLNC = True
@@ -1326,20 +1331,22 @@ class MCEventType:
 			self.s24 = p24.Mag2()
 			self.s34 = p34.Mag2()
 			
-			# calculate the correct matrix that takes into account LNC or LNV decay
-			if self.isLNC: 
-				self.M2_spin_corr = M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
-			if self.isLNV: 
-				self.M2_spin_corr = M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
+			# if sample is not madgraph sample then apply truth reweighting
+			if not tree.isMG:
+				# calculate the correct matrix that takes into account LNC or LNV decay
+				if self.isLNC: 
+					self.M2_spin_corr = M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
+				if self.isLNV: 
+					self.M2_spin_corr = M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
 
-			if wrong_lep_order: 
-			# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
-			# For official samples, swap s24 -> s34 
-				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2,s24= self.s34) # wrong matrix used when generating pythia samples, includes lepton permutation
-			else: 
-				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24) # wrong matrix used when generating pythia samples, NO lepton permutation
+				if wrong_lep_order: 
+				# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
+				# For official samples, swap s24 -> s34 
+					self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2,s24= self.s34) # wrong matrix used when generating pythia samples, includes lepton permutation
+				else: 
+					self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24) # wrong matrix used when generating pythia samples, NO lepton permutation
 
-			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is becuase M2_nocorr as calculated includes LNC + LNV decays
+				self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is becuase M2_nocorr as calculated includes LNC + LNV decays
 
 		
 class TriggerMatching_prompt:
