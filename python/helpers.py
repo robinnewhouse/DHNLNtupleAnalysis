@@ -76,12 +76,17 @@ def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
 			if channel == "eee" or channel == "eeu":
 				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
 
+			if channel == "uue" or channel == "eeu":
+				br = 0.106
+			if channel == "uuu" or channel == "eee":
+				br = 0.060
+
 			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
 
-			xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-			# mass-lifetime weight = L * xsec / total num. of MC events
+			xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+			# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
 			# split up Pythia sample into separate LNC and LNV branches
 			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
 			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)
