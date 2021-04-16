@@ -198,6 +198,9 @@ class Analysis(object):
 		
 		if "CR_BE" in self.sel or "BE" in self.sel:
 			self.saveNtuples = self.be_region # saveNtuples selection
+		#looking at CR so we want to save both OS & SS DVs
+		elif "CR" in self.sel:
+			self.saveNtuples = "OSandSS"
 		else:
 			self.saveNtuples = saveNtuples
 
@@ -317,6 +320,10 @@ class Analysis(object):
 		# Will not fill variables from 2D histograms to prevent double-counting
 		# TODO Can we clean this up in some way?
 		save_sel = self.saveNtuples == selection or 'truth_'+self.saveNtuples == selection or self.saveNtuples == 'allcuts'
+		# Want to save both OS & SS DVs that pass DVtype selection for events in the CR to save the number of jobs we need to run -DT
+		if self.do_CR:
+			if selection == "OS_DVtype" or selection == "SS_DVtype":
+				save_sel = True
 		if fill_ntuple and variable_2 is None and save_sel:
 			# Note: selection and hist_name will be overridden by full_name
 			# Need selection to define ntuple tree
@@ -375,11 +382,6 @@ class Analysis(object):
 		self.fi.Close()
 
 	def end(self):
-		for hist in self.observables.histogram_dict.values(): 
-			hist.SetBinContent(hist.GetNbinsX(), hist.GetBinContent(hist.GetNbinsX()) + hist.GetBinContent(hist.GetNbinsX() + 1)) # merge overflow into last bin
-			hist.SetBinContent(1, hist.GetBinContent(1) + hist.GetBinContent(0)) # merge underflow into first bin
-
-
 		# make acceptance Histograms 
 		# TOD: it doesnt looks like on data the acceptance histograms are working as expected. -DT
 		if not self.tree.is_data and not self.tree.notHNLmc:
@@ -561,6 +563,8 @@ class Analysis(object):
 		self.passed_fidvol_cut = False
 		self.passed_ntrk_cut = False
 		self.passed_charge_cut = False
+		self.passed_OS_dv_type_cut = False
+		self.passed_SS_dv_type_cut = False
 		self.passed_dv_type_cut = False
 		self.passed_be_event_type_cut = False
 		self.passed_track_quality_cut = False
@@ -571,6 +575,8 @@ class Analysis(object):
 		self.passed_HNL_mass_cut = False
 		self.passed_HNL_pt_cut = False
 		self.count_trig_match_disp_event = False
+
+		self.selected_dv_index = -1
 
 
 	def preSelection(self):
@@ -968,8 +974,8 @@ class Analysis(object):
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
 
 		if self._locked < FILL_LOCKED and do_lock:
+
 			# these are the histograms you only want to fill ONCE per DV
-			# sel refers to the last selection that was applied
 
 			# fill event weight. storing this per dv as weights include dv scale factor.
 			self.fill_hist(sel, 'DV_weight', self.weight)
@@ -1389,13 +1395,15 @@ class run2Analysis(Analysis):
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
 
+		# We only want to save one DV per event: Choose first DV that passes "DV type" selection as "the DV for the event"
+		# If we have already selected our DV for this event, don't bother looking at the rest of the DVs!
+		if self.selected_dv_index != -1: return
+
 		# only do the DV selection if the preselction was passed for the event.
 		if not self.passed_preselection_cuts:
 			return
 
 		# There is an extra bit of logic here since we look at several DVs
-		# but only want to fill the cutflow once per event
-
 		# Do we want to use this cut?
 		if self.do_fidvol_cut:
 			# Does this cut pass?
@@ -1407,8 +1415,8 @@ class run2Analysis(Analysis):
 			# If this cut doesn't pass, don't continue to check other cuts
 			else:
 				return
-		if self.do_dv_type_cut and self.dv_type == "mumu":
 
+		if self.do_dv_type_cut and self.dv_type == "mumu":
 			if self._multitrk_2lep_cut(): # no return becuase this is not an analysis cut, only used for studying S & B, only worked for uuu samples -DT
 				self._fill_multitrk_histos()
 
@@ -1421,17 +1429,20 @@ class run2Analysis(Analysis):
 				return
 
 		if self.do_CR: # protect against saving OS DV when youre not looking in the CR
-			self._fill_selected_dv_histos("2trk")
 			OS_sel = selections.ChargeDV(self.tree, sel="OS").passes()
 			SS_sel = selections.ChargeDV(self.tree, sel="SS").passes()
 			if OS_sel:
-				self._fill_selected_dv_histos("OS") # save OS histograms 
-				if self._dv_type_cut(): 
-					self._fill_selected_dv_histos("OS_DVtype") # save lepton OS histograms 
+				if self._dv_type_cut():
+					if not self.passed_OS_dv_type_cut:
+						# save the first OS DV that passes DV type cut
+						self._fill_selected_dv_histos("OS_DVtype") 
+						self.passed_OS_dv_type_cut = True
 			elif SS_sel:
-				self._fill_selected_dv_histos("SS") # save SS histograms 
-				if self._dv_type_cut(): 
-					self._fill_selected_dv_histos("SS_DVtype") # save lepton SS histograms 
+				if self._dv_type_cut():
+					if not self.passed_SS_dv_type_cut:
+						# save the first SS DV that passes DV type cut
+						self._fill_selected_dv_histos("SS_DVtype") 
+						self.passed_SS_dv_type_cut = True
 
 		if self.do_opposite_sign_cut or self.do_same_sign_cut:
 			if self._charge_cut():
@@ -1446,70 +1457,54 @@ class run2Analysis(Analysis):
 				if not self.passed_dv_type_cut:
 					self._fill_cutflow(10)
 					self.passed_dv_type_cut = True
+					self._fill_selected_dv_histos("DVtype")
+					# Select this DV as the DV for the event!
+					self.selected_dv_index = self.tree.idv
 			else:
 				return
-	
-		self._fill_selected_dv_histos("DVtype")
-
-		# if self.do_mat_veto_cut:
-		# 	if self._mat_veto_cut():
-		# 		if not self.passed_mat_veto_cut:
-		# 			self._fill_cutflow(11)
-		# 			self.passed_mat_veto_cut = True
-		# 	else:
-		# 		return
-
-		# self._fill_selected_dv_histos("mat_veto")
 
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
 					self._fill_cutflow(11)
 					self.passed_cosmic_veto_cut = True
+					self._fill_selected_dv_histos("cosmic")
 			else:
 				return
-
-		self._fill_selected_dv_histos("cosmic")
 
 		if self.do_dv_mass_cut:
 			if self._dv_mass_cut():
 				if not self.passed_dv_mass_cut:
 					self._fill_cutflow(12)
 					self.passed_dv_mass_cut = True
+					self._fill_selected_dv_histos("mDV")
 			else:
 				return
-		self._fill_selected_dv_histos("mDV")
-
 		
 		if self.do_track_quality_cut:
 			if self._track_quality_cut():
 				if not self.passed_track_quality_cut:
 					self._fill_cutflow(13)
 					self.passed_track_quality_cut = True
+					self._fill_selected_dv_histos("trkqual")
 			else:
 				return
-
-		self._fill_selected_dv_histos("trkqual")
-
 
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
 					self._fill_cutflow(14)
 					self.passed_trilepton_mass_cut = True
+					self._fill_selected_dv_histos("sel")
 			else:
 				return
-		# self._fill_selected_dv_histos("mlll")
 		 
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data and not self.tree.notHNLmc:
 			if self._truth_match():
 				self._fill_cutflow(15)
-				# self.h['CutFlow'][self.ch].Fill(14)
 				self._fill_selected_dv_histos("match")
 
-		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
-		self._fill_selected_dv_histos("sel")
 
 
 
@@ -1740,7 +1735,12 @@ class BEAnalysis(Analysis):
 
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
-	
+
+		# We only want to save one DV per event: Choose first DV that passes "DV type" selection as "the DV for the event"
+		# If we have already selected our DV for this event, don't bother looking at the rest of the DVs!
+		if self.selected_dv_index != -1: return
+
+
 		# There is an extra bit of logic here since we look at several DVs
 		# but only want to fill the cutflow once per event
 		# Do we want to use this cut?
@@ -1764,25 +1764,22 @@ class BEAnalysis(Analysis):
 				return
 
 		if self.do_CR: # protect against saving OS DV when youre not looking in the CR
-			self._fill_selected_dv_histos("2trk")
 			OS_sel = selections.ChargeDV(self.tree, sel="OS").passes()
 			SS_sel = selections.ChargeDV(self.tree, sel="SS").passes()
 			if OS_sel:
-				self._fill_selected_dv_histos("allOS") # save OS histograms 
+				if self._dv_type_cut():
+					if not self.passed_OS_dv_type_cut:
+						# save the first OS DV that passes DV type cut
+						self._fill_selected_dv_histos("OS_DVtype") 
+						self.passed_OS_dv_type_cut = True
 			elif SS_sel:
-				self._fill_selected_dv_histos("allSS") # save SS histograms 
-
-		if self.do_opposite_sign_cut or self.do_same_sign_cut:
-			
-			if self._charge_cut():
-				if not self.passed_charge_cut:
-					self._fill_cutflow(9)
-					self.passed_charge_cut = True
-			else:
-				return
+				if self._dv_type_cut():
+					if not self.passed_SS_dv_type_cut:
+						# save the first SS DV that passes DV type cut
+						self._fill_selected_dv_histos("SS_DVtype") 
+						self.passed_SS_dv_type_cut = True
 
 		if self.do_same_event_cut or self.do_different_event_cut:
-			
 			if self._be_event_type_cut():
 				if not self.passed_be_event_type_cut:
 					self._fill_cutflow(10)
@@ -1790,58 +1787,44 @@ class BEAnalysis(Analysis):
 			else:
 				return
 
-		self._fill_selected_dv_histos(self.be_region) 
-
 		if self.do_dv_type_cut:
 			if self._dv_type_cut():
 				if not self.passed_dv_type_cut:
 					self._fill_cutflow(11)
 					self.passed_dv_type_cut = True
+					#save the first DV that passes the DVtype selection
+					self._fill_selected_dv_histos("DVtype")
+					# Select this DV as the DV for the event!
+					self.selected_dv_index = self.tree.idv
 			else:
 				return
-
-		self._fill_selected_dv_histos("DVtype")
-		
-		if self.do_mat_veto_cut:
-			if self._mat_veto_cut():
-				if not self.passed_mat_veto_cut:
-					self._fill_cutflow(12)
-					self.passed_mat_veto_cut = True
-			else:
-				return
-
-		self._fill_selected_dv_histos("mat_veto")
 
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
 					self._fill_cutflow(13)
 					self.passed_cosmic_veto_cut = True
+					self._fill_selected_dv_histos("cosmic")
 			else:
 				return
-
-		self._fill_selected_dv_histos("cosmic")
 
 		if self.do_dv_mass_cut:
 			if self._dv_mass_cut():
 				if not self.passed_dv_mass_cut:
 					self._fill_cutflow(14)
 					self.passed_dv_mass_cut = True
+					self._fill_selected_dv_histos("mDV")
 			else:
 				return
-		self._fill_selected_dv_histos("mDV")
-
 
 		if self.do_track_quality_cut:
 			if self._track_quality_cut():
 				if not self.passed_track_quality_cut:
 					self._fill_cutflow(15)
 					self.passed_track_quality_cut = True
+					self._fill_selected_dv_histos("trkqual")
 			else:
 				return
-
-		self._fill_selected_dv_histos("trkqual")
-
 
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
