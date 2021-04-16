@@ -1,0 +1,10 @@
+{
+
+"OS_ee":{
+            "vtx_containers" :  ["VSI_LeptonsMod"],
+            "selections":["CR", "nDV", "fidvol","2track","OS", "ee","2-veryveryloose","cosmicveto","DVmass" ]
+
+         }
+
+
+}

@@ -1,0 +1,9 @@
+{
+
+"OS_uu":{
+            "vtx_containers" :  ["VSI_LeptonsMod"],
+            "selections":["CR", "nDV", "fidvol","2track","OS","mumu","2-medium","cosmicveto","DVmass"]
+         }
+
+
+}
