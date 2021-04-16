@@ -312,10 +312,6 @@ class Analysis(object):
 		# Will not fill variables from 2D histograms to prevent double-counting
 		# TODO Can we clean this up in some way?
 		save_sel = self.saveNtuples == selection or 'truth_'+self.saveNtuples == selection or self.saveNtuples == 'allcuts'
-		# Want to save both OS & SS DVs that pass DVtype selection for events in the CR to save the number of jobs we need to run -DT
-		if self.do_CR:
-			if selection == "OS_DVtype" or selection == "SS_DVtype":
-				save_sel = True
 		if fill_ntuple and variable_2 is None and save_sel:
 			# Note: selection and hist_name will be overridden by full_name
 			# Need selection to define ntuple tree
@@ -1420,22 +1416,6 @@ class run2Analysis(Analysis):
 			else:
 				return
 
-		if self.do_CR: # protect against saving OS DV when youre not looking in the CR
-			OS_sel = selections.ChargeDV(self.tree, sel="OS").passes()
-			SS_sel = selections.ChargeDV(self.tree, sel="SS").passes()
-			if OS_sel:
-				if self._dv_type_cut():
-					if not self.passed_OS_dv_type_cut:
-						# save the first OS DV that passes DV type cut
-						self._fill_selected_dv_histos("OS_DVtype") 
-						self.passed_OS_dv_type_cut = True
-			elif SS_sel:
-				if self._dv_type_cut():
-					if not self.passed_SS_dv_type_cut:
-						# save the first SS DV that passes DV type cut
-						self._fill_selected_dv_histos("SS_DVtype") 
-						self.passed_SS_dv_type_cut = True
-
 		if self.do_opposite_sign_cut or self.do_same_sign_cut:
 			if self._charge_cut():
 				if not self.passed_charge_cut:
@@ -1587,22 +1567,13 @@ class BEAnalysis(Analysis):
 					self.passed_ntrk_cut = True
 			else:
 				return
-
-		if self.do_CR: # protect against saving OS DV when youre not looking in the CR
-			OS_sel = selections.ChargeDV(self.tree, sel="OS").passes()
-			SS_sel = selections.ChargeDV(self.tree, sel="SS").passes()
-			if OS_sel:
-				if self._dv_type_cut():
-					if not self.passed_OS_dv_type_cut:
-						# save the first OS DV that passes DV type cut
-						self._fill_selected_dv_histos("OS_DVtype") 
-						self.passed_OS_dv_type_cut = True
-			elif SS_sel:
-				if self._dv_type_cut():
-					if not self.passed_SS_dv_type_cut:
-						# save the first SS DV that passes DV type cut
-						self._fill_selected_dv_histos("SS_DVtype") 
-						self.passed_SS_dv_type_cut = True
+		if self.do_opposite_sign_cut or self.do_same_sign_cut:
+			if self._charge_cut():
+				if not self.passed_charge_cut:
+					self._fill_cutflow(9)
+					self.passed_charge_cut = True
+			else:
+				return
 
 		if self.do_same_event_cut or self.do_different_event_cut:
 			if self._be_event_type_cut():
