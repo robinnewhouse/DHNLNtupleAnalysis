@@ -1,8 +1,8 @@
 {
    
-    "RegionB":{
+    "RegionDprime_uu":{
                 "vtx_containers" : [ "VSI_LeptonsMod","VSI_Leptons"],
-                "selections":["BE", "fidvol","nDV","2track","SS","SE", "mumu"]
+                "selections":["CR_BE", "fidvol","nDV","2track","SS","DE", "mumu"]
     
              }
     
