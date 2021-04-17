@@ -223,6 +223,7 @@ class PromptLepton():
 	def __init__(self, tree, lepton="any", quality="tight", min_dR=0.05):
 		self.plepVec = ROOT.TLorentzVector(0,0,0,0)
 		self.plepcharge = 0
+		self.plep_isTight = False
 		self.plepd0 = -2000
 		self.plepz0 = -2000
 		self.nPlep = 0
@@ -260,6 +261,7 @@ class PromptLepton():
 		self.highestpt_lep_d0 = -2000
 		self.highestpt_lep_z0 = -2000
 		self.highestpt_lep_Index = -1
+		self.highestpt_lep_isTight = False
 
 		for ilep in range(nleps): 
 			overlap = False
@@ -293,6 +295,9 @@ class PromptLepton():
 			# changed to be careful with negative electron quality values # RN
 			passes_lep_quality = lepquality == "" or tree[lepquality][ilep] > 0
 			
+			if lepton == "electron": plep_isTight = tree["el_LHTight"][ilep] > 0
+			if lepton == "muon": plep_isTight = tree["muon_isTight"][ilep] > 0
+
 			#apply filter cut seperately do not need to addtionally require our lepton passes the prompt filter cuts -DT
 			# if passPfilter[ilep] and passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
 			if passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
@@ -325,6 +330,7 @@ class PromptLepton():
 						self.highestpt_lep_charge = charge
 						self.highestpt_lep_z0sintheta = lepz0sintheta
 						self.highestpt_lep_Index = ilep
+						self.highestpt_lep_isTight = plep_isTight
 
 	def passes(self):
 		# check if you found a prompt lepton
@@ -334,6 +340,7 @@ class PromptLepton():
 			self.plepz0 = self.highestpt_lep_z0
 			self.plepcharge = self.highestpt_lep_charge
 			self.plep_Index = self.highestpt_lep_Index
+			self.plep_isTight = self.highestpt_lep_isTight
 			return True
 		else: 
 			return False

@@ -49,13 +49,18 @@ def get_mass_lt_weight(tree, both_lnc_lnv=False):
 	:param both_lnc_lnv: If true then lnc & lnv decays are possible so coupling is reduced by a factor 2.
 	:return: calculated weight.
 	"""
-	mass = tree.mass
-	ctau = tree.ctau
+	mass = tree.mass # GeV
+	ctau = tree.ctau # mm
 	mc_campaign = tree.mc_campaign
+	channel = tree.channel
+
+	# define luminosity for the different mc campaigns
 	lumi = {"mc16a": 36.20766,
 					"mc16d": 44.30740,
-					"mc16e": 58.45010}
+					"mc16e": 58.45010,}
 	lumi_tot = sum(lumi.values())
+	# by default mc campagin is set to 1; if you dont set your mc campaign, then scale using L= 1 fb^-1
+	lumi[None] = 1.0
 
 	if tree.is_data:  # you are running on data
 		weight = 1
@@ -65,12 +70,28 @@ def get_mass_lt_weight(tree, both_lnc_lnv=False):
 			weight = 1
 		else:
 			mW = 80.379  # mass of W boson in GeV
-			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+
+			#calculate Gronau coupling; parametrization depends on coupling flavour you are probing
+			if channel == "uuu" or channel == "uue":
+				U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+			if channel == "eee" or channel == "eeu":
+				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
+
+			if channel == "uue" or channel == "eeu":
+				br = 0.106
+			if channel == "uuu" or channel == "eee":
+				br = 0.060
+
+			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
-			xsec = 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)  # scale to 1 fb^-1 * % of fraction of total lumi in givent mc campaign,
-														# scale all entries /2 becuase we are splitting events into 100% LNC & 100% LNV
+
+			xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+			# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
+			# split up Pythia sample into separate LNC and LNV branches
+			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
+			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)
+
 	return weight
 
 
@@ -226,7 +247,12 @@ class Truth():
 class Tracks():
 	def __init__(self, tree ):
 		self.tree = tree
+		# track vector with trk wrtSV quantities
 		self.lepVec = []
+		# track vector with standard trk quantities (usual tracking def.)
+		self.std_lepVec = []
+		# track vector with lepton calibrated trk quantities
+		self.lepmatched_lepVec = []
 		truthlepCharge = []
 		self.lepIndex = []
 		self.lepCharge = []
@@ -251,6 +277,8 @@ class Tracks():
 		# print "number of tracks: ", self.ntracks
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
+			std_lepVec = ROOT.TLorentzVector()
+			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
@@ -258,16 +286,22 @@ class Tracks():
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
 				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+				# get standard track qualtities
+				std_pt = self.tree.dv('trk_pt')[itrk]
+				std_eta = self.tree.dv('trk_eta')[itrk]
+				std_phi = self.tree.dv('trk_phi')[itrk]
 				M = self.tree.dv('trk_M')[itrk]
+				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
+				std_lepVec.SetPtEtaPhiM(std_pt, std_eta, std_phi, M)
 
 				if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
 					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 					self.lepIndex.append(muon_index)
-					# use calibrated muon quantities (not calculated wrt DV!)
-					# pt = self.tree['muon_pt'][muon_index]
-					# eta = self.tree['muon_eta'][muon_index]
-					# phi = self.tree['muon_phi'][muon_index]
-					# M = self.tree.dv('trk_M')[itrk]
+					# get calibrated muon quantities (not calculated wrt DV!)
+					lep_pt = self.tree['muon_pt'][muon_index]
+					lep_eta = self.tree['muon_eta'][muon_index]
+					lep_phi = self.tree['muon_phi'][muon_index]
+					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 				else:
 					self.lepIndex.append(-1)
 
@@ -276,13 +310,15 @@ class Tracks():
 					self.muon_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
 					self.muon_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
 					self.muon_isLoose.append(self.tree.dv('trk_isLoose')[itrk])
-				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 
 				self.pt.append(pt)
 				self.eta.append(eta)
 				self.phi.append(phi)
 
 				self.lepVec.append(lepVec)
+				self.lepmatched_lepVec.append(lepmatched_lepVec)
+				self.std_lepVec.append(std_lepVec)
+
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 			else:
@@ -293,6 +329,8 @@ class Tracks():
 
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
+			std_lepVec = ROOT.TLorentzVector()
+			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
 				# remove electrons that are also matched to muons!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
@@ -306,17 +344,24 @@ class Tracks():
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
 				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+				# get standard track qualtities
+				std_pt = self.tree.dv('trk_pt')[itrk]
+				std_eta = self.tree.dv('trk_eta')[itrk]
+				std_phi = self.tree.dv('trk_phi')[itrk]
 				M = self.tree.dv('trk_M')[itrk]
+				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
+				std_lepVec.SetPtEtaPhiM(std_pt, std_eta, std_phi, M)
 
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
 				if len(self.tree['el_index']) > 0 and self.tree.fake_aod == False:
 					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
 					# use calibrated muon quantities (not calculated wrt DV!)
-					# pt = self.tree['el_pt'][el_index]
-					# eta = self.tree['el_eta'][el_index]
-					# phi = self.tree['el_phi'][el_index]
-					# M = self.tree.dv('trk_M')[itrk]
+					lep_pt = self.tree['el_pt'][el_index]
+					lep_eta = self.tree['el_eta'][el_index]
+					lep_phi = self.tree['el_phi'][el_index]
+					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
+
 					self.lepIndex.append(el_index)
 				else:
 					self.lepIndex.append(-1)
@@ -329,13 +374,13 @@ class Tracks():
 					self.el_isveryveryLoose.append(self.tree.dv('trk_isVeryVeryLoose')[itrk])
 					self.el_isveryveryLooseSi.append(self.tree.dv('trk_isVeryVeryLooseSi')[itrk])
 
-				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
-
 				self.pt.append(pt)
 				self.eta.append(eta)
 				self.phi.append(phi)
 
 				self.lepVec.append(lepVec)
+				self.lepmatched_lepVec.append(lepmatched_lepVec)
+				self.std_lepVec.append(std_lepVec)
 
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
@@ -372,7 +417,10 @@ class FileInfo:
 	def __init__(self, infile, channel=""):
 		self.mass = -1  # signal mass of HNL in GeV
 		self.ctau = -1  # in mm
-		self.dsid = [int(s) for s in infile.split(".") if s.isdigit()][0]
+		self.dsid = None
+		# read dsids from offical samples by splitting according to '.' in sample name
+		if len([int(s) for s in infile.split(".") if s.isdigit()]) != 0:
+			self.dsid = [int(s) for s in infile.split(".") if s.isdigit()][0]
 
 		self.MC_campaign = None
 		self.ctau_str = ""

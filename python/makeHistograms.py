@@ -56,7 +56,7 @@ def main():
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
 		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass,
-											ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents)
+											channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents)
 
 		# create one output file per channel in your config file
 		if "SSbkg" in options.config.split("config")[1]:
@@ -125,27 +125,23 @@ def main():
 
 			# Loop over each event
 			while tree.ievt < entries:
-				try:
-					if tree.ievt % 1000 == 0:
-						logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
-					# Create an event instance to keep track of basic event properties
-					# evt = helpers.Event(tree=tree, ievt=tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
+				if tree.ievt % 1000 == 0:
+					logger.info("Channel {}_{}: processing event {} / {}".format(channel, vtx_container, tree.ievt, entries))
+				# Create an event instance to keep track of basic event properties
+				# evt = helpers.Event(tree=tree, ievt=tree.ievt, mass=file_info.mass, ctau=file_info.ctau)
 
-					# Run preselection cuts to avoid processing unnecessary events
-					presel = ana.preSelection()
+				# Run preselection cuts to avoid processing unnecessary events
+				presel = ana.preSelection()
 
-					# Loop over each vertex in the event
-					while tree.idv < tree.ndv:
-						ana.DVSelection()
-						tree.increment_dv()
+				# Loop over each vertex in the event
+				while tree.idv < tree.ndv:
+					# DVevt = helpers.Event(tree=tree, ievt=tree.ievt, idv=idv, mass=file_info.mass, ctau=file_info.ctau)
+					ana.DVSelection()
+					tree.increment_dv()
 
-					tree.reset_dv()
-					tree.increment_event()
-					ana.unlock()
-				except TypeError as e:
-					print("Failed on event", tree.ievt)
-					print(e)
-					raise e
+				tree.reset_dv()
+				tree.increment_event()
+				ana.unlock()
 
 			# Call functions to finalize analysis
 			tree.reset_event()

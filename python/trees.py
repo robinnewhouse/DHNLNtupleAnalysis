@@ -6,8 +6,8 @@ import logging
 
 
 class Tree:
-	def __init__(self, file_name, tree_name, max_entries, skip_events=None, mc_campaign=None, mass=1.0, ctau=1.0,
-							 not_hnl_mc=False, fake_aod=False):
+	def __init__(self, file_name, tree_name, max_entries, channel, skip_events=None, mc_campaign=None,
+							 mass=1.0, ctau=1.0, not_hnl_mc=False, fake_aod=False):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -27,7 +27,7 @@ class Tree:
 		"""
 		# Set class attributes
 		self.logger = helpers.getLogger('dHNLAnalysis.trees', level=helpers.logger_debug_level)
-		if skip_events != None:
+		if skip_events is not None:
 			self.ievt = skip_events
 		else:
 			self.ievt = 0
@@ -47,8 +47,7 @@ class Tree:
 		self.vtx_container = ""
 		self.not_hnl_mc = not_hnl_mc
 		self.fake_aod = fake_aod
-
-
+		self.channel = channel
 
 	def increment_event(self):
 		self.ievt += 1
