@@ -14,7 +14,7 @@ blinded = True  # Dont dont change this flag! This ensures you do not accidental
 
 
 def main():
-	start = time.perf_counter()
+	start = time.clock()
 	#set debug level
 	helpers.logger_debug_level = helpers.get_debug_level(options.debug_level)
 	# set up own logger
@@ -151,7 +151,7 @@ def main():
 			# Recommended not to use unless necessary and unless a minimal number of histograms are written. # RN
 			# analysisCode["%s_%s"%(channel,vtx_container)] = ana
 	logger.info("The end.")
-	logger.info("Time elapsed: {}".format(time.perf_counter()-start))
+	logger.info("Time elapsed: {}".format(time.clock()-start))
 
 
 if __name__ == "__main__":
