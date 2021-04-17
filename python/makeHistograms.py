@@ -27,7 +27,7 @@ def main():
 		# load JSON config file that contains a channel name mapped to a list of selections
 		config_file = json.load(json_config)
 
-	output_path = os.path.join(os.path.abspath(options.output), '')
+	output_path = os.path.join(os.path.abspath("../output/"+ options.output), '')
 	if options.output_file:
 		output_path = os.path.join(os.path.dirname(options.output_file), '')  # override
 		if len(config_file.items()) > 1:
