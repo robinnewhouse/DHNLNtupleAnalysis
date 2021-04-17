@@ -16,7 +16,7 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples ,weight_override=None):
+	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples, weight_override=None):
 		# set up logger for self
 		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=helpers.logger_debug_level)
 		# set up logger for helper module
@@ -681,7 +681,7 @@ class Analysis(object):
 		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree, both_lnc_lnv=False)
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
 		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
-		if self.weight_override == None:
+		if self.weight_override is None:
 			self.weight = self.mass_lt_weight*self.MCEventType.weight 
 		else: 
 			self.weight = self.weight_override
@@ -1341,7 +1341,7 @@ class Analysis(object):
 
 class run2Analysis(Analysis):
 	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
-		
+
 		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
 
@@ -1509,14 +1509,14 @@ class run2Analysis(Analysis):
 
 
 class BEAnalysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override=None):
+	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
 
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, debug_level,weight_override)
+		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
 		self.logger.info('Running Background Estimate Analysis Cuts')
 
 		# Define cutflow histogram "by hand"
 		self.cutflow_dir = self.ch + '/CutFlow/'
-		self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 17, -0.5, 16.5)
+		self.observables.histogram_dict[self.cutflow_dir + 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 17, -0.5, 16.5)
 		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
 		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
@@ -1531,7 +1531,7 @@ class BEAnalysis(Analysis):
 		if self.do_filter_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
-			self.CutFlow.GetXaxis().SetBinLabel(5, "{} prompt {}".format(self.plep_quality,self.plep))
+			self.CutFlow.GetXaxis().SetBinLabel(5, "{} prompt {}".format(self.plep_quality, self.plep))
 			self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
 		if self.do_invert_prompt_lepton_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(6, "invert prompt lepton")
@@ -1575,7 +1575,6 @@ class BEAnalysis(Analysis):
 		# If we have already selected our DV for this event, don't bother looking at the rest of the DVs!
 		if self.selected_dv_index != -1: return
 
-
 		# There is an extra bit of logic here since we look at several DVs
 		# but only want to fill the cutflow once per event
 		# Do we want to use this cut?
@@ -1618,7 +1617,7 @@ class BEAnalysis(Analysis):
 				if not self.passed_dv_type_cut:
 					self._fill_cutflow(11)
 					self.passed_dv_type_cut = True
-					#save the first DV that passes the DVtype selection
+					# save the first DV that passes the DVtype selection
 					self._fill_selected_dv_histos("DVtype")
 					# Select this DV as the DV for the event!
 					self.selected_dv_index = self.tree.idv
@@ -1661,10 +1660,8 @@ class BEAnalysis(Analysis):
 				return
 		# self._fill_selected_dv_histos("mlll")
 
-
 		# Fill all the histograms with only selected DVs. (ie. the ones that pass the full selection)
 		self._fill_selected_dv_histos("sel")
-
 
 
 class KShort(Analysis):
