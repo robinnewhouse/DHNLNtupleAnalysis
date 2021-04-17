@@ -5,12 +5,7 @@ import helpers
 import logging
 
 #make a global logger variable for all selection classes
-logger = helpers.getLogger('dHNLAnalysis.selections', level=logging.WARNING)
-
-def set_debug_level(level): 
-	#update debug level to match debug level set at run time
-	logger = helpers.getLogger('dHNLAnalysis.selections', level=level)
-
+logger = helpers.getLogger('dHNLAnalysis.selections', level=logging.INFO)
 
 class Trigger():
 	def __init__(self, tree, trigger, invert=False):
@@ -449,25 +444,24 @@ class ChargeDV():
 
 
 class DVtype():
-	def __init__(self, tree, dv_type, decaymode="leptonic",fakeAOD = False):
+	def __init__(self, tree, dv_type, decaymode="leptonic"):
 		self.tree = tree
 		self.decaymode = decaymode
 		self.dv_type = dv_type
 		self.lepton_charge = []
 		self.dEl_Index = []
 		self.dMu_Index = []
-		self.fakeAOD = fakeAOD
 
 		if self.decaymode == "leptonic":
 			self.ntracks = self.tree.ntrk
 			self.nel = -1
 			self.nmu = -1
 
-			self.muons = helpers.Tracks(self.tree, self.fakeAOD)
+			self.muons = helpers.Tracks(self.tree)
 			self.muons.getMuons()
 			self.nmu = len(self.muons.lepVec)
 
-			self.electrons = helpers.Tracks(self.tree, self.fakeAOD)
+			self.electrons = helpers.Tracks(self.tree)
 			self.electrons.getElectrons()
 			self.nel = len(self.electrons.lepVec)
 
@@ -476,7 +470,7 @@ class DVtype():
 
 		if self.dv_type == "emu": 
 			if self.nel == 1 and self.nmu == 1: 
-				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
+				if self.tree.fake_aod:  # skip muon type cut for now with fakeAOD
 					# return True
 					mu1_type = self.muons.muonType[0]
 				else:
@@ -496,7 +490,7 @@ class DVtype():
 		elif self.dv_type == "mumu":
 
 			if self.nmu == 2: 
-				if self.fakeAOD:  # skip muon type cut for now with fakeAOD
+				if self.tree.fake_aod:  # skip muon type cut for now with fakeAOD
 					# return True
 					mu1_type = self.muons.muonType[0]
 					mu2_type = self.muons.muonType[1]
@@ -546,8 +540,9 @@ class DVtype():
 
 
 class Trackqual():
-	def __init__(self, tree, decaymode="leptonic", quality="2-tight",fakeAOD=False):
+	def __init__(self, tree, decaymode="leptonic", quality="2-tight"):
 
+		self.tree = tree
 		self.decaymode = decaymode
 		self.quality = quality 
 		# self.DV_2tight = False
@@ -569,10 +564,10 @@ class Trackqual():
 
 
 		if self.decaymode == "leptonic": 
-			muons = helpers.Tracks(tree,fakeAOD=fakeAOD)
+			muons = helpers.Tracks(self.tree)
 			muons.getMuons()
 
-			electrons = helpers.Tracks(tree,fakeAOD=fakeAOD)
+			electrons = helpers.Tracks(self.tree)
 			electrons.getElectrons()
 
 			self.nmu_tight = 0
@@ -589,15 +584,15 @@ class Trackqual():
 			self.ndvel = len(electrons.lepVec)
 		
 			for imu in range(self.ndvmu):
-				if fakeAOD: # get quality infomation from info decorated on tracks
+				if self.tree.fake_aod: # get quality infomation from info decorated on tracks
 					muisTight = muons.muon_isTight[imu]
 					muisMedium = muons.muon_isMedium[imu]
 					muisLoose = muons.muon_isLoose[imu]
 				else: # get quality infomation from matching muons
 					muindex = muons.lepIndex[imu]
-					muisTight = tree['muon_isTight'][muindex]
-					muisMedium = tree['muon_isMedium'][muindex]
-					muisLoose = tree['muon_isLoose'][muindex]
+					muisTight = self.tree['muon_isTight'][muindex]
+					muisMedium = self.tree['muon_isMedium'][muindex]
+					muisLoose = self.tree['muon_isLoose'][muindex]
 				# check if Tight == 1 to incase safeFill was used and isTight == -1 (which is also not Tight!) -DT
 				if muisTight == 1:
 					self.nmu_tight = self.nmu_tight + 1
@@ -607,7 +602,7 @@ class Trackqual():
 					self.nmu_loose = self.nmu_loose + 1
 
 			for iel in range(self.ndvel):
-				if fakeAOD: # get quality infomation from info decorated on tracks
+				if self.tree.fake_aod: # get quality infomation from info decorated on tracks
 					elisTight = electrons.el_isTight[iel]
 					elisMedium = electrons.el_isMedium[iel]
 					elisLoose = electrons.el_isLoose[iel]
@@ -616,12 +611,12 @@ class Trackqual():
 					elisVeryVeryLooseSi= electrons.el_isveryveryLooseSi[iel]
 				else: # get quality infomation from matching electrons
 					elindex = electrons.lepIndex[iel]
-					elisTight = tree['el_LHTight'][elindex]
-					elisMedium = tree['el_LHMedium'][elindex]
-					elisLoose = tree['el_LHLoose'][elindex]
-					elisVeryLoose = tree['el_isLHVeryLoose'][elindex]
-					elisVeryVeryLoose = tree['el_isLHVeryLoose_mod1'][elindex]
-					elisVeryVeryLooseSi = tree['el_isLHVeryLoose_modSi'][elindex]
+					elisTight = self.tree['el_LHTight'][elindex]
+					elisMedium = self.tree['el_LHMedium'][elindex]
+					elisLoose = self.tree['el_LHLoose'][elindex]
+					elisVeryLoose = self.tree['el_isLHVeryLoose'][elindex]
+					elisVeryVeryLoose = self.tree['el_isLHVeryLoose_mod1'][elindex]
+					elisVeryVeryLooseSi = self.tree['el_isLHVeryLoose_modSi'][elindex]
 
 				if elisTight == 1:
 					self.nel_tight = self.nel_tight + 1
@@ -1274,7 +1269,7 @@ class MCEventType:
 		def M2_nocorr(MN, pW2, s24):
 		    return ( s24*(MN**2-s24)*(MN**2+2*MW**2)*(pW2-MN**2) ) / ( 6*MW**6 )
 
-		if not tree.is_data and not tree.notHNLmc:
+		if not tree.is_data and not tree.not_hnl_mc:
 			truth_info = helpers.Truth()
 			truth_info.getTruthParticles(tree)
 			pW2 = truth_info.W_vec.Mag2()
@@ -1325,40 +1320,36 @@ class MCEventType:
 			# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
 			# For official samples, swap s24 -> s34 
 				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2,s24= self.s34) # wrong matrix used when generating pythia samples, includes lepton permutation
-			else: 
+			else:
 				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24) # wrong matrix used when generating pythia samples, NO lepton permutation
 
 			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is becuase M2_nocorr as calculated includes LNC + LNV decays
 
-		
+
 class TriggerMatching_prompt:
 	def __init__(self, tree,plep,pelp_Index):
 		self.plep_isTrigMatched = False
-		if plep == "muon": 
+		if plep == "muon":
 			lep_matched = tree["muon_isTrigMatched"]
-		if plep == "electron": 
+		if plep == "electron":
 			lep_matched = tree["el_isTrigMatched"]
-		if lep_matched[pelp_Index] == 1: 
+		if lep_matched[pelp_Index] == 1:
 			self.plep_isTrigMatched = True
 
 
 class TriggerMatching_disp:
 	def __init__(self, tree,dv_type,dMu_Index,dEl_Index):
 		self.dlep_isTrigMatched = False
-		if dv_type == "emu": 
+		if dv_type == "emu":
 			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]]== 1 or tree["el_isTrigMatched"][dEl_Index[0]]== 1
-		if dv_type == "ee": 
+		if dv_type == "ee":
 			self.dlep_isTrigMatched = tree["el_isTrigMatched"][dEl_Index[0]]==1 or tree["el_isTrigMatched"][dEl_Index[1]]==1
-		if dv_type == "mumu": 
+		if dv_type == "mumu":
 			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]]== 1 or tree["muon_isTrigMatched"][dMu_Index[1]]== 1
-				
 
-
-		
 
 class SumTrack:
 	def __init__(self, tree):
-
 		self.sum_track_pt = 0
 		n_tracks = tree.ntrk
 		self.sum_track_pt_wrt_pv = 0
@@ -1369,7 +1360,11 @@ class SumTrack:
 			self.sum_track_pt_wrt_pv += tree.dv('trk_pt')[k]
 			self.sum_track_charge += tree.dv('trk_charge')[k]
 
-
-
-
-
+# class VertexingUncertainty:
+# 	def __init__(self, tree):
+# 		self.tree = tree
+#
+# 		self.tree.dv('r')
+# 		self.tree.dv('pt')
+#
+# 		self.uncertainty_value = helpers.get_vertexing_uncertainty(self.tree.dv('r'), self.tree.dv('pt'))

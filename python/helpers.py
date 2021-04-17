@@ -19,44 +19,45 @@ def getLogger(name = None, level = logging.INFO):
         logging.basicConfig(format = msgfmt, datefmt = datefmt)
         logger.setLevel(level)
     return logger
+# get a logger for own module
 logger = getLogger('dHNLAnalysis.helpers')
+logger_debug_level = logging.INFO # default
 
-def set_debug_level(level):
-	import logging 
-	# supported levels are: CRITICAL, ERROR, WARNING, INFO, DEBUG 
-	if level == "INFO": 
+def get_debug_level(level):
+	import logging
+	# supported levels are: CRITICAL, ERROR, WARNING, INFO, DEBUG
+	debug_level = None
+	if level == "INFO":
 		debug_level = logging.INFO
-	elif level == "DEBUG": 
+	elif level == "DEBUG":
 		debug_level = logging.DEBUG
-	elif level == "CRITICAL": 
+	elif level == "CRITICAL":
 		debug_level = logging.CRITICAL
-	elif level == "WARNING": 
+	elif level == "WARNING":
 		debug_level = logging.WARNING
-	elif level == "ERROR": 
+	elif level == "ERROR":
 		debug_level = logging.ERROR
 	return debug_level
 
 
-def get_mass_lt_weight(tree,logger, both_lnc_lnv=False):
+def get_mass_lt_weight(tree, both_lnc_lnv=False):
 	"""
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
 	Sets the weight of events for this tree
-	:param mass: HNL sample mass in GeV
-	:param ctau: HNL sample lifetime in mm
+	:param tree: Tree object with mass and lifetime info
 	:param both_lnc_lnv: If true then lnc & lnv decays are possible so coupling is reduced by a factor 2.
 	:return: calculated weight.
 	"""
-	mass = tree.mass
-	ctau = tree.ctau
+	mass = tree.mass # GeV
+	ctau = tree.ctau # mm
 	mc_campaign = tree.mc_campaign
 	channel = tree.channel
 
 	# define luminosity for the different mc campaigns
-	lumi = {}
-	lumi["mc16a"] = 36.20766  # mc16a (2015-2016) fb-1
-	lumi["mc16d"] = 44.30740 # mc16d (2017) fb-1
-	lumi["mc16e"] = 58.45010 # mc16e (2018) fb-1
+	lumi = {"mc16a": 36.20766,
+					"mc16d": 44.30740,
+					"mc16e": 58.45010,}
 	lumi_tot = sum(lumi.values())
 	# by default mc campagin is set to 1; if you dont set your mc campaign, then scale using L= 1 fb^-1
 	lumi[None] = 1.0
@@ -116,14 +117,14 @@ class Truth():
 		self.W_vec = ROOT.TLorentzVector()
 		self.W_charge =  -2
 		self.plep_vec = ROOT.TLorentzVector()
-		self.plep_charge = -99 
+		self.plep_charge = -99
 		self.mhnl = -1
 		self.dvmass = -1
 		self.HNL_pdgID = 50
 		self.gamma = 1
 		self.beta = 1
 		self.properLifetime = -1
-		
+
 
 	def getTruthParticles(self, tree):
 		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
@@ -144,22 +145,22 @@ class Truth():
 					truthVec  =  ROOT.TLorentzVector()
 					nu_vec =  ROOT.TLorentzVector()
 
-					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
-						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i]) 
-						if trk_pdgId == 13: 
+					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
+						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i])
+						if trk_pdgId == 13:
 							TrkVec  =  ROOT.TLorentzVector()
 							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 												tree['truthVtx_outP_eta'][ivx][i],
 												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i] 
+												tree['truthVtx_outP_M'][ivx][i]
 												)
 							self.dMu.append(TrkVec)
-						if trk_pdgId == 11: 
+						if trk_pdgId == 11:
 							TrkVec  =  ROOT.TLorentzVector()
 							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 												tree['truthVtx_outP_eta'][ivx][i],
 												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i] 
+												tree['truthVtx_outP_M'][ivx][i]
 												)
 							self.dEl.append(TrkVec)
 
@@ -168,7 +169,7 @@ class Truth():
 							visTrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 												tree['truthVtx_outP_eta'][ivx][i],
 												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i] 
+												tree['truthVtx_outP_M'][ivx][i]
 												)
 							self.trkVec.append(visTrkVec) #only add visible leptons to trkVec list
 						else: # remaining child is the neutrino
@@ -179,7 +180,7 @@ class Truth():
 												)
 							self.dNu_vec = nu_vec
 
-					for i in xrange(len(tree['truthVtx_outP_pt'][ivx])):
+					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
 						dLepVec  =  ROOT.TLorentzVector()
 						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 												tree['truthVtx_outP_eta'][ivx][i],
@@ -188,9 +189,9 @@ class Truth():
 												)
 						self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
 						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
-						# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i]) 
+						# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i])
 						self.dTrk_d0.append(-1) # fill with -1 for now, default DHNLalg does not have truth d0
-					
+
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
 											tree['truthVtx_parent_eta'][ivx],
 											tree['truthVtx_parent_phi'][ivx],
@@ -219,7 +220,7 @@ class Truth():
 											tree['truthVtx_parent_M'][ivx]
 											)
 					self.W_charge = tree['truthVtx_parent_charge'][ivx]
-					
+
 			# calculate proper lifetime
 			dx = np.abs(self.truth_pvx - self.truth_dvx)
 			dy = np.abs(self.truth_pvy - self.truth_dvy)
@@ -235,7 +236,7 @@ class Truth():
 		# 	if len(dEl) == 1 and len(dMu) == 1: dv_type = "emu"
 		# 	Mhnl = selections.Mhnl(tree=tree, dv_type = dv_type, plep=self.plep_vec, dMu=dMu, dEl=dEl,use_truth=True,truth_pv=self.truth_pv,truth_dv=self.truth_dv)
 		# 	self.mhnl = Mhnl.alt_mhnl
-		# 	dv_vec = self.trkVec[0] + self.trkVec[1] 
+		# 	dv_vec = self.trkVec[0] + self.trkVec[1]
 		# 	self.dvmass = dv_vec.M()
 		# except:
 		# 	pass
@@ -244,13 +245,13 @@ class Truth():
 
 
 class Tracks():
-	def __init__(self, tree,fakeAOD = False ):
+	def __init__(self, tree ):
 		self.tree = tree
-		# track vector with trk wrtSV quantities 
+		# track vector with trk wrtSV quantities
 		self.lepVec = []
 		# track vector with standard trk quantities (usual tracking def.)
 		self.std_lepVec = []
-		# track vector with lepton calibrated trk quantities 
+		# track vector with lepton calibrated trk quantities
 		self.lepmatched_lepVec = []
 		truthlepCharge = []
 		self.lepIndex = []
@@ -261,7 +262,6 @@ class Tracks():
 		self.phi = []
 		self.pt = []
 		self.ntracks = -1
-		self.fakeAOD = fakeAOD
 		self.muon_isTight = []
 		self.muon_isLoose = []
 		self.muon_isMedium = []
@@ -286,7 +286,7 @@ class Tracks():
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
 				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
-				# get standard track qualtities 
+				# get standard track qualtities
 				std_pt = self.tree.dv('trk_pt')[itrk]
 				std_eta = self.tree.dv('trk_eta')[itrk]
 				std_phi = self.tree.dv('trk_phi')[itrk]
@@ -294,7 +294,7 @@ class Tracks():
 				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 				std_lepVec.SetPtEtaPhiM(std_pt, std_eta, std_phi, M)
 
-				if len(self.tree['muon_index']) > 0 and self.fakeAOD == False:
+				if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
 					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 					self.lepIndex.append(muon_index)
 					# get calibrated muon quantities (not calculated wrt DV!)
@@ -303,14 +303,14 @@ class Tracks():
 					lep_phi = self.tree['muon_phi'][muon_index]
 					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 				else:
-					self.lepIndex.append(-1) 
+					self.lepIndex.append(-1)
 
-				if self.fakeAOD:
+				if self.tree.fake_aod:
 					self.muonType.append(self.tree.dv('trk_muonType')[itrk]) # add muon type to the track class if running on fakeAODs
 					self.muon_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
 					self.muon_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
 					self.muon_isLoose.append(self.tree.dv('trk_isLoose')[itrk])
-				
+
 				self.pt.append(pt)
 				self.eta.append(eta)
 				self.phi.append(phi)
@@ -334,17 +334,17 @@ class Tracks():
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
 				# remove electrons that are also matched to muons!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
-					if len(self.tree['muon_index']) > 0 and self.fakeAOD == False: # dont think we need this unless debugging overlapping muons -DT
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 						# print muon_index
 						# print "track is matched to both muon and electron!"
 					continue
-				
+
 				# Default: use track quantities wrt SV
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
 				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
-				# get standard track qualtities 
+				# get standard track qualtities
 				std_pt = self.tree.dv('trk_pt')[itrk]
 				std_eta = self.tree.dv('trk_eta')[itrk]
 				std_phi = self.tree.dv('trk_phi')[itrk]
@@ -354,7 +354,7 @@ class Tracks():
 
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.tree['el_index']) > 0 and self.fakeAOD == False:
+				if len(self.tree['el_index']) > 0 and self.tree.fake_aod == False:
 					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
 					# use calibrated muon quantities (not calculated wrt DV!)
 					lep_pt = self.tree['el_pt'][el_index]
@@ -363,10 +363,10 @@ class Tracks():
 					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 
 					self.lepIndex.append(el_index)
-				else: 
+				else:
 					self.lepIndex.append(-1)
 
-				if self.fakeAOD:
+				if self.tree.fake_aod:
 					self.el_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
 					self.el_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
 					self.el_isLoose.append(self.tree.dv('trk_isLoose')[itrk])
@@ -381,7 +381,7 @@ class Tracks():
 				self.lepVec.append(lepVec)
 				self.lepmatched_lepVec.append(lepmatched_lepVec)
 				self.std_lepVec.append(std_lepVec)
-				
+
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 			else:
@@ -417,18 +417,16 @@ class FileInfo:
 	def __init__(self, infile, channel=""):
 		self.mass = -1  # signal mass of HNL in GeV
 		self.ctau = -1  # in mm
-
+		self.dsid = None
 		# read dsids from offical samples by splitting according to '.' in sample name
 		if len([int(s) for s in infile.split(".") if s.isdigit()]) != 0:
 			self.dsid = [int(s) for s in infile.split(".") if s.isdigit()][0]
-		else:
-			self.dsid = None
-		 
+
 		self.MC_campaign = None
 		self.ctau_str = ""
 		self.mass_str = ""
-		self.file_ch = mc_info(logger, self.dsid).ch_str
-		sig_info = mc_info(logger, self.dsid)
+		self.file_ch = mc_info(self.dsid).ch_str
+		sig_info = mc_info(self.dsid)
 
 		if "lt1dd" in infile or "1mm" in infile or sig_info.ctau_str == "lt1dd":
 			self.ctau = 1.0
@@ -471,10 +469,10 @@ class FileInfo:
 			self.mass = 20.0
 			self.mass_str = "20G"
 
-		# two rtags for different reconstruction of our signal samples 
+		# two rtags for different reconstruction of our signal samples
 		# r11915,r11916,r11891 are the latest ones
 		# r10740,r10740,r10740 are the original ones
-		
+
 		if "r11915" in infile or "mc16a" in infile or "r10740" in infile:
 			self.MC_campaign = "mc16a"
 		if "r11916" in infile or "mc16d" in infile or "r10739" in infile:
@@ -494,7 +492,7 @@ class FileInfo:
 
 
 class mc_info:
-	def __init__(self,logger, dsid):
+	def __init__(self, dsid):
 		mc_info = {}
 		mc_info[311602] = [ "uuu", "3G", "lt1dd"]
 		mc_info[311603] = [ "uuu", "3G", "lt10dd"]
@@ -630,7 +628,7 @@ class mc_info:
 			self.ctau_str = None
 			self.ch_str = None
 
-			
+
 
 
 
@@ -646,19 +644,19 @@ SingleMuonTriggerlist_2018 = ["HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly" ]
 
 SingleMuonTriggerlist_2017 = ["HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly" ]
 
-SingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", 
+SingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium",
 								  "HLT_mu24_imedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly"]
 
 # Single electron triggers used in DHNL analysis
 SingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0",
                                 "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
 
-SingleElectronTriggerlist_2018 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e60_lhmedium_nod0", 
+SingleElectronTriggerlist_2018 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e60_lhmedium_nod0",
 									 "HLT_e140_lhloose_nod0"]
 
 SingleElectronTriggerlist_2017 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
 
-SingleElectronTriggerlist_2015_2016 = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", 
+SingleElectronTriggerlist_2015_2016 = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose",
 									"HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
 
 
@@ -671,19 +669,19 @@ apiSingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu
 							"HLT_mu60_0eta105_msonly"]
 apiSingleMuonTriggerlist_2018 = ["HLT_mu26_ivarmedium", "HLT_mu50", "HLT_mu60_0eta105_msonly" ]
 apiSingleMuonTriggerlist_2017 = ["HLT_mu26_ivarmedium", "HLT_mu50", "HLT_mu60_0eta105_msonly" ]
-apiSingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium", 
+apiSingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium",
 									       "HLT_mu24_imedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu40", "HLT_mu50", "HLT_mu60_0eta105_msonly"]
 #electron triggers
 apiSingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0",
                                 "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e60_lhmedium",
                                 "HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
 
-apiSingleElectronTriggerlist_2018 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e60_lhmedium_nod0", 
+apiSingleElectronTriggerlist_2018 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e60_lhmedium_nod0",
 									 "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
 
 apiSingleElectronTriggerlist_2017 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
 
-apiSingleElectronTriggerlist_2015_2016 = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", 
+apiSingleElectronTriggerlist_2015_2016 = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0",
 										  "HLT_e60_lhmedium", "HLT_e60_medium", "HLT_e120_lhloose", "HLT_e140_lhloose_nod0", "HLT_e300_etcut"]
 
 
@@ -815,3 +813,62 @@ def decode_list(in_list, encoding='utf8'):
 			out_list.append(item)
 	return out_list
 
+
+def mom_perp(pvec, decay_vector):
+	mom_perp_vec = pvec.Cross(decay_vector)
+	if mom_perp_vec.Theta() < np.pi / 2.0:
+		return mom_perp_vec.Mag() / decay_vector.Mag()
+	elif mom_perp_vec.Theta() > np.pi / 2.0:
+		return -1 * mom_perp_vec.Mag() / decay_vector.Mag()
+	else:
+		return -1
+
+
+def mom_parall(pvec, decay_vector):
+	return pvec.Dot(decay_vector) / decay_vector.Mag()
+
+
+def mom_frac_parall(pvec, decay_vector):
+	if pvec.Mag() == 0.0:  # protect against div by 0...
+		return -1
+	else:
+		return mom_parall(pvec, decay_vector) / pvec.Mag()
+
+# make vertexing systematics map
+# messy to have this on its own in a module, but so be it
+def get_vertexing_syst_map():
+	"""build the lookup table to be used for vertexing + tracking systematic uncertainty"""
+	dvr_bins = [0, 24, 44, 64, 84, 104, 124, 144, 164, 184, 204, 224, 244, 264, 284, 300]
+	pt_bins = [0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 35]
+	syst_map = np.ones(shape=(len(pt_bins), len(dvr_bins)))
+	# base value: (vtx syst + trk syst) in quadrature
+	syst_map *= (1 - np.sqrt(.12 ** 2 + .04 ** 2))
+	# set the bins that only use the tracking systematic
+	syst_map[:, 0:2] = 1 - .04
+	syst_map[np.digitize(25, pt_bins, right=True):, 2:3] = 1 - .04
+	return syst_map
+
+
+vertexing_syst_map = get_vertexing_syst_map()
+
+
+def get_vertexing_uncertainty(r, pt):
+	"""retrieve the calculated vertexing + tracking uncertainty using numpy's digitize"""
+	dvr_bins = [0, 24, 44, 64, 84, 104, 124, 144, 164, 184, 204, 224, 244, 264, 284, 300]
+	pt_bins = [0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 35]
+	return vertexing_syst_map[
+		max(np.digitize(pt, pt_bins) - 1, 0),
+		max(np.digitize(r, dvr_bins) - 1, 0)]
+
+
+def plot_vertexing_uncertainty():
+	"""a utility for plotting the vertexing uncertainty if you want to see it"""
+	import matplotlib.pyplot as plt
+	dvr_bins = [0, 24, 44, 64, 84, 104, 124, 144, 164, 184, 204, 224, 244, 264, 284, 300]
+	pt_bins = [0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 35]
+	plt.figure(figsize=[10, 7])
+	plt.pcolormesh(dvr_bins, pt_bins, vertexing_syst_map)
+	plt.colorbar()
+	plt.xlabel('DV Radius [mm]')
+	plt.ylabel('DV pT [GeV]')
+	plt.title('vertexing systematics map')

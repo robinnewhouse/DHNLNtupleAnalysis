@@ -15,20 +15,28 @@ blinded = True  # Dont dont change this flag! This ensures you do not accidental
 
 def main():
 	start = time.clock()
-	#set debug level 
-	debug_level = helpers.set_debug_level(options.debug_level)
-	logger = helpers.getLogger('dHNLAnalysis.makeHistograms',level=debug_level)
+	#set debug level
+	helpers.logger_debug_level = helpers.get_debug_level(options.debug_level)
+	# set up own logger
+	logger = helpers.getLogger('dHNLAnalysis.makeHistograms', level=helpers.logger_debug_level)
+	# set up logger for helper module
+	helpers.logger.setLevel(helpers.logger_debug_level)
 	logger.info("-> Calling main")
-
-	output_path = os.path.join(os.path.abspath("../output/"+ options.output), '')
-	if not os.path.exists(output_path):
-		logger.info('Making output directory')
-		os.mkdir(output_path)
 
 	with open(options.config, 'r') as json_config:
 		# load JSON config file that contains a channel name mapped to a list of selections
 		config_file = json.load(json_config)
 
+	output_path = os.path.join(os.path.abspath(options.output), '')
+	if options.output_file:
+		output_path = os.path.join(os.path.dirname(options.output_file), '')  # override
+		if len(config_file.items()) > 1:
+			logger.error("Writing multiple channels to one file. This will overwrite previous channels. Please reconsider.")
+			exit(1)
+
+	if not os.path.exists(output_path):
+		logger.info('Making output directory')
+		os.makedirs(output_path, exist_ok=True)
 	analysisCode = {}
 	# Define that we're using a specific type of analysis
 	anaClass = getattr(analysis, options.analysis)
@@ -37,7 +45,6 @@ def main():
 	logger.info("Running event selection on: {}".format(input_file))
 	treename = "outTree"  # define tree name
 	
-
 
 	# loop over all the channels in the config file
 	for channel, configs in config_file.items():
@@ -48,7 +55,8 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, debug_level, channel=channel, mc_campaign=file_info.MC_campaign, mass=file_info.mass, ctau=file_info.ctau,notHNLmc=options.notHNLmc,skip_events=options.skipEvents)
+		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass,
+											channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents)
 
 		# create one output file per channel in your config file
 		if "SSbkg" in options.config.split("config")[1]:
@@ -71,6 +79,10 @@ def main():
 					output_file = output_path + "CR_BE" + file_info.output_filename
 			else:
 				output_file = output_path + file_info.output_filename
+
+		# override if available
+		if options.output_file:output_file = os.path.abspath(options.output_file)
+
 		if os.path.exists(output_file):
 			if not options.force:
 				logger.error("Output {} file already exists. Either re-run with -f/--force OR choose a different output path.".format(output_file))
@@ -83,7 +95,7 @@ def main():
 		if entries is None or tree.numentries < entries:
 			entries = tree.numentries
 		# specify this to reduce number of entries loaded in each array
-		if options.skipEvents != None: entries = entries + options.skipEvents # if skipping events then entries needs to be updated
+		if options.skipEvents is not None: entries = entries + options.skipEvents  # if skipping events then entries needs to be updated
 		tree.max_entries = entries
 		logger.info('Going to process {}  events'.format(entries))
 
@@ -109,7 +121,7 @@ def main():
 					sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
-			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file,options.saveNtuples, debug_level,weight_override=options.weight)
+			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file, options.saveNtuples, weight_override=options.weight)
 
 			# Loop over each event
 			while tree.ievt < entries:
@@ -139,7 +151,7 @@ def main():
 			# Recommended not to use unless necessary and unless a minimal number of histograms are written. # RN
 			# analysisCode["%s_%s"%(channel,vtx_container)] = ana
 	logger.info("The end.")
-	logger.info("Time elapsed: {}".format(time.clock()-start)) 
+	logger.info("Time elapsed: {}".format(time.clock()-start))
 
 
 if __name__ == "__main__":
@@ -183,6 +195,12 @@ if __name__ == "__main__":
 						type=str,
 						default = "",
 						help="Output directory to store histograms.")
+
+	parser.add_argument("--output_file",
+						dest="output_file",
+						type=str,
+						default = "",
+						help="Overrides the output filename and output directory.")
 
 	parser.add_argument("-f", "--force",
 						action="store_true",
@@ -228,6 +246,7 @@ if __name__ == "__main__":
 						dest="notHNLmc",
 						default = False,
 						help='Not running on HNL mc. Default: False. Useful for running on mc that is not HNL mc. Turn HNL specific truth info storing off.')
+
 	parser.add_argument('--skipEvents',
 						dest="skipEvents",
 						default = None,
