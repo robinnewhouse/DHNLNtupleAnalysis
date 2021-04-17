@@ -551,8 +551,6 @@ class Analysis(object):
 		self.passed_fidvol_cut = False
 		self.passed_ntrk_cut = False
 		self.passed_charge_cut = False
-		self.passed_OS_dv_type_cut = False
-		self.passed_SS_dv_type_cut = False
 		self.passed_dv_type_cut = False
 		self.passed_be_event_type_cut = False
 		self.passed_track_quality_cut = False
