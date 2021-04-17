@@ -987,6 +987,7 @@ class Analysis(object):
 				plepd0 = self.plep_sel.plepd0
 				plepz0 = self.plep_sel.plepz0
 				plepcharge = self.plep_sel.plepcharge
+				plep_isTight = self.plep_sel.plep_isTight
 
 				self.fill_hist(sel, 'plep_pt', plep_vec.Pt())
 				self.fill_hist(sel, 'plep_eta', plep_vec.Eta())
@@ -994,6 +995,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'plep_d0', plepd0)
 				self.fill_hist(sel, 'plep_z0', plepz0)
 				self.fill_hist(sel, 'plep_charge', plepcharge)
+				self.fill_hist(sel, 'plep_isTight', plep_isTight)
 
 				if tracks.ntracks == 2:
 					Mlll = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
@@ -1190,16 +1192,54 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_mom_perp', mom_perp_1)
 					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_1_mag)
 					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_1)
+
+			#fill 3 different track calculations
+			if self.dv_type == "mumu":
+				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', muons.lepVec[1].Pt())
+				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', muons.std_lepVec[1].Pt())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', muons.lepmatched_lepVec[1].Pt())
+				for i in range(len(muons.lepVec)):
+					delta = muons.lepVec[i].Pt() - muons.lepmatched_lepVec[i].Pt()
+					self.fill_hist(sel, 'DV_trk_v_mu_pt', delta/muons.lepmatched_lepVec[i].Pt() )  
+
+			if self.dv_type == "emu":
+				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
+				delta_el =  electrons.lepVec[0].Pt() - electrons.lepmatched_lepVec[0].Pt()
+				delta_mu =  muons.lepVec[0].Pt() - muons.lepmatched_lepVec[0].Pt()
+				self.fill_hist(sel, 'DV_trk_v_el_pt', delta_el/electrons.lepmatched_lepVec[0].Pt() )  
+				self.fill_hist(sel, 'DV_trk_v_mu_pt', delta_mu/muons.lepmatched_lepVec[0].Pt() )  
+
+			if self.dv_type == "ee":
+				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', electrons.lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[1].Pt())
+				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', electrons.std_lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[1].Pt())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[1].Pt())
+				for i in range(len(muons.lepVec)):
+					delta = electrons.lepVec[i].Pt() - electrons.lepmatched_lepVec[i].Pt()
+					self.fill_hist(sel, 'DV_trk_v_el_pt', delta/electrons.lepmatched_lepVec[i].Pt() )  
+
 			# fill standard track variables for electrons
 			for lep in xrange(len(elVec)):
 				self.fill_hist(sel, 'DV_el_trk_pt', elVec[lep].Pt() )
 				self.fill_hist(sel, 'DV_el_trk_eta', elVec[lep].Eta() )
 				self.fill_hist(sel, 'DV_el_trk_phi', elVec[lep].Phi() )
+
 			# fill standard track variables for muons
 			for lep in xrange(len(muVec)):
 				self.fill_hist(sel, 'DV_mu_trk_pt', muVec[lep].Pt() )
 				self.fill_hist(sel, 'DV_mu_trk_eta', muVec[lep].Eta() )
 				self.fill_hist(sel, 'DV_mu_trk_phi', muVec[lep].Phi() )
+
 			# fill standard track variable histograms
 			for i in xrange(tracks.ntracks):
 				self.fill_hist(sel, 'DV_trk_pt', self.tree.dv('trk_pt_wrtSV')[i])

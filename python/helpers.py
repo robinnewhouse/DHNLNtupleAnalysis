@@ -246,7 +246,12 @@ class Truth():
 class Tracks():
 	def __init__(self, tree,fakeAOD = False ):
 		self.tree = tree
+		# track vector with trk wrtSV quantities 
 		self.lepVec = []
+		# track vector with standard trk quantities (usual tracking def.)
+		self.std_lepVec = []
+		# track vector with lepton calibrated trk quantities 
+		self.lepmatched_lepVec = []
 		truthlepCharge = []
 		self.lepIndex = []
 		self.lepCharge = []
@@ -272,6 +277,8 @@ class Tracks():
 		# print "number of tracks: ", self.ntracks
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
+			std_lepVec = ROOT.TLorentzVector()
+			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
@@ -279,16 +286,22 @@ class Tracks():
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
 				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+				# get standard track qualtities 
+				std_pt = self.tree.dv('trk_pt')[itrk]
+				std_eta = self.tree.dv('trk_eta')[itrk]
+				std_phi = self.tree.dv('trk_phi')[itrk]
 				M = self.tree.dv('trk_M')[itrk]
+				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
+				std_lepVec.SetPtEtaPhiM(std_pt, std_eta, std_phi, M)
 
 				if len(self.tree['muon_index']) > 0 and self.fakeAOD == False:
 					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 					self.lepIndex.append(muon_index)
-					# use calibrated muon quantities (not calculated wrt DV!)
-					# pt = self.tree['muon_pt'][muon_index]
-					# eta = self.tree['muon_eta'][muon_index]
-					# phi = self.tree['muon_phi'][muon_index]
-					# M = self.tree.dv('trk_M')[itrk]
+					# get calibrated muon quantities (not calculated wrt DV!)
+					lep_pt = self.tree['muon_pt'][muon_index]
+					lep_eta = self.tree['muon_eta'][muon_index]
+					lep_phi = self.tree['muon_phi'][muon_index]
+					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 				else:
 					self.lepIndex.append(-1) 
 
@@ -297,13 +310,15 @@ class Tracks():
 					self.muon_isTight.append(self.tree.dv('trk_isTight')[itrk]) # add muon quality info
 					self.muon_isMedium.append(self.tree.dv('trk_isMedium')[itrk])
 					self.muon_isLoose.append(self.tree.dv('trk_isLoose')[itrk])
-				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
-
+				
 				self.pt.append(pt)
 				self.eta.append(eta)
 				self.phi.append(phi)
 
 				self.lepVec.append(lepVec)
+				self.lepmatched_lepVec.append(lepmatched_lepVec)
+				self.std_lepVec.append(std_lepVec)
+
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 			else:
@@ -314,6 +329,8 @@ class Tracks():
 
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
+			std_lepVec = ROOT.TLorentzVector()
+			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
 				# remove electrons that are also matched to muons!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
@@ -327,17 +344,24 @@ class Tracks():
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
 				phi = self.tree.dv('trk_phi_wrtSV')[itrk]
+				# get standard track qualtities 
+				std_pt = self.tree.dv('trk_pt')[itrk]
+				std_eta = self.tree.dv('trk_eta')[itrk]
+				std_phi = self.tree.dv('trk_phi')[itrk]
 				M = self.tree.dv('trk_M')[itrk]
+				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
+				std_lepVec.SetPtEtaPhiM(std_pt, std_eta, std_phi, M)
 
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
 				if len(self.tree['el_index']) > 0 and self.fakeAOD == False:
 					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
 					# use calibrated muon quantities (not calculated wrt DV!)
-					# pt = self.tree['el_pt'][el_index]
-					# eta = self.tree['el_eta'][el_index]
-					# phi = self.tree['el_phi'][el_index]
-					# M = self.tree.dv('trk_M')[itrk]
+					lep_pt = self.tree['el_pt'][el_index]
+					lep_eta = self.tree['el_eta'][el_index]
+					lep_phi = self.tree['el_phi'][el_index]
+					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
+
 					self.lepIndex.append(el_index)
 				else: 
 					self.lepIndex.append(-1)
@@ -350,13 +374,13 @@ class Tracks():
 					self.el_isveryveryLoose.append(self.tree.dv('trk_isVeryVeryLoose')[itrk])
 					self.el_isveryveryLooseSi.append(self.tree.dv('trk_isVeryVeryLooseSi')[itrk])
 
-				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
-
 				self.pt.append(pt)
 				self.eta.append(eta)
 				self.phi.append(phi)
 
 				self.lepVec.append(lepVec)
+				self.lepmatched_lepVec.append(lepmatched_lepVec)
+				self.std_lepVec.append(std_lepVec)
 				
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
