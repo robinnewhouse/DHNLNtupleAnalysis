@@ -36,7 +36,7 @@ def main():
 
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
-		os.makedirs(output_path, exist_ok=True)
+		os.mkdir(output_path)
 	analysisCode = {}
 	# Define that we're using a specific type of analysis
 	anaClass = getattr(analysis, options.analysis)
