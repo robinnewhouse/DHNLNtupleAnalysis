@@ -861,6 +861,7 @@ class Analysis(object):
 
 		self.fill_hist(sel, 'mHNLcalc', truth_info.mhnl)
 		self.fill_hist(sel, 'DV_mass', truth_info.dvmass)
+		self.fill_hist(sel, 'mvis', truth_info.mlll)
 
 		self.fill_hist(sel, 'DV_r', truth_info.truth_dvr)
 		
@@ -892,7 +893,6 @@ class Analysis(object):
 			lep12 = truth_info.dLepVec[0] + truth_info.dLepVec[1] 
 			lep23 = truth_info.dLepVec[1] + truth_info.dLepVec[2] 
 			lep13 = truth_info.dLepVec[0] + truth_info.dLepVec[2] 
-			self.fill_hist(sel, 'DV_mass', DV_4vec.M())
 			self.fill_hist(sel, 'm12', lep12.M())
 			self.fill_hist(sel, 'm23', lep23.M())
 			self.fill_hist(sel, 'm13', lep13.M())
@@ -993,8 +993,9 @@ class Analysis(object):
 			elVec = electrons.lepVec
 
 
+
 			# fill histograms that require a prompt lepton to be identified
-			if self.do_prompt_lepton_cut:
+			if self.do_prompt_lepton_cut and sel != "reco_truth_matched":
 				plep_vec = self.plep_sel.plepVec
 				plepd0 = self.plep_sel.plepd0
 				plepz0 = self.plep_sel.plepz0
@@ -1012,8 +1013,8 @@ class Analysis(object):
 				if tracks.ntracks == 2:
 					Mlll = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
 					Mhnl = selections.Mhnl(self.tree, self.dv_type, plep=plep_vec, dMu=muVec,dEl=elVec)
-					# Mhnl_old = selections.Mhnl_old(self.tree, plep=plep_vec, trks=trkVec)
 					Mhnl_fixWmass = selections.Mhnl(self.tree, self.dv_type, plep=plep_vec, dMu=muVec,dEl=elVec,fixWMass=True)
+					# Mhnl_old = selections.Mhnl_old(self.tree, plep=plep_vec, trks=trkVec)
 
 					self.fill_hist(sel, 'mvis', Mlll.mlll )
 					self.fill_hist(sel, 'mtrans', Mlll.mtrans)
@@ -1067,9 +1068,6 @@ class Analysis(object):
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
 					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
 					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
-
-
-
 
 			if tracks.ntracks == 2:
 				deta = abs(tracks.eta[0] - tracks.eta[1])
@@ -1181,39 +1179,40 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_1)
 
 			#fill 3 different track calculations
-			if self.dv_type == "mumu":
-				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', muons.lepVec[1].Pt())
-				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', muons.std_lepVec[1].Pt())
-				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', muons.lepmatched_lepVec[1].Pt())
-				for i in range(len(muons.lepVec)):
-					delta = muons.lepVec[i].Pt() - muons.lepmatched_lepVec[i].Pt()
-					self.fill_hist(sel, 'DV_trk_v_mu_pt', delta/muons.lepmatched_lepVec[i].Pt() )
+			if sel != "reco_truth_matched":
+				if self.dv_type == "mumu":
+					self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', muons.lepVec[1].Pt())
+					self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_std_trk_pt', muons.std_lepVec[1].Pt())
+					self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', muons.lepmatched_lepVec[1].Pt())
+					for i in range(len(muons.lepVec)):
+						delta = muons.lepVec[i].Pt() - muons.lepmatched_lepVec[i].Pt()
+						self.fill_hist(sel, 'DV_trk_v_mu_pt', delta/muons.lepmatched_lepVec[i].Pt() )
 
-			if self.dv_type == "emu":
-				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
-				delta_el =  electrons.lepVec[0].Pt() - electrons.lepmatched_lepVec[0].Pt()
-				delta_mu =  muons.lepVec[0].Pt() - muons.lepmatched_lepVec[0].Pt()
-				self.fill_hist(sel, 'DV_trk_v_el_pt', delta_el/electrons.lepmatched_lepVec[0].Pt() )
-				self.fill_hist(sel, 'DV_trk_v_mu_pt', delta_mu/muons.lepmatched_lepVec[0].Pt() )
+				if self.dv_type == "emu":
+					self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
+					delta_el =  electrons.lepVec[0].Pt() - electrons.lepmatched_lepVec[0].Pt()
+					delta_mu =  muons.lepVec[0].Pt() - muons.lepmatched_lepVec[0].Pt()
+					self.fill_hist(sel, 'DV_trk_v_el_pt', delta_el/electrons.lepmatched_lepVec[0].Pt() )
+					self.fill_hist(sel, 'DV_trk_v_mu_pt', delta_mu/muons.lepmatched_lepVec[0].Pt() )
 
-			if self.dv_type == "ee":
-				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', electrons.lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[1].Pt())
-				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', electrons.std_lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[1].Pt())
-				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
-				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[1].Pt())
-				for i in range(len(muons.lepVec)):
-					delta = electrons.lepVec[i].Pt() - electrons.lepmatched_lepVec[i].Pt()
-					self.fill_hist(sel, 'DV_trk_v_el_pt', delta/electrons.lepmatched_lepVec[i].Pt() )
+				if self.dv_type == "ee":
+					self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', electrons.lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[1].Pt())
+					self.fill_hist(sel, 'DV_lep_0_std_trk_pt', electrons.std_lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[1].Pt())
+					self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
+					self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[1].Pt())
+					for i in range(len(muons.lepVec)):
+						delta = electrons.lepVec[i].Pt() - electrons.lepmatched_lepVec[i].Pt()
+						self.fill_hist(sel, 'DV_trk_v_el_pt', delta/electrons.lepmatched_lepVec[i].Pt() )
 
 			# fill standard track variables for electrons
 			for lep in range(len(elVec)):
@@ -1412,6 +1411,8 @@ class run2Analysis(Analysis):
 
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
+		if self._truth_match():
+			self._fill_selected_dv_histos("reco_truth_matched")
 
 		# We only want to save one DV per event: Choose first DV that passes "DV type" selection as "the DV for the event"
 		# If we have already selected our DV for this event, don't bother looking at the rest of the DVs!

@@ -108,18 +108,19 @@ class Truth():
 		self.truth_dvx = -1
 		self.truth_dvy = -1
 		self.truth_dvz = -1
-		self.truth_dv = ROOT.TLorentzVector()
+		self.truth_dv = ROOT.TVector3()
 		self.truth_dvr = -1
 		self.truth_pvx = -1
 		self.truth_pvy = -1
 		self.truth_pvz = -1
-		self.truth_pv = ROOT.TLorentzVector()
+		self.truth_pv = ROOT.TVector3()
 		self.W_vec = ROOT.TLorentzVector()
 		self.W_charge =  -2
 		self.plep_vec = ROOT.TLorentzVector()
 		self.plep_charge = -99
 		self.mhnl = -1
 		self.dvmass = -1
+		self.mlll = -1
 		self.HNL_pdgID = 50
 		self.gamma = 1
 		self.beta = 1
@@ -229,15 +230,16 @@ class Truth():
 			self.properLifetime = dr/(self.gamma * self.beta)
 
 		# TO DO: bug with truth mHNL calculation
-		# try:
-		# 	import selections
-		# 	if len(dMu) == 2: dv_type = "mumu"
-		# 	if len(dEl) == 2: dv_type = "ee"
-		# 	if len(dEl) == 1 and len(dMu) == 1: dv_type = "emu"
-		# 	Mhnl = selections.Mhnl(tree=tree, dv_type = dv_type, plep=self.plep_vec, dMu=dMu, dEl=dEl,use_truth=True,truth_pv=self.truth_pv,truth_dv=self.truth_dv)
-		# 	self.mhnl = Mhnl.alt_mhnl
-		# 	dv_vec = self.trkVec[0] + self.trkVec[1]
-		# 	self.dvmass = dv_vec.M()
+		import selections
+		if len(self.dMu) == 2: dv_type = "mumu"
+		if len(self.dEl) == 2: dv_type = "ee"
+		if len(self.dEl) == 1 and len(dMu) == 1: dv_type = "emu"
+		Mhnl = selections.Mhnl(tree=tree, dv_type = dv_type, plep=self.plep_vec, dMu=self.dMu, dEl=self.dEl,use_truth=True,truth_pv=self.truth_pv,truth_dv=self.truth_dv)
+		self.mhnl = Mhnl.mhnl
+		dv_vec = self.trkVec[0] + self.trkVec[1]
+		trilep_vec = self.trkVec[0] + self.trkVec[1] + self.plep_vec
+		self.dvmass = dv_vec.M()
+		self.mlll = trilep_vec.M()
 		# except:
 		# 	pass
 

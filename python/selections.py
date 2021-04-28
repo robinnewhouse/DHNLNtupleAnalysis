@@ -739,7 +739,7 @@ class Mlll():
 	The invariant mass of the prompt lepton and both diplaced leptons.
 	"""
 
-	def __init__(self, dv_type, plep, dMu, dEl, decaymode="leptonic", minmlll=50, maxmlll=84):
+	def __init__(self, dv_type, plep, dMu, dEl, decaymode="leptonic", minmlll=50, maxmlll=84, use_tracks = False, trks = []):
 		self.decaymode = decaymode
 		self.dv_type = dv_type
 		self.plep = plep
@@ -752,8 +752,7 @@ class Mlll():
 		self.mtrans = -1
 		self.plll = ROOT.TLorentzVector(0, 0, 0, 0)
 
-		if self.decaymode == "leptonic":
-
+		if self.decaymode == "leptonic" and not use_tracks:
 			if self.dv_type == "emu":
 				self.plll = self.plep + self.dEl[0] + self.dMu[0]
 
@@ -765,6 +764,11 @@ class Mlll():
 
 			self.mlll = self.plll.M()
 			self.mtrans = self.plll.Perp()
+		
+		# when looking at reco truth matched DVs it's possible that tracks are not reconstructed as leptons --> use tracks
+		if use_tracks: 
+			self.plll = self.plep + trks[0] + trks[1]
+			self.mlll = self.plll.M()
 
 	def passes(self):
 
