@@ -1284,14 +1284,14 @@ class MCEventType:
 				self.p_2 = truth_info.dLepVec[0]
 				self.p_3 = truth_info.dLepVec[1]
 				self.p_4 = truth_info.dLepVec[2]
-			# else: 
-			# 	self.p_2 = truth_info.dLepVec[2]
-			# 	self.p_3 = truth_info.dLepVec[0]
-			# 	self.p_4 = truth_info.dLepVec[1]
 			else: 
-				self.p_2 = truth_info.dLepVec[1]
+				self.p_2 = truth_info.dLepVec[2]
 				self.p_3 = truth_info.dLepVec[0]
-				self.p_4 = truth_info.dLepVec[2]
+				self.p_4 = truth_info.dLepVec[1]
+			# else: 
+			# 	self.p_2 = truth_info.dLepVec[1]
+			# 	self.p_3 = truth_info.dLepVec[0]
+			# 	self.p_4 = truth_info.dLepVec[2]
 			
 
 			if charge_1 != truth_info.dLepCharge[0]: 
