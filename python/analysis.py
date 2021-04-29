@@ -947,6 +947,25 @@ class Analysis(object):
 			else:
 				self.fill_hist(sel, 'DV_d0_cut',0, fill_ntuple=False)
 
+			n_el = len(truth_info.dEl)
+			n_mu = len(truth_info.dMu)
+
+		
+			for iel in range(n_el):
+				# print ("el d0: ", truth_info.dEl_d0[iel])
+				self.fill_hist(sel, 'DV_El_{}_pt'.format(iel), truth_info.dEl[iel].Pt(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_El_{}_eta'.format(iel), truth_info.dEl[iel].Eta(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_El_{}_phi'.format(iel), truth_info.dEl[iel].Phi(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_El_{}_d0'.format(iel), truth_info.dEl_d0[iel], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_El_{}_charge'.format(iel), truth_info.dEl_charge[iel], fill_ntuple=False)
+			
+			for imu in range(n_mu):
+				# print ("mu d0: ", truth_info.dMu_d0[imu])
+				self.fill_hist(sel, 'DV_Mu_{}_pt'.format(imu), truth_info.dMu[imu].Pt(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_Mu_{}_eta'.format(imu), truth_info.dMu[imu].Eta(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_Mu_{}_phi'.format(imu), truth_info.dMu[imu].Phi(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_Mu_{}_d0'.format(imu), truth_info.dMu_d0[imu], fill_ntuple=False)
+				self.fill_hist(sel, 'DV_Ml_{}_charge'.format(imu), truth_info.dMu_charge[imu], fill_ntuple=False)
 
 			for itrk in range(2):
 				self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False) # do the same here but also save charge for lepton truth matching later
@@ -954,15 +973,6 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_d0',truth_info.dTrk_d0[itrk], fill_ntuple=False)
 
-			for iel in range(len(truth_info.dEl)):
-				self.fill_hist(sel, 'DV_El_pt', truth_info.dEl[iel].Pt(), fill_ntuple=False)
-				self.fill_hist(sel, 'DV_El_eta', truth_info.dEl[iel].Eta(), fill_ntuple=False)
-				self.fill_hist(sel, 'DV_El_phi', truth_info.dEl[iel].Phi(), fill_ntuple=False)
-			
-			for imu in range(len(truth_info.dMu)):
-				self.fill_hist(sel, 'DV_Mu_pt', truth_info.dMu[imu].Pt(), fill_ntuple=False)
-				self.fill_hist(sel, 'DV_Mu_eta', truth_info.dMu[imu].Eta(), fill_ntuple=False)
-				self.fill_hist(sel, 'DV_Mu_phi', truth_info.dMu[imu].Phi(), fill_ntuple=False)
 
 			# TODO: figure out a ntuple scheme that can store these variables as well
 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
