@@ -233,7 +233,7 @@ class Truth():
 		import selections
 		if len(self.dMu) == 2: dv_type = "mumu"
 		if len(self.dEl) == 2: dv_type = "ee"
-		if len(self.dEl) == 1 and len(dMu) == 1: dv_type = "emu"
+		if len(self.dEl) == 1 and len(self.dMu) == 1: dv_type = "emu"
 		Mhnl = selections.Mhnl(tree=tree, dv_type = dv_type, plep=self.plep_vec, dMu=self.dMu, dEl=self.dEl,use_truth=True,truth_pv=self.truth_pv,truth_dv=self.truth_dv)
 		self.mhnl = Mhnl.mhnl
 		dv_vec = self.trkVec[0] + self.trkVec[1]

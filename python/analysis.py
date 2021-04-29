@@ -561,6 +561,7 @@ class Analysis(object):
 		# Default is to select the first event that passes the selection.
 		###########################################################################################################################
 		self.passed_preselection_cuts = False
+		self.passed_reco_truth_match = False
 		self.passed_fidvol_cut = False
 		self.passed_ntrk_cut = False
 		self.passed_charge_cut = False
@@ -1411,6 +1412,7 @@ class run2Analysis(Analysis):
 
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
+		# if self._truth_match() and self._dv_type_cut() and self._ntrk_cut():
 		if self._truth_match():
 			self._fill_selected_dv_histos("reco_truth_matched")
 
