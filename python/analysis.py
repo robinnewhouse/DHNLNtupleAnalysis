@@ -905,7 +905,7 @@ class Analysis(object):
 			self.fill_hist(sel, 's23', self.MCEventType.s23) 
 			self.fill_hist(sel, 's24', self.MCEventType.s24) 
 			self.fill_hist(sel, 's34', self.MCEventType.s34) 
-			self.fill_hist(sel, 'lep1_trk_pt', self.MCEventType.p_2.Pt())
+			self.fill_hist(sel, 'lep1_trk_pt', self.MCEventType.p_2.Pt()) # topological ordered
 			self.fill_hist(sel, 'lep1_trk_eta', self.MCEventType.p_2.Eta())
 			self.fill_hist(sel, 'lep1_trk_phi', self.MCEventType.p_2.Phi())
 			self.fill_hist(sel, 'lep2_trk_pt', self.MCEventType.p_3.Pt())
@@ -932,7 +932,7 @@ class Analysis(object):
 			# pt order the displaced leptons
 			disp_lep.sort(key=lambda x: x.Pt(), reverse=True)
 
-			self.fill_hist(sel, 'dlep1_pt', disp_lep[0].Pt())
+			self.fill_hist(sel, 'dlep1_pt', disp_lep[0].Pt()) # pt ordered
 			self.fill_hist(sel, 'dlep1_eta', disp_lep[0].Eta())
 			self.fill_hist(sel, 'dlep1_phi', disp_lep[0].Phi())
 			self.fill_hist(sel, 'dlep2_pt', disp_lep[1].Pt())
@@ -949,7 +949,7 @@ class Analysis(object):
 
 
 			for itrk in range(2):
-				self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False)
+				self.fill_hist(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False) # do the same here but also save charge for lepton truth matching later
 				self.fill_hist(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
 				self.fill_hist(sel, 'DV_trk_d0',truth_info.dTrk_d0[itrk], fill_ntuple=False)
@@ -1188,6 +1188,18 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', muons.std_lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', muons.lepmatched_lepVec[1].Pt())
+
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt()) # rn
+
+				self.fill_hist(sel, 'DV_lep_0_isMuon', 1)
+				self.fill_hist(sel, 'DV_lep_1_isMuon', 1)
+				self.fill_hist(sel, 'DV_lep_0_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_1_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_0_muon_isMedium', self.tree.get('muon_isMedium')[muons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_1_muon_isMedium', self.tree.get('muon_isMedium')[muons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_0_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_1_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[1]])
+
 				for i in range(len(muons.lepVec)):
 					delta = muons.lepVec[i].Pt() - muons.lepmatched_lepVec[i].Pt()
 					self.fill_hist(sel, 'DV_trk_v_mu_pt', delta/muons.lepmatched_lepVec[i].Pt() )
@@ -1204,6 +1216,23 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_v_el_pt', delta_el/electrons.lepmatched_lepVec[0].Pt() )
 				self.fill_hist(sel, 'DV_trk_v_mu_pt', delta_mu/muons.lepmatched_lepVec[0].Pt() )
 
+
+				self.fill_hist(sel, 'DV_lep_0_isMuon', 1)
+				self.fill_hist(sel, 'DV_lep_1_isMuon', 0)
+				self.fill_hist(sel, 'DV_lep_0_isElectron', 0)
+				self.fill_hist(sel, 'DV_lep_1_isElectron', 1)
+
+				self.fill_hist(sel, 'DV_lep_0_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_0_muon_isMedium', self.tree.get('muon_isMedium')[muons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_0_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[0]])
+
+				self.fill_hist(sel, 'DV_lep_1_electron_LHTight', self.tree.get('el_LHTight')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_LHMedium', self.tree.get('el_LHMedium')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_LHLoose', self.tree.get('el_LHLoose')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[1]])
+
 			if self.dv_type == "ee":
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', electrons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[1].Pt())
@@ -1211,6 +1240,22 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[1].Pt())
+
+				self.fill_hist(sel, 'DV_lep_0_isElectron', 1)
+				self.fill_hist(sel, 'DV_lep_1_isElectron', 1)
+				self.fill_hist(sel, 'DV_lep_0_electron_LHTight', self.tree.get('el_LHTight')[electrons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_0_electron_LHMedium', self.tree.get('el_LHMedium')[electrons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_0_electron_LHLoose', self.tree.get('el_LHLoose')[electrons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_0_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_0_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_0_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[0]])
+				self.fill_hist(sel, 'DV_lep_1_electron_LHTight', self.tree.get('el_LHTight')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_LHMedium', self.tree.get('el_LHMedium')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_LHLoose', self.tree.get('el_LHLoose')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[1]])
+				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[1]])
+
 				for i in range(len(muons.lepVec)):
 					delta = electrons.lepVec[i].Pt() - electrons.lepmatched_lepVec[i].Pt()
 					self.fill_hist(sel, 'DV_trk_v_el_pt', delta/electrons.lepmatched_lepVec[i].Pt() )

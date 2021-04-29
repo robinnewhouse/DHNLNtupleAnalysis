@@ -1,5 +1,7 @@
 import ROOT
 import numpy as np
+import sys
+import time
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import atlas_style
@@ -872,3 +874,10 @@ def plot_vertexing_uncertainty():
 	plt.xlabel('DV Radius [mm]')
 	plt.ylabel('DV pT [GeV]')
 	plt.title('vertexing systematics map')
+
+def get_time():
+	# https://bugs.python.org/issue36895#msg342267
+	if sys.version_info >= (3, 3):
+		return time.perf_counter()
+	else: # python 2
+		return time.clock()
