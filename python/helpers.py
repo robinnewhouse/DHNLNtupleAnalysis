@@ -103,7 +103,11 @@ class Truth():
 		self.dLepVec = []
 		self.dLepCharge = []
 		self.dEl = []
+		self.dEl_charge = []
+		self.dEl_d0 = []
 		self.dMu = []
+		self.dMu_charge = []
+		self.dMu_d0 = []
 		self.dTrk_d0 = []
 		self.truth_dvx = -1
 		self.truth_dvy = -1
@@ -154,7 +158,11 @@ class Truth():
 												tree['truthVtx_outP_phi'][ivx][i],
 												tree['truthVtx_outP_M'][ivx][i]
 												)
+							mu_charge = tree['truthVtx_outP_charge'][ivx][i]
+							mu_d0 = tree['truthVtx_outP_d0'][ivx][i]
 							self.dMu.append(TrkVec)
+							self.dMu_charge.append(mu_charge)
+							self.dMu_d0.append(mu_d0)
 						if trk_pdgId == 11:
 							TrkVec  =  ROOT.TLorentzVector()
 							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
@@ -162,7 +170,11 @@ class Truth():
 												tree['truthVtx_outP_phi'][ivx][i],
 												tree['truthVtx_outP_M'][ivx][i]
 												)
+							el_charge = tree['truthVtx_outP_charge'][ivx][i]
+							el_d0 = tree['truthVtx_outP_d0'][ivx][i]
 							self.dEl.append(TrkVec)
+							self.dEl_charge.append(el_charge)
+							self.dEl_d0.append(el_d0)
 
 						if trk_pdgId == 13 or trk_pdgId == 11: # is track a muon of electron? Then these are our visible (charged) truth tracks
 							visTrkVec =  ROOT.TLorentzVector()
