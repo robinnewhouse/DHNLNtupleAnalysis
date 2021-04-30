@@ -306,14 +306,15 @@ class Tracks():
 				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 				std_lepVec.SetPtEtaPhiM(std_pt, std_eta, std_phi, M)
 
-				if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
-					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-					self.lepIndex.append(muon_index)
-					# get calibrated muon quantities (not calculated wrt DV!)
-					lep_pt = self.tree['muon_pt'][muon_index]
-					lep_eta = self.tree['muon_eta'][muon_index]
-					lep_phi = self.tree['muon_phi'][muon_index]
-					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
+				if not self.tree.fake_aod:
+					if len(self.tree['muon_index']) > 0:
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+						self.lepIndex.append(muon_index)
+						# get calibrated muon quantities (not calculated wrt DV!)
+						lep_pt = self.tree['muon_pt'][muon_index]
+						lep_eta = self.tree['muon_eta'][muon_index]
+						lep_phi = self.tree['muon_phi'][muon_index]
+						lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 				else:
 					self.lepIndex.append(-1)
 
@@ -366,15 +367,16 @@ class Tracks():
 
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.tree['el_index']) > 0 and self.tree.fake_aod == False:
-					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
-					# use calibrated muon quantities (not calculated wrt DV!)
-					lep_pt = self.tree['el_pt'][el_index]
-					lep_eta = self.tree['el_eta'][el_index]
-					lep_phi = self.tree['el_phi'][el_index]
-					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
+				if not self.tree.fake_aod: 
+					if len(self.tree['el_index']) > 0:
+						el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
+						# use calibrated muon quantities (not calculated wrt DV!)
+						lep_pt = self.tree['el_pt'][el_index]
+						lep_eta = self.tree['el_eta'][el_index]
+						lep_phi = self.tree['el_phi'][el_index]
+						lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 
-					self.lepIndex.append(el_index)
+						self.lepIndex.append(el_index)
 				else:
 					self.lepIndex.append(-1)
 

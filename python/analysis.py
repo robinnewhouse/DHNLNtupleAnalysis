@@ -595,7 +595,8 @@ class Analysis(object):
 		#initialize the cut bools for every event
 		self.initialize_cut_bools()
 
-		self._fill_leptons()
+		if not self.tree.fake_aod:
+			self._fill_leptons()
 
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self._fill_truth_histos(sel='truth/all')
