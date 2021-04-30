@@ -848,31 +848,47 @@ def mom_frac_parall(pvec, decay_vector):
 	else:
 		return mom_parall(pvec, decay_vector) / pvec.Mag()
 
-# make vertexing systematics map
-# messy to have this on its own in a module, but so be it
-def get_vertexing_syst_map():
-	"""build the lookup table to be used for vertexing + tracking systematic uncertainty"""
-	dvr_bins = [0, 24, 44, 64, 84, 104, 124, 144, 164, 184, 204, 224, 244, 264, 284, 300]
-	pt_bins = [0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 35]
-	syst_map = np.ones(shape=(len(pt_bins), len(dvr_bins)))
-	# base value: (vtx syst + trk syst) in quadrature
-	syst_map *= (1 - np.sqrt(.12 ** 2 + .04 ** 2))
-	# set the bins that only use the tracking systematic
-	syst_map[:, 0:2] = 1 - .04
-	syst_map[np.digitize(25, pt_bins, right=True):, 2:3] = 1 - .04
-	return syst_map
-
-
-vertexing_syst_map = get_vertexing_syst_map()
-
+vertexing_syst_map = np.array(
+	  [[0.96      , 0.95993126, 0.94165127, 0.95836189, 0.94467486,
+        0.84039676, 0.8291002 , 0.78884503, 0.77728849, 0.77760779,
+        0.79450637, 0.83282275, 0.79899139, 0.83757042, 0.78762539],
+       [0.96      , 0.95954859, 0.91930915, 0.93324524, 0.95998072,
+        0.92477593, 0.93487687, 0.8912892 , 0.86875911, 0.8374753 ,
+        0.922888  , 0.88140525, 0.84216507, 0.82667875, 0.89791438],
+       [0.96      , 0.91516189, 0.91564243, 0.9288241 , 0.91766646,
+        0.92913114, 0.93132677, 0.91245808, 0.93288162, 0.90309618,
+        0.9587421 , 0.92604629, 0.95570732, 0.95386959, 0.91366827],
+       [0.96      , 0.93037907, 0.95971524, 0.95912841, 0.95985423,
+        0.95361916, 0.94195473, 0.92836505, 0.86059293, 0.92934497,
+        0.87246303, 0.95448154, 0.90785524, 0.85493355, 0.79353179],
+       [0.96      , 0.9347185 , 0.88558086, 0.88861315, 0.91707327,
+        0.91601057, 0.95553542, 0.95796652, 0.93774068, 0.92051822,
+        0.95008698, 0.95669437, 0.94905746, 0.95980851, 0.89584635],
+       [0.96      , 0.96      , 0.91899608, 0.89383716, 0.85820325,
+        0.88271608, 0.92443339, 0.93637299, 0.95868375, 0.93592103,
+        0.956569  , 0.95646187, 0.94138116, 0.95973943, 0.95900326],
+       [0.96      , 0.96      , 0.88980506, 0.82210277, 0.75701872,
+        0.80786463, 0.81370689, 0.94601174, 0.90242167, 0.89890168,
+        0.93836038, 0.89594396, 0.93026478, 0.94260998, 0.82739249],
+       [0.96      , 0.96      , 0.96      , 0.85732267, 0.80606151,
+        0.87094161, 0.76462153, 0.84690591, 0.93168821, 0.9141967 ,
+        0.8360955 , 0.81450598, 0.93008109, 0.68276225, 0.95574859],
+       [0.96      , 0.96      , 0.96      , 0.96      , 0.71473217,
+        0.87973791, 0.52818879, 0.59921592, 0.93377555, 0.92223419,
+        0.84718595, 0.64849899, 0.95889304, 0.7524329 , 0.8681943 ]])
 
 def get_vertexing_uncertainty(r, pt):
-	"""retrieve the calculated vertexing + tracking uncertainty using numpy's digitize"""
-	dvr_bins = [0, 24, 44, 64, 84, 104, 124, 144, 164, 184, 204, 224, 244, 264, 284, 300]
-	pt_bins = [0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 35]
-	return vertexing_syst_map[
-		max(np.digitize(pt, pt_bins) - 1, 0),
-		max(np.digitize(r, dvr_bins) - 1, 0)]
+    """retrieve the calculated vertexing + tracking uncertainty using numpy's digitize"""
+    pt_bins = [2, 4, 6, 8, 10, 15, 20, 25, 35]
+    # no overflow was used in dvr bins so extending 300mm to infinity
+    dvr_bins = [ 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, np.inf]
+    pt_bin = np.digitize(pt, pt_bins)
+    dvr_bin = np.digitize(r, dvr_bins)
+    # deal with overflow (underflow behaves as expected)
+    if pt_bin >= len(pt_bins): pt_bin = len(pt_bins) - 1
+    if dvr_bin >= len(dvr_bins): dvr_bin = len(dvr_bins) - 1    
+    return vertexing_syst_map[pt_bin, dvr_bin]
+
 
 
 def plot_vertexing_uncertainty():
