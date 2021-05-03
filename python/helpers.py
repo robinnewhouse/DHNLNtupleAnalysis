@@ -160,14 +160,11 @@ def get_mass_lt_weight(tree, both_lnc_lnv=False):
 			if channel == "eee" or channel == "eeu":
 				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
 
-			f_br = ReadBRdat()
-			br = f_br.get_BR(channel, mass)
-
 			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
 
-			xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+			xsec = tree.br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
 			# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
 			# split up Pythia sample into separate LNC and LNV branches
 			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
@@ -584,6 +581,10 @@ class FileInfo:
 		if (self.mass_str): self.output_filename += "_" + self.mass_str
 		if (self.ctau_str): self.output_filename += "_" + self.ctau_str
 		self.output_filename += "_" + channel + ".root"
+
+		f_br = ReadBRdat()
+		self.br = f_br.get_BR(channel, self.mass)
+
 
 
 class mc_info:
