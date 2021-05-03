@@ -41,7 +41,7 @@ def get_debug_level(level):
 
 
 class ReadBRdat:
-    def __init__(self, filename='data/BR/HNL_branching_20GeV.dat'):
+    def __init__(self, filename='../data/BR/HNL_branching_20GeV.dat'):
         f = open(filename, 'r')
         content = f.read()
 
