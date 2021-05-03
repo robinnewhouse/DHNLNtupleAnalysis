@@ -57,6 +57,7 @@ def main():
 		# Create new Tree class using uproot
 		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass,
 											channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents, br=file_info.br)
+		logger.info('Mass dependent BR: {}'.format(file_info.br))
 
 		# create one output file per channel in your config file
 		if "SSbkg" in options.config.split("config")[1]:
