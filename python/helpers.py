@@ -40,6 +40,89 @@ def get_debug_level(level):
 	return debug_level
 
 
+class ReadBRdat:
+    def __init__(self, filename='../data/BR/HNL_branching_20GeV.dat'):
+        f = open(filename, 'r')
+        content = f.read()
+
+        list_rows = []
+        row = ''
+        for c in content:
+            if c == '\n':
+                list_rows.append(row)
+                row = ''
+            else:
+                row = row + c
+
+        list_content = list_rows[18:]
+
+        mass = []
+        U_e = []
+        U_mu = []
+        U_tau = []
+        BR_uu = []
+        BR_mue = []
+        BR_ee = []
+
+        number_t = []
+        for row in list_content:
+            count = 0
+            entry = ''
+            for c in row:
+                if c != '\t':
+                    entry = entry + c
+                if c == '\t':
+                    if count == 0:
+                        mass.append(entry)
+                    if count == 1:
+                        U_e.append(entry)
+                    if count == 2:
+                        U_mu.append(entry)
+                    if count == 3:
+                        U_tau.append(entry)
+                    if count == 14:
+                        BR_ee.append(entry)
+                    if count == 15:
+                        BR_mue.append(entry)
+
+                    count = count + 1
+                    entry = ''
+            BR_uu.append(entry)
+            number_t.append(count)
+
+        self.M = []
+        self.BRuuu = []
+        self.BRuue = []
+        for i in range(0, len(BR_uu)):
+            if U_e[i] == '0.' and U_tau[i] == '0.' and U_mu[i] != '0.':
+                self.M.append(float(mass[i]))
+                self.BRuuu.append(float(BR_uu[i]))
+                self.BRuue.append(float(BR_mue[i]))
+
+        self.M_el = []
+        self.BReee = []
+        self.BReeu = []
+        for i in range(0, len(BR_uu)):
+            if U_e[i] != '0.' and U_tau[i] == '0.' and U_mu[i] == '0.':
+                self.M_el.append(float(mass[i]))
+                self.BReee.append(float(BR_ee[i]))
+                self.BReeu.append(float(BR_mue[i]))
+
+    def get_BR(self, channel, mass):
+
+        i = -1
+        for m in self.M:
+            i = i + 1
+            if m == mass:
+                if channel == 'uuu':
+                    return self.BRuuu[i]
+                if channel == 'uue':
+                    return self.BRuue[i]
+                if channel == 'eee':
+                    return self.BReee[i]
+                if channel == 'eeu':
+                    return self.BReeu[i]
+
 def get_mass_lt_weight(tree, both_lnc_lnv=False):
 	"""
 	Calculates the weight of the event based on the Gronau parametrization
@@ -77,16 +160,11 @@ def get_mass_lt_weight(tree, both_lnc_lnv=False):
 			if channel == "eee" or channel == "eeu":
 				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
 
-			if channel == "uue" or channel == "eeu":
-				br = 0.106
-			if channel == "uuu" or channel == "eee":
-				br = 0.060
-
 			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
 			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
 			else: U2 = U2Gronau
 
-			xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+			xsec = tree.br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
 			# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
 			# split up Pythia sample into separate LNC and LNV branches
 			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
@@ -503,6 +581,10 @@ class FileInfo:
 		if (self.mass_str): self.output_filename += "_" + self.mass_str
 		if (self.ctau_str): self.output_filename += "_" + self.ctau_str
 		self.output_filename += "_" + channel + ".root"
+
+		f_br = ReadBRdat()
+		self.br = f_br.get_BR(channel, self.mass)
+
 
 
 class mc_info:
