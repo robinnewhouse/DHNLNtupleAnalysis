@@ -33,7 +33,6 @@ class Analysis(object):
 		self.h = {}
 		self.micro_ntuples = {}
 		self.tree = tree
-		# self.weight = 1
 		self._locked = UNLOCKED
 		# create an instance of Observables to store histograms
 		self.observables = observables.Observables()
@@ -307,20 +306,21 @@ class Analysis(object):
 		:param weight: Used to override weight calculation. Useful for storing actual weights which should not be themselves weighted.
 		"""
 		# use calculated weight for this event unless a weight is specified
-		event_weight = self.weight if weight is None else weight
+		weight_LNC_only = self.weight_LNC_only if weight is None else weight
+		weight_LNC_plus_LNV = self.weight_LNC_plus_LNV if weight is None else weight
 
 		# define here the directory structure where this histogram is stored.
 		directory = '{ch}/{selection}/'.format(ch=self.ch, selection=selection)
 		# fill LNC histograms. Not used for data.
 		if self.MCEventType.isLNC: 
-			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, event_weight)
+			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, weight_LNC_only)
 		# fill LNV histograms. Not used for data.
 		if self.MCEventType.isLNV: 
-			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, event_weight)
+			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, weight_LNC_only)
 		if self.MCEventType.isLNC or self.MCEventType.isLNV: 
 			#fill LNC_plus_LNV histograms for every event
 			# U, m, ctau relationship changes becuase twice as many decay channels avaliable if HNL can decay via LNC and LNV
-			self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, 0.5*event_weight)
+			self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, weight_LNC_plus_LNV)
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
@@ -710,14 +710,17 @@ class Analysis(object):
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
 		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
 		# calculate mass lifetime weight 
-		self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree, both_lnc_lnv=False)
+		self.mass_lt_weight_LNC_only = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False)
+		self.mass_lt_weight_LNC_plus_LNV = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True)
 		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
-		self.logger.debug('Event weight for this signal sample is: {}'.format(self.mass_lt_weight))
+		self.logger.debug('LNC only event weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_only))
+		self.logger.debug('LNC+LNV event weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_plus_LNV))
 		if self.weight_override is None:
-			self.weight = self.mass_lt_weight*self.MCEventType.weight 
+			self.weight_LNC_only = self.mass_lt_weight_LNC_only*self.MCEventType.weight
+			self.weight_LNC_plus_LNV = self.mass_lt_weight_LNC_plus_LNV*self.MCEventType.weight
 		else: 
-			self.weight = self.weight_override
-		
+			self.weight_LNC_only = self.weight_override
+			self.weight_LNC_plus_LNV = self.weight_override
 
 	def DVSelection(self):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
@@ -1027,11 +1030,11 @@ class Analysis(object):
 			# fill event weight. storing this per dv as weights include dv scale factor.
 			
 			# fill the DV weight for LNC or LNV only model assumption (Dirac neutrino)
-			self.fill_hist(sel, 'DV_weight_LNC_only', self.weight)
+			self.fill_hist(sel, 'DV_weight_LNC_only', self.weight_LNC_only)
 			# fill the DV weight for LNC plus LNV signal model assumption (Majorana neutrino)
 			# extra factor of 1/2 is from the U, m , ctau releationship changing due to there being twice
 			# as many decay channels open if the HNL can decay both LNC and LNV
-			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV', 0.5*self.weight)
+			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV', self.weight_LNC_plus_LNV)
 			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
 			self.fill_hist(sel, 'event_is_LNV', self.MCEventType.isLNV)
 
