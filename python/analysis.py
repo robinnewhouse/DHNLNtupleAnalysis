@@ -306,16 +306,21 @@ class Analysis(object):
 		:param fill_ntuple: set to True if you want to simultaneously fill an ntuple with this variable
 		:param weight: Used to override weight calculation. Useful for storing actual weights which should not be themselves weighted.
 		"""
+		# use calculated weight for this event unless a weight is specified
+		event_weight = self.weight if weight is None else weight
 
 		# define here the directory structure where this histogram is stored.
 		directory = '{ch}/{selection}/'.format(ch=self.ch, selection=selection)
-		# add LNC or LNV directory for simulation. Not used for data.
-		if self.MCEventType.isLNC: directory += 'LNC/'
-		if self.MCEventType.isLNV: directory += 'LNV/'
-
-		# use calculated weight for this event unless a weight is specified
-		event_weight = self.weight if weight is None else weight
-		self.observables.fill_hist(directory, hist_name, variable_1, variable_2, event_weight)
+		# fill LNC histograms. Not used for data.
+		if self.MCEventType.isLNC: 
+			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, event_weight)
+		# fill LNV histograms. Not used for data.
+		if self.MCEventType.isLNV: 
+			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, event_weight)
+		if self.MCEventType.isLNC or self.MCEventType.isLNV: 
+			#fill LNC_plus_LNV histograms for every event
+			# U, m, ctau relationship changes becuase twice as many decay channels avaliable if HNL can decay via LNC and LNV
+			self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, 0.5*event_weight)
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
@@ -324,9 +329,14 @@ class Analysis(object):
 		if fill_ntuple and (variable_2 is None) and save_sel:
 			# Need selection to define ntuple tree
 			# TODO redo this method to use the directory correctly
-			if self.MCEventType.isLNC: self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNC")
-			elif self.MCEventType.isLNV: self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNV")
+			if self.MCEventType.isLNC: 
+				self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNC")
+				self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNC_plus_LNV")
+			elif self.MCEventType.isLNV: 
+				self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNV")
+				self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNC_plus_LNV")
 			else: self.fill_ntuple(selection, hist_name, variable_1)
+
 
 	def fill_ntuple(self, selection, ntuple_name, variable, mc_type=None, full_name=""):
 		"""
@@ -860,8 +870,12 @@ class Analysis(object):
 		# self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
 		
 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
-			if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
-			elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
+			if self.MCEventType.isLNC: 
+				self.micro_ntuples["LNC_"+sel].fill()
+				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
+			elif self.MCEventType.isLNV: 
+				self.micro_ntuples["LNV_"+sel].fill()
+				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 			else: self.micro_ntuples[sel].fill()
 			
 
@@ -995,8 +1009,12 @@ class Analysis(object):
 
 			# TODO: figure out a ntuple scheme that can store these variables as well
 		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
-			if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
-			elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
+			if self.MCEventType.isLNC: 
+				self.micro_ntuples["LNC_"+sel].fill()
+				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
+			elif self.MCEventType.isLNV: 
+				self.micro_ntuples["LNV_"+sel].fill()
+				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 			else: self.micro_ntuples[sel].fill()
 
 
@@ -1007,7 +1025,15 @@ class Analysis(object):
 			# these are the histograms you only want to fill ONCE per DV
 
 			# fill event weight. storing this per dv as weights include dv scale factor.
-			self.fill_hist(sel, 'DV_weight', self.weight)
+			
+			# fill the DV weight for LNC or LNV only model assumption (Dirac neutrino)
+			self.fill_hist(sel, 'DV_weight_LNC_only', self.weight)
+			# fill the DV weight for LNC plus LNV signal model assumption (Majorana neutrino)
+			# extra factor of 1/2 is from the U, m , ctau releationship changing due to there being twice
+			# as many decay channels open if the HNL can decay both LNC and LNV
+			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV', 0.5*self.weight)
+			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
+			self.fill_hist(sel, 'event_is_LNV', self.MCEventType.isLNV)
 
 			tracks = helpers.Tracks(self.tree)
 			tracks.getTracks()
@@ -1133,6 +1159,9 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_ee', DV_ee)
 				self.fill_hist(sel, 'DV_emu', DV_emu)
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
+
+				pass_lep_pt_cut = selections.DV_lep_pt(self.tree,self.dv_type).pass_pt_cut
+				self.fill_hist(sel, 'DV_pass_lep_pt', pass_lep_pt_cut)
 
 				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
 				dv = ROOT.TVector3(self.tree.dv('x'), self.tree.dv('y'), self.tree.dv('z'))
@@ -1350,8 +1379,12 @@ class Analysis(object):
 
 			# fill TTree with ntuple information. Already set by fill_hist
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':
-				if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
-				elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
+				if self.MCEventType.isLNC: 
+					self.micro_ntuples["LNC_"+sel].fill()
+					self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
+				elif self.MCEventType.isLNV: 
+					self.micro_ntuples["LNV_"+sel].fill()
+					self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 				else: self.micro_ntuples[sel].fill()
 
 			if sel == "sel":
@@ -1832,8 +1865,12 @@ class KShort(Analysis):
 			self.fill_hist(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
 
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
-				if self.MCEventType.isLNC: self.micro_ntuples["LNC_"+sel].fill()
-				elif self.MCEventType.isLNV: self.micro_ntuples["LNV_"+sel].fill()
+				if self.MCEventType.isLNC: 
+					self.micro_ntuples["LNC_"+sel].fill()
+					self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
+				elif self.MCEventType.isLNV: 
+					self.micro_ntuples["LNV_"+sel].fill()
+					self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 				else: self.micro_ntuples[sel].fill()
 
 

@@ -847,8 +847,8 @@ class DVmass():
 			return False
 
 class DV_lep_pt():
-	def __init__(self, tree, dv_type, el_pt_cut=3, mu_pt_cut = 3):
-		self.pass_pt = False
+	def __init__(self, tree, dv_type, el_pt_cut=4.5, mu_pt_cut = 3):
+		self.pass_pt_cut = False
 		
 		# get muons
 		muons = helpers.Tracks(tree)
@@ -863,14 +863,14 @@ class DV_lep_pt():
 		elVec = electrons.lepmatched_lepVec
 
 		if dv_type == "mumu":
-			self.pass_pt =  muVec[0].Pt() > mu_pt_cut and muVec[1].Pt() > mu_pt_cut
+			self.pass_pt_cut =  muVec[0].Pt() > mu_pt_cut and muVec[1].Pt() > mu_pt_cut
 		if dv_type == "emu":
-			self.pass_pt =  elVec[0].Pt() > el_pt_cut and muVec[0].Pt() > mu_pt_cut
+			self.pass_pt_cut =  elVec[0].Pt() > el_pt_cut and muVec[0].Pt() > mu_pt_cut
 		if dv_type == "ee":
-			self.pass_pt =  elVec[0].Pt() > el_pt_cut and elVec[1].Pt() > el_pt_cut
+			self.pass_pt_cut =  elVec[0].Pt() > el_pt_cut and elVec[1].Pt() > el_pt_cut
 
 	def passes(self):
-		return self.pass_pt
+		return self.pass_pt_cut
 
 class Mhnl():
 	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 20,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(),trks=[],use_tracks=False ):
