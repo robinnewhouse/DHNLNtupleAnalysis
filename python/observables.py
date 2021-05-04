@@ -26,7 +26,7 @@ class Observables:
 		# create histogram if it doesn't exist
 		if not directory + hist_name in self.histogram_dict:
 			self.add_histogram(directory, hist_name, is_2d=(variable_2 is not None))
-
+		
 		# retrieve the histogram from the collection
 		histogram = self.histogram_dict[directory + hist_name]
 		# fill 1d or 2d histogram
@@ -126,7 +126,10 @@ binning_definitions = {
 	'ptrk_z0': (2000, -1000, 1000),
 	'plep_charge': (3, -1.5, 1.5),
 	'plep_isTight': (2, -0.5, 1.5),
-	'DV_weight': (1, -10, 10),
+	'DV_weight_LNC': (1, -10, 10),
+	'DV_weight_LNC_plus_LNV': (1, -10, 10),
+	'event_is_LNC' : (2, -0.5, 1.5),
+	'event_is_LNV' : (2, -0.5, 1.5),
 	'DV_cosmic_sep': (1000, 0, 10),
 	'DV_alpha': (350, 0, 3.5),
 	'DV_pass_mat_veto' : (2, -0.5, 1.5),
@@ -193,6 +196,7 @@ binning_definitions = {
 	'DV_ee': (2, -0.5, 1.5),
 	'DV_emu': (2, -0.5, 1.5),
 	'DV_1lep': (2, -0.5, 1.5),
+	'DV_pass_lep_pt' : (2, -0.5, 1.5),
 	'DV_trk_max_chi2_toSV': (600, 0, 30),
 	'DV_trk_min_chi2_toSV': (600, 0, 30),
 	'DV_trk_max_d0_wrtSV': (1000, -50, 50),
