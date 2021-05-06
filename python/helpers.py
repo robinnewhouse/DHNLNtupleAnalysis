@@ -64,7 +64,7 @@ def get_mass_lt_weight(tree, both_lnc_lnv=False):
 	# by default mc campagin is set to 1; if you dont set your mc campaign, then scale using L= 1 fb^-1
 	lumi[None] = 1.0
 
-	if tree.is_data:  # you are running on data
+	if tree.is_data or tree.not_hnl_mc:  # you are running on data non non-hnl MC
 		weight = 1
 	else:  # you are running on MC file
 		if mass == -1 or ctau == -1:  # MC weighting error
