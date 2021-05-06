@@ -1,4 +1,3 @@
-# from ROOT import*
 import ROOT
 import numpy as np
 import os
@@ -7,8 +6,7 @@ import helpers
 import selections
 import observables
 import ntuples
-import time
-
+import systematics
 
 UNLOCKED = 0
 SELECTION_LOCKED = 1
@@ -1410,9 +1408,25 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
 			self.fill_hist(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
 
+			# ____________________________________________________________
+			# Systematics
+
 			# Calculate weight for tracking/vertexing uncertainties
-			vertexing_uncertainty = helpers.get_vertexing_uncertainty(self.tree.dv('r'), self.tree.dv('pt'))
+			vertexing_uncertainty = systematics.get_vertexing_uncertainty(self.tree.dv('r'), self.tree.dv('pt'))
 			self.fill_hist(sel, 'DV_vertexing_uncertainty', vertexing_uncertainty, weight=1)
+
+			# Calculate weight for displaced lepton identification uncertainties
+			lepton_0_type, lepton_1_type = '', ''
+			if self.dv_type == "mumu": lepton_0_type, lepton_1_type = 'muon', 'muon'
+			if self.dv_type == "emu": lepton_0_type, lepton_1_type = 'muon', 'electron'
+			if self.dv_type == "ee": lepton_0_type, lepton_1_type = 'electron', 'electron'
+
+			displaced_lepton_uncertainty = systematics.get_combined_displaced_lepton_uncertainty(
+				self.tree.dv('trk_d0')[0], lepton_0_type,
+				self.tree.dv('trk_d0')[1], lepton_1_type
+			)
+			self.fill_hist(sel, 'displaced_lepton_uncertainty', displaced_lepton_uncertainty, weight=1)
+
 
 			# fill TTree with ntuple information. Already set by fill_hist
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':
