@@ -733,7 +733,7 @@ class Mlll():
 	The invariant mass of the prompt lepton and both diplaced leptons.
 	"""
 
-	def __init__(self, dv_type, plep, dMu, dEl, decaymode="leptonic", minmlll=50, maxmlll=84):
+	def __init__(self, dv_type, plep, dMu, dEl, decaymode="leptonic", minmlll=50, maxmlll=84,invert=False):
 		self.decaymode = decaymode
 		self.dv_type = dv_type
 		self.plep = plep
@@ -741,6 +741,7 @@ class Mlll():
 		self.dEl = dEl
 		self.minmlll = minmlll
 		self.maxmlll = maxmlll
+		self.invert =  invert
 
 		self.mlll = -1
 		self.mtrans = -1
@@ -761,11 +762,10 @@ class Mlll():
 			self.mtrans = self.plll.Perp()
 
 	def passes(self):
-
-		if self.mlll > self.minmlll and self.mlll < self.maxmlll:
-			return True
-		else:
-			return False
+		if not self.invert: 
+			return (self.mlll > self.minmlll and self.mlll < self.maxmlll)
+		else: 
+			return (self.mlll < self.minmlll or self.mlll > self.maxmlll)
 
 
 class Mat_veto():

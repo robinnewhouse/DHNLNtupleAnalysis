@@ -93,55 +93,6 @@ class Analysis(object):
 
 		self.do_same_event_cut =  "SE" in self.sel
 		self.do_different_event_cut =  "DE" in self.sel
-
-	
-		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
-			self.do_CR = True
-			self.tree.fake_aod = False
-			self.do_trigger_cut = False  # do not apply trigger cut
-			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
-			self.do_filter_cut = False  # do not apply filter cut
-			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
-			self.do_invert_prompt_lepton_cut = True  # invert prompt lepton cut
-			if 'ptrack' in self.sel: 
-				self.do_prompt_track_cut = True # apply prompt track cut
-			else: 
-				self.do_prompt_track_cut = False # DO NOT apply prompt track cut
-			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
-		elif "CR_BE" in self.sel: # if running on fakeAOD that already has CR cuts applied (be careful with this setting!!!!!)
-			self.tree.fake_aod = True
-			self.do_CR = True
-			self.do_trigger_cut = False  # do not apply trigger cut
-			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
-			self.do_filter_cut = False  # do not apply filter cut
-			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
-			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
-			self.do_prompt_track_cut = False # do not apply prompt track cut
-			self.logger.info('You are running on a fake AOD created from events in the inverted prompt lepton control region!')
-		elif "BE" in self.sel: # if running on fakeAOD without any CR cuts applied
-			if "realDAOD" in self.sel:
-				self.logger.info('You are running the background analysis on a real AOD created from events in the signal region!')
-				self.tree.fake_aod = False
-				self.do_trigger_cut = False  # apply a trigger cut
-			else:
-				self.logger.info('You are running the background analysis on a fake AOD created from events in the signal region!')
-				self.tree.fake_aod = True
-				self.do_trigger_cut = False  # apply a trigger cut
-			self.do_CR = False
-			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
-			self.do_filter_cut = False  # do not apply filter cut, not sure if we need this for BE -DT
-			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut, dont apply this cut no prompt leptons in the fake DAODs yet... -DT
-			self.do_invert_prompt_lepton_cut = False  # no fake leptons in DAODs... -DT
-			self.do_prompt_track_cut = False # do not apply prompt track cut
-			
-			if "OS" in self.sel: raise ValueError("This analysis is blinded! You cannot look at OS DV from data events!!") # another blinded check -DT
-
-		else:
-			self.do_CR = False
-			self.tree.fake_aod = False
-			self.do_invert_prompt_lepton_cut = False
-			self.do_invert_trigger_cut = False
-			self.do_prompt_track_cut = False 
 		
 		# mass window cut
 		self.do_mass_window_cut = 'mass_window' in self.sel
@@ -173,27 +124,6 @@ class Analysis(object):
 		self.do_same_sign_cut = 'SS' in self.sel
 		if not (self.do_opposite_sign_cut or self.do_same_sign_cut):
 			self.logger.warn('You did not add an SS or OS track cut. Skipping SS/OS track selection.')
-
-		if self.do_CR: 
-			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
-				self.be_region = "RegionAprime"
-			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
-				self.be_region = "RegionBprime"
-			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
-				self.be_region = "RegionCprime"
-			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
-				self.be_region = "RegionDprime"
-		else: 
-			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
-				self.be_region = "RegionA"
-				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
-			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
-				self.be_region = "RegionB"
-			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
-				self.be_region = "RegionC"
-				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
-			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
-				self.be_region = "RegionD"
 
 		# DV type
 		self.do_dv_type_cut = True
@@ -263,7 +193,7 @@ class Analysis(object):
 
 		# tri-lepton mass cut
 		self.do_trilepton_mass_cut = 'mlll' in self.sel
-		if not self.do_trilepton_mass_cut  and "CR" not in self.sel:
+		if not self.do_trilepton_mass_cut  and ("CR" not in self.sel or "inverted_mlll" not in self.sel):
 			self.logger.warn('You did not add a mlll cut for this channel. Skipping tri-lepton mass selection.')
 		# material veto cut
 		self.do_mat_veto_cut = "matveto" in self.sel
@@ -284,6 +214,88 @@ class Analysis(object):
 
 		# HNL pT cut
 		self.do_HNL_pt_cut = 'HNLpt' in self.sel
+
+		if 'CR' in self.sel:  # DO NOT CHANGE THESE CUTS OR YOU MIGHT UNBLIND DATA!!!
+			self.do_CR = True
+			self.tree.fake_aod = False
+			self.do_trigger_cut = False  # do not apply trigger cut
+			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
+			self.do_filter_cut = False  # do not apply filter cut
+			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
+			self.do_invert_prompt_lepton_cut = True  # invert prompt lepton cut
+			self.do_inverted_mlll_cut = False
+			if 'ptrack' in self.sel: 
+				self.do_prompt_track_cut = True # apply prompt track cut
+			else: 
+				self.do_prompt_track_cut = False # DO NOT apply prompt track cut
+			self.logger.info('You are setup up to look in the inverted prompt lepton control region!')
+		elif "CR_BE" in self.sel: # if running on fakeAOD that already has CR cuts applied (be careful with this setting!!!!!)
+			self.tree.fake_aod = True
+			self.do_CR = True
+			self.do_trigger_cut = False  # do not apply trigger cut
+			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
+			self.do_filter_cut = False  # do not apply filter cut
+			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
+			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
+			self.do_prompt_track_cut = False # do not apply prompt track cut
+			self.do_inverted_mlll_cut = False
+			self.logger.info('You are running on a fake AOD created from events in the inverted prompt lepton control region!')
+		elif "BE" in self.sel: # if running on fakeAOD without any CR cuts applied
+			if "realDAOD" in self.sel:
+				self.logger.info('You are running the background analysis on a real AOD created from events in the signal region!')
+				self.tree.fake_aod = False
+				self.do_trigger_cut = False  # apply a trigger cut
+			else:
+				self.logger.info('You are running the background analysis on a fake AOD created from events in the signal region!')
+				self.tree.fake_aod = True
+				self.do_trigger_cut = False  # apply a trigger cut
+			self.do_CR = False
+			self.do_invert_trigger_cut = False  # do not apply inverted trigger cut
+			self.do_filter_cut = False  # do not apply filter cut, not sure if we need this for BE -DT
+			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut, dont apply this cut no prompt leptons in the fake DAODs yet... -DT
+			self.do_invert_prompt_lepton_cut = False  # no fake leptons in DAODs... -DT
+			self.do_prompt_track_cut = False # do not apply prompt track cut
+			self.do_inverted_mlll_cut = False
+			
+			if "OS" in self.sel: raise ValueError("This analysis is blinded! You cannot look at OS DV from data events!!") # another blinded check -DT
+		elif "inverted_mlll" in self.sel: 
+			self.logger.warning('You are looking at a validation region with a SR pre-selection and an inverted m_lll cut!')
+			self.do_CR = False
+			self.tree.fake_aod = False
+			self.do_invert_prompt_lepton_cut = False
+			self.do_invert_trigger_cut = False
+			self.do_prompt_track_cut = False 
+			self.do_inverted_mlll_cut = True
+			self.do_trilepton_mass_cut = False
+			self.saveNtuples = "mvis" # only save ntuples after mlll selection is applied!
+		else:
+			self.do_CR = False
+			self.tree.fake_aod = False
+			self.do_invert_prompt_lepton_cut = False
+			self.do_invert_trigger_cut = False
+			self.do_prompt_track_cut = False 
+			self.do_inverted_mlll_cut = False
+
+		if self.do_CR: 
+			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionAprime"
+			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionBprime"
+			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionCprime"
+			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionDprime"
+		else: 
+			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionA"
+				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
+			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
+				self.be_region = "RegionB"
+			elif self.do_opposite_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionC"
+				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
+			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
+				self.be_region = "RegionD"
 
 		self.check_input_consistency()
 
@@ -377,6 +389,11 @@ class Analysis(object):
 		if self.do_opposite_sign_cut and self.do_same_sign_cut:
 			self.logger.error("These cuts are mutually exclusive. You will get zero events!")
 			sys.exit(1)  # abort because of error
+
+		if self.do_inverted_mlll_cut and self.do_trilepton_mass_cut: 
+			self.logger.error("Cannot invert mlll cut and also do mlll cut. These cuts are mutually exclusive!")
+			sys.exit(1)  # abort because of error
+
 
 	def unlock(self):
 		self._locked = UNLOCKED
@@ -539,6 +556,20 @@ class Analysis(object):
 		elVec = electrons.lepVec
 
 		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec,minmlll=25,maxmlll=125)
+		return mlll_sel.passes()
+	
+	def _invert_trilepton_mass_cut(self):
+		plep_vec = self.plep_sel.plepVec
+
+		muons = helpers.Tracks(self.tree)
+		muons.getMuons()
+		muVec = muons.lepVec
+
+		electrons = helpers.Tracks(self.tree)
+		electrons.getElectrons()
+		elVec = electrons.lepVec
+
+		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec,minmlll=25,maxmlll=125, invert=True)
 		return mlll_sel.passes()
 
 	def _mat_veto_cut(self):
@@ -1449,14 +1480,18 @@ class run2Analysis(Analysis):
 			if not self.dv_type == "ee": qual_bin = 14
 			else: qual_bin = 15
 			self.CutFlow.GetXaxis().SetBinLabel(qual_bin, "{}-lepton DV".format(self.track_quality))
-		if self.do_alpha_cut:
-			if not self.dv_type == "ee": alpha_bin = 15
-			else: alpha_bin = 16
-			self.CutFlow.GetXaxis().SetBinLabel(alpha_bin, "alpha")
 		if self.do_trilepton_mass_cut:
-			if not self.dv_type == "ee": mlll_bin = 16
-			else: mlll_bin = 17
+			if not self.dv_type == "ee": mlll_bin = 15
+			else: mlll_bin = 16
 			self.CutFlow.GetXaxis().SetBinLabel(mlll_bin, "m_{lll}")
+		if self.do_inverted_mlll_cut:
+			if not self.dv_type == "ee": mlll_bin = 15
+			else: mlll_bin = 16
+			self.CutFlow.GetXaxis().SetBinLabel(mlll_bin, "inverted m_{lll}")
+		if self.do_alpha_cut:
+			if not self.dv_type == "ee": alpha_bin = 16
+			else: alpha_bin = 17
+			self.CutFlow.GetXaxis().SetBinLabel(alpha_bin, "alpha")
 		if self.do_dv_mass_cut:
 			if not self.dv_type == "ee": mdv_bin = 17
 			else: mdv_bin = 18
@@ -1530,7 +1565,7 @@ class run2Analysis(Analysis):
 				if not self.passed_dv_type_cut:
 					self._fill_cutflow(10)
 					self.passed_dv_type_cut = True
-					self._fill_selected_dv_histos("DVtype")
+					# self._fill_selected_dv_histos("DVtype")
 					# Select this DV as the DV for the event!
 					self.selected_dv_index = self.tree.idv
 			else:
@@ -1541,7 +1576,7 @@ class run2Analysis(Analysis):
 				if not self.passed_cosmic_veto_cut:
 					self._fill_cutflow(11)
 					self.passed_cosmic_veto_cut = True
-					self._fill_selected_dv_histos("cosmic")
+					# self._fill_selected_dv_histos("cosmic")
 			else:
 				return
 
@@ -1550,7 +1585,7 @@ class run2Analysis(Analysis):
 				if not self.passed_dlep_pt_cut:
 					self._fill_cutflow(12)
 					self.passed_lep_pt_cut = True
-					self._fill_selected_dv_histos("DVlep_pt")
+					# self._fill_selected_dv_histos("DVlep_pt")
 			else:
 				return
 
@@ -1559,7 +1594,7 @@ class run2Analysis(Analysis):
 				if not self.passed_mat_veto_cut:
 					self._fill_cutflow(13)
 					self.passed_mat_veto_cut = True
-					self._fill_selected_dv_histos("matveto")
+					# self._fill_selected_dv_histos("matveto")
 			else:
 				return
 
@@ -1569,30 +1604,41 @@ class run2Analysis(Analysis):
 					if not self.dv_type == "ee": self._fill_cutflow(13)
 					else: self._fill_cutflow(13+1)
 					self.passed_track_quality_cut = True
-					self._fill_selected_dv_histos("trkqual")
-			else:
-				return
-
-		if self.do_alpha_cut:
-			if self._alpha_cut():
-				if not self.passed_alpha_cut:
-					if not self.dv_type == "ee": self._fill_cutflow(14)
-					else: self._fill_cutflow(14+1)
-					self.passed_alpha_cut = True
-					self._fill_selected_dv_histos("alpha")
+					# self._fill_selected_dv_histos("trkqual")
 			else:
 				return
 
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
-					if not self.dv_type == "ee": self._fill_cutflow(15)
-					else: self._fill_cutflow(15+1)
+					if not self.dv_type == "ee": self._fill_cutflow(14)
+					else: self._fill_cutflow(14+1)
+					self.passed_trilepton_mass_cut = True
+					self._fill_selected_dv_histos("mvis")
+			else:
+				return
+		
+		if self.do_inverted_mlll_cut:
+			if self._invert_trilepton_mass_cut():
+				if not self.passed_trilepton_mass_cut:
+					if not self.dv_type == "ee": self._fill_cutflow(14)
+					else: self._fill_cutflow(14+1)
 					self.passed_trilepton_mass_cut = True
 					self._fill_selected_dv_histos("mvis")
 			else:
 				return
 
+
+		if self.do_alpha_cut:
+			if self._alpha_cut():
+				if not self.passed_alpha_cut:
+					if not self.dv_type == "ee": self._fill_cutflow(15)
+					else: self._fill_cutflow(15+1)
+					self.passed_alpha_cut = True
+					self._fill_selected_dv_histos("alpha")
+			else:
+				return
+		
 		if self.do_dv_mass_cut:
 			if self._dv_mass_cut():
 				if not self.passed_dv_mass_cut:
