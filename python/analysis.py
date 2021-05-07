@@ -1123,21 +1123,32 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_redmassvis', Mlll.mlll/dR)
 						self.fill_hist(sel, 'DV_redmassHNL', Mhnl.mhnl/dR)
 
-				for el in range(len(elVec)):
-					el_plep_vec = elVec[el] + plep_vec
-					el_plep_same_charge = int(plepcharge) ==  int(electrons.lepCharge[el])
-					el_plep_diff_charge = not el_plep_same_charge
-					self.fill_hist(sel, 'mll_dEl_plep_OS', el_plep_diff_charge )
-					self.fill_hist(sel, 'mll_dEl_plep_SS', el_plep_same_charge )
-					self.fill_hist(sel, 'mll_dEl_plep', el_plep_vec.M() )
-
-				for mu in range(len(muVec)):
-					mu_plep_vec = muVec[mu] + plep_vec
-					mu_plep_same_charge = int(plepcharge) ==  int(muons.lepCharge[mu])
+				# get invariant mass between prompt lepton + same flavour displaced lepton for Z->ll veto
+				if self.plep == 'muon' and len(muVec) > 0:
+					if len(muVec) == 1: mu_index = 0
+					elif len(muVec) == 2:
+						if muVec[0].Pt() >  muVec[1].Pt(): mu_index = 0
+						else: mu_index = 1
+					#get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
+					mu_plep_vec = muVec[mu_index] + plep_vec
+					mu_plep_same_charge = int(plepcharge) ==  int(muons.lepCharge[mu_index])
 					mu_plep_diff_charge = not mu_plep_same_charge
-					self.fill_hist(sel, 'mll_dMu_plep_OS', mu_plep_diff_charge )
-					self.fill_hist(sel, 'mll_dMu_plep_SS', mu_plep_same_charge )
+					self.fill_hist(sel, 'mll_dMu_plep_is_OS', mu_plep_diff_charge)
+					self.fill_hist(sel, 'mll_dMu_plep_is_SS', mu_plep_same_charge)
 					self.fill_hist(sel, 'mll_dMu_plep', mu_plep_vec.M() )
+
+				if self.plep == 'electron' and len(elVec) > 0:
+					if len(elVec) == 1: el_index = 0
+					elif len(elVec) == 2:
+						if elVec[0].Pt() >  elVec[1].Pt(): el_index = 0
+						else: el_index = 1
+					#get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
+					el_plep_vec = elVec[el_index] + plep_vec
+					el_plep_same_charge = int(plepcharge) ==  int(electrons.lepCharge[el_index])
+					el_plep_diff_charge = not el_plep_same_charge
+					self.fill_hist(sel, 'mll_dEl_plep_is_OS', el_plep_diff_charge)
+					self.fill_hist(sel, 'mll_dEl_plep_is_SS', el_plep_same_charge)
+					self.fill_hist(sel, 'mll_dEl_plep', el_plep_vec.M() )
 
 			if self.do_prompt_track_cut: 
 				ptrk_vec = self.ptrk_sel.trkVec
