@@ -115,11 +115,12 @@ def main():
 				# if "CR_BE" in selections: 
 				# 	pass 
 				# else: 
-				if "OS" in selections or "SS" not in selections:
-					logger.error("You are running on data and you cannot look at OS vertices!!! "
-								"Please include 'SS', not 'OS' in selections, "
-								"or add 'CR' if you are trying to look in the control region.")
-					sys.exit(1)  # abort because of error
+				if not "inverted_mlll" in selections: 
+					if "OS" in selections or "SS" not in selections:
+						logger.error("You are running on data and you cannot look at OS vertices!!! "
+									"Please include 'SS', not 'OS' in selections, "
+									"or add 'CR' if you are trying to look in the control region.")
+						sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
 			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file, options.saveNtuples, weight_override=options.weight)

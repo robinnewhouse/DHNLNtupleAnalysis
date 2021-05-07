@@ -151,11 +151,13 @@ def get_mass_lt_weight(tree,lnc_plus_lnv=False):
 	lumi[None] = 1.0
 
 	if tree.is_data:  # you are running on data
-		weight = 1
+		weight_LNC_only = 1
+		weight_LNC_plus_LNV = 1
 	else:  # you are running on MC file
 		if mass == -1 or ctau == -1:  # MC weighting error
 			logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
-			weight = 1
+			weight_LNC_only = 1
+			weight_LNC_plus_LNV = 1
 		else:
 			#calculate Gronau coupling; parametrization depends on coupling flavour you are probing
 			if channel == "uuu" or channel == "uue":
