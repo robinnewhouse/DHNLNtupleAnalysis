@@ -1565,7 +1565,7 @@ class run2Analysis(Analysis):
 				if not self.passed_dv_type_cut:
 					self._fill_cutflow(10)
 					self.passed_dv_type_cut = True
-					# self._fill_selected_dv_histos("DVtype")
+					self._fill_selected_dv_histos("DVtype")
 					# Select this DV as the DV for the event!
 					self.selected_dv_index = self.tree.idv
 			else:
@@ -1576,7 +1576,7 @@ class run2Analysis(Analysis):
 				if not self.passed_cosmic_veto_cut:
 					self._fill_cutflow(11)
 					self.passed_cosmic_veto_cut = True
-					# self._fill_selected_dv_histos("cosmic")
+					self._fill_selected_dv_histos("cosmic")
 			else:
 				return
 
@@ -1585,7 +1585,7 @@ class run2Analysis(Analysis):
 				if not self.passed_dlep_pt_cut:
 					self._fill_cutflow(12)
 					self.passed_lep_pt_cut = True
-					# self._fill_selected_dv_histos("DVlep_pt")
+					self._fill_selected_dv_histos("DVlep_pt")
 			else:
 				return
 
@@ -1594,7 +1594,7 @@ class run2Analysis(Analysis):
 				if not self.passed_mat_veto_cut:
 					self._fill_cutflow(13)
 					self.passed_mat_veto_cut = True
-					# self._fill_selected_dv_histos("matveto")
+					self._fill_selected_dv_histos("matveto")
 			else:
 				return
 
