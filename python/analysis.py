@@ -1076,10 +1076,12 @@ class Analysis(object):
 			muons = helpers.Tracks(self.tree)
 			muons.getMuons()
 			muVec = muons.lepVec
+			muVec_lepmatched = muons.lepmatched_lepVec
 
 			electrons = helpers.Tracks(self.tree)
 			electrons.getElectrons()
 			elVec = electrons.lepVec
+			elVec_lepmatched = electrons.lepmatched_lepVec
 
 
 			# fill histograms that require a prompt lepton to be identified
@@ -1127,7 +1129,7 @@ class Analysis(object):
 				if self.plep == 'muon' and len(muVec) > 0:
 					if len(muVec) == 1: mu_index = 0
 					elif len(muVec) == 2:
-						if muVec[0].Pt() >  muVec[1].Pt(): mu_index = 0
+						if muVec_lepmatched[0].Pt() >  muVec_lepmatched[1].Pt(): mu_index = 0
 						else: mu_index = 1
 					#get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
 					mu_plep_vec = muVec[mu_index] + plep_vec
@@ -1140,7 +1142,7 @@ class Analysis(object):
 				if self.plep == 'electron' and len(elVec) > 0:
 					if len(elVec) == 1: el_index = 0
 					elif len(elVec) == 2:
-						if elVec[0].Pt() >  elVec[1].Pt(): el_index = 0
+						if elVec_lepmatched[0].Pt() >  elVec_lepmatched[1].Pt(): el_index = 0
 						else: el_index = 1
 					#get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
 					el_plep_vec = elVec[el_index] + plep_vec
