@@ -55,7 +55,8 @@ def main():
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
 		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass,
-											channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents)
+											channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents, br=file_info.br)
+		logger.info('Mass dependent BR: {}'.format(file_info.br))
 
 		# create one output file per channel in your config file
 		if "SSbkg" in options.config.split("config")[1]:
@@ -113,11 +114,12 @@ def main():
 				# if "CR_BE" in selections: 
 				# 	pass 
 				# else: 
-				if "OS" in selections or "SS" not in selections:
-					logger.error("You are running on data and you cannot look at OS vertices!!! "
-								"Please include 'SS', not 'OS' in selections, "
-								"or add 'CR' if you are trying to look in the control region.")
-					sys.exit(1)  # abort because of error
+				if not "inverted_mlll" in selections: 
+					if "OS" in selections or "SS" not in selections:
+						logger.error("You are running on data and you cannot look at OS vertices!!! "
+									"Please include 'SS', not 'OS' in selections, "
+									"or add 'CR' if you are trying to look in the control region.")
+						sys.exit(1)  # abort because of error
 
 			# Make instance of the analysis class
 			ana = anaClass(options.analysis, tree, vtx_container, selections, output_file, options.saveNtuples, weight_override=options.weight)

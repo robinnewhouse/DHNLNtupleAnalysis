@@ -1,7 +1,7 @@
 {
    
     "RegionD_ee":{
-                "vtx_containers" : [ "VSI_LeptonsMod","VSI_Leptons"],
+                "vtx_containers" : [ "VSI_LeptonsMod"],
                 "selections":["BE","fidvol","nDV","2track","SS","DE", "ee"]
     
              }

@@ -344,30 +344,24 @@ class PromptLepton():
 			return True
 		else: 
 			return False
-		
-class Alpha():
-	def __init__(self, tree, max_alpha=0.01):
-		self.max_alpha = max_alpha
-		# calculate alpha
-		# secondary vertex position vector
-		sv_vector = ROOT.TVector3(tree.dv('x'),
-								  tree.dv('y'),
-								  tree.dv('z'))
-		# primary vertex position vector
-		pv_vector = ROOT.TVector3(tree['vertex_x'],
-								  tree['vertex_y'],
-								  tree['vertex_z'])
-		# vector from pv to sv
-		pv_sv_vector = sv_vector - pv_vector
 
-		# vector difference between momentum vector and position vector		
-		alpha = pv_sv_vector.Phi() - tree.dv('phi')
-		# put in -pi to pi range
-		self.alpha = (alpha + np.pi/2) % np.pi*2 - np.pi
+	
+class Alpha():
+	def __init__(self, tree, max_alpha=0.5):
+		self.max_alpha = max_alpha
+		# compute alpha (3D angle between DV 3-momentum and rDV)
+		dv = ROOT.TVector3( tree.dv('x'), tree.dv('y'),  tree.dv('z') )
+		pv = ROOT.TVector3( tree['vertex_x'], tree['vertex_y'],  tree['vertex_z'])
+		decay_vector = dv-pv
+
+		dv_4vec = ROOT.TLorentzVector()
+		dv_4vec.SetPtEtaPhiM(tree.dv('pt'), tree.dv('eta'),tree.dv('phi'), tree.dv('mass'))
+		dv_mom_vec =  ROOT.TVector3( dv_4vec.Px(),  dv_4vec.Py(),  dv_4vec.Pz() )
+		self.alpha = decay_vector.Angle(dv_mom_vec)
 
 	def passes(self):
 		# pass if alpha is less than the sent cut
-		return abs(self.alpha) < self.max_alpha
+		return self.alpha < self.max_alpha
 
 
 class DVradius():
@@ -739,7 +733,7 @@ class Mlll():
 	The invariant mass of the prompt lepton and both diplaced leptons.
 	"""
 
-	def __init__(self, dv_type, plep, dMu, dEl, decaymode="leptonic", minmlll=50, maxmlll=84):
+	def __init__(self, dv_type, plep, dMu, dEl, decaymode="leptonic", minmlll=50, maxmlll=84,invert=False):
 		self.decaymode = decaymode
 		self.dv_type = dv_type
 		self.plep = plep
@@ -747,6 +741,7 @@ class Mlll():
 		self.dEl = dEl
 		self.minmlll = minmlll
 		self.maxmlll = maxmlll
+		self.invert =  invert
 
 		self.mlll = -1
 		self.mtrans = -1
@@ -767,11 +762,10 @@ class Mlll():
 			self.mtrans = self.plll.Perp()
 
 	def passes(self):
-
-		if self.mlll > self.minmlll and self.mlll < self.maxmlll:
-			return True
-		else:
-			return False
+		if not self.invert: 
+			return (self.mlll > self.minmlll and self.mlll < self.maxmlll)
+		else: 
+			return (self.mlll < self.minmlll or self.mlll > self.maxmlll)
 
 
 class Mat_veto():
@@ -852,183 +846,39 @@ class DVmass():
 		else:
 			return False
 
-
-class Mhnl_old():
-	def __init__(self, tree, plep, trks, hnlmasscut=4):
-
-		self.plep = plep
-		self.trks = trks
-		self.hnlmasscut = hnlmasscut
-
-		self.mvis = -1 
-		self.mhnl = -1
-		self.mhnl2 = -1
-		self.hnlpt = -1
-		self.hnleta = -99
-		self.hnlphi = -99
-		self.mtrans_rot = -1 
-		self.neg_mhnl12 = -1
-		self.neg_mhnl13 = -1
-		self.neg_mhnl23 = -1
-		self.pos_mhnl12 = -1
-		self.pos_mhnl13 = -1
-		self.pos_mhnl23 = -1
-
-		self.nu_vec = ROOT.TLorentzVector()
-		self.nu_vec2 = ROOT.TLorentzVector()
-
-		def rotate_vector(r,v):
-			r_new = ROOT.TVector3(v)
-			rotation_axis = ROOT.TVector3(-1*r.Y(),r.X(),0.0)
-			rotation_angle = -1*r.Theta() 
-			r_new.Rotate(rotation_angle,rotation_axis)
-			
-			if (r== v and r_new.X() > 0.001): 
-				#if r=v then you should end up with a vector all in the z component
-				logger.error("Roatating vectors did not work!! Check HNL mass calculation.")
-			return r_new
-
-		def unrotate_vector(r,v):
-			r_new = v
-
-			rotation_axis = ROOT.TVector3(-1*r.Y(),r.X(),0.0)
-			rotation_angle = r.Theta() 
-			r_new.Rotate(rotation_angle,rotation_axis)
+class DV_lep_pt():
+	def __init__(self, tree, dv_type, el_pt_cut=4.5, mu_pt_cut = 3):
+		self.pass_pt_cut = False
 		
-			return r_new
+		# get muons
+		muons = helpers.Tracks(tree)
+		muons.getMuons()
+		# get lep matched 4 vector
+		muVec = muons.lepmatched_lepVec
 
-		# primary vertex vector
-		dv_vec = ROOT.TVector3(tree.dv('x'),
-							   tree.dv('y'),
-							   tree.dv('z'))
-		# primary vertex position vector
-		pv_vec = ROOT.TVector3(tree['vertex_x'],
-							   tree['vertex_y'],
-							   tree['vertex_z'])
+		# get electrons
+		electrons = helpers.Tracks(tree)
+		electrons.getElectrons()
+		# get lep matched 4 vector
+		elVec = electrons.lepmatched_lepVec
 
-		# vector defining direction hnl trajectory
-		hnl_vec =  dv_vec- pv_vec
-		
-		lepp_vec = ROOT.TVector3(plep.Px(),plep.Py(),plep.Pz()) 
-		trkp_vec = []
-		ntrk = len(self.trks)
-		for i in range(ntrk):
-			trkp_vec.append( ROOT.TVector3(self.trks[i].Px(),self.trks[i].Py(),self.trks[i].Pz()) )
-
-		# print "Original DV vector: (", hnl_vec.X(),",", hnl_vec.Y(),",",hnl_vec.Z() , ")"
-
-		#rotate coordinate system so hnl vector = z-axis
-		lepp_vec_rot = rotate_vector(hnl_vec,lepp_vec)
-		hnl_vec_rot = rotate_vector(hnl_vec,hnl_vec)
-		trkp_vec_rot = []
-		for i in range(ntrk):
-			trkp_vec_rot.append(rotate_vector(hnl_vec,trkp_vec[i]))
-
-		# check hnl_vec_rot is all in z component (x & y maybe be very small (~10^-15) due to precision when rotating vector)
-		# print "New vector: (", hnl_vec_rot.X(),",", hnl_vec_rot.Y(),",",hnl_vec_rot.Z() , ")"
-
-		# neutrino x-y momentum in rotated plane equals -1* sum of visible x-y momentum 
-		pnu_rot = ROOT.TLorentzVector() 
-		pnu_rot_x = -1*trkp_vec_rot[0].Px()-trkp_vec_rot[1].Px()
-		pnu_rot_y = -1*trkp_vec_rot[0].Py()-trkp_vec_rot[1].Py()
-
-		pnu_rot.SetPx(pnu_rot_x)
-		pnu_rot.SetPy(pnu_rot_y)
-
-		#make 4 vectors for visible particles in the rotated coordinate system (assume m = 0)
-		plep_rot = ROOT.TLorentzVector(lepp_vec_rot,lepp_vec_rot.Mag())
-		ptk1_rot = ROOT.TLorentzVector(trkp_vec_rot[0],trkp_vec_rot[0].Mag())
-		ptk2_rot = ROOT.TLorentzVector(trkp_vec_rot[1],trkp_vec_rot[1].Mag())
-
-		# make 4-vector for the visible particles in rotated coordinate system
-		pvis_rot = plep_rot + ptk1_rot + ptk2_rot
-		self.mvis = pvis_rot.M() # visible mass of the system
-		self.mtrans_rot = pvis_rot.Perp() 
-
-		# solve pw = pvis + pnu to find pnu_z
-		m_w = 80.379 # mass of W boson in GeV
-		K = (m_w**2 - self.mvis**2)/2 + pvis_rot.Px()*pnu_rot.Px() + pvis_rot.Py()*pnu_rot.Py()
-		A = pvis_rot.Pz()**2 - pvis_rot.E()**2
-		B = 2*K*pvis_rot.Pz()
-		C = K**2 - pvis_rot.E()**2*(pnu_rot.Px()**2+ pnu_rot.Py()**2)
-
-		# two solutions to the quadratic equation
-		if (B**2 - 4*A*C) < 0: 
-			#pw != pvis+ pnu so we can't solve quadratic
-			return
-		else: 
-			pnu_rot_z1= (-B + np.sqrt(B**2 - 4*A*C) )/(2*A) 
-			pnu_rot_z2= (-B - np.sqrt(B**2 - 4*A*C) )/(2*A)
-
-			# two solutions for neutrino momentum vector
-			pnu_rot1_vec = ROOT.TVector3(pnu_rot_x,pnu_rot_y,pnu_rot_z1) 
-			pnu_rot2_vec = ROOT.TVector3(pnu_rot_x,pnu_rot_y,pnu_rot_z2) 
-
-			# make a 4-vector for the neutrino
-			pnu_rot1 = ROOT.TLorentzVector(pnu_rot1_vec,pnu_rot1_vec.Mag())
-			pnu_rot2 = ROOT.TLorentzVector(pnu_rot2_vec,pnu_rot2_vec.Mag())
-
-			# 2 solutions for HNL 4-vector
-			pHNL_1 = ptk1_rot + ptk2_rot + pnu_rot1 # postive root
-			pHNL_2 = ptk1_rot + ptk2_rot + pnu_rot2 # negative root
-						#1        #2          #3
-			
-			neg_mhnl12_vec = ptk1_rot + ptk2_rot
-			neg_mhnl13_vec = ptk1_rot + pnu_rot2
-			neg_mhnl23_vec = ptk2_rot + pnu_rot2
-
-
-			pos_mhnl12_vec = ptk1_rot + ptk2_rot
-			pos_mhnl13_vec = ptk1_rot + pnu_rot1
-			pos_mhnl23_vec = ptk2_rot + pnu_rot1
-
-
-
-			# truth studies show pHNL_2 is the solution that gets us the HNL mass
-			self.mhnl2 = pHNL_1.M()
-			self.mhnl = pHNL_2.M()
-
-			pHNL_2_lab = unrotate_vector(hnl_vec,pHNL_2)
-			hnl_vec_unrot = unrotate_vector(hnl_vec,hnl_vec_rot)
-
-			nu_vec_unrot2 = unrotate_vector(hnl_vec,pnu_rot1)
-
-			nu_vec_unrot = unrotate_vector(hnl_vec,pnu_rot2)
-
-			self.nu_vec = nu_vec_unrot
-			self.nu_vec2 = nu_vec_unrot2
-
-			# check that you rotated back to the original reference frame
-			#print "Unrotated DV vector: (", hnl_vec_unrot.X(),",", hnl_vec_unrot.Y(),",",hnl_vec_unrot.Z() , ")"
-
-			self.hnlpt = pHNL_2_lab.Pt()
-			self.hnleta = pHNL_2_lab.Eta()
-			self.hnlphi = pHNL_2_lab.Phi()
-
-			# print self.mhnl, " ", self.hnlpt, " ", self.hnleta, " ",self.hnlphi
-
-			self.neg_mhnl12 = neg_mhnl12_vec.M()
-			self.neg_mhnl13 = neg_mhnl13_vec.M()
-			self.neg_mhnl23 = neg_mhnl23_vec.M()
-
-			self.pos_mhnl12 = pos_mhnl12_vec.M()
-			self.pos_mhnl13 = pos_mhnl13_vec.M()
-			self.pos_mhnl23 = pos_mhnl23_vec.M()
+		if dv_type == "mumu":
+			self.pass_pt_cut =  muVec[0].Pt() > mu_pt_cut and muVec[1].Pt() > mu_pt_cut
+		if dv_type == "emu":
+			self.pass_pt_cut =  elVec[0].Pt() > el_pt_cut and muVec[0].Pt() > mu_pt_cut
+		if dv_type == "ee":
+			self.pass_pt_cut =  elVec[0].Pt() > el_pt_cut and elVec[1].Pt() > el_pt_cut
 
 	def passes(self):
-		
-		if (self.mhnl > self.hnlmasscut ):
-			return True
-		else: 
-			return False
+		return self.pass_pt_cut
 
 class Mhnl():
-	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 4,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(),trks=[],use_tracks=False ):
+	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 20,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(),trks=[],use_tracks=False ):
 		# Global W pole mass
 		MW = 80.379
 		MW2 = MW**2
 		WGamma = 2.085
-
+		self.hnlmasscut = hnlmasscut
 		self.mhnl = -1
 		self.alt_mhnl = -1
 		self.hnlpt = -1
@@ -1210,7 +1060,7 @@ class Mhnl():
 		findMass(pv, dv, p0, d0, d1, MW2,fixWMass)
 
 	def passes(self):
-		return self.mhnl > self.hnlmasscut
+		return self.mhnl < self.hnlmasscut
 		
 class PV():
 	def __init__(self, tree):

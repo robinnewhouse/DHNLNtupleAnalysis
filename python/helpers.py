@@ -42,13 +42,101 @@ def get_debug_level(level):
 	return debug_level
 
 
-def get_mass_lt_weight(tree, both_lnc_lnv=False):
+class ReadBRdat:
+    def __init__(self, filename='../data/BR/HNL_branching_20GeV.dat'):
+        f = open(filename, 'r')
+        content = f.read()
+
+        list_rows = []
+        row = ''
+        for c in content:
+            if c == '\n':
+                list_rows.append(row)
+                row = ''
+            else:
+                row = row + c
+
+        list_content = list_rows[18:]
+
+        mass = []
+        U_e = []
+        U_mu = []
+        U_tau = []
+        BR_uu = []
+        BR_mue = []
+        BR_ee = []
+
+        number_t = []
+        for row in list_content:
+            count = 0
+            entry = ''
+            for c in row:
+                if c != '\t':
+                    entry = entry + c
+                if c == '\t':
+                    if count == 0:
+                        mass.append(entry)
+                    if count == 1:
+                        U_e.append(entry)
+                    if count == 2:
+                        U_mu.append(entry)
+                    if count == 3:
+                        U_tau.append(entry)
+                    if count == 14:
+                        BR_ee.append(entry)
+                    if count == 15:
+                        BR_mue.append(entry)
+
+                    count = count + 1
+                    entry = ''
+            BR_uu.append(entry)
+            number_t.append(count)
+
+        self.M = []
+        self.BRuuu = []
+        self.BRuue = []
+        for i in range(0, len(BR_uu)):
+            if U_e[i] == '0.' and U_tau[i] == '0.' and U_mu[i] != '0.':
+                self.M.append(float(mass[i]))
+                self.BRuuu.append(float(BR_uu[i]))
+                self.BRuue.append(float(BR_mue[i]))
+
+        self.M_el = []
+        self.BReee = []
+        self.BReeu = []
+        for i in range(0, len(BR_uu)):
+            if U_e[i] != '0.' and U_tau[i] == '0.' and U_mu[i] == '0.':
+                self.M_el.append(float(mass[i]))
+                self.BReee.append(float(BR_ee[i]))
+                self.BReeu.append(float(BR_mue[i]))
+
+    def get_BR(self, channel, mass):
+
+        i = -1
+        for m in self.M:
+            i = i + 1
+            if m == mass:
+                if channel == 'uuu':
+                    return self.BRuuu[i]
+                if channel == 'uue':
+                    return self.BRuue[i]
+                if channel == 'eee':
+                    return self.BReee[i]
+                if channel == 'eeu':
+                    return self.BReeu[i]
+
+def hnl_xsec(br,U2,mass):
+	mW = 80.379  # mass of W boson in GeV
+	xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+	return xsec
+
+def get_mass_lt_weight(tree,lnc_plus_lnv=False):
 	"""
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
 	Sets the weight of events for this tree
 	:param tree: Tree object with mass and lifetime info
-	:param both_lnc_lnv: If true then lnc & lnv decays are possible so coupling is reduced by a factor 2.
+	:param both_lnc_lnv: if both lnc and lnv decays are possible then lifetime is reduced by a factor of 2
 	:return: calculated weight.
 	"""
 	mass = tree.mass # GeV
@@ -65,36 +153,35 @@ def get_mass_lt_weight(tree, both_lnc_lnv=False):
 	lumi[None] = 1.0
 
 	if tree.is_data or tree.not_hnl_mc:  # you are running on data non non-hnl MC
-		weight = 1
+		weight_LNC_only = 1
+		weight_LNC_plus_LNV = 1
 	else:  # you are running on MC file
 		if mass == -1 or ctau == -1:  # MC weighting error
 			logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
-			weight = 1
+			weight_LNC_only = 1
+			weight_LNC_plus_LNV = 1
 		else:
-			mW = 80.379  # mass of W boson in GeV
-
 			#calculate Gronau coupling; parametrization depends on coupling flavour you are probing
 			if channel == "uuu" or channel == "uue":
 				U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
 			if channel == "eee" or channel == "eeu":
 				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
 
-			if channel == "uue" or channel == "eeu":
-				br = 0.106
-			if channel == "uuu" or channel == "eee":
-				br = 0.060
-
-			# if HNL decays to LNC & LNV, then lifetime is reduced by a factor of 2
-			if (both_lnc_lnv): U2 = 0.5 * U2Gronau
-			else: U2 = U2Gronau
-
-			xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+			# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels avaliable)
+			U2_LNC_only = U2Gronau
+			xsec_LNC_only = hnl_xsec(br=tree.br, U2=U2_LNC_only, mass=mass)  # in fb
+			U2_LNC_plus_LNV = 0.5 * U2Gronau
+			xsec_LNC_plus_LNV = hnl_xsec(br=tree.br, U2=U2_LNC_plus_LNV, mass=mass)  # in fb
 			# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
-			# split up Pythia sample into separate LNC and LNV branches
+			# LNC and LNV branches are split into into separate LNC and LNV branches
 			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
-			weight = lumi[mc_campaign] * xsec / (tree.all_entries / 2)
+			weight_LNC_only = lumi[mc_campaign] * xsec_LNC_only / (tree.all_entries / 2)
+			# for LNC plus LNV then all MC events are added to the output tree so total number of events == tree.all_entries
+			weight_LNC_plus_LNV = lumi[mc_campaign] * xsec_LNC_plus_LNV / (tree.all_entries)
 
-	return weight
+	if lnc_plus_lnv: return weight_LNC_plus_LNV
+	else: return weight_LNC_only
+
 
 
 class Truth():
@@ -308,14 +395,15 @@ class Tracks():
 				lepVec.SetPtEtaPhiM(pt, eta, phi, M)
 				std_lepVec.SetPtEtaPhiM(std_pt, std_eta, std_phi, M)
 
-				if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
-					muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-					self.lepIndex.append(muon_index)
-					# get calibrated muon quantities (not calculated wrt DV!)
-					lep_pt = self.tree['muon_pt'][muon_index]
-					lep_eta = self.tree['muon_eta'][muon_index]
-					lep_phi = self.tree['muon_phi'][muon_index]
-					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
+				if not self.tree.fake_aod:
+					if len(self.tree['muon_index']) > 0:
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+						self.lepIndex.append(muon_index)
+						# get calibrated muon quantities (not calculated wrt DV!)
+						lep_pt = self.tree['muon_pt'][muon_index]
+						lep_eta = self.tree['muon_eta'][muon_index]
+						lep_phi = self.tree['muon_phi'][muon_index]
+						lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 				else:
 					self.lepIndex.append(-1)
 
@@ -368,15 +456,16 @@ class Tracks():
 
 				# find position of electron in the electron container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
-				if len(self.tree['el_index']) > 0 and self.tree.fake_aod == False:
-					el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
-					# use calibrated muon quantities (not calculated wrt DV!)
-					lep_pt = self.tree['el_pt'][el_index]
-					lep_eta = self.tree['el_eta'][el_index]
-					lep_phi = self.tree['el_phi'][el_index]
-					lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
+				if not self.tree.fake_aod: 
+					if len(self.tree['el_index']) > 0:
+						el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
+						# use calibrated muon quantities (not calculated wrt DV!)
+						lep_pt = self.tree['el_pt'][el_index]
+						lep_eta = self.tree['el_eta'][el_index]
+						lep_phi = self.tree['el_phi'][el_index]
+						lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 
-					self.lepIndex.append(el_index)
+						self.lepIndex.append(el_index)
 				else:
 					self.lepIndex.append(-1)
 
@@ -503,6 +592,10 @@ class FileInfo:
 		if (self.mass_str): self.output_filename += "_" + self.mass_str
 		if (self.ctau_str): self.output_filename += "_" + self.ctau_str
 		self.output_filename += "_" + channel + ".root"
+
+		f_br = ReadBRdat()
+		self.br = f_br.get_BR(channel, self.mass)
+
 
 
 class mc_info:
