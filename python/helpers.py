@@ -1,6 +1,7 @@
 import ROOT
 import numpy as np
 import sys
+import os
 import time
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -43,7 +44,7 @@ def get_debug_level(level):
 
 
 class ReadBRdat:
-    def __init__(self, filename='../data/BR/HNL_branching_20GeV.dat'):
+    def __init__(self, filename):
         f = open(filename, 'r')
         content = f.read()
 
@@ -593,7 +594,7 @@ class FileInfo:
 		if (self.ctau_str): self.output_filename += "_" + self.ctau_str
 		self.output_filename += "_" + channel + ".root"
 
-		f_br = ReadBRdat()
+		f_br = ReadBRdat(os.path.dirname(os.path.abspath(__file__))+'/../data/BR/HNL_branching_20GeV.dat')
 		self.br = f_br.get_BR(channel, self.mass)
 
 
