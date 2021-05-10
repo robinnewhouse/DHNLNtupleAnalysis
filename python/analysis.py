@@ -1132,7 +1132,7 @@ class Analysis(object):
 						if muVec_lepmatched[0].Pt() >  muVec_lepmatched[1].Pt(): mu_index = 0
 						else: mu_index = 1
 					#get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
-					mu_plep_vec = muVec[mu_index] + plep_vec
+					mu_plep_vec = muVec_lepmatched[mu_index] + plep_vec
 					mu_plep_same_charge = int(plepcharge) ==  int(muons.lepCharge[mu_index])
 					mu_plep_diff_charge = not mu_plep_same_charge
 					self.fill_hist(sel, 'mll_dMu_plep_is_OS', mu_plep_diff_charge)
@@ -1145,7 +1145,7 @@ class Analysis(object):
 						if elVec_lepmatched[0].Pt() >  elVec_lepmatched[1].Pt(): el_index = 0
 						else: el_index = 1
 					#get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
-					el_plep_vec = elVec[el_index] + plep_vec
+					el_plep_vec = elVec_lepmatched[el_index] + plep_vec
 					el_plep_same_charge = int(plepcharge) ==  int(electrons.lepCharge[el_index])
 					el_plep_diff_charge = not el_plep_same_charge
 					self.fill_hist(sel, 'mll_dEl_plep_is_OS', el_plep_diff_charge)
