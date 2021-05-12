@@ -4,7 +4,6 @@ import helpers
 import analysis
 import trees
 import json
-import time
 # import reweighting
 # import systematics
 
@@ -14,7 +13,7 @@ blinded = True  # Dont dont change this flag! This ensures you do not accidental
 
 
 def main():
-	start = time.clock()
+	start = helpers.get_time()
 	#set debug level
 	helpers.logger_debug_level = helpers.get_debug_level(options.debug_level)
 	# set up own logger
@@ -153,7 +152,7 @@ def main():
 			# Recommended not to use unless necessary and unless a minimal number of histograms are written. # RN
 			# analysisCode["%s_%s"%(channel,vtx_container)] = ana
 	logger.info("The end.")
-	logger.info("Time elapsed: {}".format(time.clock()-start))
+	logger.info("Time elapsed: {}".format(helpers.get_time()-start))
 
 
 if __name__ == "__main__":
