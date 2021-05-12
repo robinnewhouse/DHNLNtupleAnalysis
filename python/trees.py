@@ -1,4 +1,9 @@
+# we use uproot3 for now
 import uproot
+if int(uproot.__version__.split('.')[0]) == 4:
+	print('uproot version is {}. Importing uproot3 as uproot.'.format(uproot.__version__))
+	import uproot3 as uproot
+	print('uproot version is now {}. '.format(uproot.__version__))
 import helpers
 import logging
 
