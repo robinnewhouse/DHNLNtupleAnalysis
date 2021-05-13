@@ -4,40 +4,41 @@ import numpy as np
 # ____________________________________________________________
 # Displaced vertexing + tracking systematic
 
+# symetrized map
 vertexing_syst_map = np.array(
-	  [[0.96      , 0.95993126, 0.94165127, 0.95836189, 0.94467486,
-        0.84039676, 0.8291002 , 0.78884503, 0.77728849, 0.77760779,
-        0.79450637, 0.83282275, 0.79899139, 0.83757042, 0.78762539],
-       [0.96      , 0.95954859, 0.91930915, 0.93324524, 0.95998072,
-        0.92477593, 0.93487687, 0.8912892 , 0.86875911, 0.8374753 ,
-        0.922888  , 0.88140525, 0.84216507, 0.82667875, 0.89791438],
-       [0.96      , 0.91516189, 0.91564243, 0.9288241 , 0.91766646,
-        0.92913114, 0.93132677, 0.91245808, 0.93288162, 0.90309618,
-        0.9587421 , 0.92604629, 0.95570732, 0.95386959, 0.91366827],
-       [0.96      , 0.93037907, 0.95971524, 0.95912841, 0.95985423,
-        0.95361916, 0.94195473, 0.92836505, 0.86059293, 0.92934497,
-        0.87246303, 0.95448154, 0.90785524, 0.85493355, 0.79353179],
-       [0.96      , 0.9347185 , 0.88558086, 0.88861315, 0.91707327,
-        0.91601057, 0.95553542, 0.95796652, 0.93774068, 0.92051822,
-        0.95008698, 0.95669437, 0.94905746, 0.95980851, 0.89584635],
-       [0.96      , 0.96      , 0.91899608, 0.89383716, 0.85820325,
-        0.88271608, 0.92443339, 0.93637299, 0.95868375, 0.93592103,
-        0.956569  , 0.95646187, 0.94138116, 0.95973943, 0.95900326],
-       [0.96      , 0.96      , 0.88980506, 0.82210277, 0.75701872,
-        0.80786463, 0.81370689, 0.94601174, 0.90242167, 0.89890168,
-        0.93836038, 0.89594396, 0.93026478, 0.94260998, 0.82739249],
-       [0.96      , 0.96      , 0.96      , 0.85732267, 0.80606151,
-        0.87094161, 0.76462153, 0.84690591, 0.93168821, 0.9141967 ,
-        0.8360955 , 0.81450598, 0.93008109, 0.68276225, 0.95574859],
-       [0.96      , 0.96      , 0.96      , 0.96      , 0.71473217,
-        0.87973791, 0.52818879, 0.59921592, 0.93377555, 0.92223419,
-        0.84718595, 0.64849899, 0.95889304, 0.7524329 , 0.8681943 ]])
+       [[1.        , 0.99765399, 0.95751971, 0.98843573, 0.96177865,
+        0.84549048, 0.83384723, 0.79266834, 0.78091003, 0.78123461,
+        0.79843703, 0.83767861, 0.80301152, 0.84257266, 0.79142634],
+       [1.        , 0.9939737 , 0.92992138, 0.9465566 , 0.99875801,
+        0.93629238, 0.94860912, 0.89891569, 0.87500332, 0.84247451,
+        0.93407382, 0.88835452, 0.84731776, 0.83135761, 0.9060773 ],
+       [1.        , 0.92518352, 0.92572888, 0.94112718, 0.92803603,
+        0.94149876, 0.94417874, 0.92213096, 0.94610309, 0.91173704,
+        0.9898899 , 0.9377975 , 0.98097787, 0.97702143, 0.923494  ],
+       [1.        , 0.94301689, 0.99521855, 0.99160435, 0.99658204,
+        0.97652272, 0.95793751, 0.94057302, 0.86645476, 0.94175798,
+        0.87889807, 0.97827604, 0.91699002, 0.86055727, 0.79744354],
+       [1.        , 0.94840858, 0.89280047, 0.89604313, 0.92735812,
+        0.92614727, 0.98058096, 0.98708438, 0.95229023, 0.93131701,
+        0.97014519, 0.9834055 , 0.96845412, 0.99608135, 0.90383356],
+       [1.        , 1.        , 0.92956113, 0.90166105, 0.86396207,
+        0.88974794, 0.93588828, 0.95051872, 0.98965435, 0.94993889,
+        0.98308102, 0.98280788, 0.95714947, 0.99542689, 0.99101487],
+       [1.        , 1.        , 0.89732126, 0.82665807, 0.76033377,
+        0.81207448, 0.81805187, 0.96374076, 0.91099702, 0.90715136,
+        0.95310178, 0.9039393 , 0.94287732, 0.95884645, 0.83209124],
+       [1.        , 1.        , 1.        , 0.86304445, 0.81023136,
+        0.87729683, 0.76804521, 0.85222382, 0.944624  , 0.9240908 ,
+        0.84105131, 0.81887012, 0.94265321, 0.68529412, 0.98107417],
+       [1.        , 1.        , 1.        , 1.        , 0.71755048,
+        0.88658497, 0.52988744, 0.60121701, 0.94722048, 0.93331027,
+        0.85251395, 0.65078236, 0.99052467, 0.75568572, 0.87441042]])
 
 vertexing_syst_pt_bins = [2, 4, 6, 8, 10, 15, 20, 25, 35]
 vertexing_syst_dvr_bins = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, np.inf]
 
 
-def get_vertexing_uncertainty(r, pt):
+def get_vertexing_systematic(r, pt):
     """retrieve the calculated vertexing + tracking uncertainty using numpy's digitize"""
     # no overflow was used in dvr bins so extending 300mm to infinity
     pt_bin = np.digitize(pt, vertexing_syst_pt_bins)
@@ -48,7 +49,7 @@ def get_vertexing_uncertainty(r, pt):
     return vertexing_syst_map[pt_bin, dvr_bin]
 
 
-def plot_vertexing_uncertainty():
+def plot_vertexing_systematic():
     """a utility for plotting the vertexing uncertainty if you want to see it"""
     import matplotlib.pyplot as plt
     vertexing_syst_dvr_bins[-1] = 300
@@ -60,31 +61,33 @@ def plot_vertexing_uncertainty():
     plt.title('vertexing systematics map')
 
 # ____________________________________________________________
-# Displaced lepton identification systematic
+# Displaced lepton d0 extrapoliation systematic
 
-displaced_electron_uncertainty = [1.0, 0.9813603162765503, 0.9508885741233826, 0.9436681866645813, 0.9272117018699646, 0.9385538101196289, 0.9473791718482971]
-displaced_muon_uncertainty = [1.0, 0.9852185249328613, 0.9768053293228149, 0.9713043570518494, 0.9561651945114136, 0.952542245388031, 0.9498283267021179]
-displaced_lepton_uncertainty_d0_bins = [0, 3, 10, 20, 30, 40, 50, 60]
+d0_extrapolation_systematic_bins = [0, 3, 10, 20, 30, 40, 50, 60]
+d0_extrapolation_electron_systematic = [1.0, 0.9797764420509338, 0.9509709477424622, 0.9440935254096985, 0.9337978959083557, 0.9336843490600586, 0.943777322769165]
+d0_extrapolation_muon_systematic = [1.0, 0.983723521232605, 0.9758386015892029, 0.9704379439353943, 0.9621100425720215, 0.9447205662727356, 0.9487572908401489]
 
-def get_displaced_lepton_uncertainty(d0, lepton):
-    ind = int(np.digitize(abs(d0), displaced_lepton_uncertainty_d0_bins))
-    ind = min(ind, len(displaced_lepton_uncertainty_d0_bins)-1) # deal with overflow
+def get_d0_extrapolation_systematic(d0, lepton):
+    ind = int(np.digitize(abs(d0), d0_extrapolation_systematic_bins))
+    ind = min(ind, len(d0_extrapolation_systematic_bins)-1) # deal with overflow
     if lepton == 'electron':
-        return displaced_electron_uncertainty[ind-1]
+        return d0_extrapolation_electron_systematic[ind-1]
     if lepton == 'muon':
-        return displaced_muon_uncertainty[ind-1]
+        return d0_extrapolation_muon_systematic[ind-1]
 
 
-def get_combined_displaced_lepton_uncertainty(lepton_0_d0, lepton_0_type, lepton_1_d0, lepton_1_type):
+def get_combined_d0_extrapolation_systematic(lepton_0_d0, lepton_0_type, lepton_1_d0, lepton_1_type):
     # get uncertainties
-    lepton_0_uncertainty = get_displaced_lepton_uncertainty(lepton_0_d0, lepton_0_type)
-    lepton_1_uncertainty = get_displaced_lepton_uncertainty(lepton_1_d0, lepton_1_type)
+    lepton_0_systematic = get_d0_extrapolation_systematic(lepton_0_d0, lepton_0_type)
+    lepton_1_systematic = get_d0_extrapolation_systematic(lepton_1_d0, lepton_1_type)
     # calculate in quadrature
-    total_uncertainty = 1 - np.sqrt(np.square(1 - lepton_0_uncertainty) + np.square(1 - lepton_1_uncertainty))
-    return total_uncertainty
+    # total_systematic = 1 - np.sqrt(np.square(1 - lepton_0_systematic) + np.square(1 - lepton_1_systematic))
+    # just kidding, calculate linearly since they are correlated systmeatics
+    total_systematic = lepton_0_systematic * lepton_1_systematic
+    return total_systematic
 
-def get_displaced_electron_uncertainty(d0):
-    return get_displaced_lepton_uncertainty(d0, lepton='electron')
+def get_d0_extrapolation_electron_systematic(d0):
+    return get_d0_extrapolation_systematic(d0, lepton='electron')
 
-def get_displaced_muon_uncertainty(d0):
-    return get_displaced_lepton_uncertainty(d0, lepton='muon')
+def get_d0_extrapolation_muon_systematic(d0):
+    return get_d0_extrapolation_systematic(d0, lepton='muon')

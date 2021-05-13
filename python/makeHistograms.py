@@ -35,7 +35,10 @@ def main():
 
 	if not os.path.exists(output_path):
 		logger.info('Making output directory')
-		os.mkdir(output_path)
+		try: 
+			os.mkdir(output_path)
+		except FileExistsError: 
+			logger.error('Output directory exists. os.path.exists is not threadsafe. Contnuing...')
 	analysisCode = {}
 	# Define that we're using a specific type of analysis
 	anaClass = getattr(analysis, options.analysis)
