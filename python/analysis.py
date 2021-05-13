@@ -1520,8 +1520,8 @@ class Analysis(object):
 			# Systematics
 
 			# Calculate weight for tracking/vertexing uncertainties
-			vertexing_uncertainty = systematics.get_vertexing_uncertainty(self.tree.dv('r'), self.tree.dv('pt'))
-			self.fill_hist(sel, 'DV_vertexing_uncertainty', vertexing_uncertainty, weight=1)
+			vertexing_systematic = systematics.get_vertexing_systematic(self.tree.dv('r'), self.tree.dv('pt'))
+			self.fill_hist(sel, 'vertexing_1DOWN', vertexing_systematic, weight=1)
 
 			# Calculate weight for displaced lepton identification uncertainties
 			lepton_0_type, lepton_1_type = '', ''
@@ -1529,12 +1529,12 @@ class Analysis(object):
 			if self.dv_type == "emu": lepton_0_type, lepton_1_type = 'muon', 'electron'
 			if self.dv_type == "ee": lepton_0_type, lepton_1_type = 'electron', 'electron'
 
-			displaced_lepton_uncertainty = systematics.get_combined_displaced_lepton_uncertainty(
+			d0_extrapolation_systematic = systematics.get_combined_d0_extrapolation_systematic(
 				self.tree.dv('trk_d0')[0], lepton_0_type,
 				self.tree.dv('trk_d0')[1], lepton_1_type
 			)
-			self.fill_hist(sel, 'displaced_lepton_uncertainty', displaced_lepton_uncertainty, weight=1)
-
+			# storing systematic with standard ATLAS "1-sigma down" notation
+			self.fill_hist(sel, 'd0_extrapolation_1DOWN', d0_extrapolation_systematic, weight=1)
 
 			# fill TTree with ntuple information. Already set by fill_hist
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':

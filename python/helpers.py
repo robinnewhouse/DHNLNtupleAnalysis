@@ -723,18 +723,24 @@ class mc_info:
 		mc_info[313014] = ["eeu", "20G", "lt10dd"]
 		mc_info[313015] = ["eeu", "20G", "lt100dd"]
 
-		pmuon_dsid = (311602 <=  dsid) and  (dsid <= 311661)
-		pel_dsid = (312956 <= dsid) and  (dsid <= 313015)
-
-		if pmuon_dsid or pel_dsid:
-			self.mass_str = mc_info[dsid][1]
-			self.ctau_str = mc_info[dsid][2]
-			self.ch_str = mc_info[dsid][0]
-		else:
-			logger.warning("dsid {} is not registered. If running on HNL signal, please check your signal sample".format(dsid))
+		if dsid is None:
+			logger.warning("No dsid")
 			self.mass_str = None
 			self.ctau_str = None
 			self.ch_str = None
+		else:
+			pmuon_dsid = (311602 <=  dsid) and  (dsid <= 311661)
+			pel_dsid = (312956 <= dsid) and  (dsid <= 313015)
+
+			if pmuon_dsid or pel_dsid:
+				self.mass_str = mc_info[dsid][1]
+				self.ctau_str = mc_info[dsid][2]
+				self.ch_str = mc_info[dsid][0]
+			else:
+				logger.warning("dsid {} is not registered. If running on HNL signal, please check your signal sample".format(dsid))
+				self.mass_str = None
+				self.ctau_str = None
+				self.ch_str = None
 
 
 
