@@ -1176,15 +1176,15 @@ class MCEventType:
 			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is becuase M2_nocorr as calculated includes LNC + LNV decays
 
 
-class TriggerMatching_prompt:
-	def __init__(self, tree,plep,pelp_Index):
-		self.plep_isTrigMatched = False
-		if plep == "muon":
+class Lep_TriggerMatching:
+	def __init__(self, tree,lep,lep_Index):
+		self.lep_isTrigMatched = False
+		if lep == "muon":
 			lep_matched = tree["muon_isTrigMatched"]
-		if plep == "electron":
+		if lep == "electron":
 			lep_matched = tree["el_isTrigMatched"]
-		if lep_matched[pelp_Index] == 1:
-			self.plep_isTrigMatched = True
+		if lep_matched[lep_Index] == 1:
+			self.lep_isTrigMatched = True
 
 
 class TriggerMatching_disp:

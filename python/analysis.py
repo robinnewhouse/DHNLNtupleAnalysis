@@ -470,8 +470,8 @@ class Analysis(object):
 		# Add to histogram all prompt leptons that pass selection.
 		# If _prompt_lepton_cut() is run after trigger and filter cut then those cuts will also be applied.
 		if self.plep_sel.passes():
-			trig_match = selections.TriggerMatching_prompt(self.tree, self.plep, self.plep_sel.plep_Index)
-			if trig_match.plep_isTrigMatched:
+			trig_match = selections.Lep_TriggerMatching(self.tree, self.plep, self.plep_sel.plep_Index)
+			if trig_match.lep_isTrigMatched:
 				self.events_with_trig_match_plep = self.events_with_trig_match_plep + 1
 
 
@@ -1075,11 +1075,13 @@ class Analysis(object):
 			muons.getMuons()
 			muVec = muons.lepVec
 			muVec_lepmatched = muons.lepmatched_lepVec
+			mu_Index = muons.lepIndex
 
 			electrons = helpers.Tracks(self.tree)
 			electrons.getElectrons()
 			elVec = electrons.lepVec
 			elVec_lepmatched = electrons.lepmatched_lepVec
+			el_Index = electrons.lepIndex
 
 
 			# fill histograms that require a prompt lepton to be identified
@@ -1089,6 +1091,8 @@ class Analysis(object):
 				plepz0 = self.plep_sel.plepz0
 				plepcharge = self.plep_sel.plepcharge
 				plep_isTight = self.plep_sel.plep_isTight
+				plep_Index = self.plep_sel.plep_Index
+				plep_is_trigger_matched = selections.Lep_TriggerMatching( self.tree, self.plep,plep_Index).lep_isTrigMatched
 
 				self.fill_hist(sel, 'plep_pt', plep_vec.Pt())
 				self.fill_hist(sel, 'plep_eta', plep_vec.Eta())
@@ -1097,6 +1101,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'plep_z0', plepz0)
 				self.fill_hist(sel, 'plep_charge', plepcharge)
 				self.fill_hist(sel, 'plep_isTight', plep_isTight)
+				self.fill_hist(sel, 'plep_is_trigger_matched', plep_is_trigger_matched)
 
 				if tracks.ntracks == 2:
 					Mlll = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec)
@@ -1161,7 +1166,6 @@ class Analysis(object):
 				self.fill_hist(sel, 'ptrk_z0', ptrkz0)
 
 				if tracks.ntracks == 2:
-
 					Mhnl = selections.Mhnl(self.tree, self.dv_type, plep=ptrk_vec, dMu=muVec,dEl=elVec,use_tracks=True,trks=tracks.lepVec)
 					self.fill_hist(sel, 'HNLm', Mhnl.mhnl)
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
@@ -1294,7 +1298,11 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', muons.lepmatched_lepVec[1].Pt())
 
-				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt()) # rn
+				# trigger matching for displaced leptons
+				dmu_0_is_trig_matched = selections.Lep_TriggerMatching( self.tree, "muon",mu_Index[0]).lep_isTrigMatched
+				dmu_1_is_trig_matched = selections.Lep_TriggerMatching( self.tree, "muon",mu_Index[1]).lep_isTrigMatched
+				self.fill_hist(sel, 'DV_lep_0_is_trigger_matched', dmu_0_is_trig_matched)
+				self.fill_hist(sel, 'DV_lep_1_is_trigger_matched', dmu_1_is_trig_matched)
 
 				self.fill_hist(sel, 'DV_lep_0_isMuon', 1)
 				self.fill_hist(sel, 'DV_lep_1_isMuon', 1)
@@ -1334,6 +1342,12 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_v_el_pt', delta_el/electrons.lepmatched_lepVec[0].Pt() )
 				self.fill_hist(sel, 'DV_trk_v_mu_pt', delta_mu/muons.lepmatched_lepVec[0].Pt() )
 
+				# trigger matching for displaced leptons
+				dmu_is_trig_matched = selections.Lep_TriggerMatching( self.tree, "muon",mu_Index[0]).lep_isTrigMatched
+				del_is_trig_matched = selections.Lep_TriggerMatching( self.tree, "electron",el_Index[0]).lep_isTrigMatched
+
+				self.fill_hist(sel, 'DV_lep_0_is_trigger_matched', dmu_is_trig_matched)
+				self.fill_hist(sel, 'DV_lep_1_is_trigger_matched', del_is_trig_matched)
 
 				self.fill_hist(sel, 'DV_lep_0_isMuon', 1)
 				self.fill_hist(sel, 'DV_lep_1_isMuon', 0)
@@ -1363,6 +1377,12 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[1].Pt())
+
+				# trigger matching for displaced leptons
+				del_0_is_trig_matched = selections.Lep_TriggerMatching( self.tree, "electron",el_Index[0]).lep_isTrigMatched
+				del_1_is_trig_matched = selections.Lep_TriggerMatching( self.tree, "electron",el_Index[1]).lep_isTrigMatched
+				self.fill_hist(sel, 'DV_lep_0_is_trigger_matched', del_0_is_trig_matched)
+				self.fill_hist(sel, 'DV_lep_1_is_trigger_matched', del_1_is_trig_matched)
 
 				self.fill_hist(sel, 'DV_lep_0_isElectron', 1)
 				self.fill_hist(sel, 'DV_lep_1_isElectron', 1)
