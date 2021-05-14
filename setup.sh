@@ -7,10 +7,10 @@ source /cvmfs/sft.cern.ch/lcg/views/LCG_98python3/x86_64-centos7-gcc8-opt/setup.
 # # python 2
 # # source /cvmfs/sft.cern.ch/lcg/views/dev4python2/latest/x86_64-centos7-gcc8-opt/setup.sh
 
-# # Installing python directory
-# # get directory of setup.sh script
-# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-# export WorkDir=$DIR
-# # add python to PYTHONPATH and PATH variable if not already there
-# [[ ":$PYTHONPATH:" != *":$DIR/python:"* ]] && PYTHONPATH="$DIR/python:${PYTHONPATH}"
-# [[ ":$PATH:" != *":$DIR/python:"* ]] && PATH="$DIR/python:${PATH}"
+# Installing python directory
+# get directory of setup.sh script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+export WorkDir=$DIR
+# add python to PYTHONPATH and PATH variable if not already there
+[[ ":$PYTHONPATH:" != *":$DIR/python:"* ]] && PYTHONPATH="$DIR/python:${PYTHONPATH}"
+[[ ":$PATH:" != *":$DIR/python:"* ]] && PATH="$DIR/python:${PATH}"
