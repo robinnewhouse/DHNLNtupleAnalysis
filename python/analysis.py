@@ -222,6 +222,7 @@ class Analysis(object):
 			self.do_prompt_lepton_cut = False  # do not apply prompt lepton cut
 			self.do_invert_prompt_lepton_cut = True  # invert prompt lepton cut
 			self.do_inverted_mlll_cut = False
+			self.do_inverted_mhnl_cut = False
 			if 'ptrack' in self.sel: 
 				self.do_prompt_track_cut = True # apply prompt track cut
 			else: 
@@ -237,6 +238,7 @@ class Analysis(object):
 			self.do_invert_prompt_lepton_cut = False  # do not apply inverted prompt lepton cut
 			self.do_prompt_track_cut = False # do not apply prompt track cut
 			self.do_inverted_mlll_cut = False
+			self.do_inverted_mhnl_cut = False
 			self.logger.info('You are running on a fake AOD created from events in the inverted prompt lepton control region!')
 		elif "BE" in self.sel: # if running on fakeAOD without any CR cuts applied
 			if "realDAOD" in self.sel:
@@ -254,6 +256,7 @@ class Analysis(object):
 			self.do_invert_prompt_lepton_cut = False  # no fake leptons in DAODs... -DT
 			self.do_prompt_track_cut = False # do not apply prompt track cut
 			self.do_inverted_mlll_cut = False
+			self.do_inverted_mhnl_cut = False
 			
 			if "OS" in self.sel: raise ValueError("This analysis is blinded! You cannot look at OS DV from data events!!") # another blinded check -DT
 		elif "inverted_mlll" in self.sel: 
@@ -264,15 +267,28 @@ class Analysis(object):
 			self.do_invert_trigger_cut = False
 			self.do_prompt_track_cut = False 
 			self.do_inverted_mlll_cut = True
+			self.do_inverted_mhnl_cut = False
 			self.do_trilepton_mass_cut = False
 			self.saveNtuples = "mvis" # only save ntuples after mlll selection is applied!
+		elif "inverted_mhnl" in self.sel:
+			self.logger.warning('You are looking at a validation region with a SR pre-selection and an inverted m_hnl cut!')
+			self.do_CR = False
+			self.tree.fake_aod = False
+			self.do_invert_prompt_lepton_cut = False
+			self.do_invert_trigger_cut = False
+			self.do_prompt_track_cut = False
+			self.do_inverted_mlll_cut = False
+			self.do_inverted_mhnl_cut = True
+			self.do_trilepton_mass_cut = False
+			self.saveNtuples = "mhnl" # only save ntuples after mlll selection is applied!
 		else:
 			self.do_CR = False
 			self.tree.fake_aod = False
 			self.do_invert_prompt_lepton_cut = False
 			self.do_invert_trigger_cut = False
-			self.do_prompt_track_cut = False 
+			self.do_prompt_track_cut = False
 			self.do_inverted_mlll_cut = False
+			self.do_inverted_mhnl_cut = False
 
 		if self.do_CR: 
 			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
@@ -595,6 +611,18 @@ class Analysis(object):
 		elVec = electrons.lepVec
 
 		mHNL_sel = selections.Mhnl(self.tree, self.dv_type, plep=self.plep_sel.plepVec, dMu=muVec,dEl=elVec)
+		return mHNL_sel.passes()
+
+	def _invert_HNL_mass_cut(self):
+		muons = helpers.Tracks(self.tree)
+		muons.getMuons()
+		muVec = muons.lepVec
+
+		electrons = helpers.Tracks(self.tree)
+		electrons.getElectrons()
+		elVec = electrons.lepVec
+
+		mHNL_sel = selections.Mhnl(self.tree, self.dv_type, plep=self.plep_sel.plepVec, dMu=muVec,dEl=elVec,hnlmasscut=25, invert= True)
 		return mHNL_sel.passes()
 
 	def _multitrk_2lep_cut(self):
@@ -1613,6 +1641,10 @@ class run2Analysis(Analysis):
 			if not self.dv_type == "ee": mlll_bin = 15
 			else: mlll_bin = 16
 			self.CutFlow.GetXaxis().SetBinLabel(mlll_bin, "inverted m_{lll}")
+		if self.do_inverted_mhnl_cut:	
+			if not self.dv_type == "ee": mhnl_bin = 15
+			else: mhnl_bin = 16
+			self.CutFlow.GetXaxis().SetBinLabel(mhnl_bin, "inverted m_{hnl}")
 		if self.do_alpha_cut:
 			if not self.dv_type == "ee": alpha_bin = 16
 			else: alpha_bin = 17
@@ -1690,7 +1722,8 @@ class run2Analysis(Analysis):
 				if not self.passed_dv_type_cut:
 					self._fill_cutflow(10)
 					self.passed_dv_type_cut = True
-					self._fill_selected_dv_histos("DVtype")
+					if not self.do_inverted_mlll_cut and not self.do_inverted_mhnl_cut:
+						self._fill_selected_dv_histos("DVtype")
 					# Select this DV as the DV for the event!
 					self.selected_dv_index = self.tree.idv
 			else:
@@ -1701,7 +1734,8 @@ class run2Analysis(Analysis):
 				if not self.passed_cosmic_veto_cut:
 					self._fill_cutflow(11)
 					self.passed_cosmic_veto_cut = True
-					self._fill_selected_dv_histos("cosmic")
+					if not self.do_inverted_mlll_cut and not self.do_inverted_mhnl_cut:
+						self._fill_selected_dv_histos("cosmic")
 			else:
 				return
 
@@ -1710,7 +1744,8 @@ class run2Analysis(Analysis):
 				if not self.passed_dlep_pt_cut:
 					self._fill_cutflow(12)
 					self.passed_lep_pt_cut = True
-					self._fill_selected_dv_histos("DVlep_pt")
+					if not self.do_inverted_mlll_cut and not self.do_inverted_mhnl_cut:
+						self._fill_selected_dv_histos("DVlep_pt")
 			else:
 				return
 
@@ -1719,7 +1754,8 @@ class run2Analysis(Analysis):
 				if not self.passed_mat_veto_cut:
 					self._fill_cutflow(13)
 					self.passed_mat_veto_cut = True
-					self._fill_selected_dv_histos("matveto")
+					if not self.do_inverted_mlll_cut and not self.do_inverted_mhnl_cut:
+						self._fill_selected_dv_histos("matveto")
 			else:
 				return
 
@@ -1729,7 +1765,8 @@ class run2Analysis(Analysis):
 					if not self.dv_type == "ee": self._fill_cutflow(13)
 					else: self._fill_cutflow(13+1)
 					self.passed_track_quality_cut = True
-					# self._fill_selected_dv_histos("trkqual")
+					if not self.do_inverted_mlll_cut and not self.do_inverted_mhnl_cut:
+						self._fill_selected_dv_histos("trkqual")
 			else:
 				return
 
@@ -1750,6 +1787,16 @@ class run2Analysis(Analysis):
 					else: self._fill_cutflow(14+1)
 					self.passed_trilepton_mass_cut = True
 					self._fill_selected_dv_histos("mvis")
+			else:
+				return
+
+		if self.do_inverted_mhnl_cut:
+			if self._invert_HNL_mass_cut():
+				if not self.passed_HNL_mass_cut:
+					if not self.dv_type == "ee": self._fill_cutflow(14)
+					else: self._fill_cutflow(14+1)
+					self.passed_HNL_mass_cut = True
+					self._fill_selected_dv_histos("mhnl")
 			else:
 				return
 

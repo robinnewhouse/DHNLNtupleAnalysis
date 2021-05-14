@@ -80,6 +80,10 @@ def main():
 					output_file = output_path + "BE_histograms_data_{}.root".format(channel)
 				else:
 					output_file = output_path + "CR_BE" + file_info.output_filename
+			elif "inverted_mlll" in config_file[channel]["selections"]:
+				output_file = output_path + "histograms_OS_inverted_mlll_{}.root".format(channel)
+			elif "inverted_mhnl" in config_file[channel]["selections"]:
+				output_file = output_path + "histograms_OS_inverted_mhnl_{}.root".format(channel)
 			else:
 				output_file = output_path + file_info.output_filename
 
@@ -117,7 +121,7 @@ def main():
 				# if "CR_BE" in selections: 
 				# 	pass 
 				# else: 
-				if not "inverted_mlll" in selections: 
+				if not "inverted_mlll" in selections and not "inverted_mhnl" in selections:
 					if "OS" in selections or "SS" not in selections:
 						logger.error("You are running on data and you cannot look at OS vertices!!! "
 									"Please include 'SS', not 'OS' in selections, "
