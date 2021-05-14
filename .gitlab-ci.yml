@@ -13,7 +13,7 @@ run_mc_uuu:
     - cd test
     - mkdir output
     # - bash run_mc_uuu.sh
-    - which python
+    - python --version
   artifacts:
     paths:
       - test/output
