@@ -1,7 +1,7 @@
 {
     "uue":{
                 "vtx_containers" :  ["VSI_LeptonsMod"],
-                "selections":["alltriggers","pmuon","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "emu","medium-veryveryloose","cosmicveto", "inverted_mhnl","DVmass","alpha", "lep_pt","HNLmass"]
+                "selections":["alltriggers","pmuon","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "emu","medium-veryveryloose","cosmicveto", "inverted_mhnl","DVmass","alpha", "lep_pt"]
     
              }
     }
