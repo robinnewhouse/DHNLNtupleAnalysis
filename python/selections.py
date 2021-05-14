@@ -873,7 +873,7 @@ class DV_lep_pt():
 		return self.pass_pt_cut
 
 class Mhnl():
-	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 20,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(),trks=[],use_tracks=False ):
+	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 20,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(),trks=[],use_tracks=False,invert=False ):
 		# Global W pole mass
 		MW = 80.379
 		MW2 = MW**2
@@ -885,6 +885,7 @@ class Mhnl():
 		self.hnleta = -99
 		self.hnlphi = -99
 		self.mlll = -1
+		self.invert = invert
 
 		dtrks = []
 		if use_tracks: 
@@ -1060,7 +1061,10 @@ class Mhnl():
 		findMass(pv, dv, p0, d0, d1, MW2,fixWMass)
 
 	def passes(self):
-		return self.mhnl < self.hnlmasscut
+		if not self.invert:
+			return self.mhnl < self.hnlmasscut
+		else:
+			return self.mhnl > self.hnlmasscut
 		
 class PV():
 	def __init__(self, tree):
