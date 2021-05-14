@@ -279,6 +279,7 @@ class Analysis(object):
 			self.do_prompt_track_cut = False
 			self.do_inverted_mlll_cut = False
 			self.do_inverted_mhnl_cut = True
+			self.do_HNL_mass_cut = False
 			self.do_trilepton_mass_cut = False
 			self.saveNtuples = "mhnl" # only save ntuples after mlll selection is applied!
 		else:
@@ -1316,8 +1317,6 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_mom_frac_parall', mom_frac_parall_1)
 
 			# fill 3 different track calculations
-			truth_info = helpers.Truth()
-			truth_info.getTruthParticles(self.tree)
 			if self.dv_type == "mumu":
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', muons.lepVec[1].Pt())
@@ -1341,22 +1340,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_0_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_lep_1_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[1]])
 
-				# Get the truth index (truth matching by charge)
-				if not self.tree.not_hnl_mc:
-					if self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[0]: trk_0_truth_index = 0
-					elif self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[1]: trk_0_truth_index = 1
-					else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
-
-					if self.tree.dv('trk_charge')[1] == truth_info.dMu_charge[0]: trk_1_truth_index = 0
-					elif self.tree.dv('trk_charge')[1] == truth_info.dMu_charge[1]: trk_1_truth_index = 1
-					else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
-
-					self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dMu_d0[trk_0_truth_index])
-					self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dMu_d0[trk_1_truth_index])
-
-					for i in range(len(muons.lepVec)):
-						delta = muons.lepVec[i].Pt() - muons.lepmatched_lepVec[i].Pt()
-						self.fill_hist(sel, 'DV_trk_v_mu_pt', delta/muons.lepmatched_lepVec[i].Pt() )
+				
 
 			if self.dv_type == "emu":
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
@@ -1393,10 +1377,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[0]])
 
-				# truth d0 # it looks like these are already matched so track0 is always the muon. Could that be?
-				if not self.tree.not_hnl_mc:
-					self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dMu_d0[0])
-					self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dEl_d0[0])
+				
 
 			if self.dv_type == "ee":
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', electrons.lepVec[0].Pt())
@@ -1427,22 +1408,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[1]])
 				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[1]])
 
-				if not self.tree.not_hnl_mc:
-					# Get the truth index (truth matching by charge)
-					if self.tree.dv('trk_charge')[0] == truth_info.dEl_charge[0]: trk_0_truth_index = 0
-					elif self.tree.dv('trk_charge')[0] == truth_info.dEl_charge[1]: trk_0_truth_index = 1
-					else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
-
-					if self.tree.dv('trk_charge')[1] == truth_info.dEl_charge[0]: trk_1_truth_index = 0
-					elif self.tree.dv('trk_charge')[1] == truth_info.dEl_charge[1]: trk_1_truth_index = 1
-					else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
-
-					self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dEl_d0[trk_0_truth_index])
-					self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dEl_d0[trk_1_truth_index])
-
-					for i in range(len(muons.lepVec)):
-						delta = electrons.lepVec[i].Pt() - electrons.lepmatched_lepVec[i].Pt()
-						self.fill_hist(sel, 'DV_trk_v_el_pt', delta/electrons.lepmatched_lepVec[i].Pt() )
+				
 
 			# fill standard track variables for electrons
 			for lep in range(len(elVec)):
@@ -1509,17 +1475,60 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_ntrk_assoc', self.tree.dv('ntrk_assoc'))
 			self.fill_hist(sel, 'DV_pass_mat_veto', self.tree.dv('pass_mat'))
 
-			#is truth matched: 
+			
 			if not self.tree.is_data:
 				maxlinkTruth_score = self.tree.dv('maxlinkTruth_score')
 				maxlinkTruth_parent_pdgId = abs(self.tree.dv('maxlinkTruth_parent_pdgId'))
 				is_truth_matched =  self.tree.dv('maxlinkTruth_score') > 0.75 and abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
+				#is truth matched: 
 				self.fill_hist(sel, 'DV_truth_matched', is_truth_matched)
 
 				# add proper lifetime
 				truth_info = helpers.Truth()
 				truth_info.getTruthParticles(self.tree)
 				self.fill_hist(sel, 'properLifetime', truth_info.properLifetime)
+
+				if self.dv_type == "mumu":
+					# Get the truth index (truth matching by charge)
+					if not self.tree.not_hnl_mc:
+						if self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[0]: trk_0_truth_index = 0
+						elif self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[1]: trk_0_truth_index = 1
+						else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
+
+						if self.tree.dv('trk_charge')[1] == truth_info.dMu_charge[0]: trk_1_truth_index = 0
+						elif self.tree.dv('trk_charge')[1] == truth_info.dMu_charge[1]: trk_1_truth_index = 1
+						else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
+
+						self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dMu_d0[trk_0_truth_index])
+						self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dMu_d0[trk_1_truth_index])
+
+						for i in range(len(muons.lepVec)):
+							delta = muons.lepVec[i].Pt() - muons.lepmatched_lepVec[i].Pt()
+							self.fill_hist(sel, 'DV_trk_v_mu_pt', delta/muons.lepmatched_lepVec[i].Pt() )
+				if self.dv_type == "emu":
+					# truth d0 # it looks like these are already matched so track0 is always the muon. Could that be?
+					if not self.tree.not_hnl_mc:
+						self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dMu_d0[0])
+						self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dEl_d0[0])
+
+				if self.dv_type == "ee":
+					if not self.tree.not_hnl_mc:
+						# Get the truth index (truth matching by charge)
+						if self.tree.dv('trk_charge')[0] == truth_info.dEl_charge[0]: trk_0_truth_index = 0
+						elif self.tree.dv('trk_charge')[0] == truth_info.dEl_charge[1]: trk_0_truth_index = 1
+						else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
+
+						if self.tree.dv('trk_charge')[1] == truth_info.dEl_charge[0]: trk_1_truth_index = 0
+						elif self.tree.dv('trk_charge')[1] == truth_info.dEl_charge[1]: trk_1_truth_index = 1
+						else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
+
+						self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dEl_d0[trk_0_truth_index])
+						self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dEl_d0[trk_1_truth_index])
+
+						for i in range(len(muons.lepVec)):
+							delta = electrons.lepVec[i].Pt() - electrons.lepmatched_lepVec[i].Pt()
+							self.fill_hist(sel, 'DV_trk_v_el_pt', delta/electrons.lepmatched_lepVec[i].Pt() )
+
 
 
 			self.fill_hist(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
@@ -1789,7 +1798,7 @@ class run2Analysis(Analysis):
 					self._fill_selected_dv_histos("mvis")
 			else:
 				return
-
+		
 		if self.do_inverted_mhnl_cut:
 			if self._invert_HNL_mass_cut():
 				if not self.passed_HNL_mass_cut:
