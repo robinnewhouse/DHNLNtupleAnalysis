@@ -12,7 +12,7 @@ run_mc_uuu:
     - source setup.sh
     - cd test
     - mkdir output
-    # - bash run_mc_uuu.sh
+    - bash test_mc_uuu.sh
     - python --version
   artifacts:
     paths:
