@@ -6,8 +6,8 @@ stages:
 run_mc_uuu:
   stage: run
   image: cern/cc7-base
-#   before_script:
-#     - printf $SERVICE_PASS | kinit $CERN_USER@CERN.CH
+  before_script:
+    - printf $SERVICE_PASS | kinit $CERN_USER@CERN.CH
   script:
     - source setup.sh
     - cd test
