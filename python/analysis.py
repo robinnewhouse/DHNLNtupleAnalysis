@@ -623,7 +623,7 @@ class Analysis(object):
 		electrons.getElectrons()
 		elVec = electrons.lepVec
 
-		mHNL_sel = selections.Mhnl(self.tree, self.dv_type, plep=self.plep_sel.plepVec, dMu=muVec,dEl=elVec,hnlmasscut=25, invert= True)
+		mHNL_sel = selections.Mhnl(self.tree, self.dv_type, plep=self.plep_sel.plepVec, dMu=muVec,dEl=elVec,hnlmasscut=20, invert= True)
 		return mHNL_sel.passes()
 
 	def _multitrk_2lep_cut(self):
