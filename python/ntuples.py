@@ -9,7 +9,7 @@ data_type = {'c': 'C', 'b': 'B', 'B': 'b', 'u': 'python unicode', 'h': 'I',
 NON_PHYSICAL = -999
 
 class Ntuples:
-    def __init__(self, tree_name='ntuple', *args, **kwargs):
+    def __init__(self, tree_name='ntuple',clone_tree=False,ttree=None, *args, **kwargs):
         """
         This is a simple class to handle the creation and filling of micro-ntuples
         to give more flexibility in plotting later on.
@@ -19,7 +19,8 @@ class Ntuples:
         micro_ntuples.fill() will write all current values to each root tree.
         """
         self.arrays = {}
-        self.ttree = ROOT.TTree(tree_name, 'Micro ntuples')
+        if clone_tree: self.ttree = ttree
+        else: self.ttree = ROOT.TTree(tree_name, 'Micro ntuples')
 
     def fill(self):
         """Fills root ntuple"""
