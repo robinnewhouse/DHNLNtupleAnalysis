@@ -789,7 +789,10 @@ class Analysis(object):
 
 		# calculate the product of all scale factors
 		self.scale_factor_product = 1
-		self.scale_factor_product *= self.tree['weight_pileup']
+		try:
+			self.scale_factor_product *= self.tree['weight_pileup']
+		except KeyError:
+			pass
 
 		self.weight_LNC_only *= self.scale_factor_product
 		self.weight_LNC_plus_LNV *= self.scale_factor_product
@@ -1101,10 +1104,14 @@ class Analysis(object):
 
 			# ____________________________________________________________
 			# pileup
-			self.fill_hist(sel, 'weight_pileup', self.tree['weight_pileup'])
-			# pileup systematics
-			self.fill_hist(sel, 'weight_pileup_1UP', self.tree['weight_pileup_up'])
-			self.fill_hist(sel, 'weight_pileup_1DOWN', self.tree['weight_pileup_down'])
+			try:
+				self.fill_hist(sel, 'weight_pileup', self.tree['weight_pileup'])
+				# pileup systematics
+				self.fill_hist(sel, 'weight_pileup_1UP', self.tree['weight_pileup_up'])
+				self.fill_hist(sel, 'weight_pileup_1DOWN', self.tree['weight_pileup_down'])
+			except KeyError:
+				pass
+
 
 			# ____________________________________________________________
 			# fill the DV weight for LNC or LNV only model assumption (Dirac neutrino)
