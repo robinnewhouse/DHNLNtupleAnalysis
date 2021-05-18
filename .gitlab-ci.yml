@@ -5,14 +5,14 @@ stages:
       
 run_mc_uuu:
   stage: run
-  image: cern/cc7-base
-#   before_script:
-#     - printf $SERVICE_PASS | kinit $CERN_USER@CERN.CH
+  image: gitlab-registry.cern.ch/sft/docker:lcg-cc7
+  before_script:
+    - printf $SERVICE_PASS | kinit $CERN_USER@CERN.CH
   script:
     - source setup.sh
     - cd test
     - mkdir output
-    # - bash run_mc_uuu.sh
+    - bash test_mc_uuu.sh
     - python --version
   artifacts:
     paths:
