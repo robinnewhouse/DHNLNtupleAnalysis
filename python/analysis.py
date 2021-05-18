@@ -41,14 +41,19 @@ class Analysis(object):
 
 		# setting all the relevant variables for the cuts based on the input selections
 		# trigger cut
+		self.do_trigger_cut = False
 		if 'alltriggers' in self.sel:
-			self.trigger = 'all'
+			self.trigger = 'alltriggers'
 			self.do_trigger_cut = True
-		else:
-			if 'CR' not in self.sel:
-				self.logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
-			self.do_trigger_cut = False
-
+		if 'electrononly' in self.sel:
+			self.trigger = 'electrononly'
+			self.do_trigger_cut = True
+		if 'muononly' in self.sel:
+			self.trigger = 'muononly'
+			self.do_trigger_cut = True
+		if (not self.do_trigger_cut) and ('CR' not in self.sel):
+			self.logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
+			
 		# filter cut
 		self.do_filter_cut = True
 		if '4-filter' in self.sel:
