@@ -29,7 +29,7 @@ class Trigger():
 				self.allowed_trigger_list = helpers.SingleElectronTriggerlist_2018
 			else:
 				self.allowed_trigger_list = helpers.SingleElectronTriggerlist
-		elif trigger == "all":
+		elif trigger == "alltriggers":
 			if tree.mc_campaign == "mc16a":
 				self.allowed_trigger_list = helpers.SingleMuonTriggerlist_2015_2016 + helpers.SingleElectronTriggerlist_2015_2016
 			if tree.mc_campaign == "mc16d":
