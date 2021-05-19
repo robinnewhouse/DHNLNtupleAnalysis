@@ -772,18 +772,31 @@ class Analysis(object):
 	def calculate_event_weight(self):
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
 		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
+
 		# calculate mass lifetime weight 
 		self.mass_lt_weight_LNC_only = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False)
 		self.mass_lt_weight_LNC_plus_LNV = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True)
-		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)  
-		self.logger.debug('LNC only event weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_only))
-		self.logger.debug('LNC+LNV event weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_plus_LNV))
+
+		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)
+		self.logger.debug('LNC only mass-lifetime weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_only))
+		self.logger.debug('LNC+LNV mass-lifetime weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_plus_LNV))
+
 		if self.weight_override is None:
-			self.weight_LNC_only = self.mass_lt_weight_LNC_only*self.MCEventType.weight
-			self.weight_LNC_plus_LNV = self.mass_lt_weight_LNC_plus_LNV*self.MCEventType.weight
-		else: 
+			self.weight_LNC_only = self.mass_lt_weight_LNC_only * self.MCEventType.weight
+			self.weight_LNC_plus_LNV = self.mass_lt_weight_LNC_plus_LNV * self.MCEventType.weight
+		else:
 			self.weight_LNC_only = self.weight_override
 			self.weight_LNC_plus_LNV = self.weight_override
+
+		# calculate the product of all scale factors
+		self.scale_factor_product = 1
+		try:
+			self.scale_factor_product *= self.tree['weight_pileup']
+		except KeyError:
+			pass
+
+		self.weight_LNC_only *= self.scale_factor_product
+		self.weight_LNC_plus_LNV *= self.scale_factor_product
 
 	def DVSelection(self):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
@@ -1090,8 +1103,18 @@ class Analysis(object):
 
 			# these are the histograms you only want to fill ONCE per DV
 
-			# fill event weight. storing this per dv as weights include dv scale factor.
-			
+			# ____________________________________________________________
+			# pileup
+			try:
+				self.fill_hist(sel, 'weight_pileup', self.tree['weight_pileup'])
+				# pileup systematics
+				self.fill_hist(sel, 'weight_pileup_1UP', self.tree['weight_pileup_up'])
+				self.fill_hist(sel, 'weight_pileup_1DOWN', self.tree['weight_pileup_down'])
+			except KeyError:
+				pass
+
+
+			# ____________________________________________________________
 			# fill the DV weight for LNC or LNV only model assumption (Dirac neutrino)
 			self.fill_hist(sel, 'DV_weight_LNC_only', self.weight_LNC_only)
 			# fill the DV weight for LNC plus LNV signal model assumption (Majorana neutrino)
@@ -1101,6 +1124,7 @@ class Analysis(object):
 			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
 			self.fill_hist(sel, 'event_is_LNV', self.MCEventType.isLNV)
 
+			# ____________________________________________________________
 			tracks = helpers.Tracks(self.tree)
 			tracks.getTracks()
 			trkVec = tracks.lepVec
@@ -1116,7 +1140,6 @@ class Analysis(object):
 			elVec = electrons.lepVec
 			elVec_lepmatched = electrons.lepmatched_lepVec
 			el_Index = electrons.lepIndex
-
 
 			# fill histograms that require a prompt lepton to be identified
 			if self.do_prompt_lepton_cut:
@@ -1187,9 +1210,9 @@ class Analysis(object):
 					el_plep_diff_charge = not el_plep_same_charge
 					self.fill_hist(sel, 'mll_dEl_plep_is_OS', el_plep_diff_charge)
 					self.fill_hist(sel, 'mll_dEl_plep_is_SS', el_plep_same_charge)
-					self.fill_hist(sel, 'mll_dEl_plep', el_plep_vec.M() )
+					self.fill_hist(sel, 'mll_dEl_plep', el_plep_vec.M())
 
-			if self.do_prompt_track_cut: 
+			if self.do_prompt_track_cut:
 				ptrk_vec = self.ptrk_sel.trkVec
 				ptrkd0 = self.ptrk_sel.trkd0
 				ptrkz0 = self.ptrk_sel.trkz0
@@ -1205,9 +1228,6 @@ class Analysis(object):
 					self.fill_hist(sel, 'HNLpt', Mhnl.hnlpt)
 					self.fill_hist(sel, 'HNLeta', Mhnl.hnleta)
 					self.fill_hist(sel, 'HNLphi', Mhnl.hnlphi)
-
-
-
 
 			if tracks.ntracks == 2:
 				deta = abs(tracks.eta[0] - tracks.eta[1])
