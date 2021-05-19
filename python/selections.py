@@ -1081,47 +1081,48 @@ class PV():
 			return False # no primary vertex in the event
 
 class MCEventType:
+	"""
+	Matrix elements for the trilepton process, when only the charged-current contribution is present.
+
+	Input:
+	- All masses are in GeV, and all Mandelstam variables in GeV^2.
+	- pW2 = p(W)^2 = mW^2
+	- The Mandelstam variables are defined as follows:
+	      s13 = (p(l1)+p(l3))^2
+	      s24 = (p(l2)+p(nu))^2
+	  with:
+	    - l1 the charged lepton produced along with the HNL;
+	    - l2 the charged lepton produced in the HNL decay, on the same fermion line as the HNL;
+	    - l3 the charged lepton produced in the HNL decay, on the same fermion line as the light neutrino;
+	    - nu the light neutrino produced in the HNL decay.
+	  There are two additional, independent Mandelstam variables which do not enter the matrix elements.
+
+	Assumptions:
+	- Light lepton (e, mu) masses are neglected.
+	- Some off-shell effects coming from the finite width of the W are neglected.
+	- Matrix elements are given up to a dimensionful constant, but should be consistent among themselves.
+	  In particular: M2_nocorr = M2_LNC + M2_LNV.
+	"""
 	def __init__(self, tree, wrong_lep_order = True):
 		self.weight = 1 # if not data weight is default, event is neither LNC or LNV
 		self.M2_spin_corr = -1
 		self.M2_nocorr = -1
 		self.isLNC = False
 		self.isLNV = False
-		# Matrix elements for the trilepton process, when only the charged-current contribution is present.
 
-		# Input:
-		# - All masses are in GeV, and all Mandelstam variables in GeV^2.
-		# - pW2 = p(W)^2 = mW^2
-		# - The Mandelstam variables are defined as follows:
-		#       s13 = (p(l1)+p(l3))^2
-		#       s24 = (p(l2)+p(nu))^2
-		#   with:
-		#     - l1 the charged lepton produced along with the HNL;
-		#     - l2 the charged lepton produced in the HNL decay, on the same fermion line as the HNL;
-		#     - l3 the charged lepton produced in the HNL decay, on the same fermion line as the light neutrino;
-		#     - nu the light neutrino produced in the HNL decay.
-		#   There are two additional, independent Mandelstam variables which do not enter the matrix elements.
-
-		# Assumptions:
-		# - Light lepton (e, mu) masses are neglected.
-		# - Some off-shell effects coming from the finite width of the W are neglected.
-		# - Matrix elements are given up to a dimensionful constant, but should be consistent among themselves.
-		#   In particular: M2_nocorr = M2_LNC + M2_LNV.
-
-
-		MW = 80.379 # Change the W mass to match your particle data. This is the latest PDG value.
+		MW = 80.379  # Change the W mass to match your particle data. This is the latest PDG value.
 
 		# Lepton number conserving charged-current trilepton process.
 		def M2_LNC(MN, pW2, s13, s24):
-		    return s24 * ( 2*MW**2*pW2*(MN**2-s24) + MN**4*(s13-2*MW**2) + 2*(s24-s13)*MN**2*MW**2 ) / ( 6*MW**6 )
+			return s24 * ( 2*MW**2*pW2*(MN**2-s24) + MN**4*(s13-2*MW**2) + 2*(s24-s13)*MN**2*MW**2 ) / ( 6*MW**6 )
 
 		# Lepton number violating charged-current trilepton process.
 		def M2_LNV(MN, pW2, s13, s24):
-		    return - s24 * MN**2 * ( pW2*(s24-MN**2) + (s13-s24)*MN**2 + MN**4 - 2*s13*MW**2 ) / ( 6*MW**6 )
+			return - s24 * MN**2 * ( pW2*(s24-MN**2) + (s13-s24)*MN**2 + MN**4 - 2*s13*MW**2 ) / ( 6*MW**6 )
 
 		# Charged-current trilepton process, ignoring spin correlations between the HNL production and its decay.
 		def M2_nocorr(MN, pW2, s24):
-		    return ( s24*(MN**2-s24)*(MN**2+2*MW**2)*(pW2-MN**2) ) / ( 6*MW**6 )
+			return (s24 * (MN ** 2 - s24) * (MN ** 2 + 2 * MW ** 2) * (pW2 - MN ** 2)) / (6 * MW ** 6)
 
 		if not tree.is_data and not tree.not_hnl_mc:
 			truth_info = helpers.Truth()
@@ -1145,9 +1146,8 @@ class MCEventType:
 			else: 
 				self.isLNV = True
 				
-			if self.isLNC == self.isLNV: 
+			if self.isLNC == self.isLNV:
 				logger.error("MCEventType selection found that this event is both LNC and LNV. Check this event!")
-
 
 			p12 = self.p_1 + self.p_2
 			p13 = self.p_1 + self.p_3
@@ -1163,21 +1163,21 @@ class MCEventType:
 			self.s23 = p23.Mag2()
 			self.s24 = p24.Mag2()
 			self.s34 = p34.Mag2()
-			
+
 			# calculate the correct matrix that takes into account LNC or LNV decay
-			if self.isLNC: 
+			if self.isLNC:
 				self.M2_spin_corr = M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
-			if self.isLNV: 
+			if self.isLNV:
 				self.M2_spin_corr = M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
 
-			if wrong_lep_order: 
+			if wrong_lep_order:
 			# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
-			# For official samples, swap s24 -> s34 
+			# For official samples, swap s24 -> s34
 				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2,s24= self.s34) # wrong matrix used when generating pythia samples, includes lepton permutation
 			else:
 				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24= self.s24) # wrong matrix used when generating pythia samples, NO lepton permutation
 
-			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is becuase M2_nocorr as calculated includes LNC + LNV decays
+			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is because M2_nocorr as calculated includes LNC + LNV decays
 
 
 class Lep_TriggerMatching:
