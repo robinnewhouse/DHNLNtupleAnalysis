@@ -252,7 +252,6 @@ class PromptLepton():
 			if quality == "loose":
 				lepquality = 'el_LHLoose'
 
-
 			nleps = len(tree['el_pt'])
 			passPfilter = tree['el_passesPromptCuts']
 
@@ -268,6 +267,7 @@ class PromptLepton():
 			plepVec_i = ROOT.TLorentzVector()
 
 			if lepton == "muon":
+				min_pt = 3 # GeV
 				pt = tree['muon_pt'][ilep]
 				eta = tree['muon_eta'][ilep]
 				phi = tree['muon_phi'][ilep]
@@ -278,8 +278,12 @@ class PromptLepton():
 				lepd0 = tree['muon_trkd0'][ilep]
 				lepz0 = tree['muon_trkz0'][ilep]
 				lepz0sintheta = tree['muon_trkz0sintheta'][ilep]
+				muon_type = tree['muon_type'][ilep]
+				# skip any muons that are not combined muons!
+				if muon_type != 0: continue
 
 			if lepton == "electron":
+				min_pt = 4.5 # GeV
 				pt = tree['el_pt'][ilep]
 				eta = tree['el_eta'][ilep]
 				phi = tree['el_phi'][ilep]
@@ -300,7 +304,7 @@ class PromptLepton():
 
 			#apply filter cut seperately do not need to addtionally require our lepton passes the prompt filter cuts -DT
 			# if passPfilter[ilep] and passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
-			if passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5:
+			if passes_lep_quality and abs(lepd0) < 3 and abs(lepz0sintheta) < 0.5 and pt > min_pt:
 				# Check the overlap between the prompt lepton and every displaced vertex track
 				self.found_plep = True
 				for idv in range(tree.ndv):
