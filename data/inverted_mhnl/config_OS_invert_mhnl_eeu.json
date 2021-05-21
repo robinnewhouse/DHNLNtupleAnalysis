@@ -2,7 +2,7 @@
     "eeu":{
                 
                 "vtx_containers" : ["VSI_LeptonsMod"],
-                "selections":["alltriggers","pelectron","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "emu","medium-veryveryloose","cosmicveto", "inverted_mhnl","DVmass" ,"alpha", "lep_pt"]
+                "selections":["alltriggers","pelectron","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "emu","medium-veryveryloose","cosmicveto", "inverted_mhnl","DVmass" , "lep_pt"]
     
                 }
         }

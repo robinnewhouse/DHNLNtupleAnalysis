@@ -838,7 +838,7 @@ class Mtrans():
 
 
 class DVmass():
-	def __init__(self, tree, decaymode="leptonic", dvmasscut=4):
+	def __init__(self, tree, decaymode="leptonic", dvmasscut=5.5):
 
 		self.decaymode = decaymode
 		self.dvmasscut = dvmasscut
@@ -849,6 +849,98 @@ class DVmass():
 			return True
 		else:
 			return False
+
+class Bhadron_veto():
+	def __init__(self, tree, dv_type, dvmasscut=5.5):
+
+		self.dvmasscut = dvmasscut
+		self.dvmass = tree.dv('mass')
+		self.dv_type = dv_type
+		self.rdv = -1
+
+		if tree.ntrk > 0:
+			dx = tree.dv('x')
+			dy = tree.dv('y')
+			self.rdv = np.sqrt(dx**2 + dy**2)
+
+		self.pass_diagonal_cut = self.dvmass > (-(7.0/150.0)*self.rdv + 7.0)
+		# (((DV_mass >2 && DV_mass <5.5) && DV_mass > -(7/150)*DV_r + 7 ) || DV_mass > 5.5)
+
+
+	def passes(self):
+		if self.dv_type == "mumu" or self.dv_type == "ee":
+			return self.dvmass > self.dvmasscut
+		elif self.dv_type == "emu":
+			return ((self.dvmass >2 and self.dvmass < self.dvmasscut) and self.pass_diagonal_cut) or self.dvmass > self.dvmasscut
+		else:
+			return False
+
+class Zmass_veto():
+	def __init__(self, tree, plep_vec, plep, plepcharge, dv_type):
+		self.mll_dMu_plep_is_SS = None
+		self.mll_dMu_plep_is_OS = None
+		self.mll_dMu_plep = -1
+		self.mll_dEl_plep_is_SS = None
+		self.mll_dEl_plep_is_OS = None
+		self.mll_dEl_plep = -1
+		
+		self.plep = plep
+		self.dv_type = dv_type
+
+		muons = helpers.Tracks(tree)
+		muons.getMuons()
+		muVec = muons.lepVec
+		muVec_lepmatched = muons.lepmatched_lepVec
+		mu_Index = muons.lepIndex
+
+		electrons = helpers.Tracks(tree)
+		electrons.getElectrons()
+		elVec = electrons.lepVec
+		elVec_lepmatched = electrons.lepmatched_lepVec
+		el_Index = electrons.lepIndex
+
+		# get invariant mass between prompt lepton + same flavour displaced lepton for Z->ll veto
+		if plep == 'muon' and len(muVec) > 0:
+			# only 1 muon in DV then choose this lepton for dlep in veto
+			if len(muVec) == 1: mu_index = 0
+			# choose highest pt muon in DV for dlep in veto
+			elif len(muVec) == 2:
+				if muVec_lepmatched[0].Pt() >  muVec_lepmatched[1].Pt(): mu_index = 0
+				else: mu_index = 1
+			#get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
+			mu_plep_vec = muVec_lepmatched[mu_index] + plep_vec
+			self.mll_dMu_plep_is_SS = int(plepcharge) ==  int(muons.lepCharge[mu_index])
+			self.mll_dMu_plep_is_OS = not self.mll_dMu_plep_is_SS
+			self.mll_dMu_plep = mu_plep_vec.M()
+
+		if plep == 'electron' and len(elVec) > 0:
+			# only 1 electron in DV then choose this lepton for dlep in veto
+			if len(elVec) == 1: el_index = 0
+			# choose highest pt electron in DV for dlep in veto
+			elif len(elVec) == 2:
+				if elVec_lepmatched[0].Pt() >  elVec_lepmatched[1].Pt(): el_index = 0
+				else: el_index = 1
+			#get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
+			el_plep_vec = elVec_lepmatched[el_index] + plep_vec
+			self.mll_dEl_plep_is_SS= int(plepcharge) ==  int(electrons.lepCharge[el_index])
+			self.mll_dEl_plep_is_OS = not self.mll_dEl_plep_is_SS
+			self.mll_dEl_plep = el_plep_vec.M()
+	
+	def passes(self):
+		if self.plep == "muon":
+			if self.dv_type == "mumu" or self.dv_type == "emu":
+				return ((self.mll_dMu_plep_is_OS == True and (self.mll_dMu_plep < 80 or self.mll_dMu_plep > 100)) or self.mll_dMu_plep_is_SS ==True)
+			else: 
+				return True
+		elif self.plep == "electron":
+			if self.dv_type == "emu" or self.dv_type == "ee":
+				return  ((self.mll_dEl_plep_is_OS ==True and (self.mll_dEl_plep < 80 or self.mll_dEl_plep > 100)) or self.mll_dEl_plep_is_SS==True)
+			else: 
+				return True
+		else: 
+			return False
+
+
 
 class DV_lep_pt():
 	def __init__(self, tree, dv_type, el_pt_cut=4.5, mu_pt_cut = 3):
