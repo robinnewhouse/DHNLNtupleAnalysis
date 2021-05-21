@@ -512,13 +512,13 @@ class Tracks:
 
 class Muons(Tracks):
 	def __init__(self, tree):
-		super().__init__(tree)
+		super(Muons, self).__init__(tree)
 		self.getMuons()
 
 
 class Electrons(Tracks):
 	def __init__(self, tree):
-		super().__init__(tree)
+		super(Electrons, self).__init__(tree)
 		self.getElectrons()
 
 
