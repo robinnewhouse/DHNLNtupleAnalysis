@@ -230,7 +230,6 @@ class PromptLepton():
 		self.found_plep = False
 		self.plep_Index = -1
 
-
 		lepquality = ""
 		passPfilter = False
 		if lepton == "muon":
@@ -1276,26 +1275,71 @@ class MCEventType:
 			self.weight = 2*self.M2_spin_corr/self.M2_nocorr  # factor of 2 here is because M2_nocorr as calculated includes LNC + LNV decays
 
 
-class Lep_TriggerMatching:
-	def __init__(self, tree,lep,lep_Index):
-		self.lep_isTrigMatched = False
+class LeptonTriggerMatching:
+	def __init__(self, tree, lep, lepton_index):
+		self.is_trigger_matched = False
 		if lep == "muon":
 			lep_matched = tree["muon_isTrigMatched"]
 		if lep == "electron":
 			lep_matched = tree["el_isTrigMatched"]
-		if lep_matched[lep_Index] == 1:
-			self.lep_isTrigMatched = True
+		if lep_matched[lepton_index] == 1:
+			self.is_trigger_matched = True
 
 
-class TriggerMatching_disp:
-	def __init__(self, tree,dv_type,dMu_Index,dEl_Index):
-		self.dlep_isTrigMatched = False
-		if dv_type == "emu":
-			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]]== 1 or tree["el_isTrigMatched"][dEl_Index[0]]== 1
-		if dv_type == "ee":
-			self.dlep_isTrigMatched = tree["el_isTrigMatched"][dEl_Index[0]]==1 or tree["el_isTrigMatched"][dEl_Index[1]]==1
-		if dv_type == "mumu":
-			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]]== 1 or tree["muon_isTrigMatched"][dMu_Index[1]]== 1
+class RequireMediumTriggerMatching:
+	def __init__(self, tree, prompt_lepton_index, prompt_lepton_type, muons, electrons, dv_type):
+
+		# check if prompt lepton is trigger matched
+		prompt_is_trigger_matched = LeptonTriggerMatching(tree, prompt_lepton_type, prompt_lepton_index).is_trigger_matched
+		prompt_is_medium = False
+		if prompt_lepton_type == 'muon':
+			prompt_is_medium = tree.get('muon_isMedium')[prompt_lepton_index] == 1
+		if prompt_lepton_type == 'electron':
+			prompt_is_medium = tree.get('el_LHMedium')[prompt_lepton_index] == 1
+
+		# check if displaced is trigger matched
+		displaced_0_is_trigger_matched = False
+		displaced_0_is_medium = False
+		displaced_1_is_trigger_matched = False
+		displaced_1_is_medium = False
+		if dv_type == 'mumu':
+			displaced_0_is_trigger_matched = LeptonTriggerMatching(tree, 'muon', muons.lepIndex[0]).is_trigger_matched
+			displaced_0_is_medium = tree.get('muon_isMedium')[muons.lepIndex[0]] == 1
+			displaced_1_is_trigger_matched = LeptonTriggerMatching(tree, 'muon', muons.lepIndex[1]).is_trigger_matched
+			displaced_1_is_medium = tree.get('muon_isMedium')[muons.lepIndex[1]] == 1
+		if dv_type == 'ee':
+			displaced_0_is_trigger_matched = LeptonTriggerMatching(tree, 'electron', electrons.lepIndex[0]).is_trigger_matched
+			displaced_0_is_medium = tree.get('el_LHMedium')[electrons.lepIndex[0]] == 1
+			displaced_1_is_trigger_matched = LeptonTriggerMatching(tree, 'electron', electrons.lepIndex[1]).is_trigger_matched
+			displaced_1_is_medium = tree.get('el_LHMedium')[electrons.lepIndex[1]] == 1
+		if dv_type == 'emu':
+			displaced_0_is_trigger_matched = LeptonTriggerMatching(tree, 'muon', muons.lepIndex[0]).is_trigger_matched
+			displaced_0_is_medium = tree.get('muon_isMedium')[muons.lepIndex[0]] == 1
+			displaced_1_is_trigger_matched = LeptonTriggerMatching(tree, 'electron', electrons.lepIndex[0]).is_trigger_matched
+			displaced_1_is_medium = tree.get('el_LHMedium')[electrons.lepIndex[0]] == 1
+
+		# check for at least one lepton passing criteria
+		self.prompt_trigger_matched_medium = prompt_is_trigger_matched and prompt_is_medium
+		self.displaced_0_trigger_matched_medium = displaced_0_is_trigger_matched and displaced_0_is_medium
+		self.displaced_1_trigger_matched_medium = displaced_1_is_trigger_matched and displaced_1_is_medium
+		self.n_trigger_matched_medium = sum([
+			self.prompt_trigger_matched_medium,
+			self.displaced_0_trigger_matched_medium,
+			self.displaced_1_trigger_matched_medium,
+		])
+
+	def passes(self):
+		return self.n_trigger_matched_medium >= 0
+
+# class TriggerMatching_disp:
+# 	def __init__(self, tree, dv_type, dMu_Index, dEl_Index):
+# 		self.dlep_isTrigMatched = False
+# 		if dv_type == "emu":
+# 			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]] == 1 or tree["el_isTrigMatched"][dEl_Index[0]] == 1
+# 		if dv_type == "ee":
+# 			self.dlep_isTrigMatched = tree["el_isTrigMatched"][dEl_Index[0]] == 1 or tree["el_isTrigMatched"][dEl_Index[1]] == 1
+# 		if dv_type == "mumu":
+# 			self.dlep_isTrigMatched = tree["muon_isTrigMatched"][dMu_Index[0]] == 1 or tree["muon_isTrigMatched"][dMu_Index[1]] == 1
 
 
 class SumTrack:
@@ -1309,12 +1353,3 @@ class SumTrack:
 			self.sum_track_pt += tree.dv('trk_pt_wrtSV')[k]
 			self.sum_track_pt_wrt_pv += tree.dv('trk_pt')[k]
 			self.sum_track_charge += tree.dv('trk_charge')[k]
-
-# class VertexingUncertainty:
-# 	def __init__(self, tree):
-# 		self.tree = tree
-#
-# 		self.tree.dv('r')
-# 		self.tree.dv('pt')
-#
-# 		self.uncertainty_value = helpers.get_vertexing_uncertainty(self.tree.dv('r'), self.tree.dv('pt'))
