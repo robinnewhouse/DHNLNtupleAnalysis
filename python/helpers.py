@@ -527,7 +527,9 @@ class FileInfo:
 		self.MC_campaign = None
 		self.ctau_str = ""
 		self.mass_str = ""
+		
 		sig_info = mc_info(self.dsid)
+		self.file_ch = sig_info.ch_str # used in job submission do not delete!
 
 		if "lt1dd" in infile or "1mm" in infile or sig_info.ctau_str == "lt1dd":
 			self.ctau = 1.0
