@@ -126,18 +126,20 @@ class ReadBRdat:
                 if channel == 'eeu':
                     return self.BReeu[i]
 
-def hnl_xsec(br,U2,mass):
+
+def hnl_xsec(br, U2, mass):
 	mW = 80.379  # mass of W boson in GeV
 	xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
 	return xsec
 
-def get_mass_lt_weight(tree,lnc_plus_lnv=False):
+
+def get_mass_lt_weight(tree, lnc_plus_lnv=False):
 	"""
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
 	Sets the weight of events for this tree
 	:param tree: Tree object with mass and lifetime info
-	:param both_lnc_lnv: if both lnc and lnv decays are possible then lifetime is reduced by a factor of 2
+	:param lnc_plus_lnv: if both lnc and lnv decays are possible then lifetime is reduced by a factor of 2
 	:return: calculated weight.
 	"""
 	mass = tree.mass # GeV
@@ -145,47 +147,43 @@ def get_mass_lt_weight(tree,lnc_plus_lnv=False):
 	mc_campaign = tree.mc_campaign
 	channel = tree.channel
 
+	if mass == -1 or ctau == -1:  # MC weighting error
+		logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
+		return 1
+
 	# define luminosity for the different mc campaigns
-	lumi = {"mc16a": 36.20766,
-					"mc16d": 44.30740,
-					"mc16e": 58.45010,}
-	lumi_tot = sum(lumi.values())
-	# by default mc campagin is set to 1; if you dont set your mc campaign, then scale using L= 1 fb^-1
-	lumi[None] = 1.0
+	lumi = {'mc16a': 36.20766, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0}
+	# lumi_tot = lumi['mc16a'] + lumi['mc16d'] + lumi['mc16e']
 
 	if tree.is_data or tree.not_hnl_mc:  # you are running on data non non-hnl MC
-		weight_LNC_only = 1
-		weight_LNC_plus_LNV = 1
-	else:  # you are running on MC file
-		if mass == -1 or ctau == -1:  # MC weighting error
-			logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
-			weight_LNC_only = 1
-			weight_LNC_plus_LNV = 1
-		else:
-			#calculate Gronau coupling; parametrization depends on coupling flavour you are probing
-			if channel == "uuu" or channel == "uue":
-				U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
-			if channel == "eee" or channel == "eeu":
-				U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
+		return 1
+	else:  # you are running on a signal MC file
+		# calculate Gronau coupling; parametrization depends on coupling flavour you are probing
+		if channel == 'uuu' or channel == 'uue':
+			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+		if channel == 'eee' or channel == 'eeu':
+			U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
 
-			# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels avaliable)
-			U2_LNC_only = U2Gronau
-			xsec_LNC_only = hnl_xsec(br=tree.br, U2=U2_LNC_only, mass=mass)  # in fb
-			U2_LNC_plus_LNV = 0.5 * U2Gronau
-			xsec_LNC_plus_LNV = hnl_xsec(br=tree.br, U2=U2_LNC_plus_LNV, mass=mass)  # in fb
-			# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
-			# LNC and LNV branches are split into into separate LNC and LNV branches
-			# total num. of MC events = (tree.all_entries / 2) becuase pythia samples have a 50% mix of LNC+ LNV
-			weight_LNC_only = lumi[mc_campaign] * xsec_LNC_only / (tree.all_entries / 2)
-			# for LNC plus LNV then all MC events are added to the output tree so total number of events == tree.all_entries
-			weight_LNC_plus_LNV = lumi[mc_campaign] * xsec_LNC_plus_LNV / (tree.all_entries)
+		# HNL decays in only a lepton-number conserving way
+		U2_LNC_only = U2Gronau
+		xsec_LNC_only = hnl_xsec(br=tree.br, U2=U2_LNC_only, mass=mass)  # in fb
+		# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
+		U2_LNC_plus_LNV = 0.5 * U2Gronau
+		xsec_LNC_plus_LNV = hnl_xsec(br=tree.br, U2=U2_LNC_plus_LNV, mass=mass)  # in fb
+		# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
+		# LNC and LNV branches are split into into separate LNC and LNV branches
+		# total num. of MC events = (tree.all_entries / 2) because pythia samples have a 50% mix of LNC+ LNV
+		weight_LNC_only = lumi[mc_campaign] * xsec_LNC_only / (tree.all_entries / 2)
+		# for LNC plus LNV then all MC events are added to the output tree so total number of events == tree.all_entries
+		weight_LNC_plus_LNV = lumi[mc_campaign] * xsec_LNC_plus_LNV / tree.all_entries
 
-	if lnc_plus_lnv: return weight_LNC_plus_LNV
-	else: return weight_LNC_only
+	if lnc_plus_lnv:
+		return weight_LNC_plus_LNV
+	else:
+		return weight_LNC_only
 
 
-
-class Truth():
+class Truth:
 	def __init__(self):
 		self.HNL_vec = ROOT.TLorentzVector()
 		self.dNu_vec =  ROOT.TLorentzVector()
@@ -529,7 +527,6 @@ class FileInfo:
 		self.MC_campaign = None
 		self.ctau_str = ""
 		self.mass_str = ""
-		self.file_ch = mc_info(self.dsid).ch_str
 		sig_info = mc_info(self.dsid)
 
 		if "lt1dd" in infile or "1mm" in infile or sig_info.ctau_str == "lt1dd":
@@ -586,82 +583,81 @@ class FileInfo:
 
 		# More flexibility for non-signal samples
 		self.output_filename = "histograms"
-		if (self.MC_campaign):
+		if self.MC_campaign:
 			self.output_filename += "_" + self.MC_campaign
 		else:
 			self.output_filename += "_mc"
-		if (self.mass_str): self.output_filename += "_" + self.mass_str
-		if (self.ctau_str): self.output_filename += "_" + self.ctau_str
+		if self.mass_str: self.output_filename += "_" + self.mass_str
+		if self.ctau_str: self.output_filename += "_" + self.ctau_str
 		self.output_filename += "_" + channel + ".root"
 
 		f_br = ReadBRdat(os.path.dirname(os.path.abspath(__file__))+'/../data/BR/HNL_branching_20GeV.dat')
 		self.br = f_br.get_BR(channel, self.mass)
 
 
-
 class mc_info:
 	def __init__(self, dsid):
 		mc_info = {}
-		mc_info[311602] = [ "uuu", "3G", "lt1dd"]
-		mc_info[311603] = [ "uuu", "3G", "lt10dd"]
-		mc_info[311604] = [ "uuu", "3G", "lt100dd"]
-		mc_info[311605] = [ "uue", "3G", "lt1dd"]
-		mc_info[311606] = [ "uue", "3G", "lt10dd"]
-		mc_info[311607] = [ "uue", "3G", "lt100dd"]
-		mc_info[311608] = [ "uuu", "4G", "lt1dd"]
-		mc_info[311609] = [ "uuu", "4G", "lt10dd"]
-		mc_info[311610] = [ "uuu", "4G", "lt100dd"]
-		mc_info[311611] = [ "uue", "4G", "lt1dd"]
-		mc_info[311612] = [ "uue", "4G", "lt10dd"]
-		mc_info[311613] = [ "uue", "4G", "lt100dd"]
-		mc_info[311614] = [ "uuu", "4p5G", "lt1dd"]
-		mc_info[311615] = [ "uuu", "4p5G", "lt10dd"]
-		mc_info[311616] = [ "uuu", "4p5G", "lt100dd"]
-		mc_info[311617] = [ "uue", "4p5G", "lt1dd"]
-		mc_info[311618] = [ "uue", "4p5G", "lt10dd"]
-		mc_info[311619] = [ "uue", "4p5G", "lt100dd"]
-		mc_info[311620] = [ "uuu", "5G", "lt1dd"]
-		mc_info[311621] = [ "uuu", "5G", "lt10dd"]
-		mc_info[311622] = [ "uuu", "5G", "lt100dd"]
-		mc_info[311623] = [ "uue", "5G", "lt1dd"]
-		mc_info[311624] = [ "uue", "5G", "lt10dd"]
-		mc_info[311625] = [ "uue", "5G", "lt100dd"]
-		mc_info[311626] = [ "uuu", "7p5G", "lt1dd"]
-		mc_info[311627] = [ "uuu", "7p5G", "lt10dd"]
-		mc_info[311628] = [ "uuu", "7p5G", "lt100dd"]
-		mc_info[311629] = [ "uue", "7p5G", "lt1dd"]
-		mc_info[311630] = [ "uue", "7p5G", "lt10dd"]
-		mc_info[311631] = [ "uue", "7p5G", "lt100dd"]
-		mc_info[311632] = [ "uuu", "10G", "lt1dd"]
-		mc_info[311633] = [ "uuu", "10G", "lt10dd"]
-		mc_info[311634] = [ "uuu", "10G", "lt100dd"]
-		mc_info[311635] = [ "uue", "10G", "lt1dd"]
-		mc_info[311636] = [ "uue", "10G", "lt10dd"]
-		mc_info[311637] = [ "uue", "10G", "lt100dd"]
-		mc_info[311638] = [ "uuu", "12p5G", "lt1dd"]
-		mc_info[311639] = [ "uuu", "12p5G", "lt10dd"]
-		mc_info[311640] = [ "uuu", "12p5G", "lt100dd"]
-		mc_info[311641] = [ "uue", "12p5G", "lt1dd"]
-		mc_info[311642] = [ "uue", "12p5G", "lt10dd"]
-		mc_info[311643] = [ "uue", "12p5G", "lt100dd"]
-		mc_info[311644] = [ "uuu", "15G", "lt1dd"]
-		mc_info[311645] = [ "uuu", "15G", "lt10dd"]
-		mc_info[311646] = [ "uuu", "15G", "lt100dd"]
-		mc_info[311647] = [ "uue", "15G", "lt1dd"]
-		mc_info[311648] = [ "uue", "15G", "lt10dd"]
-		mc_info[311649] = [ "uue", "15G", "lt100dd"]
-		mc_info[311650] = [ "uuu", "17p5G", "lt1dd"]
-		mc_info[311651] = [ "uuu", "17p5G", "lt10dd"]
-		mc_info[311652] = [ "uuu", "17p5G", "lt100dd"]
-		mc_info[311653] = [ "uue", "17p5G", "lt1dd"]
-		mc_info[311654] = [ "uue", "17p5G", "lt10dd"]
-		mc_info[311655] = [ "uue", "17p5G", "lt100dd"]
-		mc_info[311656] = [ "uuu", "20G", "lt1dd"]
-		mc_info[311657] = [ "uuu", "20G", "lt10dd"]
-		mc_info[311658] = [ "uuu", "20G", "lt100dd"]
-		mc_info[311659] = [ "uue", "20G", "lt1dd"]
-		mc_info[311660] = [ "uue", "20G", "lt10dd"]
-		mc_info[311661] = [ "uue", "20G", "lt100dd"]
+		mc_info[311602] = ["uuu", "3G", "lt1dd"]
+		mc_info[311603] = ["uuu", "3G", "lt10dd"]
+		mc_info[311604] = ["uuu", "3G", "lt100dd"]
+		mc_info[311605] = ["uue", "3G", "lt1dd"]
+		mc_info[311606] = ["uue", "3G", "lt10dd"]
+		mc_info[311607] = ["uue", "3G", "lt100dd"]
+		mc_info[311608] = ["uuu", "4G", "lt1dd"]
+		mc_info[311609] = ["uuu", "4G", "lt10dd"]
+		mc_info[311610] = ["uuu", "4G", "lt100dd"]
+		mc_info[311611] = ["uue", "4G", "lt1dd"]
+		mc_info[311612] = ["uue", "4G", "lt10dd"]
+		mc_info[311613] = ["uue", "4G", "lt100dd"]
+		mc_info[311614] = ["uuu", "4p5G", "lt1dd"]
+		mc_info[311615] = ["uuu", "4p5G", "lt10dd"]
+		mc_info[311616] = ["uuu", "4p5G", "lt100dd"]
+		mc_info[311617] = ["uue", "4p5G", "lt1dd"]
+		mc_info[311618] = ["uue", "4p5G", "lt10dd"]
+		mc_info[311619] = ["uue", "4p5G", "lt100dd"]
+		mc_info[311620] = ["uuu", "5G", "lt1dd"]
+		mc_info[311621] = ["uuu", "5G", "lt10dd"]
+		mc_info[311622] = ["uuu", "5G", "lt100dd"]
+		mc_info[311623] = ["uue", "5G", "lt1dd"]
+		mc_info[311624] = ["uue", "5G", "lt10dd"]
+		mc_info[311625] = ["uue", "5G", "lt100dd"]
+		mc_info[311626] = ["uuu", "7p5G", "lt1dd"]
+		mc_info[311627] = ["uuu", "7p5G", "lt10dd"]
+		mc_info[311628] = ["uuu", "7p5G", "lt100dd"]
+		mc_info[311629] = ["uue", "7p5G", "lt1dd"]
+		mc_info[311630] = ["uue", "7p5G", "lt10dd"]
+		mc_info[311631] = ["uue", "7p5G", "lt100dd"]
+		mc_info[311632] = ["uuu", "10G", "lt1dd"]
+		mc_info[311633] = ["uuu", "10G", "lt10dd"]
+		mc_info[311634] = ["uuu", "10G", "lt100dd"]
+		mc_info[311635] = ["uue", "10G", "lt1dd"]
+		mc_info[311636] = ["uue", "10G", "lt10dd"]
+		mc_info[311637] = ["uue", "10G", "lt100dd"]
+		mc_info[311638] = ["uuu", "12p5G", "lt1dd"]
+		mc_info[311639] = ["uuu", "12p5G", "lt10dd"]
+		mc_info[311640] = ["uuu", "12p5G", "lt100dd"]
+		mc_info[311641] = ["uue", "12p5G", "lt1dd"]
+		mc_info[311642] = ["uue", "12p5G", "lt10dd"]
+		mc_info[311643] = ["uue", "12p5G", "lt100dd"]
+		mc_info[311644] = ["uuu", "15G", "lt1dd"]
+		mc_info[311645] = ["uuu", "15G", "lt10dd"]
+		mc_info[311646] = ["uuu", "15G", "lt100dd"]
+		mc_info[311647] = ["uue", "15G", "lt1dd"]
+		mc_info[311648] = ["uue", "15G", "lt10dd"]
+		mc_info[311649] = ["uue", "15G", "lt100dd"]
+		mc_info[311650] = ["uuu", "17p5G", "lt1dd"]
+		mc_info[311651] = ["uuu", "17p5G", "lt10dd"]
+		mc_info[311652] = ["uuu", "17p5G", "lt100dd"]
+		mc_info[311653] = ["uue", "17p5G", "lt1dd"]
+		mc_info[311654] = ["uue", "17p5G", "lt10dd"]
+		mc_info[311655] = ["uue", "17p5G", "lt100dd"]
+		mc_info[311656] = ["uuu", "20G", "lt1dd"]
+		mc_info[311657] = ["uuu", "20G", "lt10dd"]
+		mc_info[311658] = ["uuu", "20G", "lt100dd"]
+		mc_info[311659] = ["uue", "20G", "lt1dd"]
+		mc_info[311660] = ["uue", "20G", "lt10dd"]
+		mc_info[311661] = ["uue", "20G", "lt100dd"]
 		mc_info[312956] = ["eee", "3G", "lt1dd"]
 		mc_info[312957] = ["eee", "3G", "lt10dd"]
 		mc_info[312958] = ["eee", "3G", "lt100dd"]
@@ -729,21 +725,19 @@ class mc_info:
 			self.ctau_str = None
 			self.ch_str = None
 		else:
-			pmuon_dsid = (311602 <=  dsid) and  (dsid <= 311661)
-			pel_dsid = (312956 <= dsid) and  (dsid <= 313015)
+			pmuon_dsid = (311602 <= dsid) and (dsid <= 311661)
+			pel_dsid = (312956 <= dsid) and (dsid <= 313015)
 
 			if pmuon_dsid or pel_dsid:
 				self.mass_str = mc_info[dsid][1]
 				self.ctau_str = mc_info[dsid][2]
 				self.ch_str = mc_info[dsid][0]
+				logger.info("This sample is type: {}, mass: {}, lifetime: {}".format(self.ch_str, self.mass_str, self.ctau_str, ))
 			else:
 				logger.warning("dsid {} is not registered. If running on HNL signal, please check your signal sample".format(dsid))
 				self.mass_str = None
 				self.ctau_str = None
 				self.ch_str = None
-
-
-
 
 
 # Define trigger lists here
