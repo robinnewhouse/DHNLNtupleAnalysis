@@ -510,13 +510,13 @@ class Tracks:
 			self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 
 
-class Muons(Tracks):
+class Muons(Tracks, object):
 	def __init__(self, tree):
 		super(Muons, self).__init__(tree)
 		self.getMuons()
 
 
-class Electrons(Tracks):
+class Electrons(Tracks, object):
 	def __init__(self, tree):
 		super(Electrons, self).__init__(tree)
 		self.getElectrons()
