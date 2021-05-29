@@ -207,6 +207,7 @@ class Analysis(object):
 			self.logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
 		
 		self.do_zmass_veto = True
+		self.do_trigger_matching_cut = True
 		# HNL mass cut
 		self.do_HNL_mass_cut = 'HNLmass' in self.sel
 		
@@ -510,12 +511,15 @@ class Analysis(object):
 		Require that at least one lepton passes trigger matching.
 		Also require that the lepton that passes trigger matching is of at least Medium quality.
 		"""
+		# get muons and electrons for this event
+		muons = helpers.Muons(self.tree)
+		electrons = helpers.Electrons(self.tree)
 		self.trigger_matched_medium = selections.RequireMediumTriggerMatching(
 			self.tree,
 			prompt_lepton_index=self.plep_sel.plep_Index,
 			prompt_lepton_type=self.plep,
-			muons=self.muons,
-			electrons=self.electrons,
+			muons=muons,
+			electrons=electrons,
 			dv_type=self.dv_type)
 
 		return self.trigger_matched_medium.passes()
@@ -684,6 +688,7 @@ class Analysis(object):
 		self.passed_dlep_pt_cut = False
 		self.passed_be_event_type_cut = False
 		self.passed_track_quality_cut = False
+		self.passed_trig_matched_cut = False
 		self.passed_cosmic_veto_cut = False
 		self.passed_alpha_cut = False
 		self.passed_trilepton_mass_cut = False
@@ -1151,12 +1156,10 @@ class Analysis(object):
 			tracks.getTracks()
 
 			muons = helpers.Muons(self.tree)
-			self.muons = muons
 			mu_vec = muons.lepVec
 			mu_index = muons.lepIndex
 
 			electrons = helpers.Electrons(self.tree)
-			self.electrons = electrons
 			el_vec = electrons.lepVec
 			el_index = electrons.lepIndex
 
@@ -1588,8 +1591,8 @@ class Analysis(object):
 				self.tree,
 				prompt_lepton_index=self.plep_sel.plep_Index,
 				prompt_lepton_type=self.plep,
-				muons=self.muons,
-				electrons=self.electrons,
+				muons=muons,
+				electrons=electrons,
 				dv_type=self.dv_type)
 
 			self.fill_hist(sel, 'n_trigger_matched_medium', self.trigger_matched_medium.n_trigger_matched_medium)
@@ -1650,12 +1653,12 @@ class run2Analysis(Analysis):
 		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
 
-		# Define cutflow histogram "by hand"		
+		# Define cutflow histogram "by hand"
 		self.cutflow_dir = self.ch + '/CutFlow/'
 		if not self.dv_type == "ee":
-			self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 20, -0.5, 19.5)
-		else: 
 			self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 21, -0.5, 20.5)
+		else:
+			self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 22, -0.5, 21.5)
 		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
 		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
@@ -1699,37 +1702,42 @@ class run2Analysis(Analysis):
 			if not self.dv_type == "ee": qual_bin = 14
 			else: qual_bin = 15
 			self.CutFlow.GetXaxis().SetBinLabel(qual_bin, "{}-lepton DV".format(self.track_quality))
+		if self.do_trigger_matching_cut:
+			if not self.dv_type == "ee": qual_bin = 15
+			else: qual_bin = 16
+			self.CutFlow.GetXaxis().SetBinLabel(qual_bin, "trig. match".format(self.track_quality))
 		if self.do_trilepton_mass_cut:
-			if not self.dv_type == "ee": mlll_bin = 15
-			else: mlll_bin = 16
+			if not self.dv_type == "ee": mlll_bin = 16
+			else: mlll_bin = 17
 			self.CutFlow.GetXaxis().SetBinLabel(mlll_bin, "m_{lll}")
 		if self.do_inverted_mlll_cut:
-			if not self.dv_type == "ee": mlll_bin = 15
-			else: mlll_bin = 16
+			if not self.dv_type == "ee": mlll_bin = 16
+			else: mlll_bin = 17
 			self.CutFlow.GetXaxis().SetBinLabel(mlll_bin, "inverted m_{lll}")
 		if self.do_inverted_mhnl_cut:	
-			if not self.dv_type == "ee": mhnl_bin = 15
-			else: mhnl_bin = 16
+			if not self.dv_type == "ee": mhnl_bin = 16
+			else: mhnl_bin = 17
 			self.CutFlow.GetXaxis().SetBinLabel(mhnl_bin, "inverted m_{hnl}")
 		if self.do_dv_mass_cut:
-			if not self.dv_type == "ee": mdv_bin = 16
-			else: mdv_bin = 17
-			self.CutFlow.GetXaxis().SetBinLabel(mdv_bin, "B-hadron veto")
-		if self.do_zmass_veto:
 			if not self.dv_type == "ee": mdv_bin = 17
 			else: mdv_bin = 18
+			self.CutFlow.GetXaxis().SetBinLabel(mdv_bin, "B-hadron veto")
+		if self.do_zmass_veto:
+			if not self.dv_type == "ee": mdv_bin = 18
+			else: mdv_bin = 19
 			self.CutFlow.GetXaxis().SetBinLabel(mdv_bin, "Z mass veto")
 		if self.do_HNL_mass_cut:
-			if not self.dv_type == "ee": mhnl_bin = 18
-			else: mhnl_bin = 19
+			if not self.dv_type == "ee": mhnl_bin = 19
+			else: mhnl_bin = 20
 			self.CutFlow.GetXaxis().SetBinLabel(mhnl_bin, "m_{HNL}")
 		if self.do_alpha_cut:
-			if not self.dv_type == "ee": alpha_bin = 19
-			else: alpha_bin = 20
+			if not self.dv_type == "ee": alpha_bin = 20
+			else: alpha_bin = 21
 			self.CutFlow.GetXaxis().SetBinLabel(alpha_bin, "alpha")
 		if not self.tree.is_data:
-			if not self.dv_type == "ee": truth_match_bin = 20
-			else: truth_match_bin = 21
+
+			if not self.dv_type == "ee": truth_match_bin = 21
+			else: truth_match_bin = 22
 			self.CutFlow.GetXaxis().SetBinLabel(truth_match_bin, "truth matched")
 
 		# Store LNC and LNV cutflows in the observables collection
@@ -1840,11 +1848,22 @@ class run2Analysis(Analysis):
 			else:
 				return
 
+		if self.do_trigger_matching_cut:
+			if self._trigger_matched_medium_lepton_cut():
+				if not self.passed_trig_matched_cut:
+					if not self.dv_type == "ee": self._fill_cutflow(14)
+					else: self._fill_cutflow(14+1)
+					self.passed_trig_matched_cut = True
+					if not self.do_inverted_mlll_cut and not self.do_inverted_mhnl_cut:
+						self._fill_selected_dv_histos("trig_match")
+			else:
+				return
+
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
-					if not self.dv_type == "ee": self._fill_cutflow(14)
-					else: self._fill_cutflow(14+1)
+					if not self.dv_type == "ee": self._fill_cutflow(15)
+					else: self._fill_cutflow(15+1)
 					self.passed_trilepton_mass_cut = True
 					self._fill_selected_dv_histos("mvis")
 			else:
@@ -1853,8 +1872,8 @@ class run2Analysis(Analysis):
 		if self.do_inverted_mlll_cut:
 			if self._invert_trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
-					if not self.dv_type == "ee": self._fill_cutflow(14)
-					else: self._fill_cutflow(14+1)
+					if not self.dv_type == "ee": self._fill_cutflow(15)
+					else: self._fill_cutflow(15+1)
 					self.passed_trilepton_mass_cut = True
 					self._fill_selected_dv_histos("mvis")
 			else:
@@ -1863,8 +1882,8 @@ class run2Analysis(Analysis):
 		if self.do_inverted_mhnl_cut:
 			if self._invert_HNL_mass_cut():
 				if not self.passed_HNL_mass_cut:
-					if not self.dv_type == "ee": self._fill_cutflow(14)
-					else: self._fill_cutflow(14+1)
+					if not self.dv_type == "ee": self._fill_cutflow(15)
+					else: self._fill_cutflow(15+1)
 					self.passed_HNL_mass_cut = True
 					self._fill_selected_dv_histos("mhnl")
 			else:
@@ -1874,8 +1893,8 @@ class run2Analysis(Analysis):
 			# do b-hadron veto instead of just straight DV mass cut
 			if self._Bhadron_veto():
 				if not self.passed_dv_mass_cut:
-					if not self.dv_type == "ee": self._fill_cutflow(15)
-					else: self._fill_cutflow(15+1)
+					if not self.dv_type == "ee": self._fill_cutflow(16)
+					else: self._fill_cutflow(16+1)
 					self.passed_dv_mass_cut = True
 					self._fill_selected_dv_histos("mDV")
 			else:
@@ -1885,8 +1904,8 @@ class run2Analysis(Analysis):
 			# do z mass veto for all channels
 			if self._Zmass_veto():
 				if not self.passed_zmass_veto:
-					if not self.dv_type == "ee": self._fill_cutflow(16)
-					else: self._fill_cutflow(16+1)
+					if not self.dv_type == "ee": self._fill_cutflow(17)
+					else: self._fill_cutflow(17+1)
 					self.passed_zmass_veto = True
 					self._fill_selected_dv_histos("Zmass_veto")
 			else:
@@ -1895,8 +1914,8 @@ class run2Analysis(Analysis):
 		if self.do_HNL_mass_cut :
 			if self._HNL_mass_cut():
 				if not self.passed_HNL_mass_cut:
-					if not self.dv_type == "ee": self._fill_cutflow(17)
-					else: self._fill_cutflow(17+1)
+					if not self.dv_type == "ee": self._fill_cutflow(18)
+					else: self._fill_cutflow(18+1)
 					self.passed_HNL_mass_cut = True
 					self._fill_selected_dv_histos("mHNL")
 			else:
@@ -1905,8 +1924,8 @@ class run2Analysis(Analysis):
 		if self.do_alpha_cut:
 			if self._alpha_cut():
 				if not self.passed_alpha_cut:
-					if not self.dv_type == "ee": self._fill_cutflow(18)
-					else: self._fill_cutflow(18+1)
+					if not self.dv_type == "ee": self._fill_cutflow(19)
+					else: self._fill_cutflow(19+1)
 					self.passed_alpha_cut = True
 					self._fill_selected_dv_histos("alpha")
 			else:
@@ -1915,8 +1934,8 @@ class run2Analysis(Analysis):
 		# Fill histos of truth-matched DVs
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			if self._truth_match():
-				if not self.dv_type == "ee": self._fill_cutflow(19)
-				else: self._fill_cutflow(19+1)
+				if not self.dv_type == "ee": self._fill_cutflow(20)
+				else: self._fill_cutflow(20+1)
 				self._fill_selected_dv_histos("match")
 
 
