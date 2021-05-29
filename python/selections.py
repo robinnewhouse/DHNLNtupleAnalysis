@@ -1329,7 +1329,7 @@ class RequireMediumTriggerMatching:
 		])
 
 	def passes(self):
-		return self.n_trigger_matched_medium >= 0
+		return self.n_trigger_matched_medium > 0
 
 # class TriggerMatching_disp:
 # 	def __init__(self, tree, dv_type, dMu_Index, dEl_Index):
