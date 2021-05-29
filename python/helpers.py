@@ -341,11 +341,8 @@ class Truth:
 		# except:
 		# 	pass
 
-
-
-
-class Tracks():
-	def __init__(self, tree ):
+class Tracks:
+	def __init__(self, tree):
 		self.tree = tree
 		# track vector with trk wrtSV quantities
 		self.lepVec = []
@@ -513,6 +510,16 @@ class Tracks():
 			self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 
 
+class Muons(Tracks, object):
+	def __init__(self, tree):
+		super(Muons, self).__init__(tree)
+		self.getMuons()
+
+
+class Electrons(Tracks, object):
+	def __init__(self, tree):
+		super(Electrons, self).__init__(tree)
+		self.getElectrons()
 
 
 class FileInfo:
