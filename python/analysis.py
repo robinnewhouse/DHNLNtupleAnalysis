@@ -548,11 +548,11 @@ class Analysis(object):
 		return self.tree.ndv > 0
 
 	def _fidvol_cut(self):
-		fidvol_sel = selections.DVradius(self.tree)
+		fidvol_sel = selections.DVRadius(self.tree)
 		return fidvol_sel.passes()
 
 	def _ntrk_cut(self):
-		ntracks_sel = selections.DVntracks(self.tree, ntrk=self.ntrk)
+		ntracks_sel = selections.DVNTracks(self.tree, ntrk=self.ntrk)
 		return ntracks_sel.passes()
 
 	def _charge_cut(self):
@@ -576,11 +576,11 @@ class Analysis(object):
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
-		track_quality_sel = selections.Trackqual(self.tree, quality=self.track_quality)
+		track_quality_sel = selections.TrackQuality(self.tree, quality=self.track_quality)
 		return track_quality_sel.passes()
 
 	def _cosmic_veto_cut(self):
-		cosmic_veto_sel = selections.Cosmicveto(self.tree)
+		cosmic_veto_sel = selections.CosmicVeto(self.tree)
 		# self.h["DV_trk_sep"][self.ch].Fill(cosmic_veto_sel.separation)
 		return cosmic_veto_sel.passes()
 
@@ -613,22 +613,22 @@ class Analysis(object):
 		return mlll_sel.passes()
 
 	def _mat_veto_cut(self):
-		return selections.Mat_veto(self.tree).passes()
+		return selections.MaterialVeto(self.tree).passes()
 
 	def _dv_mass_cut(self):
 		dv_mass_sel = selections.DVmass(self.tree, dvmasscut=5.5)
 		return dv_mass_sel.passes()
 	
 	def _Bhadron_veto(self):
-		bhadron_sel = selections.Bhadron_veto( self.tree, dv_type=self.dv_type, dvmasscut=5.5)
+		bhadron_sel = selections.BHadronVeto(self.tree, dv_type=self.dv_type, dv_mass_cut=5.5)
 		return bhadron_sel.passes()
 
 	def _Zmass_veto(self):
-		zmass_veto = selections.Zmass_veto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plepcharge = self.plep_sel.plepcharge, dv_type= self.dv_type)
+		zmass_veto = selections.ZMassVeto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plep_charge= self.plep_sel.plepcharge, dv_type= self.dv_type)
 		return zmass_veto.passes()
 
 	def _dv_lep_pt_cut(self):
-		dv_lep_pt_sel = selections.DV_lep_pt(self.tree,self.dv_type)
+		dv_lep_pt_sel = selections.DVLepPt(self.tree, self.dv_type)
 		return dv_lep_pt_sel.passes()
 
 	def _alpha_cut(self):
@@ -1121,7 +1121,7 @@ class Analysis(object):
 			if self.MCEventType.isLNC: 
 				self.micro_ntuples["LNC_"+sel].fill()
 				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
-			elif self.MCEventType.isLNV: 
+			elif self.MCEventType.isLNV:
 				self.micro_ntuples["LNV_"+sel].fill()
 				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 			else: self.micro_ntuples[sel].fill()
@@ -1209,13 +1209,13 @@ class Analysis(object):
 
 				# get invariant mass between prompt lepton + same flavour displaced lepton for Z->ll veto
 				if self.plep == 'muon' and len(mu_vec) > 0:
-					zmass_veto_var = selections.Zmass_veto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plepcharge=self.plep_sel.plepcharge, dv_type=self.dv_type)
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plepcharge, dv_type=self.dv_type)
 					self.fill_hist(sel, 'mll_dMu_plep_is_OS', zmass_veto_var.mll_dMu_plep_is_OS)
 					self.fill_hist(sel, 'mll_dMu_plep_is_SS', zmass_veto_var.mll_dMu_plep_is_SS)
 					self.fill_hist(sel, 'mll_dMu_plep', zmass_veto_var.mll_dMu_plep)
 
 				if self.plep == 'electron' and len(el_vec) > 0:
-					zmass_veto_var = selections.Zmass_veto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plepcharge = self.plep_sel.plepcharge, dv_type= self.dv_type)
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plep_charge= self.plep_sel.plepcharge, dv_type= self.dv_type)
 					self.fill_hist(sel, 'mll_dEl_plep_is_OS', zmass_veto_var.mll_dEl_plep_is_OS)
 					self.fill_hist(sel, 'mll_dEl_plep_is_SS', zmass_veto_var.mll_dEl_plep_is_SS)
 					self.fill_hist(sel, 'mll_dEl_plep', zmass_veto_var.mll_dEl_plep )
@@ -1247,7 +1247,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_dpt', dpt)
 				self.fill_hist(sel, 'DV_trk_dR', dR)
 
-				cosmic_veto = selections.Cosmicveto(self.tree)
+				cosmic_veto = selections.CosmicVeto(self.tree)
 				self.fill_hist(sel, 'DV_cosmic_sep', cosmic_veto.separation)
 
 				self.fill_hist(sel, 'DV_trk_max_chi2_toSV', max(self.tree.dv('trk_chi2_toSV')[0], self.tree.dv('trk_chi2_toSV')[1]))
@@ -1271,7 +1271,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_emu', DV_emu)
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
 
-				pass_lep_pt_cut = selections.DV_lep_pt(self.tree, self.dv_type).pass_pt_cut
+				pass_lep_pt_cut = selections.DVLepPt(self.tree, self.dv_type).pass_pt_cut
 				self.fill_hist(sel, 'DV_pass_lep_pt', pass_lep_pt_cut)
 
 				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
@@ -1564,7 +1564,7 @@ class Analysis(object):
 
 			self.fill_hist(sel, 'DV_alpha', selections.Alpha(self.tree).alpha)
 			
-			trk_quality = selections.Trackqual(self.tree)
+			trk_quality = selections.TrackQuality(self.tree)
 
 			self.fill_hist(sel, 'DV_2tight', trk_quality.DV_2tight)
 			self.fill_hist(sel, 'DV_2medium', trk_quality.DV_2medium)
