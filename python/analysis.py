@@ -1020,7 +1020,9 @@ class Analysis(object):
 			lep12 = truth_info.dLepVec[0] + truth_info.dLepVec[1] 
 			lep23 = truth_info.dLepVec[1] + truth_info.dLepVec[2] 
 			lep13 = truth_info.dLepVec[0] + truth_info.dLepVec[2] 
+			all_leptons = truth_info.plep_vec + truth_info.trkVec[0] + truth_info.trkVec[1]
 			self.fill_hist(sel, 'DV_mass', DV_4vec.M())
+			self.fill_hist(sel, 'mvis', all_leptons.M())
 			self.fill_hist(sel, 'm12', lep12.M())
 			self.fill_hist(sel, 'm23', lep23.M())
 			self.fill_hist(sel, 'm13', lep13.M())
@@ -1262,6 +1264,8 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_ee', DV_ee)
 				self.fill_hist(sel, 'DV_emu', DV_emu)
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
+				pass_el_mu_overlap = selections.electron_muon_overlap_check(self.tree).passes()
+				self.fill_hist(sel, 'DV_pass_el_mu_overlap', pass_el_mu_overlap)
 
 				pass_lep_pt_cut = selections.DV_lep_pt(self.tree,self.dv_type).pass_pt_cut
 				self.fill_hist(sel, 'DV_pass_lep_pt', pass_lep_pt_cut)
@@ -1723,7 +1727,7 @@ class run2Analysis(Analysis):
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
-
+				
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
 
@@ -1898,7 +1902,6 @@ class run2Analysis(Analysis):
 
 
 
-
 class BEAnalysis(Analysis):
 	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
 
@@ -1958,7 +1961,6 @@ class BEAnalysis(Analysis):
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
-
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
 
@@ -2194,7 +2196,6 @@ class KShort(Analysis):
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
-
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_selected_dv_histos("all", do_lock=False)
 

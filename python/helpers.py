@@ -433,12 +433,10 @@ class Tracks():
 			std_lepVec = ROOT.TLorentzVector()
 			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
-				# remove electrons that are also matched to muons!
+				# Remove electrons that are also matched to muons!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
 					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-						# print muon_index
-						# print "track is matched to both muon and electron!"
 					continue
 
 				# Default: use track quantities wrt SV

@@ -1310,6 +1310,35 @@ class SumTrack:
 			self.sum_track_pt_wrt_pv += tree.dv('trk_pt')[k]
 			self.sum_track_charge += tree.dv('trk_charge')[k]
 
+
+class electron_muon_overlap_check():
+	def __init__(self, tree):
+		self.fail_overlap = False
+		self.matched_muon_index = -1
+		nmu = len(tree['muon_pt'])
+		for imu in range(nmu):
+			mu_pt = tree['muon_pt'][imu]
+			mu_eta = tree['muon_eta'][imu]
+			mu_phi = tree['muon_phi'][imu]
+			mu_vec = ROOT.TLorentzVector()
+			mu_vec.SetPtEtaPhiM(mu_pt, mu_eta, mu_phi, 0.1)
+
+			for itrk in range(tree.ntrk):  # loop over tracks
+				trk_pt = tree.dv('trk_pt')[itrk]
+				trk_eta = tree.dv('trk_eta')[itrk]
+				trk_phi = tree.dv('trk_phi')[itrk]
+				trk_charge = tree.dv('trk_charge')[itrk]
+
+				fail_overlap = abs((trk_pt- mu_pt)/ trk_pt) < 0.05 and abs((trk_phi- mu_phi)/ trk_phi) < 0.05 and abs((trk_eta- mu_eta)/ trk_eta) < 0.05
+
+				if fail_overlap:
+					self.fail_overlap = fail_overlap
+					self.matched_muon_index = imu
+					# if any muon passes the overlap check the fail this check
+					continue
+
+	def passes(self):
+		return not self.fail_overlap
 # class VertexingUncertainty:
 # 	def __init__(self, tree):
 # 		self.tree = tree
