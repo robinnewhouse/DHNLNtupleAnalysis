@@ -724,12 +724,13 @@ class Analysis(object):
 
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self._fill_truth_histos(sel='truth/all')
-			if self.MCEventType.isLNC:
-				self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
-			if self.MCEventType.isLNV:
-				self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries/2)  # all events
-
-		self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
+		# 	if self.MCEventType.isLNC:
+		# 		self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
+		# 	if self.MCEventType.isLNV:
+		# 		self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries/2)  # all events
+		# self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
+		self._fill_cutflow(0)
+	
 		######################################################################################################
 		# Selection code is designed so that it will pass the selection only if the cut true or cut is unused
 		# ex. passTrigger is true if the trigcut is true OR if trigcut is not used)
@@ -835,9 +836,12 @@ class Analysis(object):
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin)
+				self.CutFlow_LNC_weighted.Fill(nbin, self.weight_LNC_only) # weight LNC only
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.Fill(nbin)
+				self.CutFlow_LNV_weighted.Fill(nbin, self.weight_LNC_only) # weight LNC only since LNV events are scaled to 100% LNV (do not include extra factor of 2 for LNC+LNV model)
 			self.CutFlow.Fill(nbin)
+			self.CutFlow_LNC_plus_LNV.Fill(nbin, self.weight_LNC_plus_LNV)
 		else:
 			self.CutFlow.Fill(nbin)
 
@@ -1036,7 +1040,9 @@ class Analysis(object):
 			lep12 = truth_info.dLepVec[0] + truth_info.dLepVec[1] 
 			lep23 = truth_info.dLepVec[1] + truth_info.dLepVec[2] 
 			lep13 = truth_info.dLepVec[0] + truth_info.dLepVec[2] 
+			all_leptons = truth_info.plep_vec + truth_info.trkVec[0] + truth_info.trkVec[1]
 			self.fill_hist(sel, 'DV_mass', DV_4vec.M())
+			self.fill_hist(sel, 'mvis', all_leptons.M())
 			self.fill_hist(sel, 'm12', lep12.M())
 			self.fill_hist(sel, 'm23', lep23.M())
 			self.fill_hist(sel, 'm13', lep13.M())
@@ -1270,6 +1276,8 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_ee', DV_ee)
 				self.fill_hist(sel, 'DV_emu', DV_emu)
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
+				pass_el_mu_overlap = selections.electron_muon_overlap_check(self.tree).passes()
+				self.fill_hist(sel, 'DV_pass_el_mu_overlap', pass_el_mu_overlap)
 
 				pass_lep_pt_cut = selections.DV_lep_pt(self.tree, self.dv_type).pass_pt_cut
 				self.fill_hist(sel, 'DV_pass_lep_pt', pass_lep_pt_cut)
@@ -1739,22 +1747,31 @@ class run2Analysis(Analysis):
 			if not self.dv_type == "ee": truth_match_bin = 21
 			else: truth_match_bin = 22
 			self.CutFlow.GetXaxis().SetBinLabel(truth_match_bin, "truth matched")
-
+		self.CutFlow_LNC_plus_LNV = self.CutFlow.Clone()
+		self.CutFlow_LNC_plus_LNV.SetName("CutFlow_LNC_plus_LNV"+"_"+self.ch)
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_plus_LNV'] = self.CutFlow_LNC_plus_LNV
 		# Store LNC and LNV cutflows in the observables collection
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self.CutFlow_LNV = self.CutFlow.Clone()
 			self.CutFlow_LNC = self.CutFlow.Clone()
 			self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
 			self.CutFlow_LNC.SetName("CutFlow_LNC"+"_"+self.ch)
+			self.CutFlow_LNV_weighted = self.CutFlow.Clone()
+			self.CutFlow_LNC_weighted = self.CutFlow.Clone()
+			self.CutFlow_LNV_weighted.SetName("CutFlow_weighted_LNV"+"_"+self.ch)
+			self.CutFlow_LNC_weighted.SetName("CutFlow_weighted_LNC"+"_"+self.ch)
+
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV'] = self.CutFlow_LNV
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_LNV'] = self.CutFlow_LNV_weighted
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_LNC'] = self.CutFlow_LNC_weighted
 
 	def DVSelection(self):
 		######################################################################################################
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
-
+				
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
 
@@ -1939,6 +1956,7 @@ class run2Analysis(Analysis):
 				self._fill_selected_dv_histos("match")
 
 
+
 class BEAnalysis(Analysis):
 	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
 
@@ -1998,7 +2016,6 @@ class BEAnalysis(Analysis):
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
-
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
 
@@ -2211,7 +2228,8 @@ class KShort(Analysis):
 		self.passed_preselection_cuts = False
 		self.passed_alpha_cut = False
 		self.passed_mass_window_cut = False
-		self.h['CutFlow'][self.ch].Fill(0)  # all
+		# fill cutflow bin
+		self._fill_cutflow(0)
 
 		# Check to make sure event has a PV otherwise throw event away (this happens very rarely with data).
 		if self._pv_cut():
@@ -2233,7 +2251,6 @@ class KShort(Analysis):
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
-
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_selected_dv_histos("all", do_lock=False)
 

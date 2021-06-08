@@ -200,6 +200,7 @@ binning_definitions = {
 	'DV_emu': (2, -0.5, 1.5),
 	'DV_1lep': (2, -0.5, 1.5),
 	'DV_pass_lep_pt' : (2, -0.5, 1.5),
+	'DV_pass_el_mu_overlap': (2, -0.5, 1.5),
 	'DV_trk_max_chi2_toSV': (600, 0, 30),
 	'DV_trk_min_chi2_toSV': (600, 0, 30),
 	'DV_trk_max_d0_wrtSV': (1000, -50, 50),
