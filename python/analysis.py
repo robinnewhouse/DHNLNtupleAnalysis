@@ -205,8 +205,6 @@ class Analysis(object):
 		self.do_dv_mass_cut = 'DVmass' in self.sel
 		if not self.do_dv_mass_cut and "CR" not in self.sel:
 			self.logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
-		
-		self.do_zmass_veto = True
 
 		# HNL mass cut
 		self.do_HNL_mass_cut = 'HNLmass' in self.sel
@@ -300,6 +298,7 @@ class Analysis(object):
 
 		if self.do_CR: 
 			self.do_trigger_matching_cut = False
+			self.do_zmass_veto = False
 			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
 				self.be_region = "RegionAprime"
 			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
@@ -310,6 +309,7 @@ class Analysis(object):
 				self.be_region = "RegionDprime"
 		else: 
 			self.do_trigger_matching_cut = True
+			self.do_zmass_veto = True
 			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
 				self.be_region = "RegionA"
 				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
