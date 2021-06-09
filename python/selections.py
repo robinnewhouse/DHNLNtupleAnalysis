@@ -1386,12 +1386,3 @@ class electron_muon_overlap_check():
 	def passes(self):
 		# return True if DV passes the overlap check (no electron overlaps with a muon)
 		return not self.fail_overlap
-
-# class VertexingUncertainty:
-# 	def __init__(self, tree):
-# 		self.tree = tree
-#
-# 		self.tree.dv('r')
-# 		self.tree.dv('pt')
-#
-# 		self.uncertainty_value = helpers.get_vertexing_uncertainty(self.tree.dv('r'), self.tree.dv('pt'))
