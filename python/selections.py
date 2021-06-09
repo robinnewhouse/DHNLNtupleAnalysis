@@ -1359,7 +1359,10 @@ class electron_muon_overlap_check():
 	def __init__(self, tree):
 		self.fail_overlap = False
 		self.matched_muon_index = -1
+		electrons = helpers.Electrons(tree)
+		n_disp_el = len(electrons.std_lepVec)
 		nmu = len(tree['muon_pt'])
+
 		for imu in range(nmu):
 			mu_pt = tree['muon_pt'][imu]
 			mu_eta = tree['muon_eta'][imu]
@@ -1367,11 +1370,10 @@ class electron_muon_overlap_check():
 			mu_vec = ROOT.TLorentzVector()
 			mu_vec.SetPtEtaPhiM(mu_pt, mu_eta, mu_phi, 0.1)
 
-			for itrk in range(tree.ntrk):  # loop over tracks
-				trk_pt = tree.dv('trk_pt')[itrk]
-				trk_eta = tree.dv('trk_eta')[itrk]
-				trk_phi = tree.dv('trk_phi')[itrk]
-				trk_charge = tree.dv('trk_charge')[itrk]
+			for iel in range(n_disp_el):  # loop over tracks
+				trk_pt = electrons.std_lepVec[iel].Pt()
+				trk_eta = electrons.std_lepVec[iel].Eta()
+				trk_phi = electrons.std_lepVec[iel].Phi()
 
 				fail_overlap = abs((trk_pt- mu_pt)/ trk_pt) < 0.05 and abs((trk_phi- mu_phi)/ trk_phi) < 0.05 and abs((trk_eta- mu_eta)/ trk_eta) < 0.05
 
@@ -1382,7 +1384,9 @@ class electron_muon_overlap_check():
 					continue
 
 	def passes(self):
+		# return True if DV passes the overlap check (no electron overlaps with a muon)
 		return not self.fail_overlap
+
 # class VertexingUncertainty:
 # 	def __init__(self, tree):
 # 		self.tree = tree
