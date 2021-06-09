@@ -207,7 +207,7 @@ class Analysis(object):
 			self.logger.warn('You did not add a DVmass cut for this channel. Skipping displaced vertex mass selection.')
 		
 		self.do_zmass_veto = True
-		self.do_trigger_matching_cut = True
+
 		# HNL mass cut
 		self.do_HNL_mass_cut = 'HNLmass' in self.sel
 		
@@ -299,6 +299,7 @@ class Analysis(object):
 			self.do_inverted_mhnl_cut = False
 
 		if self.do_CR: 
+			self.do_trigger_matching_cut = False
 			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
 				self.be_region = "RegionAprime"
 			elif self.do_same_sign_cut == True and self.do_same_event_cut == True: 
@@ -308,6 +309,7 @@ class Analysis(object):
 			elif self.do_same_sign_cut == True and self.do_different_event_cut == True: 
 				self.be_region = "RegionDprime"
 		else: 
+			self.do_trigger_matching_cut = True
 			if self.do_opposite_sign_cut == True and self.do_same_event_cut == True: 
 				self.be_region = "RegionA"
 				raise ValueError("This analysis is blinded! You cannot look at OS DV from data events in the prompt lepton region")
@@ -1359,12 +1361,18 @@ class Analysis(object):
 
 			# fill 3 different track calculations
 			if self.dv_type == "mumu":
+				lep_matched_DV_vec = muons.lepmatched_lepVec[0] + muons.lepmatched_lepVec[1]
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', muons.lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', muons.std_lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', muons.lepmatched_lepVec[1].Pt())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_eta', muons.lepmatched_lepVec[0].Eta())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_eta', muons.lepmatched_lepVec[1].Eta())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_phi', muons.lepmatched_lepVec[0].Phi())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_phi', muons.lepmatched_lepVec[1].Phi())
+				self.fill_hist(sel, 'DV_mass_lepmatched', lep_matched_DV_vec.M())
 
 				# trigger matching for displaced leptons
 				dmu_0_is_trig_matched = selections.LeptonTriggerMatching(self.tree, "muon", mu_index[0]).is_trigger_matched
@@ -1384,12 +1392,19 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_1_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[1]])
 
 			if self.dv_type == "emu":
+				lep_matched_DV_vec = muons.lepmatched_lepVec[0] + electrons.lepmatched_lepVec[0]
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', muons.lepmatched_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_eta', muons.lepmatched_lepVec[0].Eta())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_eta', electrons.lepmatched_lepVec[0].Eta())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_phi', muons.lepmatched_lepVec[0].Phi())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_phi', electrons.lepmatched_lepVec[0].Phi())
+				self.fill_hist(sel, 'DV_mass_lepmatched', lep_matched_DV_vec.M())
+
 				delta_el = electrons.lepVec[0].Pt() - electrons.lepmatched_lepVec[0].Pt()
 				delta_mu = muons.lepVec[0].Pt() - muons.lepmatched_lepVec[0].Pt()
 				self.fill_hist(sel, 'DV_trk_v_el_pt', delta_el / electrons.lepmatched_lepVec[0].Pt())
@@ -1419,12 +1434,18 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[0]])
 
 			if self.dv_type == "ee":
+				lep_matched_DV_vec = electrons.lepmatched_lepVec[0] + electrons.lepmatched_lepVec[1]
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', electrons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', electrons.std_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_std_trk_pt', electrons.std_lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_pt', electrons.lepmatched_lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_pt', electrons.lepmatched_lepVec[1].Pt())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_eta', electrons.lepmatched_lepVec[0].Eta())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_eta', electrons.lepmatched_lepVec[1].Eta())
+				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_phi', electrons.lepmatched_lepVec[0].Phi())
+				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_phi', electrons.lepmatched_lepVec[1].Phi())
+				self.fill_hist(sel, 'DV_mass_lepmatched', lep_matched_DV_vec.M())
 
 				# trigger matching for displaced leptons
 				del_0_is_trig_matched = selections.LeptonTriggerMatching(self.tree, "electron", el_index[0]).is_trigger_matched
@@ -1594,17 +1615,17 @@ class Analysis(object):
 
 			# ____________________________________________________________
 			# Trigger matching requirement
+			if not self.do_CR:
+				self.trigger_matched_medium = selections.RequireMediumTriggerMatching(
+					self.tree,
+					prompt_lepton_index=self.plep_sel.plep_Index,
+					prompt_lepton_type=self.plep,
+					muons=muons,
+					electrons=electrons,
+					dv_type=self.dv_type)
 
-			self.trigger_matched_medium = selections.RequireMediumTriggerMatching(
-				self.tree,
-				prompt_lepton_index=self.plep_sel.plep_Index,
-				prompt_lepton_type=self.plep,
-				muons=muons,
-				electrons=electrons,
-				dv_type=self.dv_type)
-
-			self.fill_hist(sel, 'n_trigger_matched_medium', self.trigger_matched_medium.n_trigger_matched_medium)
-			# This will also be used for applying the lepton trigger matching uncertainties
+				self.fill_hist(sel, 'n_trigger_matched_medium', self.trigger_matched_medium.n_trigger_matched_medium)
+				# This will also be used for applying the lepton trigger matching uncertainties
 
 			# ============================================================
 			# Systematics
@@ -1630,15 +1651,16 @@ class Analysis(object):
 
 			# ____________________________________________________________
 			# Calculate weight for lepton trigger scale factor uncertainty
-			if self.trigger_matched_medium.prompt_trigger_matched_medium:
-				# trigger uncertainty from prompt lepton (TODO: needs to be implemented)
-				pass
-			elif self.trigger_matched_medium.displaced_0_trigger_matched_medium:
-				# trigger uncertainty from displaced lepton 0 (TODO: needs to be implemented)
-				pass
-			elif self.trigger_matched_medium.displaced_1_trigger_matched_medium:
-				# trigger uncertainty from displaced lepton 1 (TODO: needs to be implemented)
-				pass
+			if not self.do_CR:
+				if self.trigger_matched_medium.prompt_trigger_matched_medium:
+					# trigger uncertainty from prompt lepton (TODO: needs to be implemented)
+					pass
+				elif self.trigger_matched_medium.displaced_0_trigger_matched_medium:
+					# trigger uncertainty from displaced lepton 0 (TODO: needs to be implemented)
+					pass
+				elif self.trigger_matched_medium.displaced_1_trigger_matched_medium:
+					# trigger uncertainty from displaced lepton 1 (TODO: needs to be implemented)
+					pass
 
 			# ============================================================
 			# fill TTree with ntuple information. Already set by fill_hist
