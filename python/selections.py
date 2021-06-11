@@ -1357,31 +1357,36 @@ class SumTrack:
 
 class electron_muon_overlap_check():
 	def __init__(self, tree):
-		self.fail_overlap = False
-		self.matched_muon_index = -1
-		electrons = helpers.Electrons(tree)
-		n_disp_el = len(electrons.std_lepVec)
-		nmu = len(tree['muon_pt'])
+		# track pointer matching done in DHNL algorithm
+		self.fail_overlap = tree.dv('trk_mu_matched_to_el')[0] == True or tree.dv('trk_mu_matched_to_el')[1] == True
 
-		for imu in range(nmu):
-			mu_pt = tree['muon_pt'][imu]
-			mu_eta = tree['muon_eta'][imu]
-			mu_phi = tree['muon_phi'][imu]
-			mu_vec = ROOT.TLorentzVector()
-			mu_vec.SetPtEtaPhiM(mu_pt, mu_eta, mu_phi, 0.1)
+		# ------------------------------------------------------------
+		# pt matching overlap check that doesnt work very well -DT
+		# ------------------------------------------------------------
+		# self.fail_overlap = False
+		# self.matched_muon_index = -1
+		# nmu = len(tree['muon_pt'])
+		# electrons = helpers.Electrons(tree)
+		# n_disp_el = len(electrons.std_lepVec)
+		# for imu in range(nmu):
+		# 	mu_pt = tree['muon_pt'][imu]
+		# 	mu_eta = tree['muon_eta'][imu]
+		# 	mu_phi = tree['muon_phi'][imu]
+		# 	mu_vec = ROOT.TLorentzVector()
+		# 	mu_vec.SetPtEtaPhiM(mu_pt, mu_eta, mu_phi, 0.1)
 
-			for iel in range(n_disp_el):  # loop over tracks
-				trk_pt = electrons.std_lepVec[iel].Pt()
-				trk_eta = electrons.std_lepVec[iel].Eta()
-				trk_phi = electrons.std_lepVec[iel].Phi()
+		# 	for iel in range(n_disp_el):  # loop over tracks
+		# 		trk_pt = electrons.std_lepVec[iel].Pt()
+		# 		trk_eta = electrons.std_lepVec[iel].Eta()
+		# 		trk_phi = electrons.std_lepVec[iel].Phi()
 
-				fail_overlap = abs((trk_pt- mu_pt)/ trk_pt) < 0.05 and abs((trk_phi- mu_phi)/ trk_phi) < 0.05 and abs((trk_eta- mu_eta)/ trk_eta) < 0.05
+		# 		fail_overlap = abs((trk_pt- mu_pt)/ trk_pt) < 0.05 and abs((trk_phi- mu_phi)/ trk_phi) < 0.05 and abs((trk_eta- mu_eta)/ trk_eta) < 0.05
 
-				if fail_overlap:
-					self.fail_overlap = fail_overlap
-					self.matched_muon_index = imu
-					# if any muon passes the overlap check the fail this check
-					continue
+		# 		if fail_overlap:
+		# 			self.fail_overlap = fail_overlap
+		# 			self.matched_muon_index = imu
+		# 			# if any muon passes the overlap check the fail this check
+		# 			continue
 
 	def passes(self):
 		# return True if DV passes the overlap check (no electron overlaps with a muon)
