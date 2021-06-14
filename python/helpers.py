@@ -377,6 +377,18 @@ class Tracks:
 			std_lepVec = ROOT.TLorentzVector()
 			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
+				if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # also matched to an electron!
+					# by default assume muon is the better track
+					pass_loose = 1
+					# if muon is properly matched then it will have an index
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+					#check if the mat
+					pass_loose = self.tree['muon_isLoose'][muon_index]
+					# Check that the matched muon has at least some minimum (loose) quality before you call it a muon!
+					if pass_loose == 0:
+						# matched muon doesnt have any quality! Do not call this track a muon!
+						continue
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
 				# Default: use track quantities wrt SV
@@ -430,12 +442,18 @@ class Tracks:
 			std_lepVec = ROOT.TLorentzVector()
 			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
-				# Remove electrons that are also matched to muons!
+				# Check if track is also matched to a muon!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
+					# by default assume this is a good quality muon match
+					pass_loose = 1
+					# if muon matching is done correctly then this track will have a muon idex
 					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-					continue
-
+					pass_loose = self.tree['muon_isLoose'][muon_index]
+					# Make sure that muon has at least loose quality before you say this track is a muon and not an electron
+					if pass_loose > 0:
+						# matched muon has some quality (loose), so do not call this track an electron!
+						continue
 				# Default: use track quantities wrt SV
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
