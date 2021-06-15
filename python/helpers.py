@@ -381,10 +381,10 @@ class Tracks:
 					# get the muon index
 					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-					pass_muon_medium = self.tree['muon_isMedium'][muon_index]
-					#If you are a NOT medium muon do not count this as a muon!
-					if not pass_muon_medium == 1:
-						# skip tracks that are overlap with muon and electron if the muon is < medium quality
+					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
+					#If track is NOT matched to a loose muon --> no muon match!
+					if not pass_muon_loose == 1:
+						# skip tracks matched to muons with no quality!
 						continue
 
 				# find position of muon in the muon container that is matched to the sec vtx track
@@ -447,12 +447,13 @@ class Tracks:
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
 					if len(self.tree['el_index']) > 0:
 						el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
-					pass_muon_medium = self.tree['muon_isMedium'][muon_index]
+					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
 					pass_electron_vvl  = self.tree['el_isLHVeryLoose_mod1'][el_index]
-					#If you are a medium muon or NOT vvl electron do not count this track as an electron!
-					if pass_muon_medium == 1:
-					# skip tracks matched to medium muons
+					#If track is matched to a loose muon --> no electron match!
+					if pass_muon_loose == 1:
+						# skip tracks matched to loose muons
 						continue
+					# else if track is NOT vvl electron --> no electron match!
 					elif not pass_electron_vvl == 1:
 						# skip track with no electron quality!
 						continue
