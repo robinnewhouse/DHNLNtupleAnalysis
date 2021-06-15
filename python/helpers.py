@@ -980,5 +980,6 @@ def get_time():
 def percent_diff(quantity_1, quantity_2): 
 	abs_diff = abs(quantity_1- quantity_2)
 	average = (quantity_1 + quantity_2)/2.0
-
-	return abs_diff/average
+	truth = quantity_1
+	
+	return abs_diff/truth
