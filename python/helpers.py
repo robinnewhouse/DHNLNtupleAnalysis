@@ -978,9 +978,6 @@ def get_time():
 	else: # python 2
 		return time.clock()
 
-def percent_diff(quantity_1, quantity_2): 
-	abs_diff = abs(quantity_1- quantity_2)
-	average = (quantity_1 + quantity_2)/2.0
-	truth = quantity_1
-	
-	return abs_diff/truth
+def pT_diff(track_pT_1 , track_pT_2): 
+	abs_diff = abs(track_pT_1- track_pT_2)
+	return abs_diff/track_pT_1
