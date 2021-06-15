@@ -378,17 +378,15 @@ class Tracks:
 			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
 				if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # also matched to an electron!
-					# by default assume muon is the better track
-					pass_loose = 1
-					# if muon is properly matched then it will have an index
-					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
+					# get the muon index
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-					#check if the mat
-					pass_loose = self.tree['muon_isLoose'][muon_index]
-					# Check that the matched muon has at least some minimum (loose) quality before you call it a muon!
-					if pass_loose == 0:
-						# matched muon doesnt have any quality! Do not call this track a muon!
+					pass_muon_medium = self.tree['muon_isMedium'][muon_index]
+					#If you are a NOT medium muon do not count this as a muon!
+					if not pass_muon_medium == 1:
+						# skip tracks that are overlap with muon and electron if the muon is < medium quality
 						continue
+
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
 				# Default: use track quantities wrt SV
@@ -405,7 +403,7 @@ class Tracks:
 
 				if not self.tree.fake_aod:
 					if len(self.tree['muon_index']) > 0:
-						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]					
 						self.lepIndex.append(muon_index)
 						# get calibrated muon quantities (not calculated wrt DV!)
 						lep_pt = self.tree['muon_pt'][muon_index]
@@ -444,16 +442,21 @@ class Tracks:
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
 				# Check if track is also matched to a muon!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
-					# by default assume this is a good quality muon match
-					pass_loose = 1
-					# if muon matching is done correctly then this track will have a muon idex
-					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
+					# get the muon and electron indicies 
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-					pass_loose = self.tree['muon_isLoose'][muon_index]
-					# Make sure that muon has at least loose quality before you say this track is a muon and not an electron
-					if pass_loose > 0:
-						# matched muon has some quality (loose), so do not call this track an electron!
+					if len(self.tree['el_index']) > 0:
+						el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
+					pass_muon_medium = self.tree['muon_isMedium'][muon_index]
+					pass_electron_vvl  = self.tree['el_isLHVeryLoose_mod1'][el_index]
+					#If you are a medium muon or NOT vvl electron do not count this track as an electron!
+					if pass_muon_medium == 1:
+					# skip tracks matched to medium muons
 						continue
+					elif not pass_electron_vvl == 1:
+						# skip track with no electron quality!
+						continue
+
 				# Default: use track quantities wrt SV
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
 				eta = self.tree.dv('trk_eta_wrtSV')[itrk]
@@ -973,3 +976,9 @@ def get_time():
 		return time.perf_counter()
 	else: # python 2
 		return time.clock()
+
+def percent_diff(quantity_1, quantity_2): 
+	abs_diff = abs(quantity_1- quantity_2)
+	average = (quantity_1 + quantity_2)/2.0
+
+	return abs_diff/average

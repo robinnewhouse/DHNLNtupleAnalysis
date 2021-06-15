@@ -1362,6 +1362,9 @@ class Analysis(object):
 			# fill 3 different track calculations
 			if self.dv_type == "mumu":
 				lep_matched_DV_vec = muons.lepmatched_lepVec[0] + muons.lepmatched_lepVec[1]
+				trk_percent_diff_0 = helpers.percent_diff(muons.std_lepVec[0].Pt(), muons.lepmatched_lepVec[0].Pt() )
+				trk_percent_diff_1 = helpers.percent_diff( muons.std_lepVec[1].Pt(), muons.lepmatched_lepVec[1].Pt() )
+				
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', muons.lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
@@ -1373,6 +1376,11 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_phi', muons.lepmatched_lepVec[0].Phi())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_phi', muons.lepmatched_lepVec[1].Phi())
 				self.fill_hist(sel, 'DV_mass_lepmatched', lep_matched_DV_vec.M())
+				self.fill_hist(sel, 'DV_lep_0_pt_calibration_diff', trk_percent_diff_0 )
+				self.fill_hist(sel, 'DV_lep_1_pt_calibration_diff', trk_percent_diff_1 )
+				# fill both track in one histogram
+				self.fill_hist(sel, 'DV_lep_pt_calibration_diff', trk_percent_diff_1 )
+				self.fill_hist(sel, 'DV_lep_pt_calibration_diff', trk_percent_diff_0 )
 
 				# trigger matching for displaced leptons
 				dmu_0_is_trig_matched = selections.LeptonTriggerMatching(self.tree, "muon", mu_index[0]).is_trigger_matched
@@ -1391,8 +1399,20 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_0_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_lep_1_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[1]])
 
+				self.fill_hist(sel, 'DV_lep_0_pt_calibration_diff', trk_percent_diff_0 )
+				self.fill_hist(sel, 'DV_lep_1_pt_calibration_diff', trk_percent_diff_1 )
+				# fill both track in one histogram
+				self.fill_hist(sel, 'DV_lep_pt_calibration_diff', trk_percent_diff_1 )
+				self.fill_hist(sel, 'DV_lep_pt_calibration_diff', trk_percent_diff_0 )
+
 			if self.dv_type == "emu":
 				lep_matched_DV_vec = muons.lepmatched_lepVec[0] + electrons.lepmatched_lepVec[0]
+
+				trk_percent_diff_0 = helpers.percent_diff( muons.std_lepVec[0].Pt(), muons.lepmatched_lepVec[0].Pt() )
+				trk_percent_diff_1 = helpers.percent_diff( electrons.std_lepVec[0].Pt() , electrons.lepmatched_lepVec[0].Pt() )
+
+				dv_mass_diff = abs(lep_matched_DV_vec.M() - self.tree.dv('mass') ) / lep_matched_DV_vec.M()		
+				
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', muons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', muons.std_lepVec[0].Pt())
@@ -1404,6 +1424,14 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_lep_0_lepmatched_trk_phi', muons.lepmatched_lepVec[0].Phi())
 				self.fill_hist(sel, 'DV_lep_1_lepmatched_trk_phi', electrons.lepmatched_lepVec[0].Phi())
 				self.fill_hist(sel, 'DV_mass_lepmatched', lep_matched_DV_vec.M())
+				self.fill_hist(sel, 'DV_mass_calibrated_diff', dv_mass_diff)
+
+				self.fill_hist(sel, 'DV_lep_0_pt_calibration_diff', trk_percent_diff_0 )
+				self.fill_hist(sel, 'DV_lep_1_pt_calibration_diff', trk_percent_diff_1 )
+				# fill both track in one histogram
+				self.fill_hist(sel, 'DV_lep_pt_calibration_diff', trk_percent_diff_1 )
+				self.fill_hist(sel, 'DV_lep_pt_calibration_diff', trk_percent_diff_0 )
+
 
 				delta_el = electrons.lepVec[0].Pt() - electrons.lepmatched_lepVec[0].Pt()
 				delta_mu = muons.lepVec[0].Pt() - muons.lepmatched_lepVec[0].Pt()
@@ -1435,6 +1463,9 @@ class Analysis(object):
 
 			if self.dv_type == "ee":
 				lep_matched_DV_vec = electrons.lepmatched_lepVec[0] + electrons.lepmatched_lepVec[1]
+				trk_percent_diff_0 = helpers.percent_diff( electrons.std_lepVec[0].Pt() , electrons.lepmatched_lepVec[0].Pt() ) 
+				trk_percent_diff_1 = helpers.percent_diff( electrons.std_lepVec[1].Pt(), electrons.lepmatched_lepVec[1].Pt() )
+
 				self.fill_hist(sel, 'DV_lep_0_trk_pt_wrtSV', electrons.lepVec[0].Pt())
 				self.fill_hist(sel, 'DV_lep_1_trk_pt_wrtSV', electrons.lepVec[1].Pt())
 				self.fill_hist(sel, 'DV_lep_0_std_trk_pt', electrons.std_lepVec[0].Pt())
@@ -1833,7 +1864,7 @@ class run2Analysis(Analysis):
 					self.passed_charge_cut = True
 			else:
 				return
-
+		
 		if self.do_dv_type_cut:
 			if self._dv_type_cut():
 				if not self.passed_dv_type_cut:
@@ -1845,7 +1876,7 @@ class run2Analysis(Analysis):
 					self.selected_dv_index = self.tree.idv
 			else:
 				return
-		
+
 		if self.do_cosmic_veto_cut:
 			if self._cosmic_veto_cut():
 				if not self.passed_cosmic_veto_cut:
@@ -1897,7 +1928,7 @@ class run2Analysis(Analysis):
 						self._fill_selected_dv_histos("trig_match")
 			else:
 				return
-
+		
 		if self.do_trilepton_mass_cut:
 			if self._trilepton_mass_cut():
 				if not self.passed_trilepton_mass_cut:
