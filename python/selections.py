@@ -942,7 +942,7 @@ class Zmass_veto():
 
 
 class DV_lep_pt():
-	def __init__(self, tree, dv_type, el_pt_cut=4.5, mu_pt_cut = 3):
+	def __init__(self, tree, dv_type, el_pt_cut=4.5, mu_pt_cut = 3, pt_diff_cut = 0.5):
 		self.pass_pt_cut = False
 		
 		# get muons
@@ -958,14 +958,29 @@ class DV_lep_pt():
 		elVec = electrons.lepmatched_lepVec
 
 		if dv_type == "mumu":
-			self.pass_pt_cut =  muVec[0].Pt() > mu_pt_cut and muVec[1].Pt() > mu_pt_cut
+			pass_min_pt =  muVec[0].Pt() > mu_pt_cut and muVec[1].Pt() > mu_pt_cut
+			trk_percent_diff_mu_0 = helpers.pT_diff( muons.std_lepVec[0].Pt(), muons.lepmatched_lepVec[0].Pt() )
+			trk_percent_diff_mu_1 = helpers.pT_diff( muons.std_lepVec[1].Pt() , muons.lepmatched_lepVec[1].Pt() )
+			pass_pt_diff = trk_percent_diff_mu_0 < pt_diff_cut and trk_percent_diff_mu_1 < pt_diff_cut
+			# only apply min pT cut on displaced leptons
+			self.pass_pt_cuts = pass_min_pt
 		if dv_type == "emu":
-			self.pass_pt_cut =  elVec[0].Pt() > el_pt_cut and muVec[0].Pt() > mu_pt_cut
+			pass_min_pt =  elVec[0].Pt() > el_pt_cut and muVec[0].Pt() > mu_pt_cut
+			trk_percent_diff_mu = helpers.pT_diff( muons.std_lepVec[0].Pt(), muons.lepmatched_lepVec[0].Pt() )
+			trk_percent_diff_el = helpers.pT_diff( electrons.std_lepVec[0].Pt() , electrons.lepmatched_lepVec[0].Pt() )
+			pass_pt_diff = trk_percent_diff_el < pt_diff_cut
+			# apply min pT cut to both displaced leptons and pt diff cut to displaced electrons
+			self.pass_pt_cuts = pass_min_pt and pass_pt_diff
 		if dv_type == "ee":
-			self.pass_pt_cut =  elVec[0].Pt() > el_pt_cut and elVec[1].Pt() > el_pt_cut
+			pass_min_pt =  elVec[0].Pt() > el_pt_cut and elVec[1].Pt() > el_pt_cut
+			trk_percent_diff_el_0 = helpers.pT_diff( electrons.std_lepVec[0].Pt(), electrons.lepmatched_lepVec[0].Pt() )
+			trk_percent_diff_el_1 = helpers.pT_diff( electrons.std_lepVec[1].Pt() , electrons.lepmatched_lepVec[1].Pt() )
+			pass_pt_diff = trk_percent_diff_el_0 < pt_diff_cut and trk_percent_diff_el_1 < pt_diff_cut
+			# apply min pT cut to both displaced leptons and pt diff cut to displaced electrons
+			self.pass_pt_cuts = pass_min_pt and pass_pt_diff
 
 	def passes(self):
-		return self.pass_pt_cut
+		return self.pass_pt_cuts
 
 class Mhnl():
 	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 20,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(),trks=[],use_tracks=False,invert=False ):
