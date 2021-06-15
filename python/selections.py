@@ -943,7 +943,7 @@ class Zmass_veto():
 
 class DV_lep_pt():
 	def __init__(self, tree, dv_type, el_pt_cut=4.5, mu_pt_cut = 3, pt_diff_cut = 0.5):
-		self.pass_pt_cut = False
+		self.pass_pt_cuts = False
 		
 		# get muons
 		muons = helpers.Tracks(tree)

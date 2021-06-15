@@ -1281,7 +1281,7 @@ class Analysis(object):
 				pass_el_mu_overlap = selections.electron_muon_overlap_check(self.tree).passes()
 				self.fill_hist(sel, 'DV_pass_el_mu_overlap', pass_el_mu_overlap)
 
-				pass_lep_pt_cut = selections.DV_lep_pt(self.tree, self.dv_type).pass_pt_cut
+				pass_lep_pt_cut = selections.DV_lep_pt(self.tree, self.dv_type).pass_pt_cuts
 				self.fill_hist(sel, 'DV_pass_lep_pt', pass_lep_pt_cut)
 
 				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
