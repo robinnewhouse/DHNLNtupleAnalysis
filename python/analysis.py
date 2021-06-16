@@ -489,6 +489,10 @@ class Analysis(object):
 		filter_sel = selections.Filter(self.tree, filter_type=self.filter_type)
 		return filter_sel.passes()
 
+	def _pass_prompt_lepton_overlap(self): 
+		prompt_lepton_overlap = selections.Prompt_lepton_overlap(tree=self.tree, plep=self.plep, selected_plep = self.plep_sel)
+		return prompt_lepton_overlap.passes()
+
 	def _prompt_lepton_cut(self):
 		self.found_plep = False # intitalize the plep each event 
 		self.plep_sel = selections.PromptLepton(self.tree, lepton=self.plep,quality=self.plep_quality) # run plep selection 
@@ -772,6 +776,8 @@ class Analysis(object):
 			if self.found_plep:
 				self._fill_cutflow(4)
 			if plep_cut:
+				if not self._pass_prompt_lepton_overlap():
+					return
 				self._fill_cutflow(5)
 			else:
 				return
@@ -1723,7 +1729,7 @@ class run2Analysis(Analysis):
 			self.CutFlow.GetXaxis().SetBinLabel(4, "%s" % self.filter_type)
 		if self.do_prompt_lepton_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(5, "{} prompt {}".format(self.plep_quality,self.plep))
-			self.CutFlow.GetXaxis().SetBinLabel(6, "no plep overlap with DV")
+			self.CutFlow.GetXaxis().SetBinLabel(6, "plep overlap")
 		if self.do_invert_prompt_lepton_cut:
 			self.CutFlow.GetXaxis().SetBinLabel(4, "invert prompt lepton")
 			if self.do_prompt_track_cut:

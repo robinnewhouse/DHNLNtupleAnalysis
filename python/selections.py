@@ -347,7 +347,53 @@ class PromptLepton():
 			return True
 		else: 
 			return False
+	
+class Prompt_lepton_overlap():
+	def __init__(self,tree,plep,selected_plep,min_el_pt=4.5, min_mu_pt=3, min_dR = 0.05):
+		self.pass_overlap_check = True
+		if plep == "muon":
+			plep_eta = selected_plep.plepVec.Phi()
+			plep_phi = selected_plep.plepVec.Eta()
+			for el_index in range(len(self.tree['el_pt'])):
+				el_pt = tree['el_pt'][el_index]
+				el_eta = tree['el_eta'][el_index]
+				el_phi = tree['el_phi'][el_index]
+				el_m = tree['el_m'][el_index]
+				el_vec = ROOT.TLorentzVector(0,0,0,0)
+				el_vec.SetPtEtaPhiM(el_pt,el_eta,el_phi,el_m)
+				dR = selected_plep.plepVec.DeltaR(el_vec)
+				# eta_diff = abs((plep_eta-el_eta)/plep_eta)
+				# phi_diff = abs((plep_phi-el_phi)/plep_phi)
+				el_d0 = tree['el_trkd0'][el_index]
+				el_z0sintheta = tree['el_trkz0sintheta'][el_index]
+				# if eta_diff < 0.05 and phi_diff < 0.05:
+				if dR < min_dR and tree['el_LHMedium'][el_index] == 1 and abs(el_d0) < 3 and abs(el_z0sintheta) < 0.5 and el_pt > min_el_pt:
+					# selected prompt muon overlaps with a prompt electron! Event fails overlap check.
+					print("failed prompt overlap")
+					self.pass_overlap_check = False
+		if plep == "electron":
+			plep_eta = selected_plep.plepVec.Phi()
+			plep_phi = selected_plep.plepVec.Eta()
+			for mu_index in range(len(tree['muon_pt'])):
+				mu_pt = tree['muon_pt'][mu_index]
+				mu_eta = tree['muon_eta'][mu_index]
+				mu_phi = tree['muon_phi'][mu_index]
+				mu_m = tree['muon_m'][mu_index]
+				mu_vec = ROOT.TLorentzVector(0,0,0,0)
+				mu_vec.SetPtEtaPhiM(mu_pt,mu_eta,mu_phi,mu_m)
+				dR = selected_plep.plepVec.DeltaR(mu_vec)
+				# eta_diff = abs((plep_eta-mu_eta)/plep_eta)
+				# phi_diff = abs((plep_phi-mu_phi)/plep_phi)
+				mu_d0 = tree['muon_trkd0'][mu_index]
+				mu_z0sintheta = tree['muon_trkz0sintheta'][mu_index]
+				# if eta_diff < 0.05 and phi_diff < 0.05:
+				if dR < min_dR and tree['muon_isMedium'][mu_index] == 1 and abs(mu_d0) < 3 and abs(mu_z0sintheta) < 0.5 and mu_pt > min_mu_pt:
+					# selected prompt electron overlaps with a prompt muon! Event fails overlap check.
+					print("failed prompt overlap")
+					self.pass_overlap_check = False
 
+	def passes(self):
+		return self.pass_overlap_check
 	
 class Alpha():
 	def __init__(self, tree, max_alpha=0.5):
