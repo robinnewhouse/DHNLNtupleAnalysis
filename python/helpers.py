@@ -377,6 +377,16 @@ class Tracks:
 			std_lepVec = ROOT.TLorentzVector()
 			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
+				if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # also matched to an electron!
+					# get the muon index
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
+					#If track is NOT matched to a loose muon --> no muon match!
+					if not pass_muon_loose == 1:
+						# skip tracks matched to muons with no quality!
+						continue
+
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
 				# Default: use track quantities wrt SV
@@ -393,7 +403,7 @@ class Tracks:
 
 				if not self.tree.fake_aod:
 					if len(self.tree['muon_index']) > 0:
-						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]					
 						self.lepIndex.append(muon_index)
 						# get calibrated muon quantities (not calculated wrt DV!)
 						lep_pt = self.tree['muon_pt'][muon_index]
@@ -430,11 +440,23 @@ class Tracks:
 			std_lepVec = ROOT.TLorentzVector()
 			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
-				# Remove electrons that are also matched to muons!
+				# Check if track is also matched to a muon!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
-					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
+					# get the muon and electron indicies 
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-					continue
+					if len(self.tree['el_index']) > 0:
+						el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
+					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
+					pass_electron_vvl  = self.tree['el_isLHVeryLoose_mod1'][el_index]
+					#If track is matched to a loose muon --> no electron match!
+					if pass_muon_loose == 1:
+						# skip tracks matched to loose muons
+						continue
+					# else if track is NOT vvl electron --> no electron match!
+					elif not pass_electron_vvl == 1:
+						# skip track with no electron quality!
+						continue
 
 				# Default: use track quantities wrt SV
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
@@ -955,3 +977,7 @@ def get_time():
 		return time.perf_counter()
 	else: # python 2
 		return time.clock()
+
+def pT_diff(track_pT_1 , track_pT_2): 
+	abs_diff = abs(track_pT_1- track_pT_2)
+	return abs_diff/track_pT_1

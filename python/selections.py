@@ -347,7 +347,53 @@ class PromptLepton():
 			return True
 		else: 
 			return False
+	
+class Prompt_lepton_overlap():
+	def __init__(self,tree,plep,selected_plep,min_el_pt=4.5, min_mu_pt=3, min_dR = 0.05):
+		self.pass_overlap_check = True
+		if plep == "muon":
+			plep_eta = selected_plep.plepVec.Phi()
+			plep_phi = selected_plep.plepVec.Eta()
+			for el_index in range(len(self.tree['el_pt'])):
+				el_pt = tree['el_pt'][el_index]
+				el_eta = tree['el_eta'][el_index]
+				el_phi = tree['el_phi'][el_index]
+				el_m = tree['el_m'][el_index]
+				el_vec = ROOT.TLorentzVector(0,0,0,0)
+				el_vec.SetPtEtaPhiM(el_pt,el_eta,el_phi,el_m)
+				dR = selected_plep.plepVec.DeltaR(el_vec)
+				# eta_diff = abs((plep_eta-el_eta)/plep_eta)
+				# phi_diff = abs((plep_phi-el_phi)/plep_phi)
+				el_d0 = tree['el_trkd0'][el_index]
+				el_z0sintheta = tree['el_trkz0sintheta'][el_index]
+				# if eta_diff < 0.05 and phi_diff < 0.05:
+				if dR < min_dR and tree['el_LHMedium'][el_index] == 1 and abs(el_d0) < 3 and abs(el_z0sintheta) < 0.5 and el_pt > min_el_pt:
+					# selected prompt muon overlaps with a prompt electron! Event fails overlap check.
+					print("failed prompt overlap")
+					self.pass_overlap_check = False
+		if plep == "electron":
+			plep_eta = selected_plep.plepVec.Phi()
+			plep_phi = selected_plep.plepVec.Eta()
+			for mu_index in range(len(tree['muon_pt'])):
+				mu_pt = tree['muon_pt'][mu_index]
+				mu_eta = tree['muon_eta'][mu_index]
+				mu_phi = tree['muon_phi'][mu_index]
+				mu_m = tree['muon_m'][mu_index]
+				mu_vec = ROOT.TLorentzVector(0,0,0,0)
+				mu_vec.SetPtEtaPhiM(mu_pt,mu_eta,mu_phi,mu_m)
+				dR = selected_plep.plepVec.DeltaR(mu_vec)
+				# eta_diff = abs((plep_eta-mu_eta)/plep_eta)
+				# phi_diff = abs((plep_phi-mu_phi)/plep_phi)
+				mu_d0 = tree['muon_trkd0'][mu_index]
+				mu_z0sintheta = tree['muon_trkz0sintheta'][mu_index]
+				# if eta_diff < 0.05 and phi_diff < 0.05:
+				if dR < min_dR and tree['muon_isMedium'][mu_index] == 1 and abs(mu_d0) < 3 and abs(mu_z0sintheta) < 0.5 and mu_pt > min_mu_pt:
+					# selected prompt electron overlaps with a prompt muon! Event fails overlap check.
+					print("failed prompt overlap")
+					self.pass_overlap_check = False
 
+	def passes(self):
+		return self.pass_overlap_check
 	
 class Alpha():
 	def __init__(self, tree, max_alpha=0.5):
@@ -942,8 +988,8 @@ class Zmass_veto():
 
 
 class DV_lep_pt():
-	def __init__(self, tree, dv_type, el_pt_cut=4.5, mu_pt_cut = 3):
-		self.pass_pt_cut = False
+	def __init__(self, tree, dv_type, el_pt_cut=4.5, mu_pt_cut = 3, pt_diff_cut = 0.5):
+		self.pass_pt_cuts = False
 		
 		# get muons
 		muons = helpers.Tracks(tree)
@@ -958,14 +1004,29 @@ class DV_lep_pt():
 		elVec = electrons.lepmatched_lepVec
 
 		if dv_type == "mumu":
-			self.pass_pt_cut =  muVec[0].Pt() > mu_pt_cut and muVec[1].Pt() > mu_pt_cut
+			pass_min_pt =  muVec[0].Pt() > mu_pt_cut and muVec[1].Pt() > mu_pt_cut
+			trk_percent_diff_mu_0 = helpers.pT_diff( muons.std_lepVec[0].Pt(), muons.lepmatched_lepVec[0].Pt() )
+			trk_percent_diff_mu_1 = helpers.pT_diff( muons.std_lepVec[1].Pt() , muons.lepmatched_lepVec[1].Pt() )
+			pass_pt_diff = trk_percent_diff_mu_0 < pt_diff_cut and trk_percent_diff_mu_1 < pt_diff_cut
+			# only apply min pT cut on displaced leptons
+			self.pass_pt_cuts = pass_min_pt
 		if dv_type == "emu":
-			self.pass_pt_cut =  elVec[0].Pt() > el_pt_cut and muVec[0].Pt() > mu_pt_cut
+			pass_min_pt =  elVec[0].Pt() > el_pt_cut and muVec[0].Pt() > mu_pt_cut
+			trk_percent_diff_mu = helpers.pT_diff( muons.std_lepVec[0].Pt(), muons.lepmatched_lepVec[0].Pt() )
+			trk_percent_diff_el = helpers.pT_diff( electrons.std_lepVec[0].Pt() , electrons.lepmatched_lepVec[0].Pt() )
+			pass_pt_diff = trk_percent_diff_el < pt_diff_cut
+			# apply min pT cut to both displaced leptons and pt diff cut to displaced electrons
+			self.pass_pt_cuts = pass_min_pt and pass_pt_diff
 		if dv_type == "ee":
-			self.pass_pt_cut =  elVec[0].Pt() > el_pt_cut and elVec[1].Pt() > el_pt_cut
+			pass_min_pt =  elVec[0].Pt() > el_pt_cut and elVec[1].Pt() > el_pt_cut
+			trk_percent_diff_el_0 = helpers.pT_diff( electrons.std_lepVec[0].Pt(), electrons.lepmatched_lepVec[0].Pt() )
+			trk_percent_diff_el_1 = helpers.pT_diff( electrons.std_lepVec[1].Pt() , electrons.lepmatched_lepVec[1].Pt() )
+			pass_pt_diff = trk_percent_diff_el_0 < pt_diff_cut and trk_percent_diff_el_1 < pt_diff_cut
+			# apply min pT cut to both displaced leptons and pt diff cut to displaced electrons
+			self.pass_pt_cuts = pass_min_pt and pass_pt_diff
 
 	def passes(self):
-		return self.pass_pt_cut
+		return self.pass_pt_cuts
 
 class Mhnl():
 	def __init__(self, tree, dv_type, plep, dMu, dEl, MW = 80.379,fixWMass=False, hnlmasscut = 20,use_truth=False,truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(),trks=[],use_tracks=False,invert=False ):
@@ -1357,31 +1418,36 @@ class SumTrack:
 
 class electron_muon_overlap_check():
 	def __init__(self, tree):
-		self.fail_overlap = False
-		self.matched_muon_index = -1
-		electrons = helpers.Electrons(tree)
-		n_disp_el = len(electrons.std_lepVec)
-		nmu = len(tree['muon_pt'])
+		# track pointer matching done in DHNL algorithm
+		self.fail_overlap = tree.dv('trk_mu_matched_to_el')[0] == True or tree.dv('trk_mu_matched_to_el')[1] == True
 
-		for imu in range(nmu):
-			mu_pt = tree['muon_pt'][imu]
-			mu_eta = tree['muon_eta'][imu]
-			mu_phi = tree['muon_phi'][imu]
-			mu_vec = ROOT.TLorentzVector()
-			mu_vec.SetPtEtaPhiM(mu_pt, mu_eta, mu_phi, 0.1)
+		# ------------------------------------------------------------
+		# pt matching overlap check that doesnt work very well -DT
+		# ------------------------------------------------------------
+		# self.fail_overlap = False
+		# self.matched_muon_index = -1
+		# nmu = len(tree['muon_pt'])
+		# electrons = helpers.Electrons(tree)
+		# n_disp_el = len(electrons.std_lepVec)
+		# for imu in range(nmu):
+		# 	mu_pt = tree['muon_pt'][imu]
+		# 	mu_eta = tree['muon_eta'][imu]
+		# 	mu_phi = tree['muon_phi'][imu]
+		# 	mu_vec = ROOT.TLorentzVector()
+		# 	mu_vec.SetPtEtaPhiM(mu_pt, mu_eta, mu_phi, 0.1)
 
-			for iel in range(n_disp_el):  # loop over tracks
-				trk_pt = electrons.std_lepVec[iel].Pt()
-				trk_eta = electrons.std_lepVec[iel].Eta()
-				trk_phi = electrons.std_lepVec[iel].Phi()
+		# 	for iel in range(n_disp_el):  # loop over tracks
+		# 		trk_pt = electrons.std_lepVec[iel].Pt()
+		# 		trk_eta = electrons.std_lepVec[iel].Eta()
+		# 		trk_phi = electrons.std_lepVec[iel].Phi()
 
-				fail_overlap = abs((trk_pt- mu_pt)/ trk_pt) < 0.05 and abs((trk_phi- mu_phi)/ trk_phi) < 0.05 and abs((trk_eta- mu_eta)/ trk_eta) < 0.05
+		# 		fail_overlap = abs((trk_pt- mu_pt)/ trk_pt) < 0.05 and abs((trk_phi- mu_phi)/ trk_phi) < 0.05 and abs((trk_eta- mu_eta)/ trk_eta) < 0.05
 
-				if fail_overlap:
-					self.fail_overlap = fail_overlap
-					self.matched_muon_index = imu
-					# if any muon passes the overlap check the fail this check
-					continue
+		# 		if fail_overlap:
+		# 			self.fail_overlap = fail_overlap
+		# 			self.matched_muon_index = imu
+		# 			# if any muon passes the overlap check the fail this check
+		# 			continue
 
 	def passes(self):
 		# return True if DV passes the overlap check (no electron overlaps with a muon)
