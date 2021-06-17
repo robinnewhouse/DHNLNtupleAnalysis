@@ -1,8 +1,24 @@
 {
-"eeu":{
-            
-            "vtx_containers" : ["VSI_LeptonsMod"],
-            "selections":["alltriggers","pelectron","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "emu","medium-veryveryloose","cosmicveto", "mlll","DVmass", "lep_pt","HNLmass" ]
-
-            }
+    "eeu": {
+        "vtx_containers": [
+            "VSI_LeptonsMod"
+        ],
+        "selections": [
+            "alltriggers",
+            "pelectron",
+            "medium_plep",
+            "4-filter",
+            "nDV",
+            "fidvol",
+            "2track",
+            "OS",
+            "emu",
+            "medium-veryveryloose",
+            "cosmicveto",
+            "mlll",
+            "DVmass",
+            "lep_pt",
+            "HNLmass"
+        ]
+    }
 }

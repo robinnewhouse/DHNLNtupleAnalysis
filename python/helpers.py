@@ -754,27 +754,68 @@ class mc_info:
 # seperated by year using comments from the above link and cross checking with this twiki: https://twiki.cern.ch/twiki/bin/view/Atlas/LowestUnprescaled
 
 # Single muon triggers used in DHNL analysis
-SingleMuonTriggerlist = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_imedium",
-						 "HLT_mu24_ivarmedium","HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly"]
+SingleMuonTriggerlist = [
+	"HLT_mu26_ivarmedium", # 2017-2018
+	# "HLT_mu60_0eta105_msonly", # all
+	"HLT_mu20_iloose_L1MU15", # 2015
+	# "HLT_mu24_iloose", 
+	# "HLT_mu24_ivarloose", 
+	# "HLT_mu24_imedium",
+	# "HLT_mu24_ivarmedium",
+	# "HLT_mu26_imedium", 
+	]
 
-SingleMuonTriggerlist_2018 = ["HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly" ]
+SingleMuonTriggerlist_2018 = [
+	"HLT_mu26_ivarmedium", 
+	# "HLT_mu60_0eta105_msonly",
+	]
 
-SingleMuonTriggerlist_2017 = ["HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly" ]
+SingleMuonTriggerlist_2017 = [
+	"HLT_mu26_ivarmedium", 
+	# "HLT_mu60_0eta105_msonly",
+	]
 
-SingleMuonTriggerlist_2015_2016 = ["HLT_mu20_iloose_L1MU15", "HLT_mu24_iloose", "HLT_mu24_ivarloose", "HLT_mu24_ivarmedium",
-								  "HLT_mu24_imedium", "HLT_mu26_imedium", "HLT_mu26_ivarmedium", "HLT_mu60_0eta105_msonly"]
+SingleMuonTriggerlist_2015_2016 = [
+	"HLT_mu26_ivarmedium", 
+	# "HLT_mu60_0eta105_msonly",
+	"HLT_mu20_iloose_L1MU15", 
+	# "HLT_mu24_iloose", 
+	# "HLT_mu24_ivarloose", 
+	# "HLT_mu24_ivarmedium",
+	# "HLT_mu24_imedium", 
+	# "HLT_mu26_imedium", 
+	]
 
 # Single electron triggers used in DHNL analysis
-SingleElectronTriggerlist = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0",
-                                "HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+SingleElectronTriggerlist = [
+	"HLT_e24_lhmedium_L1EM20VH", # 2015
+	"HLT_e26_lhtight_nod0_ivarloose", # 2016-2018
+	# "HLT_e60_lhmedium_nod0", # 2016-2018 # Kick this out?
+	# "HLT_e140_lhloose_nod0", # 2016-2018 # Kick this out?
+	# "HLT_e24_lhtight_nod0_ivarloose",  # not in recommendations
+	# "HLT_e26_lhtight_nod0", # not in recommendations
+	]
 
-SingleElectronTriggerlist_2018 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e26_lhtight_nod0", "HLT_e60_lhmedium_nod0",
-									 "HLT_e140_lhloose_nod0"]
+SingleElectronTriggerlist_2018 = [
+	"HLT_e26_lhtight_nod0_ivarloose",
+	# "HLT_e60_lhmedium_nod0",
+	# "HLT_e140_lhloose_nod0",
+	# "HLT_e26_lhtight_nod0", # not in recommendations
+	]
 
-SingleElectronTriggerlist_2017 = ["HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+SingleElectronTriggerlist_2017 = [
+	"HLT_e26_lhtight_nod0_ivarloose",
+	# "HLT_e60_lhmedium_nod0",
+	# "HLT_e140_lhloose_nod0",
+	 ]
 
-SingleElectronTriggerlist_2015_2016 = ["HLT_e24_lhmedium_L1EM20VH", "HLT_e24_lhtight_nod0_ivarloose",
-									"HLT_e26_lhtight_nod0_ivarloose", "HLT_e60_lhmedium_nod0", "HLT_e140_lhloose_nod0"]
+SingleElectronTriggerlist_2015_2016 = [
+	"HLT_e24_lhmedium_L1EM20VH",
+	"HLT_e26_lhtight_nod0_ivarloose",
+	# "HLT_e60_lhmedium_nod0",
+	# "HLT_e140_lhloose_nod0",
+	# "HLT_e24_lhtight_nod0_ivarloose", # not in recommendations
+	]
 
 
 
