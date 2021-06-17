@@ -5,14 +5,11 @@ if int(uproot.__version__.split('.')[0]) == 4:
 	import uproot3 as uproot
 	print('uproot version is now {}. '.format(uproot.__version__))
 import helpers
-import logging
-
-
 
 
 class Tree:
 	def __init__(self, file_name, tree_name, max_entries, channel, skip_events=None, mc_campaign=None,
-							 mass=1.0, ctau=1.0, not_hnl_mc=False, fake_aod=False, br=1):
+				 mass=1.0, ctau=1.0, not_hnl_mc=False, fake_aod=False, br=1):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -46,7 +43,7 @@ class Tree:
 		# Open and load uproot trees
 		self.file = uproot.open(file_name)
 		self.tree = self.file[tree_name]
-		self.cutflow = self.file["cutflow"] 
+		self.cutflow = self.file["cutflow"]
 		self.all_entries = self.cutflow[1]  # total entries in AOD
 		self.init_entries = self.cutflow[2]  # total entries in DAOD
 		self.vtx_container = ""

@@ -1,10 +1,9 @@
 import numpy as np
 
-
 # ____________________________________________________________
 # Displaced vertexing + tracking systematic
 
-# symetrized map
+# symmetrized map
 vertexing_syst_map = np.array(
        [[1.        , 0.99765399, 0.95751971, 0.98843573, 0.96177865,
         0.84549048, 0.83384723, 0.79266834, 0.78091003, 0.78123461,
@@ -60,6 +59,7 @@ def plot_vertexing_systematic():
     plt.ylabel('DV pT [GeV]')
     plt.title('vertexing systematics map')
 
+
 # ____________________________________________________________
 # Displaced lepton d0 extrapoliation systematic
 
@@ -67,13 +67,14 @@ d0_extrapolation_systematic_bins = [0, 3, 10, 20, 30, 40, 50, 60]
 d0_extrapolation_electron_systematic = [1.0, 0.9797764420509338, 0.9509709477424622, 0.9440935254096985, 0.9337978959083557, 0.9336843490600586, 0.943777322769165]
 d0_extrapolation_muon_systematic = [1.0, 0.983723521232605, 0.9758386015892029, 0.9704379439353943, 0.9621100425720215, 0.9447205662727356, 0.9487572908401489]
 
+
 def get_d0_extrapolation_systematic(d0, lepton):
     ind = int(np.digitize(abs(d0), d0_extrapolation_systematic_bins))
-    ind = min(ind, len(d0_extrapolation_systematic_bins)-1) # deal with overflow
+    ind = min(ind, len(d0_extrapolation_systematic_bins) - 1)  # deal with overflow
     if lepton == 'electron':
-        return d0_extrapolation_electron_systematic[ind-1]
+        return d0_extrapolation_electron_systematic[ind - 1]
     if lepton == 'muon':
-        return d0_extrapolation_muon_systematic[ind-1]
+        return d0_extrapolation_muon_systematic[ind - 1]
 
 
 def get_combined_d0_extrapolation_systematic(lepton_0_d0, lepton_0_type, lepton_1_d0, lepton_1_type):
@@ -86,8 +87,10 @@ def get_combined_d0_extrapolation_systematic(lepton_0_d0, lepton_0_type, lepton_
     total_systematic = lepton_0_systematic * lepton_1_systematic
     return total_systematic
 
+
 def get_d0_extrapolation_electron_systematic(d0):
     return get_d0_extrapolation_systematic(d0, lepton='electron')
+
 
 def get_d0_extrapolation_muon_systematic(d0):
     return get_d0_extrapolation_systematic(d0, lepton='muon')

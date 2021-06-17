@@ -594,11 +594,11 @@ class Analysis(object):
 		plep_vec = self.plep_sel.plepVec
 
 		muons = helpers.Tracks(self.tree)
-		muons.getMuons()
+		muons.get_muons()
 		muVec = muons.lepVec
 
 		electrons = helpers.Tracks(self.tree)
-		electrons.getElectrons()
+		electrons.get_electrons()
 		elVec = electrons.lepVec
 
 		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec,minmlll=40,maxmlll=90)
@@ -608,11 +608,11 @@ class Analysis(object):
 		plep_vec = self.plep_sel.plepVec
 
 		muons = helpers.Tracks(self.tree)
-		muons.getMuons()
+		muons.get_muons()
 		muVec = muons.lepVec
 
 		electrons = helpers.Tracks(self.tree)
-		electrons.getElectrons()
+		electrons.get_electrons()
 		elVec = electrons.lepVec
 
 		mlll_sel = selections.Mlll(dv_type=self.dv_type, plep=plep_vec, dMu=muVec, dEl=elVec,minmlll=25,maxmlll=125, invert=True)
@@ -643,11 +643,11 @@ class Analysis(object):
 	
 	def _HNL_mass_cut(self):
 		muons = helpers.Tracks(self.tree)
-		muons.getMuons()
+		muons.get_muons()
 		muVec = muons.lepVec
 
 		electrons = helpers.Tracks(self.tree)
-		electrons.getElectrons()
+		electrons.get_electrons()
 		elVec = electrons.lepVec
 
 		mHNL_sel = selections.Mhnl(self.tree, self.dv_type, plep=self.plep_sel.plepVec, dMu=muVec,dEl=elVec)
@@ -655,11 +655,11 @@ class Analysis(object):
 
 	def _invert_HNL_mass_cut(self):
 		muons = helpers.Tracks(self.tree)
-		muons.getMuons()
+		muons.get_muons()
 		muVec = muons.lepVec
 
 		electrons = helpers.Tracks(self.tree)
-		electrons.getElectrons()
+		electrons.get_electrons()
 		elVec = electrons.lepVec
 
 		mHNL_sel = selections.Mhnl(self.tree, self.dv_type, plep=self.plep_sel.plepVec, dMu=muVec,dEl=elVec,hnlmasscut=20, invert= True)
@@ -856,7 +856,7 @@ class Analysis(object):
 	def _fill_multitrk_histos(self):
 		self.fill_hist('2lepMultitrk', 'num_trks', self.tree.dv('ntrk'))
 		muons = helpers.Tracks(self.tree)
-		muons.getMuons()
+		muons.get_muons()
 		if muons.lepisAssoc[0] == 1 and muons.lepisAssoc[1] == 1:
 			self.fill_hist('2lepMultitrk', 'bothmuon_isAssociated', 1)
 		else:
@@ -864,7 +864,7 @@ class Analysis(object):
 		if muons.lepisAssoc[0] == 0 and muons.lepisAssoc[1] == 0:
 			self.fill_hist('2lepMultitrk', 'nomuon_isAssociated', 1)
 			tracks = helpers.Tracks(self.tree)
-			tracks.getTracks()
+			tracks.get_tracks()
 			trk_assoc = tracks.lepisAssoc
 			num_trk_assoc  = sum(trk_assoc)
 			ntrk = [3,4,5,6,7,8,9,10]
@@ -1167,7 +1167,7 @@ class Analysis(object):
 
 			# ____________________________________________________________
 			tracks = helpers.Tracks(self.tree)
-			tracks.getTracks()
+			tracks.get_tracks()
 
 			muons = helpers.Muons(self.tree)
 			mu_vec = muons.lepVec

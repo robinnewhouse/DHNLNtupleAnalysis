@@ -500,11 +500,11 @@ class DVType:
 			self.nmu = -1
 
 			self.muons = helpers.Tracks(self.tree)
-			self.muons.getMuons()
+			self.muons.get_muons()
 			self.nmu = len(self.muons.lepVec)
 
 			self.electrons = helpers.Tracks(self.tree)
-			self.electrons.getElectrons()
+			self.electrons.get_electrons()
 			self.nel = len(self.electrons.lepVec)
 
 	def passes(self):
@@ -605,10 +605,10 @@ class TrackQuality:
 
 		if self.decaymode == "leptonic":
 			muons = helpers.Tracks(self.tree)
-			muons.getMuons()
+			muons.get_muons()
 
 			electrons = helpers.Tracks(self.tree)
-			electrons.getElectrons()
+			electrons.get_electrons()
 
 			self.nmu_tight = 0
 			self.nmu_medium = 0
@@ -759,7 +759,7 @@ class CosmicVeto:
 			ntracks = tree.ntrk
 			if ntracks == 2:
 				tracks = helpers.Tracks(tree)
-				tracks.getTracks()
+				tracks.get_tracks()
 				trkVec = tracks.lepVec
 
 				sumeta = tracks.lepVec[0].Eta() + tracks.lepVec[1].Eta()
@@ -926,13 +926,13 @@ class ZMassVeto:
 		self.dv_type = dv_type
 
 		muons = helpers.Tracks(tree)
-		muons.getMuons()
+		muons.get_muons()
 		muVec = muons.lepVec
 		muVec_lepmatched = muons.lepmatched_lepVec
 		mu_Index = muons.lepIndex
 
 		electrons = helpers.Tracks(tree)
-		electrons.getElectrons()
+		electrons.get_electrons()
 		elVec = electrons.lepVec
 		elVec_lepmatched = electrons.lepmatched_lepVec
 		el_Index = electrons.lepIndex
@@ -985,13 +985,13 @@ class DVLepPt:
 		
 		# get muons
 		muons = helpers.Tracks(tree)
-		muons.getMuons()
+		muons.get_muons()
 		# get lep matched 4 vector
 		muVec = muons.lepmatched_lepVec
 
 		# get electrons
 		electrons = helpers.Tracks(tree)
-		electrons.getElectrons()
+		electrons.get_electrons()
 		# get lep matched 4 vector
 		elVec = electrons.lepmatched_lepVec
 
