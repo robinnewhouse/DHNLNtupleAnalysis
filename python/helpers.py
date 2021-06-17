@@ -217,8 +217,7 @@ class Truth:
 		self.beta = 1
 		self.properLifetime = -1
 
-
-	def getTruthParticles(self, tree):
+	def get_truth_particles(self, tree):
 		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
 			# get the DV!
 			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50:  # PDGID 50: Heavy Neutral Lepton
@@ -231,16 +230,16 @@ class Truth:
 					self.gamma = tree['truthVtx_parent_E'][ivx] / tree['truthVtx_parent_M'][ivx]
 					self.beta = np.sqrt(1 - 1 / self.gamma ** 2)
 
-					self.truth_dv = ROOT.TVector3( self.truth_dvx, self.truth_dvy, self.truth_dvz )
-					self.truth_dvr = np.sqrt(self.truth_dvx**2 + self.truth_dvy**2)
-					visTrkVec =  ROOT.TLorentzVector()
-					truthVec  =  ROOT.TLorentzVector()
-					nu_vec =  ROOT.TLorentzVector()
+					self.truth_dv = ROOT.TVector3(self.truth_dvx, self.truth_dvy, self.truth_dvz)
+					self.truth_dvr = np.sqrt(self.truth_dvx ** 2 + self.truth_dvy ** 2)
+					visTrkVec = ROOT.TLorentzVector()
+					truthVec = ROOT.TLorentzVector()
+					nu_vec = ROOT.TLorentzVector()
 
 					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
 						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i])
 						if trk_pdgId == 13:
-							TrkVec  =  ROOT.TLorentzVector()
+							TrkVec = ROOT.TLorentzVector()
 							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 												tree['truthVtx_outP_eta'][ivx][i],
 												tree['truthVtx_outP_phi'][ivx][i],
@@ -252,7 +251,7 @@ class Truth:
 							self.dMu_charge.append(mu_charge)
 							self.dMu_d0.append(mu_d0)
 						if trk_pdgId == 11:
-							TrkVec  =  ROOT.TLorentzVector()
+							TrkVec = ROOT.TLorentzVector()
 							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 												tree['truthVtx_outP_eta'][ivx][i],
 												tree['truthVtx_outP_phi'][ivx][i],
@@ -264,15 +263,15 @@ class Truth:
 							self.dEl_charge.append(el_charge)
 							self.dEl_d0.append(el_d0)
 
-						if trk_pdgId == 13 or trk_pdgId == 11: # is track a muon of electron? Then these are our visible (charged) truth tracks
-							visTrkVec =  ROOT.TLorentzVector()
+						if trk_pdgId == 13 or trk_pdgId == 11:  # is track a muon of electron? Then these are our visible (charged) truth tracks
+							visTrkVec = ROOT.TLorentzVector()
 							visTrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												tree['truthVtx_outP_eta'][ivx][i],
-												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i]
-												)
-							self.trkVec.append(visTrkVec) #only add visible leptons to trkVec list
-						else: # remaining child is the neutrino
+												   tree['truthVtx_outP_eta'][ivx][i],
+												   tree['truthVtx_outP_phi'][ivx][i],
+												   tree['truthVtx_outP_M'][ivx][i]
+												   )
+							self.trkVec.append(visTrkVec)  # only add visible leptons to trkVec list
+						else:  # remaining child is the neutrino
 							nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 												tree['truthVtx_outP_eta'][ivx][i],
 												tree['truthVtx_outP_phi'][ivx][i],
@@ -281,22 +280,22 @@ class Truth:
 							self.dNu_vec = nu_vec
 
 					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
-						dLepVec  =  ROOT.TLorentzVector()
+						dLepVec = ROOT.TLorentzVector()
 						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												tree['truthVtx_outP_eta'][ivx][i],
-												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i]
-												)
-						self.dLepVec.append(dLepVec) #add all the displaced leptons to one list in the order they are in pythia
+											 tree['truthVtx_outP_eta'][ivx][i],
+											 tree['truthVtx_outP_phi'][ivx][i],
+											 tree['truthVtx_outP_M'][ivx][i]
+											 )
+						self.dLepVec.append(dLepVec)  # add all the displaced leptons to one list in the order they are in pythia
 						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
 						# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i])
-						self.dTrk_d0.append(-1) # fill with -1 for now, default DHNLalg does not have truth d0
+						self.dTrk_d0.append(-1)  # fill with -1 for now, default DHNLalg does not have truth d0
 
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
-											tree['truthVtx_parent_eta'][ivx],
-											tree['truthVtx_parent_phi'][ivx],
-											tree['truthVtx_parent_M'][ivx]
-											)
+											  tree['truthVtx_parent_eta'][ivx],
+											  tree['truthVtx_parent_phi'][ivx],
+											  tree['truthVtx_parent_M'][ivx]
+											  )
 
 
 			# get the primary vertex
@@ -377,6 +376,16 @@ class Tracks:
 			std_lepVec = ROOT.TLorentzVector()
 			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
+				if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # also matched to an electron!
+					# get the muon index
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
+						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
+					#If track is NOT matched to a loose muon --> no muon match!
+					if not pass_muon_loose == 1:
+						# skip tracks matched to muons with no quality!
+						continue
+
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
 				# Default: use track quantities wrt SV
@@ -430,13 +439,23 @@ class Tracks:
 			std_lepVec = ROOT.TLorentzVector()
 			lepmatched_lepVec =  ROOT.TLorentzVector()
 			if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # matched electron!
-				# remove electrons that are also matched to muons!
+				# Check if track is also matched to a muon!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
-					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False: # dont think we need this unless debugging overlapping muons -DT
+					# get the muon and electron indicies
+					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
 						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
-						# print muon_index
-						# print "track is matched to both muon and electron!"
-					continue
+					if len(self.tree['el_index']) > 0:
+						el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
+					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
+					pass_electron_vvl  = self.tree['el_isLHVeryLoose_mod1'][el_index]
+					#If track is matched to a loose muon --> no electron match!
+					if pass_muon_loose == 1:
+						# skip tracks matched to loose muons
+						continue
+					# else if track is NOT vvl electron --> no electron match!
+					elif not pass_electron_vvl == 1:
+						# skip track with no electron quality!
+						continue
 
 				# Default: use track quantities wrt SV
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
@@ -756,66 +775,42 @@ class mc_info:
 # Single muon triggers used in DHNL analysis
 SingleMuonTriggerlist = [
 	"HLT_mu26_ivarmedium", # 2017-2018
-	# "HLT_mu60_0eta105_msonly", # all
 	"HLT_mu20_iloose_L1MU15", # 2015
-	# "HLT_mu24_iloose", 
-	# "HLT_mu24_ivarloose", 
-	# "HLT_mu24_imedium",
-	# "HLT_mu24_ivarmedium",
-	# "HLT_mu26_imedium", 
 	]
 
 SingleMuonTriggerlist_2018 = [
-	"HLT_mu26_ivarmedium", 
-	# "HLT_mu60_0eta105_msonly",
+	"HLT_mu26_ivarmedium",
 	]
 
 SingleMuonTriggerlist_2017 = [
-	"HLT_mu26_ivarmedium", 
-	# "HLT_mu60_0eta105_msonly",
+	"HLT_mu26_ivarmedium",
 	]
 
 SingleMuonTriggerlist_2015_2016 = [
-	"HLT_mu26_ivarmedium", 
-	# "HLT_mu60_0eta105_msonly",
-	"HLT_mu20_iloose_L1MU15", 
-	# "HLT_mu24_iloose", 
-	# "HLT_mu24_ivarloose", 
-	# "HLT_mu24_ivarmedium",
-	# "HLT_mu24_imedium", 
-	# "HLT_mu26_imedium", 
+	"HLT_mu26_ivarmedium",
+	"HLT_mu20_iloose_L1MU15",
 	]
 
 # Single electron triggers used in DHNL analysis
 SingleElectronTriggerlist = [
 	"HLT_e24_lhmedium_L1EM20VH", # 2015
 	"HLT_e26_lhtight_nod0_ivarloose", # 2016-2018
-	# "HLT_e60_lhmedium_nod0", # 2016-2018 # Kick this out?
-	# "HLT_e140_lhloose_nod0", # 2016-2018 # Kick this out?
-	# "HLT_e24_lhtight_nod0_ivarloose",  # not in recommendations
-	# "HLT_e26_lhtight_nod0", # not in recommendations
 	]
 
 SingleElectronTriggerlist_2018 = [
 	"HLT_e26_lhtight_nod0_ivarloose",
-	# "HLT_e60_lhmedium_nod0",
-	# "HLT_e140_lhloose_nod0",
-	# "HLT_e26_lhtight_nod0", # not in recommendations
 	]
 
 SingleElectronTriggerlist_2017 = [
 	"HLT_e26_lhtight_nod0_ivarloose",
-	# "HLT_e60_lhmedium_nod0",
-	# "HLT_e140_lhloose_nod0",
 	 ]
 
 SingleElectronTriggerlist_2015_2016 = [
 	"HLT_e24_lhmedium_L1EM20VH",
 	"HLT_e26_lhtight_nod0_ivarloose",
-	# "HLT_e60_lhmedium_nod0",
-	# "HLT_e140_lhloose_nod0",
-	# "HLT_e24_lhtight_nod0_ivarloose", # not in recommendations
 	]
+
+
 
 
 
@@ -998,3 +993,7 @@ def get_time():
 		return time.perf_counter()
 	else: # python 2
 		return time.clock()
+
+def pT_diff(track_pT_1 , track_pT_2):
+	abs_diff = abs(track_pT_1- track_pT_2)
+	return abs_diff/track_pT_1
