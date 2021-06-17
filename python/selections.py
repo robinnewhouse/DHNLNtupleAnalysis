@@ -354,7 +354,7 @@ class Prompt_lepton_overlap():
 		if plep == "muon":
 			plep_eta = selected_plep.plepVec.Phi()
 			plep_phi = selected_plep.plepVec.Eta()
-			for el_index in range(len(self.tree['el_pt'])):
+			for el_index in range(len(tree['el_pt'])):
 				el_pt = tree['el_pt'][el_index]
 				el_eta = tree['el_eta'][el_index]
 				el_phi = tree['el_phi'][el_index]
