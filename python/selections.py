@@ -817,10 +817,10 @@ class MaterialVeto:
 	This cut rejects any vertices whose (r, z, phi) position coincides with the location of known detector elements. 
 	"""
 
-	def __init__(self, tree):
-		self.pass_mat = tree.dv('pass_mat')
-
-	# print self.pass_mat
+	def __init__(self,tree):
+		pass_mat = tree.dv('pass_mat')
+		pass_DV_z = abs(tree.dv('z')) < 300
+		self.pass_mat = pass_mat and pass_DV_z
 
 	def passes(self):
 		return self.pass_mat
