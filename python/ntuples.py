@@ -8,8 +8,9 @@ data_type = {'c': 'C', 'b': 'B', 'B': 'b', 'u': 'python unicode', 'h': 'I',
              }
 NON_PHYSICAL = -999
 
+
 class Ntuples:
-    def __init__(self, tree_name='ntuple',clone_tree=False,ttree=None, *args, **kwargs):
+    def __init__(self, tree_name='ntuple', clone_tree=False, ttree=None, *args, **kwargs):
         """
         This is a simple class to handle the creation and filling of micro-ntuples
         to give more flexibility in plotting later on.
