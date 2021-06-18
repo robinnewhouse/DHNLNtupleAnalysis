@@ -824,8 +824,9 @@ class Mat_veto():
 	"""
 
 	def __init__(self,tree):
-		self.pass_mat = tree.dv('pass_mat')
-		# print self.pass_mat
+		pass_mat = tree.dv('pass_mat')
+		pass_DV_z = abs(tree.dv('z')) < 300
+		self.pass_mat = pass_mat and pass_DV_z
 
 	def passes(self):
 		return self.pass_mat
