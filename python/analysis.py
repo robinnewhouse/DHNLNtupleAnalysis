@@ -1558,7 +1558,7 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_ntrk_lrt', self.tree.dv('ntrk_lrt'))
 			self.fill_hist(sel, 'DV_ntrk_sel', self.tree.dv('ntrk_sel'))
 			self.fill_hist(sel, 'DV_ntrk_assoc', self.tree.dv('ntrk_assoc'))
-			self.fill_hist(sel, 'DV_pass_mat_veto', self.tree.dv('pass_mat'))
+			self.fill_hist(sel, 'DV_pass_mat_veto', selections.MaterialVeto(self.tree).passes())
 
 			
 			if not self.tree.is_data:
