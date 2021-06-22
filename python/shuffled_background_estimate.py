@@ -28,9 +28,9 @@ def main():
     if mix_channels:
         if signal == "uuu": f_SS_bkg =  ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uue.root')
         if signal == "uee": f_SS_bkg =  ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uue.root')
-        if signal == "uue": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uee_old_mat_veto.root')
-        if signal == "eeu": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_eee_old_mat_veto.root')
-        if signal == "euu": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_eee_old_mat_veto.root')
+        if signal == "uue": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uee.root')
+        if signal == "eeu": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_eee.root')
+        if signal == "euu": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_eee.root')
         if signal == "eee": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_eeu.root')
     else: 
         f_SS_bkg =  ROOT.TFile(f'/data/hnl/{version}_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_{signal}.root')
@@ -41,7 +41,7 @@ def main():
     if signal == "uue" or signal == "eeu":
         f_CR = ROOT.TFile(f'/data/hnl/v6_histograms/jun15_CR_v6p2_histograms/fullrun2_CR_histograms_data_{CR_charge}_eu.root')
     if signal == "eee" or signal == "uee":
-        f_CR = ROOT.TFile(f'/data/hnl/v6_histograms/jun15_CR_v6p2_histograms/fullrun2_CR_histograms_data_{CR_charge}_ee_old_mat_veto.root')
+        f_CR = ROOT.TFile(f'/data/hnl/v6_histograms/jun15_CR_v6p2_histograms/fullrun2_CR_histograms_data_{CR_charge}_ee.root')
 
     # make output dir and output mini-tree root file
     if use_loose_DVs:  outputDir = f'../shuffled_bkg_output/shuffled_background_estimate_looseDVs_{version}_{signal}/'
@@ -52,9 +52,11 @@ def main():
         if CR_charge == "OS": 
             ouputf_name = f"shuffled_bkg_ntuple_nominal_{signal}.root"
         elif CR_charge == "SS": 
-            ouputf_name = f"shuffled_bkg_ntuple_systematic_{signal}.root"
+            ouputf_name = f"shuffled_bkg_ntuple_DV_systematic_{signal}.root"
         else: 
             ouputf_name = f"shuffled_bkg_ntuple_{signal}.root"
+    elif mix_channels:
+        ouputf_name = f"shuffled_bkg_ntuple_plep_systematic_{signal}.root"
     else: 
         ouputf_name = f"shuffled_bkg_ntuple_{signal}.root"
     if not os.path.exists(outputDir): os.mkdir(outputDir)
@@ -106,6 +108,8 @@ def main():
     h["DV_weight_LNC_plus_LNV"] = ROOT.TH1D('weight_LNC_plus_LNV', 'weight_LNC_plus_LNV', 100, 0, 200)
     h["DV_mass"] = ROOT.TH1D('h_DV_mass','h_DV_mass', 100,0,50 ) 
     h["DV_r"] = ROOT.TH1D('h_DV_r','h_DV_r', 30,0,300)
+    h["DV_index"] = ROOT.TH1D('h_DV_index','h_DV_index', 500,0,500)
+    h["plep_index"] = ROOT.TH1D('h_plep_index','h_plep_index', 500,0,500)
     h["DV_z"] = ROOT.TH1D('h_DV_z','h_DV_z', 30,0,300)
     h["DV_charge"] = ROOT.TH1D('h_DV_charge','h_DV_charge', 2, -0.5, 1.5 ) 
     h["DV_2medium"] = ROOT.TH1D('h_2med','h_2med', 2, -0.5, 1.5 ) 
@@ -152,17 +156,17 @@ def main():
 
     def pass_dv_cuts(channel, tree): 
         if mix_channels:
-            if channel == "euu": tree.n_trigger_matched_medium > 0 and tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
+            if channel == "euu": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
             if channel == "uee": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
-            if channel == "uue": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
-            if channel == "eeu": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
+            if channel == "uue": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
+            if channel == "eeu": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
             if channel == "eee": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) 
             if channel == "uuu": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
         else: 
             if channel == "euu": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and tree.DV_mass > 5.5 and tree.DV_2medium== 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
-            if channel == "uee": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
+            if channel == "uee": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
             if channel == "uuu": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and tree.DV_mass > 5.5 and tree.DV_2medium== 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1)
-            if channel == "eee": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
+            if channel == "eee": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
             if channel == "eeu": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) 
             if channel == "uue": pass_extra_cuts = tree.n_trigger_matched_medium > 0 and (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
         return pass_extra_cuts
@@ -178,37 +182,37 @@ def main():
 
     def pass_dv_cuts_SR(channel, tree): 
         if channel == "euu": pass_extra_cuts  = tree.DV_mass > 5.5 and tree.DV_2medium== 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and tree.HNLm < 50
-        if channel == "uee": pass_extra_cuts = tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and tree.HNLm < 50
+        if channel == "uee": pass_extra_cuts = (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and tree.HNLm < 50
         if channel == "uuu": pass_extra_cuts  = tree.DV_mass > 5.5 and tree.DV_2medium== 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS == 1) and tree.HNLm < 50
-        if channel == "eee": pass_extra_cuts = tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) and tree.HNLm < 50
+        if channel == "eee": pass_extra_cuts = (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) and tree.HNLm < 50
         if channel == "eeu": pass_extra_cuts = (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) and tree.HNLm < 50 
         if channel == "uue": pass_extra_cuts = (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 ) and tree.HNLm < 50
         return pass_extra_cuts
 
     def pass_dv_CR_cuts(channel, tree): 
         if channel == "euu": pass_extra_cuts  = tree.DV_2medium == 1 and tree.DV_mass > 5.5 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
-        if channel == "uee": pass_extra_cuts  = tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
+        if channel == "uee": pass_extra_cuts  = (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
         if channel == "uuu": pass_extra_cuts  = tree.DV_2medium == 1 and tree.DV_mass > 5.5 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05   
-        if channel == "eee": pass_extra_cuts  = tree.DV_mass > 5.5 and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
+        if channel == "eee": pass_extra_cuts  = (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_2veryveryloose == 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
         if channel == "eeu": pass_extra_cuts  = (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
         if channel == "uue": pass_extra_cuts  = (((tree.DV_mass > 2 and tree.DV_mass < 5.5) and tree.DV_mass > -7/150*tree.DV_r + 7 ) or tree.DV_mass > 5.5 ) and tree.DV_medium_veryveryloose == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
         return pass_extra_cuts
 
     def pass_looser_prompt_cuts(channel, tree): 
         if mix_channels:
-            if channel == "euu": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
-            if channel == "uee": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
-            if channel == "uue": pass_extra_cuts = tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) 
-            if channel == "eeu": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
-            if channel == "eee": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) 
-            if channel == "uuu": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
+            if channel == "euu": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
+            if channel == "uee": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
+            if channel == "uue": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
+            if channel == "eeu": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
+            if channel == "eee": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) 
+            if channel == "uuu": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
         else:
-            if channel == "euu": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
-            if channel == "uee": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
-            if channel == "uuu": pass_extra_cuts =  tree.DV_mass > 1   and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS == 1)
-            if channel == "eee": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
-            if channel == "eeu": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 ) 
-            if channel == "uue": pass_extra_cuts =  tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
+            if channel == "euu": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
+            if channel == "uee": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05
+            if channel == "uuu": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS == 1)
+            if channel == "eee": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_mat_veto == 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
+            if channel == "eeu": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dEl_plep_is_OS==1 and (tree.mll_dEl_plep<80 or tree.mll_dEl_plep>100)) or tree.mll_dEl_plep_is_SS==1 )
+            if channel == "uue": pass_extra_cuts =  tree.n_trigger_matched_medium > 0 and tree.DV_mass > 1 and tree.DV_pass_lep_pt == 1 and tree.DV_cosmic_sep > 0.05 and ((tree.mll_dMu_plep_is_OS==1 and (tree.mll_dMu_plep<80 or tree.mll_dMu_plep>100)) or tree.mll_dMu_plep_is_SS==1 )
         
         return pass_extra_cuts
 
@@ -270,7 +274,7 @@ def main():
                                         shuffling factor: {shuffling_factor}
                                         """
 
-        with open(outputDir+'info_about_shuffling.txt', 'w') as f:
+        with open(outputDir+f'info_about_shuffling_{signal}.txt', 'w') as f:
                 print(output_text, file=f)
         
 
@@ -366,6 +370,8 @@ def main():
                         fill_hist(selection, "DV_mass", tree.DV_mass)
                         fill_hist(selection, "DV_r", tree.DV_r)
                         fill_hist(selection, "DV_z", tree.DV_z)
+                        fill_hist(selection, "DV_index", i)
+                        fill_hist(selection, "plep_index", j)
                         fill_hist(selection, "DV_charge", tree.DV_charge)
                         fill_hist(selection, "DV_2medium", tree.DV_2medium)
                         fill_hist(selection, "DV_2loose", tree.DV_2loose)
