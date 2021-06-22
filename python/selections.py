@@ -950,6 +950,19 @@ class ZMassVeto:
 			self.mll_dMu_plep_is_SS = int(plep_charge) == int(muons.lepCharge[mu_index])
 			self.mll_dMu_plep_is_OS = not self.mll_dMu_plep_is_SS
 			self.mll_dMu_plep = mu_plep_vec.M()
+		
+		if plep == 'muon' and len(elVec) > 0:
+			# only 1 muon in DV then choose this lepton for dlep in veto
+			if len(elVec) == 1: el_index = 0
+			# choose highest pt electron in DV for dlep in veto
+			elif len(elVec) == 2:
+				if elVec_lepmatched[0].Pt() >  elVec_lepmatched[1].Pt(): el_index = 0
+				else: el_index = 1
+			# get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
+			el_plep_vec = elVec_lepmatched[el_index] + plep_vec
+			self.mll_dEl_plep_is_SS = int(plep_charge) == int(electrons.lepCharge[el_index])
+			self.mll_dEl_plep_is_OS = not self.mll_dEl_plep_is_SS
+			self.mll_dEl_plep = el_plep_vec.M()
 
 		if plep == 'electron' and len(elVec) > 0:
 			# only 1 electron in DV then choose this lepton for dlep in veto
@@ -963,6 +976,20 @@ class ZMassVeto:
 			self.mll_dEl_plep_is_SS = int(plep_charge) == int(electrons.lepCharge[el_index])
 			self.mll_dEl_plep_is_OS = not self.mll_dEl_plep_is_SS
 			self.mll_dEl_plep = el_plep_vec.M()
+		
+		if plep == 'electron' and len(muVec) > 0:
+			# only 1 muon in DV then choose this lepton for dlep in veto
+			if len(muVec) == 1: mu_index = 0
+			# choose highest pt muon in DV for dlep in veto
+			elif len(muVec) == 2:
+				if muVec_lepmatched[0].Pt() > muVec_lepmatched[1].Pt(): mu_index = 0
+				else: mu_index = 1
+			# get the 4-vector for highest pT same flavour lepton as plep + prompt lepton
+			mu_plep_vec = muVec_lepmatched[mu_index] + plep_vec
+			self.mll_dMu_plep_is_SS = int(plep_charge) == int(muons.lepCharge[mu_index])
+			self.mll_dMu_plep_is_OS = not self.mll_dMu_plep_is_SS
+			self.mll_dMu_plep = mu_plep_vec.M()
+		
 
 	def passes(self):
 		if self.plep == "muon":

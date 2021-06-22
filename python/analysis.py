@@ -1227,6 +1227,18 @@ class Analysis(object):
 					self.fill_hist(sel, 'mll_dMu_plep_is_OS', zmass_veto_var.mll_dMu_plep_is_OS)
 					self.fill_hist(sel, 'mll_dMu_plep_is_SS', zmass_veto_var.mll_dMu_plep_is_SS)
 					self.fill_hist(sel, 'mll_dMu_plep', zmass_veto_var.mll_dMu_plep)
+				
+				if self.plep == 'muon' and len(el_vec) > 0:
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plepcharge, dv_type=self.dv_type)
+					self.fill_hist(sel, 'mll_dEl_plep_is_OS', zmass_veto_var.mll_dMu_plep_is_OS)
+					self.fill_hist(sel, 'mll_dEl_plep_is_SS', zmass_veto_var.mll_dMu_plep_is_SS)
+					self.fill_hist(sel, 'mll_dEl_plep', zmass_veto_var.mll_dMu_plep)
+				
+				if self.plep == 'electron' and len(mu_vec) > 0:
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plepcharge, dv_type=self.dv_type)
+					self.fill_hist(sel, 'mll_dMu_plep_is_OS', zmass_veto_var.mll_dMu_plep_is_OS)
+					self.fill_hist(sel, 'mll_dMu_plep_is_SS', zmass_veto_var.mll_dMu_plep_is_SS)
+					self.fill_hist(sel, 'mll_dMu_plep', zmass_veto_var.mll_dMu_plep)
 
 				if self.plep == 'electron' and len(el_vec) > 0:
 					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plep_charge= self.plep_sel.plepcharge, dv_type= self.dv_type)
@@ -1397,6 +1409,8 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_mu_1_is_trigger_matched', dmu_1_is_trig_matched)
 				self.fill_hist(sel, 'DV_mu_0_isMuon', 1)
 				self.fill_hist(sel, 'DV_mu_1_isMuon', 1)
+				self.fill_hist(sel, 'DV_mu_0_charge', muons.lepCharge[0])
+				self.fill_hist(sel, 'DV_mu_1_charge', muons.lepCharge[1])
 				self.fill_hist(sel, 'DV_mu_0_isElectron', 0)
 				self.fill_hist(sel, 'DV_mu_1_isElectron', 0)
 				self.fill_hist(sel, 'DV_mu_0_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[0]])
@@ -1439,6 +1453,9 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_el_1_isMuon', 0)
 				self.fill_hist(sel, 'DV_mu_0_isElectron', 0)
 				self.fill_hist(sel, 'DV_el_1_isElectron', 1)
+				self.fill_hist(sel, 'DV_mu_0_charge', muons.lepCharge[0])
+				self.fill_hist(sel, 'DV_el_1_charge', electrons.lepCharge[0])
+
 				self.fill_hist(sel, 'DV_mu_0_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_mu_0_muon_isMedium', self.tree.get('muon_isMedium')[muons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_mu_0_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[0]])
@@ -1482,6 +1499,8 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_el_1_isElectron', 1)
 				self.fill_hist(sel, 'DV_el_0_isMuon', 0)
 				self.fill_hist(sel, 'DV_el_1_isMuon', 0)
+				self.fill_hist(sel, 'DV_el_0_charge', electrons.lepCharge[0])
+				self.fill_hist(sel, 'DV_el_1_charge', electrons.lepCharge[1])
 				self.fill_hist(sel, 'DV_el_0_electron_LHTight', self.tree.get('el_LHTight')[electrons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_el_0_electron_LHMedium', self.tree.get('el_LHMedium')[electrons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_el_0_electron_LHLoose', self.tree.get('el_LHLoose')[electrons.lepIndex[0]])
