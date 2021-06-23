@@ -1341,41 +1341,58 @@ class LeptonTriggerMatching:
 
 
 class RequireMediumTriggerMatching:
-	def __init__(self, tree, prompt_lepton_index, prompt_lepton_type, muons, electrons, dv_type):
+	def __init__(self, tree, prompt_lepton_index, prompt_lepton_type, muons, electrons, dv_type, pt_threshold=27.0):
 
 		# check if prompt lepton is trigger matched
 		prompt_is_trigger_matched = LeptonTriggerMatching(tree, prompt_lepton_type, prompt_lepton_index).is_trigger_matched
 		prompt_is_medium = False
+		prompt_pass_pt_threshold = False
 		if prompt_lepton_type == 'muon':
 			prompt_is_medium = tree.get('muon_isMedium')[prompt_lepton_index] == 1
+			prompt_pass_pt_threshold = tree.get('muon_pt')[prompt_lepton_index] >= pt_threshold
 		if prompt_lepton_type == 'electron':
 			prompt_is_medium = tree.get('el_LHMedium')[prompt_lepton_index] == 1
+			prompt_pass_pt_threshold = tree.get('el_pt')[prompt_lepton_index] >= pt_threshold
 
 		# check if displaced is trigger matched
 		displaced_0_is_trigger_matched = False
 		displaced_0_is_medium = False
+		displaced_0_pass_pt_threshold = False
 		displaced_1_is_trigger_matched = False
 		displaced_1_is_medium = False
+		displaced_1_pass_pt_threshold = False
 		if dv_type == 'mumu':
+			# lepton 0
 			displaced_0_is_trigger_matched = LeptonTriggerMatching(tree, 'muon', muons.lepIndex[0]).is_trigger_matched
 			displaced_0_is_medium = tree.get('muon_isMedium')[muons.lepIndex[0]] == 1
+			displaced_0_pass_pt_threshold = tree.get('muon_pt')[muons.lepIndex[0]] >= pt_threshold
+			# lepton 1
 			displaced_1_is_trigger_matched = LeptonTriggerMatching(tree, 'muon', muons.lepIndex[1]).is_trigger_matched
 			displaced_1_is_medium = tree.get('muon_isMedium')[muons.lepIndex[1]] == 1
+			displaced_1_pass_pt_threshold = tree.get('muon_pt')[muons.lepIndex[1]] >= pt_threshold
 		if dv_type == 'ee':
+			# lepton 0
 			displaced_0_is_trigger_matched = LeptonTriggerMatching(tree, 'electron', electrons.lepIndex[0]).is_trigger_matched
 			displaced_0_is_medium = tree.get('el_LHMedium')[electrons.lepIndex[0]] == 1
+			displaced_0_pass_pt_threshold = tree.get('el_pt')[electrons.lepIndex[0]] >= pt_threshold
+			# lepton 1
 			displaced_1_is_trigger_matched = LeptonTriggerMatching(tree, 'electron', electrons.lepIndex[1]).is_trigger_matched
 			displaced_1_is_medium = tree.get('el_LHMedium')[electrons.lepIndex[1]] == 1
+			displaced_1_pass_pt_threshold = tree.get('el_pt')[electrons.lepIndex[1]] >= pt_threshold
 		if dv_type == 'emu':
+			# lepton 0
 			displaced_0_is_trigger_matched = LeptonTriggerMatching(tree, 'muon', muons.lepIndex[0]).is_trigger_matched
 			displaced_0_is_medium = tree.get('muon_isMedium')[muons.lepIndex[0]] == 1
+			displaced_0_pass_pt_threshold = tree.get('muon_pt')[muons.lepIndex[0]] >= pt_threshold
+			# lepton 1
 			displaced_1_is_trigger_matched = LeptonTriggerMatching(tree, 'electron', electrons.lepIndex[0]).is_trigger_matched
 			displaced_1_is_medium = tree.get('el_LHMedium')[electrons.lepIndex[0]] == 1
+			displaced_1_pass_pt_threshold = tree.get('el_pt')[electrons.lepIndex[0]] >= pt_threshold
 
 		# check for at least one lepton passing criteria
-		self.prompt_trigger_matched_medium = prompt_is_trigger_matched and prompt_is_medium
-		self.displaced_0_trigger_matched_medium = displaced_0_is_trigger_matched and displaced_0_is_medium
-		self.displaced_1_trigger_matched_medium = displaced_1_is_trigger_matched and displaced_1_is_medium
+		self.prompt_trigger_matched_medium = prompt_is_trigger_matched and prompt_is_medium and prompt_pass_pt_threshold
+		self.displaced_0_trigger_matched_medium = displaced_0_is_trigger_matched and displaced_0_is_medium and displaced_0_pass_pt_threshold
+		self.displaced_1_trigger_matched_medium = displaced_1_is_trigger_matched and displaced_1_is_medium and displaced_1_pass_pt_threshold
 		self.n_trigger_matched_medium = sum([
 			self.prompt_trigger_matched_medium,
 			self.displaced_0_trigger_matched_medium,
@@ -1384,6 +1401,7 @@ class RequireMediumTriggerMatching:
 
 	def passes(self):
 		return self.n_trigger_matched_medium > 0
+
 
 # class TriggerMatching_disp:
 # 	def __init__(self, tree, dv_type, dMu_Index, dEl_Index):
@@ -1409,7 +1427,7 @@ class SumTrack:
 			self.sum_track_charge += tree.dv('trk_charge')[k]
 
 
-class electron_muon_overlap_check():
+class ElectronMuonOverlapCheck:
 	def __init__(self, tree):
 		# track pointer matching done in DHNL algorithm
 		self.fail_overlap = tree.dv('trk_mu_matched_to_el')[0] == True or tree.dv('trk_mu_matched_to_el')[1] == True
