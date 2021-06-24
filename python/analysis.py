@@ -1296,7 +1296,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_ee', DV_ee)
 				self.fill_hist(sel, 'DV_emu', DV_emu)
 				self.fill_hist(sel, 'DV_1lep', DV_1lep)
-				pass_el_mu_overlap = selections.electron_muon_overlap_check(self.tree).passes()
+				pass_el_mu_overlap = selections.ElectronMuonOverlapCheck(self.tree).passes()
 				self.fill_hist(sel, 'DV_pass_el_mu_overlap', pass_el_mu_overlap)
 
 				pass_lep_pt_cut = selections.DVLepPt(self.tree, self.dv_type).pass_pt_cuts
