@@ -905,9 +905,9 @@ class BHadronVeto:
 	# (((DV_mass >2 && DV_mass <5.5) && DV_mass > -(7/150)*DV_r + 7 ) || DV_mass > 5.5)
 
 	def passes(self):
-		if self.dv_type == "mumu" or self.dv_type == "ee":
+		if self.dv_type == "mumu":
 			return self.dv_mass > self.dv_mass_cut
-		elif self.dv_type == "emu":
+		elif self.dv_type == "emu" or self.dv_type == "ee":
 			return ((2 < self.dv_mass < self.dv_mass_cut) and self.pass_diagonal_cut) or self.dv_mass > self.dv_mass_cut
 		else:
 			return False
