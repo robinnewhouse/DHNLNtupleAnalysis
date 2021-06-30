@@ -79,7 +79,7 @@ def plot_cutflow(file, selection,vertextype, output_dir="../output/"):
 	if "data" in file:
 		plotting_helpers.drawNotesData("data 2018",vertextype,lumi="",channel=channel)
 	else:
-		plotting_helpers.drawNotesMC(fileInfo.MC_campaign,vertextype,channel,fileInfo.mass_str,fileInfo.ctau_str)
+		plotting_helpers.drawNotesMC(fileInfo.mc_campaign, vertextype, channel, fileInfo.mass_str, fileInfo.ctau_str)
 
 	savefilename= selection+"_CutFlow_" + channel
 
