@@ -3,6 +3,7 @@ import numpy as np
 import os
 import sys
 import helpers
+import scale_factors
 import selections
 import observables
 import ntuples
@@ -348,12 +349,12 @@ class Analysis(object):
 		# define here the directory structure where this histogram is stored.
 		directory = '{ch}/{selection}/'.format(ch=self.ch, selection=selection)
 		# fill LNC histograms. Not used for data.
-		if self.MCEventType.isLNC: 
+		if self.MCEventType.isLNC:
 			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, weight_LNC_only)
 		# fill LNV histograms. Not used for data.
-		if self.MCEventType.isLNV: 
+		if self.MCEventType.isLNV:
 			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, weight_LNC_only)
-		if self.MCEventType.isLNC or self.MCEventType.isLNV: 
+		if self.MCEventType.isLNC or self.MCEventType.isLNV:
 			#fill LNC_plus_LNV histograms for every event
 			# U, m, ctau relationship changes becuase twice as many decay channels avaliable if HNL can decay via LNC and LNV
 			self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, weight_LNC_plus_LNV)
@@ -365,10 +366,10 @@ class Analysis(object):
 		if fill_ntuple and (variable_2 is None) and save_sel:
 			# Need selection to define ntuple tree
 			# TODO redo this method to use the directory correctly
-			if self.MCEventType.isLNC: 
+			if self.MCEventType.isLNC:
 				self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNC")
 				self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNC_plus_LNV")
-			elif self.MCEventType.isLNV: 
+			elif self.MCEventType.isLNV:
 				self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNV")
 				self.fill_ntuple(selection, hist_name, variable_1, mc_type="LNC_plus_LNV")
 			else: self.fill_ntuple(selection, hist_name, variable_1)
@@ -508,8 +509,8 @@ class Analysis(object):
 			self.fill_hist('all', 'plep_pt', self.plep_sel.plepVec.Pt())
 			self.fill_hist('all', 'plep_eta', self.plep_sel.plepVec.Eta())
 			self.fill_hist('all', 'plep_phi', self.plep_sel.plepVec.Phi())
-			self.fill_hist('all', 'plep_d0', self.plep_sel.plepd0)
-			self.fill_hist('all', 'plep_z0', self.plep_sel.plepz0)
+			self.fill_hist('all', 'plep_d0', self.plep_sel.plep_d0)
+			self.fill_hist('all', 'plep_z0', self.plep_sel.plep_z0)
 		return self.plep_sel.passes() # full plep selection find the highest pt plep that doesnt overlap with any DVs
 
 	def _trigger_matched_medium_lepton_cut(self):
@@ -522,7 +523,7 @@ class Analysis(object):
 		electrons = helpers.Electrons(self.tree)
 		self.trigger_matched_medium = selections.RequireMediumTriggerMatching(
 			self.tree,
-			prompt_lepton_index=self.plep_sel.plep_Index,
+			prompt_lepton_index=self.plep_sel.plep_index,
 			prompt_lepton_type=self.plep,
 			muons=muons,
 			electrons=electrons,
@@ -531,7 +532,7 @@ class Analysis(object):
 		return self.trigger_matched_medium.passes()
 
 	def _prompt_track_cut(self):
-		self.found_ptrk = False # intitalize the plep each event
+		self.found_ptrk = False # initialize the plep each event
 		self.ptrk_sel = selections.PromptTrack(self.tree) # run ptrack selection
 		self.found_ptrk = self.ptrk_sel.found_trk # check if you found any prompt leptons
 		# Add to histogram all prompt leptons that pass selection.
@@ -630,7 +631,7 @@ class Analysis(object):
 		return bhadron_sel.passes()
 
 	def _Zmass_veto(self):
-		zmass_veto = selections.ZMassVeto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plep_charge= self.plep_sel.plepcharge, dv_type= self.dv_type)
+		zmass_veto = selections.ZMassVeto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plep_charge= self.plep_sel.plep_charge, dv_type= self.dv_type)
 		return zmass_veto.passes()
 
 	def _dv_lep_pt_cut(self):
@@ -674,9 +675,11 @@ class Analysis(object):
 				return charge_sel.passes()
 
 	def _truth_match(self):
-		"""Truth matching function for displaced vertices.
+		"""
+		Truth matching function for displaced vertices.
 		linkTruth_score is calculated using DVAnalysisBase.
-		pdgId 50 signifies a heavy neutral lepton parent particle."""
+		pdgId 50 signifies a heavy neutral lepton parent particle.
+		"""
 		maxlinkTruth_score = self.tree.dv('maxlinkTruth_score')
 		maxlinkTruth_parent_pdgId = abs(self.tree.dv('maxlinkTruth_parent_pdgId'))
 		return self.tree.dv('maxlinkTruth_score') > 0.75 and abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
@@ -809,8 +812,13 @@ class Analysis(object):
 			self._fill_truth_histos(sel='truth/presel')
 
 	def calculate_event_weight(self):
+		"""
+		Calculates and stores event weight only for event-level scale factors
+		Do not use this for final signal weighting. These weights must be combined with
+		the object-level scale factors.
+		"""
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
-		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
+		self.MCEventType = selections.MCEventType(self.tree)  # if data then MCEventType weight defaults to 1
 
 		# calculate mass lifetime weight 
 		self.mass_lt_weight_LNC_only = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False)
@@ -821,21 +829,11 @@ class Analysis(object):
 		self.logger.debug('LNC+LNV mass-lifetime weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_plus_LNV))
 
 		if self.weight_override is None:
-			self.weight_LNC_only = self.mass_lt_weight_LNC_only * self.MCEventType.weight
-			self.weight_LNC_plus_LNV = self.mass_lt_weight_LNC_plus_LNV * self.MCEventType.weight
+			self.weight_LNC_only = self.mass_lt_weight_LNC_only * self.MCEventType.weight * self.tree['weight_pileup']
+			self.weight_LNC_plus_LNV = self.mass_lt_weight_LNC_plus_LNV * self.MCEventType.weight * self.tree['weight_pileup']
 		else:
 			self.weight_LNC_only = self.weight_override
 			self.weight_LNC_plus_LNV = self.weight_override
-
-		# calculate the product of all scale factors
-		self.scale_factor_product = 1
-		try:
-			self.scale_factor_product *= self.tree['weight_pileup']
-		except KeyError:
-			pass
-
-		self.weight_LNC_only *= self.scale_factor_product
-		self.weight_LNC_plus_LNV *= self.scale_factor_product
 
 	def DVSelection(self):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
@@ -844,10 +842,10 @@ class Analysis(object):
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin)
-				self.CutFlow_LNC_weighted.Fill(nbin, self.weight_LNC_only) # weight LNC only
+				self.CutFlow_LNC_weighted.Fill(nbin, self.weight_LNC_only)  # weight LNC only
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.Fill(nbin)
-				self.CutFlow_LNV_weighted.Fill(nbin, self.weight_LNC_only) # weight LNC only since LNV events are scaled to 100% LNV (do not include extra factor of 2 for LNC+LNV model)
+				self.CutFlow_LNV_weighted.Fill(nbin, self.weight_LNC_only)  # weight LNC only since LNV events are scaled to 100% LNV (do not include extra factor of 2 for LNC+LNV model)
 			self.CutFlow.Fill(nbin)
 			self.CutFlow_LNC_plus_LNV.Fill(nbin, self.weight_LNC_plus_LNV)
 		else:
@@ -866,8 +864,8 @@ class Analysis(object):
 			tracks = helpers.Tracks(self.tree)
 			tracks.get_tracks()
 			trk_assoc = tracks.lepisAssoc
-			num_trk_assoc  = sum(trk_assoc)
-			ntrk = [3,4,5,6,7,8,9,10]
+			num_trk_assoc = sum(trk_assoc)
+			ntrk = [3, 4, 5, 6, 7, 8, 9, 10]
 			for i in range(len(ntrk)):
 				if len(tracks.lepisAssoc) == ntrk[i]:
 					self.fill_hist('2lepMultitrk', 'num_assoc_{}trk'.format(ntrk[i]), num_trk_assoc)
@@ -941,7 +939,7 @@ class Analysis(object):
 			self.fill_hist('2lepMultitrk', 'all_trk_nPixelHits', self.tree.dv('trk_nPixelHits')[i])
 			self.fill_hist('2lepMultitrk', 'all_trk_nSCTHits', self.tree.dv('trk_nSCTHits')[i])
 			self.fill_hist('2lepMultitrk', 'all_trk_nSCTHoles', self.tree.dv('trk_nSCTHoles')[i])
-			self.fill_hist('2lepMultitrk', 'all_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i]+self.tree.dv('trk_nPixelHits')[i])
+			self.fill_hist('2lepMultitrk', 'all_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i] + self.tree.dv('trk_nPixelHits')[i])
 			# self.fill_hist('2lepMultitrk', 'all_trk_dTheta', self.tree.dv('trk_dTheta')[i])
 			self.fill_hist('2lepMultitrk', 'all_trk_chi2_toSV', self.tree.dv('trk_chi2_toSV')[i])
 			self.fill_hist('2lepMultitrk', 'all_trk_d0_wrtSV', self.tree.dv('trk_d0_wrtSV')[i])
@@ -1131,8 +1129,8 @@ class Analysis(object):
 
 
 			# TODO: figure out a ntuple scheme that can store these variables as well
-		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
-			if self.MCEventType.isLNC: 
+		if sel == self.saveNtuples or self.saveNtuples == 'allcuts':
+			if self.MCEventType.isLNC:
 				self.micro_ntuples["LNC_"+sel].fill()
 				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 			elif self.MCEventType.isLNV:
@@ -1140,18 +1138,17 @@ class Analysis(object):
 				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 			else: self.micro_ntuples[sel].fill()
 
-
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
 		if self._locked < FILL_LOCKED and do_lock:
 			# these are the histograms you only want to fill ONCE per DV
 
 			# ____________________________________________________________
-			# pileup
+			# pileup (not to be used for full SF)
 			try:
-				self.fill_hist(sel, 'weight_pileup', self.tree['weight_pileup'])
+				# self.fill_hist(sel, 'weight_pileup', self.tree['weight_pileup'])
 				# pileup systematics
-				self.fill_hist(sel, 'weight_pileup_1UP', self.tree['weight_pileup_up'])
-				self.fill_hist(sel, 'weight_pileup_1DOWN', self.tree['weight_pileup_down'])
+				self.fill_hist(sel, 'weight_pileup_1UP', self.tree['weight_pileup_up']/self.tree['weight_pileup'])
+				self.fill_hist(sel, 'weight_pileup_1DOWN', self.tree['weight_pileup_down']/self.tree['weight_pileup'])
 			except KeyError:
 				pass
 
@@ -1180,19 +1177,19 @@ class Analysis(object):
 			# fill histograms that require a prompt lepton to be identified
 			if self.do_prompt_lepton_cut:
 				plep_vec = self.plep_sel.plepVec
-				plepd0 = self.plep_sel.plepd0
-				plepz0 = self.plep_sel.plepz0
-				plepcharge = self.plep_sel.plepcharge
+				plep_d0 = self.plep_sel.plep_d0
+				plep_z0 = self.plep_sel.plep_z0
+				plep_charge = self.plep_sel.plep_charge
 				plep_isTight = self.plep_sel.plep_isTight
-				plep_Index = self.plep_sel.plep_Index
-				plep_is_trigger_matched = selections.LeptonTriggerMatching(self.tree, self.plep, plep_Index).is_trigger_matched
+				plep_index = self.plep_sel.plep_index
+				plep_is_trigger_matched = selections.LeptonTriggerMatching(self.tree, self.plep, plep_index).is_trigger_matched
 
 				self.fill_hist(sel, 'plep_pt', plep_vec.Pt())
 				self.fill_hist(sel, 'plep_eta', plep_vec.Eta())
 				self.fill_hist(sel, 'plep_phi', plep_vec.Phi())
-				self.fill_hist(sel, 'plep_d0', plepd0)
-				self.fill_hist(sel, 'plep_z0', plepz0)
-				self.fill_hist(sel, 'plep_charge', plepcharge)
+				self.fill_hist(sel, 'plep_d0', plep_d0)
+				self.fill_hist(sel, 'plep_z0', plep_z0)
+				self.fill_hist(sel, 'plep_charge', plep_charge)
 				self.fill_hist(sel, 'plep_isTight', plep_isTight)
 				self.fill_hist(sel, 'plep_is_trigger_matched', plep_is_trigger_matched)
 
@@ -1223,7 +1220,7 @@ class Analysis(object):
 
 				# get invariant mass between prompt lepton + same flavour displaced lepton for Z->ll veto
 				if self.plep == 'muon' and len(mu_vec) > 0:
-					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plepcharge, dv_type=self.dv_type)
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plep_charge, dv_type=self.dv_type)
 					self.fill_hist(sel, 'mll_dMu_plep_is_OS', zmass_veto_var.mll_dMu_plep_is_OS)
 					self.fill_hist(sel, 'mll_dMu_plep_is_SS', zmass_veto_var.mll_dMu_plep_is_SS)
 					self.fill_hist(sel, 'mll_dMu_plep', zmass_veto_var.mll_dMu_plep)
@@ -1241,7 +1238,7 @@ class Analysis(object):
 					self.fill_hist(sel, 'mll_dMu_plep', zmass_veto_var.mll_dMu_plep)
 
 				if self.plep == 'electron' and len(el_vec) > 0:
-					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plep_charge= self.plep_sel.plepcharge, dv_type= self.dv_type)
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plep_charge= self.plep_sel.plep_charge, dv_type= self.dv_type)
 					self.fill_hist(sel, 'mll_dEl_plep_is_OS', zmass_veto_var.mll_dEl_plep_is_OS)
 					self.fill_hist(sel, 'mll_dEl_plep_is_SS', zmass_veto_var.mll_dEl_plep_is_SS)
 					self.fill_hist(sel, 'mll_dEl_plep', zmass_veto_var.mll_dEl_plep )
@@ -1379,6 +1376,7 @@ class Analysis(object):
 
 			# fill 3 different track calculations
 			if self.dv_type == "mumu":
+				assert(tracks.ntracks == 2)
 				lep_matched_DV_vec = muons.lepmatched_lepVec[0] + muons.lepmatched_lepVec[1]
 				trk_percent_diff_0 = helpers.pT_diff(muons.std_lepVec[0].Pt(), muons.lepmatched_lepVec[0].Pt() )
 				trk_percent_diff_1 = helpers.pT_diff( muons.std_lepVec[1].Pt(), muons.lepmatched_lepVec[1].Pt() )
@@ -1421,6 +1419,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_mu_1_muon_isTight', self.tree.get('muon_isTight')[muons.lepIndex[1]])
 
 			if self.dv_type == "emu":
+				assert(tracks.ntracks == 2)
 				lep_matched_DV_vec = muons.lepmatched_lepVec[0] + electrons.lepmatched_lepVec[0]
 				trk_percent_diff_0 = helpers.pT_diff( muons.std_lepVec[0].Pt(), muons.lepmatched_lepVec[0].Pt() )
 				trk_percent_diff_1 = helpers.pT_diff( electrons.std_lepVec[0].Pt() , electrons.lepmatched_lepVec[0].Pt() )
@@ -1467,6 +1466,7 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[0]])
 
 			if self.dv_type == "ee":
+				assert(tracks.ntracks == 2)
 				lep_matched_DV_vec = electrons.lepmatched_lepVec[0] + electrons.lepmatched_lepVec[1]
 				trk_percent_diff_0 = helpers.pT_diff( electrons.std_lepVec[0].Pt() , electrons.lepmatched_lepVec[0].Pt() )
 				trk_percent_diff_1 = helpers.pT_diff( electrons.std_lepVec[1].Pt(), electrons.lepmatched_lepVec[1].Pt() )
@@ -1579,13 +1579,9 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_ntrk_assoc', self.tree.dv('ntrk_assoc'))
 			self.fill_hist(sel, 'DV_pass_mat_veto', selections.MaterialVeto(self.tree).passes())
 
-			
 			if not self.tree.is_data:
-				maxlinkTruth_score = self.tree.dv('maxlinkTruth_score')
-				maxlinkTruth_parent_pdgId = abs(self.tree.dv('maxlinkTruth_parent_pdgId'))
-				is_truth_matched =  self.tree.dv('maxlinkTruth_score') > 0.75 and abs(self.tree.dv('maxlinkTruth_parent_pdgId')) == 50
-				#is truth matched: 
-				self.fill_hist(sel, 'DV_truth_matched', is_truth_matched)
+				# is truth matched:
+				self.fill_hist(sel, 'DV_truth_matched', self._truth_match())
 
 				# add proper lifetime
 				truth_info = helpers.Truth()
@@ -1597,18 +1593,19 @@ class Analysis(object):
 					if not self.tree.not_hnl_mc:
 						if self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[0]: trk_0_truth_index = 0
 						elif self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[1]: trk_0_truth_index = 1
-						else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
+						else: raise Exception("Can't truth match lepton by charge. Something is strange.")
 
 						if self.tree.dv('trk_charge')[1] == truth_info.dMu_charge[0]: trk_1_truth_index = 0
 						elif self.tree.dv('trk_charge')[1] == truth_info.dMu_charge[1]: trk_1_truth_index = 1
-						else:	raise Exception("Can't truth match lepton by charge. Something is strange.")
+						else: raise Exception("Can't truth match lepton by charge. Something is strange.")
 
 						self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dMu_d0[trk_0_truth_index])
 						self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dMu_d0[trk_1_truth_index])
 
 						for i in range(len(muons.lepVec)):
 							delta = muons.lepVec[i].Pt() - muons.lepmatched_lepVec[i].Pt()
-							self.fill_hist(sel, 'DV_trk_v_mu_pt', delta/muons.lepmatched_lepVec[i].Pt() )
+							self.fill_hist(sel, 'DV_trk_v_mu_pt', delta / muons.lepmatched_lepVec[i].Pt())
+
 				if self.dv_type == "emu":
 					# truth d0 # it looks like these are already matched so track0 is always the muon. Could that be?
 					if not self.tree.not_hnl_mc:
@@ -1629,7 +1626,7 @@ class Analysis(object):
 						self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dEl_d0[trk_0_truth_index])
 						self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dEl_d0[trk_1_truth_index])
 
-						for i in range(len(muons.lepVec)):
+						for i in range(len(electrons.lepVec)):
 							delta = electrons.lepVec[i].Pt() - electrons.lepmatched_lepVec[i].Pt()
 							self.fill_hist(sel, 'DV_trk_v_el_pt', delta/electrons.lepmatched_lepVec[i].Pt() )
 
@@ -1662,69 +1659,66 @@ class Analysis(object):
 			if not self.do_CR:
 				self.trigger_matched_medium = selections.RequireMediumTriggerMatching(
 					self.tree,
-					prompt_lepton_index=self.plep_sel.plep_Index,
+					prompt_lepton_index=self.plep_sel.plep_index,
 					prompt_lepton_type=self.plep,
 					muons=muons,
 					electrons=electrons,
 					dv_type=self.dv_type)
 
 				self.fill_hist(sel, 'n_trigger_matched_medium', self.trigger_matched_medium.n_trigger_matched_medium)
-				# This will also be used for applying the lepton trigger matching uncertainties
+				# This will also be used for applying the lepton trigger matching scale factors
 
-			# ============================================================
-			# Systematics
-
-			# ____________________________________________________________
-			# Calculate weight for tracking/vertexing uncertainties
-			vertexing_systematic = systematics.get_vertexing_systematic(self.tree.dv('r'), self.tree.dv('pt'))
-			self.fill_hist(sel, 'vertexing_1DOWN', vertexing_systematic, weight=1)
-
-			# ____________________________________________________________
-			# Calculate weight for displaced lepton identification uncertainties
-			lepton_0_type, lepton_1_type = '', ''
-			if self.dv_type == "mumu": lepton_0_type, lepton_1_type = 'muon', 'muon'
-			if self.dv_type == "emu": lepton_0_type, lepton_1_type = 'muon', 'electron'
-			if self.dv_type == "ee": lepton_0_type, lepton_1_type = 'electron', 'electron'
-
-			d0_extrapolation_systematic = systematics.get_combined_d0_extrapolation_systematic(
-				self.tree.dv('trk_d0')[0], lepton_0_type,
-				self.tree.dv('trk_d0')[1], lepton_1_type
-			)
-			# storing systematic with standard ATLAS "1-sigma down" notation
-			self.fill_hist(sel, 'd0_extrapolation_1DOWN', d0_extrapolation_systematic, weight=1)
-
-			# ____________________________________________________________
-			# Calculate weight for lepton trigger scale factor uncertainty
-			if not self.do_CR:
-				if self.trigger_matched_medium.prompt_trigger_matched_medium:
-					# trigger uncertainty from prompt lepton (TODO: needs to be implemented)
-					pass
-				elif self.trigger_matched_medium.displaced_0_trigger_matched_medium:
-					# trigger uncertainty from displaced lepton 0 (TODO: needs to be implemented)
-					pass
-				elif self.trigger_matched_medium.displaced_1_trigger_matched_medium:
-					# trigger uncertainty from displaced lepton 1 (TODO: needs to be implemented)
-					pass
+			if not self.do_CR and not self.tree.is_data:
+				self.fill_systematics(sel)
 
 			# ============================================================
 			# fill TTree with ntuple information. Already set by fill_hist
 			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':
-				if self.MCEventType.isLNC: 
-					self.micro_ntuples["LNC_"+sel].fill()
-					self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
-				elif self.MCEventType.isLNV: 
-					self.micro_ntuples["LNV_"+sel].fill()
-					self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
-				else: self.micro_ntuples[sel].fill()
+				if self.MCEventType.isLNC:
+					self.micro_ntuples["LNC_" + sel].fill()
+					self.micro_ntuples["LNC_plus_LNV_" + sel].fill()
+				elif self.MCEventType.isLNV:
+					self.micro_ntuples["LNV_" + sel].fill()
+					self.micro_ntuples["LNC_plus_LNV_" + sel].fill()
+				else:
+					if not self.tree.is_data: self.logger.warn("MC Ntuple being filled that is neither LNV or LNC. Please investigate this.")
+					self.micro_ntuples[sel].fill()
 
 			if sel == "sel":
 				self._locked = FILL_LOCKED  # this only becomes unlocked after the event loop finishes in makeHistograms so you can only fill one DV from each event.
 
+	def fill_systematics(self, sel):
+		"""
+		Calculate systematic variations store them to micro-ntuples
+		"""
+
+		# ============================================================
+		# Systematics
+		# ____________________________________________________________
+		# Calculate weight for tracking/vertexing uncertainties
+		vertexing_systematic = systematics.get_vertexing_systematic(self.tree.dv('r'), self.tree.dv('pt'))
+		self.fill_hist(sel, 'vertexing_1DOWN', vertexing_systematic, weight=1)
+
+		# ____________________________________________________________
+		# Calculate weight for displaced lepton identification uncertainties
+		lepton_0_type, lepton_1_type = '', ''
+		if self.dv_type == "mumu": lepton_0_type, lepton_1_type = 'muon', 'muon'
+		if self.dv_type == "emu": lepton_0_type, lepton_1_type = 'muon', 'electron'
+		if self.dv_type == "ee": lepton_0_type, lepton_1_type = 'electron', 'electron'
+
+		d0_extrapolation_systematic = systematics.get_combined_d0_extrapolation_systematic(
+			self.tree.dv('trk_d0')[0], lepton_0_type,
+			self.tree.dv('trk_d0')[1], lepton_1_type
+		)
+		# storing systematic with standard ATLAS "1-sigma down" notation
+		self.fill_hist(sel, 'd0_extrapolation_1DOWN', d0_extrapolation_systematic, weight=1)
+
+
 
 class run2Analysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
+	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None):
 
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
+		Analysis.__init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
 
 		# Define cutflow histogram "by hand"
@@ -1923,6 +1917,13 @@ class run2Analysis(Analysis):
 		if self.do_track_quality_cut:
 			if self._track_quality_cut():
 				if not self.passed_track_quality_cut:
+
+					if not self.do_CR and not self.tree.is_data:
+						# update event weight
+						lepton_reco_sf = scale_factors.get_reco_scale_factor(self)
+						self.weight_LNC_only *= lepton_reco_sf
+						self.weight_LNC_plus_LNV *= lepton_reco_sf
+
 					if not self.dv_type == "ee": self._fill_cutflow(13)
 					else: self._fill_cutflow(13+1)
 					self.passed_track_quality_cut = True
@@ -1934,6 +1935,13 @@ class run2Analysis(Analysis):
 		if self.do_trigger_matching_cut:
 			if self._trigger_matched_medium_lepton_cut():
 				if not self.passed_trig_matched_cut:
+
+					if not self.do_CR and not self.tree.is_data:
+						# update event weight
+						lepton_trigger_sf = scale_factors.get_trigger_scale_factor(self)
+						self.weight_LNC_only *= lepton_trigger_sf
+						self.weight_LNC_plus_LNV *= lepton_trigger_sf
+
 					if not self.dv_type == "ee": self._fill_cutflow(14)
 					else: self._fill_cutflow(14+1)
 					self.passed_trig_matched_cut = True
@@ -2020,7 +2028,6 @@ class run2Analysis(Analysis):
 				if not self.dv_type == "ee": self._fill_cutflow(20)
 				else: self._fill_cutflow(20+1)
 				self._fill_selected_dv_histos("match")
-
 
 
 class BEAnalysis(Analysis):
