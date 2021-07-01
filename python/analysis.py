@@ -1147,8 +1147,8 @@ class Analysis(object):
 			try:
 				# self.fill_hist(sel, 'weight_pileup', self.tree['weight_pileup'])
 				# pileup systematics
-				self.fill_hist(sel, 'weight_pileup_1UP', self.tree['weight_pileup_up']/self.tree['weight_pileup'])
-				self.fill_hist(sel, 'weight_pileup_1DOWN', self.tree['weight_pileup_down']/self.tree['weight_pileup'])
+				self.fill_hist(sel, 'pileup_1UP', self.tree['weight_pileup_up']/self.tree['weight_pileup'])
+				self.fill_hist(sel, 'pileup_1DOWN', self.tree['weight_pileup_down']/self.tree['weight_pileup'])
 			except KeyError:
 				pass
 
@@ -1224,24 +1224,24 @@ class Analysis(object):
 					self.fill_hist(sel, 'mll_dMu_plep_is_OS', zmass_veto_var.mll_dMu_plep_is_OS)
 					self.fill_hist(sel, 'mll_dMu_plep_is_SS', zmass_veto_var.mll_dMu_plep_is_SS)
 					self.fill_hist(sel, 'mll_dMu_plep', zmass_veto_var.mll_dMu_plep)
-				
+
 				if self.plep == 'muon' and len(el_vec) > 0:
-					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plepcharge, dv_type=self.dv_type)
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plep_charge, dv_type=self.dv_type)
 					self.fill_hist(sel, 'mll_dEl_plep_is_OS', zmass_veto_var.mll_dEl_plep_is_OS)
 					self.fill_hist(sel, 'mll_dEl_plep_is_SS', zmass_veto_var.mll_dEl_plep_is_SS)
 					self.fill_hist(sel, 'mll_dEl_plep', zmass_veto_var.mll_dEl_plep)
-				
+
 				if self.plep == 'electron' and len(mu_vec) > 0:
-					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plepcharge, dv_type=self.dv_type)
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plep_charge, dv_type=self.dv_type)
 					self.fill_hist(sel, 'mll_dMu_plep_is_OS', zmass_veto_var.mll_dMu_plep_is_OS)
 					self.fill_hist(sel, 'mll_dMu_plep_is_SS', zmass_veto_var.mll_dMu_plep_is_SS)
 					self.fill_hist(sel, 'mll_dMu_plep', zmass_veto_var.mll_dMu_plep)
 
 				if self.plep == 'electron' and len(el_vec) > 0:
-					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec = self.plep_sel.plepVec, plep=self.plep, plep_charge= self.plep_sel.plep_charge, dv_type= self.dv_type)
+					zmass_veto_var = selections.ZMassVeto(self.tree, plep_vec=self.plep_sel.plepVec, plep=self.plep, plep_charge=self.plep_sel.plep_charge, dv_type=self.dv_type)
 					self.fill_hist(sel, 'mll_dEl_plep_is_OS', zmass_veto_var.mll_dEl_plep_is_OS)
 					self.fill_hist(sel, 'mll_dEl_plep_is_SS', zmass_veto_var.mll_dEl_plep_is_SS)
-					self.fill_hist(sel, 'mll_dEl_plep', zmass_veto_var.mll_dEl_plep )
+					self.fill_hist(sel, 'mll_dEl_plep', zmass_veto_var.mll_dEl_plep)
 
 			if self.do_prompt_track_cut:
 				ptrk_vec = self.ptrk_sel.trkVec

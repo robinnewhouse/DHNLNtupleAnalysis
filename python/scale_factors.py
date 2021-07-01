@@ -65,6 +65,7 @@ def get_reco_scale_factor(analysis):
         prompt_lepton_scale_factor = analysis.tree['muon_RecoEff_SF_RecoMedium'][analysis.plep_sel.plep_index][syst]
     elif analysis.plep == 'electron':
         prompt_lepton_scale_factor = analysis.tree['el_PIDEff_SF_Medium'][analysis.plep_sel.plep_index][syst]
+        prompt_lepton_scale_factor *= analysis.tree['el_RecoEff_SF'][analysis.plep_sel.plep_index][syst]  # electron SF is split into ID and Reco
 
     # get displaced scale factors depending on type
     if analysis.dv_type == 'mumu':
