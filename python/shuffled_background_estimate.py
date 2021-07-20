@@ -274,7 +274,7 @@ def main():
                                         shuffling factor: {shuffling_factor}
                                         """
 
-        with open(outputDir+f'info_about_shuffling_{signal}.txt', 'w') as f:
+        with open(outputDir+f'info_about_shuffling_{signal}_{CR_charge}.txt', 'w') as f:
                 print(output_text, file=f)
         
 
