@@ -123,15 +123,83 @@ class ReadBRdat:
 					return self.BReee[i]
 				if channel == 'eeu':
 					return self.BReeu[i]
+				# update the br with something so the code runs -DT
+				if channel == 'uee':
+					return self.BRuuu[i]
+				if channel == 'euu':
+					return self.BReee[i]
 
 
-def hnl_xsec(br, U2, mass):
+def hnl_xsec_single_flavour_mixing(channel, br, mass, ctau, LNC_only = True):
+
+	# calculate Gronau coupling; parametrization depends on coupling flavour you are probing
+	if channel == 'uuu' or channel == 'uue' or channel == 'uee':
+		U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+	if channel == 'eee' or channel == 'eeu' or channel == 'euu':
+		U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
+
+	# HNL decays in only a lepton-number conserving way
+	if LNC_only: k = 1
+	# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
+	else: k = 0.5
+
 	mW = 80.379  # mass of W boson in GeV
-	xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+	xsec = br * 20.6e6 * k * U2Gronau * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+	return xsec
+
+def hnl_xsec_benchmark_model(channel, mass, ctau, LNC_only = True, benchmark_num = 1):
+	
+	# benchmark models
+	if benchmark_num == 1:
+		x_e   = 1/3.0
+		x_mu  = 1/3.0
+		x_tau = 1/3.0
+	elif benchmark_num == 2:
+		x_e   = 0.06 
+		x_mu  = 0.48
+		x_tau = 0.46
+
+	# HNL decays in only a lepton-number conserving way
+	if LNC_only: k = 1
+	# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
+	else: k = 0.5
+
+	#Gronau parametrization relates mass, coupling and lifetime
+	e_term   = x_e   * mass ** (5.17) / (4.15e-12 * 3e8) # in 1/m 
+	mu_term  = x_mu  * mass ** (5.19) / (4.49e-12 * 3e8) # in 1/m 
+	tau_term = x_tau * mass ** (5.44) / (1.08e-11 * 3e8) # in 1/m 
+
+	U2Gronau = (1 / (ctau / 1000))*(1 / (mu_term + e_term + tau_term ))
+	
+	# place holder (need partial widths with unit coupling from J-L) #DT
+	partial_width = 1 # in m
+
+	# define the prod and decay ratios depending on the channel
+	if channel == 'uuu' or channel == 'uue': 
+		x_prod  = x_mu
+		x_decay = x_mu
+	if channel == 'eee' or channel == 'eeu': 
+		x_prod  = x_mu
+		x_decay = x_mu
+	if channel == 'ueu': 
+		x_prod  = x_mu
+		x_decay = x_e
+	if channel == 'eue':
+		x_prod  = x_e
+		x_decay = x_mu
+	if channel == 'uee':
+		x_prod  = x_mu
+		x_decay = x_e
+	if channel == 'euu':
+		x_prod  = x_e
+		x_decay = x_mu
+
+	mW = 80.379  # mass of W boson in GeV
+	xsec = 20.6e6 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2)) * partial_width * k *  U2Gronau**2 * (ctau/1000) * x_prod * x_decay  # in fb
 	return xsec
 
 
-def get_mass_lt_weight(tree, lnc_plus_lnv=False):
+def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = True):
 	"""
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
@@ -156,19 +224,15 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False):
 	if tree.is_data or tree.not_hnl_mc:  # you are running on data non non-hnl MC
 		return 1
 	else:  # you are running on a signal MC file
-		# calculate Gronau coupling; parametrization depends on coupling flavour you are probing
-		if channel == 'uuu' or channel == 'uue':
-			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
-		if channel == 'eee' or channel == 'eeu':
-			U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
 
-		# HNL decays in only a lepton-number conserving way
-		U2_LNC_only = U2Gronau
-		xsec_LNC_only = hnl_xsec(br=tree.br, U2=U2_LNC_only, mass=mass)  # in fb
-		# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
-		U2_LNC_plus_LNV = 0.5 * U2Gronau
-		xsec_LNC_plus_LNV = hnl_xsec(br=tree.br, U2=U2_LNC_plus_LNV, mass=mass)  # in fb
-		# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
+		if single_flavour_mixing: 
+			xsec_LNC_only = hnl_xsec_single_flavour_mixing(channel = channel, br=tree.br, mass=mass, ctau = ctau, LNC_only = True)  # in fb
+			xsec_LNC_plus_LNV = hnl_xsec_single_flavour_mixing(channel= channel, br=tree.br, mass=mass, ctau = ctau, LNC_only = False)  # in fb
+		else: 
+			xsec_LNC_only = hnl_xsec_benchmark_model(channel = channel, mass=mass, ctau = ctau, LNC_only = True)  # in fb
+			xsec_LNC_plus_LNV = hnl_xsec_benchmark_model(channel= channel, mass=mass, ctau = ctau, LNC_only = False)  # in fb
+
+		# mass-lifetime weight = L * HNL_xsec / total num. of MC events
 		# LNC and LNV branches are split into into separate LNC and LNV branches
 		# total num. of MC events = (tree.all_entries / 2) because pythia samples have a 50% mix of LNC+ LNV
 		weight_LNC_only = lumi[mc_campaign] * xsec_LNC_only / (tree.all_entries / 2)
@@ -177,8 +241,10 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False):
 
 	if lnc_plus_lnv:
 		return weight_LNC_plus_LNV
+		
 	else:
 		return weight_LNC_only
+		
 
 
 class Truth:
