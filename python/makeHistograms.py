@@ -8,9 +8,8 @@ import json
 # import systematics
 
 
-
-blinded = True  # Dont dont change this flag! This ensures you do not accidentally unblind when looking at data.
-
+# This blinding flag can be set to ensure you do not accidentally unblind when looking at data.
+blinded = False
 
 def main():
 	start = helpers.get_time()
