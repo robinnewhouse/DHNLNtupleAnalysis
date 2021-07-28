@@ -24,7 +24,7 @@ def main():
     signal = options.signal
     version = options.version
 
-    # Get SS background files
+    # Get SS background files (v6 inputs)
     if mix_channels:
         if signal == "uuu": f_SS_bkg =  ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uue.root')
         if signal == "uee": f_SS_bkg =  ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uue.root')
