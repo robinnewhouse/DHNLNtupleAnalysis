@@ -24,24 +24,24 @@ def main():
     signal = options.signal
     version = options.version
 
-    # Get SS background files (v6 inputs)
+    # Get SS background files (v8 inputs)
     if mix_channels:
-        if signal == "uuu": f_SS_bkg =  ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uue.root')
-        if signal == "uee": f_SS_bkg =  ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uue.root')
-        if signal == "uue": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_uee.root')
-        if signal == "eeu": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_eee.root')
-        if signal == "euu": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_eee.root')
-        if signal == "eee": f_SS_bkg = ROOT.TFile('/data/hnl/v6_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_eeu.root')
+        if signal == "uuu": f_SS_bkg =  ROOT.TFile('/data/hnl/v8_histograms/jul23_SSbkg_v8p0_histograms/fullrun2_histograms_SSbkg_uue.root')
+        if signal == "uee": f_SS_bkg =  ROOT.TFile('/data/hnl/v8_histograms/jul23_SSbkg_v8p0_histograms/fullrun2_histograms_SSbkg_uue.root')
+        if signal == "uue": f_SS_bkg = ROOT.TFile('/data/hnl/v8_histograms/jul23_SSbkg_v8p0_histograms/fullrun2_histograms_SSbkg_uee.root')
+        if signal == "eeu": f_SS_bkg = ROOT.TFile('/data/hnl/v8_histograms/jul23_SSbkg_v8p0_histograms/fullrun2_histograms_SSbkg_eee.root')
+        if signal == "euu": f_SS_bkg = ROOT.TFile('/data/hnl/v8_histograms/jul23_SSbkg_v8p0_histograms/fullrun2_histograms_SSbkg_eee.root')
+        if signal == "eee": f_SS_bkg = ROOT.TFile('/data/hnl/v8_histograms/jul23_SSbkg_v8p0_histograms/fullrun2_histograms_SSbkg_eeu.root')
     else: 
-        f_SS_bkg =  ROOT.TFile(f'/data/hnl/{version}_histograms/jun15_SSbkg_v6p2_histograms/fullrun2_histograms_SSbkg_{signal}.root')
+        f_SS_bkg =  ROOT.TFile(f'/data/hnl/v8_histograms/jul23_SSbkg_v8p0_histograms/fullrun2_histograms_SSbkg_{signal}.root')
 
     # Get inverted prompt lepton VR files used to select DVs
     if signal == "uuu" or signal == "euu":
-        f_CR = ROOT.TFile(f'/data/hnl/v6_histograms/jun15_CR_v6p2_histograms/fullrun2_CR_histograms_data_{CR_charge}_uu.root')
+        f_CR = ROOT.TFile(f'/data/hnl/v8_histograms/jul23_inverted_plep_VR_v8p0_histograms/fullrun2_CR_histograms_data_{CR_charge}_uu.root')
     if signal == "uue" or signal == "eeu":
-        f_CR = ROOT.TFile(f'/data/hnl/v6_histograms/jun15_CR_v6p2_histograms/fullrun2_CR_histograms_data_{CR_charge}_eu.root')
+        f_CR = ROOT.TFile(f'/data/hnl/v8_histograms/jul23_inverted_plep_VR_v8p0_histograms/fullrun2_CR_histograms_data_{CR_charge}_eu.root')
     if signal == "eee" or signal == "uee":
-        f_CR = ROOT.TFile(f'/data/hnl/v6_histograms/jun15_CR_v6p2_histograms/fullrun2_CR_histograms_data_{CR_charge}_ee.root')
+        f_CR = ROOT.TFile(f'/data/hnl/v8_histograms/jul23_inverted_plep_VR_v8p0_histograms/fullrun2_CR_histograms_data_{CR_charge}_ee.root')
 
     # make output dir and output mini-tree root file
     if use_loose_DVs:  outputDir = f'../shuffled_bkg_output/shuffled_background_estimate_looseDVs_{version}_{signal}/'
@@ -50,13 +50,14 @@ def main():
 
     if use_CR_for_DVs:
         if CR_charge == "OS": 
-            ouputf_name = f"shuffled_bkg_ntuple_nominal_{signal}.root"
+            if mix_channels: 
+                ouputf_name = f"shuffled_bkg_ntuple_plep_systematic_{signal}.root"
+            else: 
+                ouputf_name = f"shuffled_bkg_ntuple_nominal_{signal}.root"
         elif CR_charge == "SS": 
             ouputf_name = f"shuffled_bkg_ntuple_DV_systematic_{signal}.root"
         else: 
             ouputf_name = f"shuffled_bkg_ntuple_{signal}.root"
-    elif mix_channels:
-        ouputf_name = f"shuffled_bkg_ntuple_plep_systematic_{signal}.root"
     else: 
         ouputf_name = f"shuffled_bkg_ntuple_{signal}.root"
     if not os.path.exists(outputDir): os.mkdir(outputDir)
@@ -789,7 +790,7 @@ if __name__ == "__main__":
     parser.add_argument("--version",
 						dest="version",
 						type = str,
-                        default = "v6",
+                        default = "v8",
 						help="Choose the version of the ntuples that you want to run on."
 				        )
 
