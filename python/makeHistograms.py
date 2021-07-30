@@ -84,7 +84,10 @@ def main():
 			elif "inverted_mhnl" in config_file[channel]["selections"]:
 				output_file = output_path + "histograms_OS_inverted_mhnl_{}.root".format(channel)
 			else:
-				output_file = output_path + file_info.output_filename
+				if tree.is_data:
+					output_file = output_path + "histograms_unblinded_{}.root".format(channel)
+				else:
+					output_file = output_path + file_info.output_filename
 
 		# override if available
 		if options.output_file:output_file = os.path.abspath(options.output_file)
