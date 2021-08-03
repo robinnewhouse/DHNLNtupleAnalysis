@@ -150,7 +150,7 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False):
 		return 1
 
 	# define luminosity for the different mc campaigns
-	lumi = {'mc16a': 36.20766, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0}
+	lumi = {'mc16a': 36.10416, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0}
 	# lumi_tot = lumi['mc16a'] + lumi['mc16d'] + lumi['mc16e']
 
 	if tree.is_data or tree.not_hnl_mc:  # you are running on data non non-hnl MC
