@@ -813,16 +813,14 @@ class Analysis(object):
 		self.MCEventType = selections.MCEventType(self.tree) # if data then MCEventType weight defaults to 1
 
 		# calculate mass lifetime weight 
-		self.mass_lt_weight_LNC_only = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False)
-		self.mass_lt_weight_LNC_plus_LNV = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True)
-
-		# self.mass_lt_weight = helpers.get_mass_lt_weight(self.tree.mass, self.tree.ctau,lnv=self.MCEventType.isLNV)
-		self.logger.debug('LNC only mass-lifetime weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_only))
-		self.logger.debug('LNC+LNV mass-lifetime weight for this signal sample is: {}'.format(self.mass_lt_weight_LNC_plus_LNV))
+		mass_lt_weight_LNC_only_single_flavour = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, single_flavour_mixing = True)
+		mass_lt_weight_LNC_plus_LNV_single_flavour = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, single_flavour_mixing = True)
 
 		if self.weight_override is None:
-			self.weight_LNC_only = self.mass_lt_weight_LNC_only * self.MCEventType.weight
-			self.weight_LNC_plus_LNV = self.mass_lt_weight_LNC_plus_LNV * self.MCEventType.weight
+			self.weight_LNC_only = mass_lt_weight_LNC_only_single_flavour * self.MCEventType.weight
+			self.weight_LNC_plus_LNV = mass_lt_weight_LNC_plus_LNV_single_flavour * self.MCEventType.weight
+
+			print(self.weight_LNC_only)
 		else:
 			self.weight_LNC_only = self.weight_override
 			self.weight_LNC_plus_LNV = self.weight_override
