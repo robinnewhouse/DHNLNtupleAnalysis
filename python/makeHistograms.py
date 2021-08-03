@@ -8,9 +8,8 @@ import json
 # import systematics
 
 
-
-blinded = True  # Dont dont change this flag! This ensures you do not accidentally unblind when looking at data.
-
+# This blinding flag can be set to ensure you do not accidentally unblind when looking at data.
+blinded = False
 
 def main():
 	start = helpers.get_time()
@@ -45,7 +44,7 @@ def main():
 
 	input_file = options.input[0]  # get file
 	logger.info("Running event selection on: {}".format(input_file))
-	treename = "outTree"  # define tree name
+	treename = "nominal"  # define tree name
 	
 
 	# loop over all the channels in the config file
@@ -57,8 +56,8 @@ def main():
 		# Try to load only the number of entries of you need
 		entries = options.nevents if options.nevents else None
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.MC_campaign, mass=file_info.mass,
-											channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents, br=file_info.br)
+		tree = trees.Tree(input_file, treename, entries, mc_campaign=file_info.mc_campaign, mass=file_info.mass,
+						  channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents, br=file_info.br)
 		logger.info('Mass dependent BR: {}'.format(file_info.br))
 
 		# create one output file per channel in your config file
@@ -85,7 +84,10 @@ def main():
 			elif "inverted_mhnl" in config_file[channel]["selections"]:
 				output_file = output_path + "histograms_OS_inverted_mhnl_{}.root".format(channel)
 			else:
-				output_file = output_path + file_info.output_filename
+				if tree.is_data:
+					output_file = output_path + "histograms_unblinded_{}.root".format(channel)
+				else:
+					output_file = output_path + file_info.output_filename
 
 		# override if available
 		if options.output_file:output_file = os.path.abspath(options.output_file)

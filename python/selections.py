@@ -175,8 +175,6 @@ class PromptTrack:
 			trkz0 = tree['tracks_z0'][itrk]
 			trktheta = tree['tracks_theta'][itrk]
 			trkz0sintheta = trkz0 * np.sin(trktheta)
-			# print trktheta,np.sin(trktheta)
-			# print trkz0sintheta
 			if abs(trkd0) < 3 and abs(trkz0sintheta) < 0.5:
 				# Check the overlap between the prompt lepton and every displaced vertex track
 				self.found_trk = True
@@ -222,13 +220,13 @@ class PromptTrack:
 class PromptLepton:
 	def __init__(self, tree, lepton="any", quality="tight", min_dR=0.05):
 		self.plepVec = ROOT.TLorentzVector(0, 0, 0, 0)
-		self.plepcharge = 0
+		self.plep_charge = 0
 		self.plep_isTight = False
-		self.plepd0 = -2000
-		self.plepz0 = -2000
-		self.nPlep = 0
+		self.plep_d0 = -2000
+		self.plep_z0 = -2000
+		self.n_plep = 0
 		self.found_plep = False
-		self.plep_Index = -1
+		self.plep_index = -1
 
 		lepquality = ""
 		passPfilter = False
@@ -324,7 +322,7 @@ class PromptLepton:
 
 				# if lepton doesnt overlap with and DV tracks
 				if not overlap:
-					self.nPlep = self.nPlep + 1
+					self.n_plep = self.n_plep + 1
 					# if pt is larger then the previous prompt lepton found
 					if plepVec_i.Pt() > self.highestpt_lep.Pt():
 						self.highestpt_lep = plepVec_i  # get highest pt prompt lepton!
@@ -337,12 +335,12 @@ class PromptLepton:
 
 	def passes(self):
 		# check if you found a prompt lepton
-		if self.nPlep > 0 and self.highestpt_lep.Pt() > 0:
+		if self.n_plep > 0 and self.highestpt_lep.Pt() > 0:
 			self.plepVec = self.highestpt_lep
-			self.plepd0 = self.highestpt_lep_d0
-			self.plepz0 = self.highestpt_lep_z0
-			self.plepcharge = self.highestpt_lep_charge
-			self.plep_Index = self.highestpt_lep_Index
+			self.plep_d0 = self.highestpt_lep_d0
+			self.plep_z0 = self.highestpt_lep_z0
+			self.plep_charge = self.highestpt_lep_charge
+			self.plep_index = self.highestpt_lep_Index
 			self.plep_isTight = self.highestpt_lep_isTight
 			return True
 		else:
@@ -491,20 +489,18 @@ class DVType:
 		self.decaymode = decaymode
 		self.dv_type = dv_type
 		self.lepton_charge = []
-		self.dEl_Index = []
-		self.dMu_Index = []
+		self.displaced_electron_index = []
+		self.displaced_muon_index = []
 
 		if self.decaymode == "leptonic":
 			self.ntracks = self.tree.ntrk
 			self.nel = -1
 			self.nmu = -1
 
-			self.muons = helpers.Tracks(self.tree)
-			self.muons.get_muons()
+			self.muons = helpers.Muons(self.tree)
 			self.nmu = len(self.muons.lepVec)
 
-			self.electrons = helpers.Tracks(self.tree)
-			self.electrons.get_electrons()
+			self.electrons = helpers.Electrons(self.tree)
 			self.nel = len(self.electrons.lepVec)
 
 	def passes(self):
@@ -512,8 +508,7 @@ class DVType:
 
 		if self.dv_type == "emu":
 			if self.nel == 1 and self.nmu == 1:
-				if self.tree.fake_aod:  # skip muon type cut for now with fakeAOD
-					# return True
+				if self.tree.fake_aod:
 					mu1_type = self.muons.muonType[0]
 				else:
 					mu1_type = self.tree['muon_type'][self.muons.lepIndex[0]]
@@ -521,8 +516,8 @@ class DVType:
 				if mu1_type == combined:  # Only count combined muons 
 					self.lepton_charge.append(self.electrons.lepCharge[0])
 					self.lepton_charge.append(self.muons.lepCharge[0])
-					self.dEl_Index.append(self.electrons.lepIndex[0])
-					self.dMu_Index.append(self.muons.lepIndex[0])
+					self.displaced_electron_index.append(self.electrons.lepIndex[0])
+					self.displaced_muon_index.append(self.muons.lepIndex[0])
 					return True
 				else:
 					return False
@@ -530,10 +525,8 @@ class DVType:
 				return False
 
 		elif self.dv_type == "mumu":
-
 			if self.nmu == 2:
-				if self.tree.fake_aod:  # skip muon type cut for now with fakeAOD
-					# return True
+				if self.tree.fake_aod:
 					mu1_type = self.muons.muonType[0]
 					mu2_type = self.muons.muonType[1]
 				else:
@@ -543,8 +536,8 @@ class DVType:
 				if mu1_type == combined and mu2_type == combined:  # Only count combined muons
 					self.lepton_charge.append(self.muons.lepCharge[0])
 					self.lepton_charge.append(self.muons.lepCharge[1])
-					self.dMu_Index.append(self.muons.lepIndex[0])
-					self.dMu_Index.append(self.muons.lepIndex[1])
+					self.displaced_muon_index.append(self.muons.lepIndex[0])
+					self.displaced_muon_index.append(self.muons.lepIndex[1])
 					return True
 				else:
 					return False
@@ -555,31 +548,20 @@ class DVType:
 			if self.nel == 2:
 				self.lepton_charge.append(self.electrons.lepCharge[0])
 				self.lepton_charge.append(self.electrons.lepCharge[1])
-				self.dEl_Index.append(self.electrons.lepIndex[0])
-				self.dEl_Index.append(self.electrons.lepIndex[1])
+				self.displaced_electron_index.append(self.electrons.lepIndex[0])
+				self.displaced_electron_index.append(self.electrons.lepIndex[1])
 				return True
-			else:
-				return False
-
 		elif self.dv_type == "mumu-notcomb":
 			if self.nmu == 2:
 				self.lepton_charge.append(self.muons.lepCharge[0])
 				self.lepton_charge.append(self.muons.lepCharge[1])
 				return True
-			else:
-				return False
-
 		elif self.dv_type == "1-lep":
-			if self.nmu > 0 or self.nel > 0:
-				return True
-			else:
-				return False
+			return self.nmu > 0 or self.nel > 0
 		elif self.dv_type == "2-lep":
-			if self.nmu == 2 or (self.nmu == 1 and self.nel == 1) or self.nel == 2:
-				return True
-			else:
-				return False
+			return self.nmu == 2 or (self.nmu == 1 and self.nel == 1) or self.nel == 2
 
+		return False
 
 class TrackQuality:
 	def __init__(self, tree, decaymode="leptonic", quality="2-tight"):
@@ -1357,17 +1339,23 @@ class MCEventType:
 
 
 class LeptonTriggerMatching:
-	def __init__(self, tree, lep, lepton_index):
+	def __init__(self, tree, lepton_type, lepton_index):
 		self.is_trigger_matched = False
-		if lep == "muon":
+		if lepton_type == "muon":
 			lep_matched = tree["muon_isTrigMatched"]
-		if lep == "electron":
+		if lepton_type == "electron":
 			lep_matched = tree["el_isTrigMatched"]
 		if lep_matched[lepton_index] == 1:
 			self.is_trigger_matched = True
 
 
 class RequireMediumTriggerMatching:
+	"""
+	Requires that at least one lepton is trigger matched and medium quality
+	and pt above the trigger threshold +1 GeV.
+	In this case that will always be 27 GeV, including for 2015 data.
+	"""
+
 	def __init__(self, tree, prompt_lepton_index, prompt_lepton_type, muons, electrons, dv_type, pt_threshold=27.0):
 
 		# check if prompt lepton is trigger matched
@@ -1382,12 +1370,6 @@ class RequireMediumTriggerMatching:
 			prompt_pass_pt_threshold = tree.get('el_pt')[prompt_lepton_index] >= pt_threshold
 
 		# check if displaced is trigger matched
-		displaced_0_is_trigger_matched = False
-		displaced_0_is_medium = False
-		displaced_0_pass_pt_threshold = False
-		displaced_1_is_trigger_matched = False
-		displaced_1_is_medium = False
-		displaced_1_pass_pt_threshold = False
 		if dv_type == 'mumu':
 			# lepton 0
 			displaced_0_is_trigger_matched = LeptonTriggerMatching(tree, 'muon', muons.lepIndex[0]).is_trigger_matched
@@ -1425,6 +1407,52 @@ class RequireMediumTriggerMatching:
 			self.displaced_0_trigger_matched_medium,
 			self.displaced_1_trigger_matched_medium,
 		])
+
+		if self.prompt_trigger_matched_medium:
+			# prefer the prompt lepton for trigger matching (useful for scale factors)
+			self.trigger_matched_lepton_index = prompt_lepton_index
+			self.trigger_matched_lepton_type = prompt_lepton_type
+		# if both displaced are trigger matched, take the highest pt one
+		elif self.displaced_0_trigger_matched_medium and self.displaced_1_trigger_matched_medium:
+			if dv_type == 'mumu':
+				if tree.get('muon_pt')[muons.lepIndex[0]] > tree.get('muon_pt')[muons.lepIndex[1]]:
+					self.trigger_matched_lepton_index = muons.lepIndex[0]
+				else:
+					self.trigger_matched_lepton_index = muons.lepIndex[1]
+				self.trigger_matched_lepton_type = 'muon'
+			if dv_type == 'ee':
+				if tree.get('el_pt')[electrons.lepIndex[0]] > tree.get('el_pt')[electrons.lepIndex[1]]:
+					self.trigger_matched_lepton_index = electrons.lepIndex[0]
+				else:
+					self.trigger_matched_lepton_index = electrons.lepIndex[1]
+				self.trigger_matched_lepton_type = 'electron'
+			if dv_type == 'emu':
+				if tree.get('muon_pt')[muons.lepIndex[0]] > tree.get('el_pt')[electrons.lepIndex[0]]:
+					self.trigger_matched_lepton_index = muons.lepIndex[0]
+					self.trigger_matched_lepton_type = 'muon'
+				else:
+					self.trigger_matched_lepton_index = electrons.lepIndex[0]
+					self.trigger_matched_lepton_type = 'electron'
+		elif self.displaced_0_trigger_matched_medium:
+			if dv_type == 'mumu':
+				self.trigger_matched_lepton_index = muons.lepIndex[0]
+				self.trigger_matched_lepton_type = 'muon'
+			if dv_type == 'ee':
+				self.trigger_matched_lepton_index = electrons.lepIndex[0]
+				self.trigger_matched_lepton_type = 'electron'
+			if dv_type == 'emu':
+				self.trigger_matched_lepton_index = muons.lepIndex[0]
+				self.trigger_matched_lepton_type = 'muon'
+		elif self.displaced_1_trigger_matched_medium:
+			if dv_type == 'mumu':
+				self.trigger_matched_lepton_index = muons.lepIndex[1]
+				self.trigger_matched_lepton_type = 'muon'
+			if dv_type == 'ee':
+				self.trigger_matched_lepton_index = electrons.lepIndex[1]
+				self.trigger_matched_lepton_type = 'electron'
+			if dv_type == 'emu':
+				self.trigger_matched_lepton_index = electrons.lepIndex[0]  # this should be 0
+				self.trigger_matched_lepton_type = 'electron'
 
 	def passes(self):
 		return self.n_trigger_matched_medium > 0

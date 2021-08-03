@@ -42,7 +42,6 @@ class Tree:
 		# Calculated class attributes
 		# Open and load uproot trees
 		self.file = uproot.open(file_name)
-		self.tree = self.file[tree_name]
 		self.cutflow = self.file["cutflow"]
 		self.all_entries = self.cutflow[1]  # total entries in AOD
 		self.init_entries = self.cutflow[2]  # total entries in DAOD
@@ -51,6 +50,9 @@ class Tree:
 		self.fake_aod = fake_aod
 		self.channel = channel
 		self.br = br
+		# temporary. Switching from "outTree" to "nominal". Remove this when data ntuples are remade.
+		try: self.tree = self.file[tree_name]
+		except KeyError: self.tree = self.file["outTree"]
 
 	def increment_event(self):
 		self.ievt += 1

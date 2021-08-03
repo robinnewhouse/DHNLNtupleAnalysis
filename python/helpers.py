@@ -211,9 +211,9 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = True, i
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
 	Sets the weight of events for this tree
-	:param tree: Tree object with mass and lifetime info
-	:param lnc_plus_lnv: if both lnc and lnv decays are possible then lifetime is reduced by a factor of 2
-	:return: calculated weight.
+	@param tree: Tree object with mass and lifetime info
+	@param lnc_plus_lnv: if both lnc and lnv decays are possible then lifetime is reduced by a factor of 2
+	@return: calculated weight.
 	"""
 	mass = tree.mass  # GeV
 	ctau = tree.ctau  # mm
@@ -429,6 +429,29 @@ class Truth:
 		# except:
 		# 	pass
 
+
+def get_lepton_index(tree, itrk, lepton_type):
+	"""
+	Retrieves the lepton index based on the associated track
+	@param tree: input TTree
+	@param itrk: index of track to be matched
+	@param lepton_type: 'muon' or 'electron'
+	@return: lepton index or None if index not found
+	"""
+	lepton_index = None
+	if lepton_type == 'muon':
+		lepton_index = np.where(tree['muon_index'] == tree.dv('trk_muonIndex')[itrk])
+	if lepton_type == 'electron':
+		lepton_index = np.where(tree['el_index'] == tree.dv('trk_electronIndex')[itrk])
+	if len(lepton_index[0]) > 0:
+		if tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0][0]] - tree.dv('trk_phi')[itrk] > 0.02:
+			logger.error("Lepton and track phi to not match. Check index counting. phi_lep: {}, phi_track: {}".format(
+				tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0][0]], tree.dv('trk_phi')[itrk]))
+		return lepton_index[0][0]
+	else:
+		return None
+
+
 class Tracks:
 	def __init__(self, tree):
 		self.tree = tree
@@ -467,8 +490,9 @@ class Tracks:
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
 				if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # also matched to an electron!
 					# get the muon index
-					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
-						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+					if len(self.tree['muon_index']) > 0 and not self.tree.fake_aod:
+						muon_index = get_lepton_index(self.tree, itrk, 'muon')
+						if muon_index is None: continue
 					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
 					#If track is NOT matched to a loose muon --> no muon match!
 					if not pass_muon_loose == 1:
@@ -491,7 +515,8 @@ class Tracks:
 
 				if not self.tree.fake_aod:
 					if len(self.tree['muon_index']) > 0:
-						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+						muon_index = get_lepton_index(self.tree, itrk, 'muon')
+						if muon_index is None: continue
 						self.lepIndex.append(muon_index)
 						# get calibrated muon quantities (not calculated wrt DV!)
 						lep_pt = self.tree['muon_pt'][muon_index]
@@ -531,10 +556,12 @@ class Tracks:
 				# Check if track is also matched to a muon!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
 					# get the muon and electron indicies
-					if len(self.tree['muon_index']) > 0 and self.tree.fake_aod == False:
-						muon_index = np.where(self.tree['muon_index'] == self.tree.dv('trk_muonIndex')[itrk])[0][0]
+					if len(self.tree['muon_index']) > 0 and not self.tree.fake_aod:
+						muon_index = get_lepton_index(self.tree, itrk, 'muon')
+						if muon_index is None: continue
 					if len(self.tree['el_index']) > 0:
-						el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
+						el_index = get_lepton_index(self.tree, itrk, 'electron')
+						if el_index is None: continue
 					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
 					pass_electron_vvl = self.tree['el_isLHVeryLoose_mod1'][el_index]
 					# If track is matched to a loose muon --> no electron match!
@@ -562,7 +589,8 @@ class Tracks:
 				# (works for calibrated and uncalibrated containers)
 				if not self.tree.fake_aod:
 					if len(self.tree['el_index']) > 0:
-						el_index = np.where(self.tree['el_index'] == self.tree.dv('trk_electronIndex')[itrk])[0][0]
+						el_index = get_lepton_index(self.tree, itrk, 'electron')
+						if el_index is None: continue
 						# use calibrated muon quantities (not calculated wrt DV!)
 						lep_pt = self.tree['el_pt'][el_index]
 						lep_eta = self.tree['el_eta'][el_index]
@@ -639,7 +667,7 @@ class FileInfo:
 		if len([int(s) for s in infile.split(".") if s.isdigit()]) != 0:
 			self.dsid = [int(s) for s in infile.split(".") if s.isdigit()][0]
 
-		self.MC_campaign = None
+		self.mc_campaign = None
 		self.ctau_str = ""
 		self.mass_str = ""
 
@@ -692,16 +720,17 @@ class FileInfo:
 		# r10740,r10740,r10740 are the original ones
 
 		if "r11915" in infile or "mc16a" in infile or "r10740" in infile:
-			self.MC_campaign = "mc16a"
+			self.mc_campaign = "mc16a"
 		if "r11916" in infile or "mc16d" in infile or "r10739" in infile:
-			self.MC_campaign = "mc16d"
+			self.mc_campaign = "mc16d"
 		if "r11891" in infile or "mc16e" in infile or "r10790" in infile:
-			self.MC_campaign = "mc16e"
+			self.mc_campaign = "mc16e"
+		logger.info("This mc campaign is: {}".format(self.mc_campaign))
 
 		# More flexibility for non-signal samples
 		self.output_filename = "histograms"
-		if self.MC_campaign:
-			self.output_filename += "_" + self.MC_campaign
+		if self.mc_campaign:
+			self.output_filename += "_" + self.mc_campaign
 		else:
 			self.output_filename += "_mc"
 		if self.mass_str: self.output_filename += "_" + self.mass_str
