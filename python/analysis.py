@@ -1146,11 +1146,17 @@ class Analysis(object):
 			# pileup (not to be used for full SF)
 			try:
 				# self.fill_hist(sel, 'weight_pileup', self.tree['weight_pileup'])
+				# in the case that the pileup weight is zero, ignore this event. 
+				# Perhaps it is more correct to do the full systmeatic range, but it will be such a small weight, and this is more straightforward.
+				if self.tree['weight_pileup'] == 0: 
+					raise ZeroDivisionError
 				# pileup systematics
 				self.fill_hist(sel, 'pileup_1UP', self.tree['weight_pileup_up']/self.tree['weight_pileup'])
 				self.fill_hist(sel, 'pileup_1DOWN', self.tree['weight_pileup_down']/self.tree['weight_pileup'])
-			except KeyError:
-				pass
+			except (KeyError, ZeroDivisionError):
+				# pileup weight is probably zero
+				self.fill_hist(sel, 'pileup_1UP', 1)
+				self.fill_hist(sel, 'pileup_1DOWN', 1)
 
 			# ____________________________________________________________
 			# fill the DV weight for LNC or LNV only model assumption (Dirac neutrino)
