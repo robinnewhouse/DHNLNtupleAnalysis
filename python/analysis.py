@@ -2008,6 +2008,10 @@ class run2Analysis(Analysis):
 						lepton_reco_sf = scale_factors.get_reco_scale_factor(self)
 						self.weight_LNC_only *= lepton_reco_sf
 						self.weight_LNC_plus_LNV *= lepton_reco_sf
+						self.weight_LNC_only_ih *= lepton_reco_sf
+						self.weight_LNC_plus_LNV_ih *= lepton_reco_sf
+						self.weight_LNC_only_nh *= lepton_reco_sf
+						self.weight_LNC_plus_LNV_nh *= lepton_reco_sf
 
 					if not self.dv_type == "ee": self._fill_cutflow(13)
 					else: self._fill_cutflow(13+1)
@@ -2026,6 +2030,10 @@ class run2Analysis(Analysis):
 						lepton_trigger_sf = scale_factors.get_trigger_scale_factor(self)
 						self.weight_LNC_only *= lepton_trigger_sf
 						self.weight_LNC_plus_LNV *= lepton_trigger_sf
+						self.weight_LNC_only_ih *= lepton_trigger_sf
+						self.weight_LNC_plus_LNV_ih *= lepton_trigger_sf
+						self.weight_LNC_only_nh *= lepton_trigger_sf
+						self.weight_LNC_plus_LNV_nh *= lepton_trigger_sf
 
 					if not self.dv_type == "ee": self._fill_cutflow(14)
 					else: self._fill_cutflow(14+1)
