@@ -206,7 +206,7 @@ def hnl_xsec_generic_model(channel, br_single_flavour_mixing, mass, ctau, LNC_on
 	return xsec
 
 
-def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = True, ih_mixing = False, nh_mixing = False):
+def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = False, ih_mixing = False, nh_mixing = False, flip_e_and_mu = False):
 	"""
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
@@ -220,27 +220,30 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = True, i
 	mc_campaign = tree.mc_campaign
 	channel = tree.channel
 
+	# over write channel if flip_e_and_mu is true!
+	if channel == "uue" and flip_e_and_mu: channel = "ueu"
+	if channel == "eeu" and flip_e_and_mu: channel = "eue"
+	
 	if single_flavour_mixing: 
-		if channel == "uuu" or channel == "uue" or channel == "uee":
+		if channel == "uuu" or channel == "uue" or channel == "uee" or channel == "ueu":
 			x_e = 0
 			x_mu = 1
 			x_tau = 0
-		if channel == "eee" or channel == "eeu" or channel == "euu":
+		if channel == "eee" or channel == "eeu" or channel == "euu" or channel == "eue":
 			x_e = 1
 			x_mu = 0
 			x_tau = 0
-
-	if ih_mixing:
+	elif ih_mixing:
 		x_e = 1.0/3.0 
 		x_mu = 1.0/3.0
 		x_tau = 1.0/3.0
-	
-	if nh_mixing:
+	elif nh_mixing:
 		x_e   = 0.06
-    	x_mu  = 0.48
-        x_tau = 0.46
+		x_mu  = 0.48
+		x_tau = 0.46
 
-		
+	# print(x_e,x_mu,x_tau)
+
 	if mass == -1 or ctau == -1:  # MC weighting error
 		logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
 		return 1
@@ -253,12 +256,13 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = True, i
 		return 1
 	else:  # you are running on a signal MC file
 
+		
 
+										
 		xsec_LNC_only = hnl_xsec_generic_model(channel = channel, x_e = x_e, x_mu = x_mu, x_tau = x_tau, br_single_flavour_mixing=tree.br, 
 											   mass=mass, ctau = ctau, LNC_only = True)  # in fb
 		xsec_LNC_plus_LNV = hnl_xsec_generic_model(channel= channel, x_e = x_e, x_mu = x_mu, x_tau = x_tau, br_single_flavour_mixing=tree.br, 
 											       mass=mass, ctau = ctau, LNC_only = False)  # in fb
-
 		# mass-lifetime weight = L * HNL_xsec / total num. of MC events
 		# LNC and LNV branches are split into into separate LNC and LNV branches
 		# total num. of MC events = (tree.all_entries / 2) because pythia samples have a 50% mix of LNC+ LNV
@@ -279,6 +283,7 @@ class Truth:
 		self.dNu_vec = ROOT.TLorentzVector()
 		self.trkVec = []
 		self.dLepVec = []
+		self.dLep_pdgID = []
 		self.dLepCharge = []
 		self.dEl = []
 		self.dEl_charge = []
@@ -370,6 +375,8 @@ class Truth:
 							self.dNu_vec = nu_vec
 
 					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
+						dLep_pdgID =  abs(tree['truthVtx_outP_pdgId'][ivx][i])
+						self.dLep_pdgID.append(dLep_pdgID)
 						dLepVec = ROOT.TLorentzVector()
 						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 											 tree['truthVtx_outP_eta'][ivx][i],

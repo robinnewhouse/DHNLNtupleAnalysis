@@ -712,6 +712,7 @@ class Analysis(object):
 
 
 	def preSelection(self):
+		print (self.tree.ievt)
 		# if self.tree.max_entries == self.tree.ievt +1:
 		# 	print "number of events with prompt lepton trigger matched: ", self.events_with_trig_match_plep
 		# 	print "number of events with disp. lepton trigger matched: ", self.events_with_trig_match_dlep
@@ -816,6 +817,12 @@ class Analysis(object):
 		Calculates and stores event weight only for event-level scale factors
 		Do not use this for final signal weighting. These weights must be combined with
 		the object-level scale factors.
+
+		In general the weight is equal to (cross section weight * spin correlations weight * pileup weight)
+		Due to the various models (single flavour mixing, inverted heiarchy (ih) and normal heiarchy (nh)),
+		different weights are computed and saved to the mini-trees.
+
+		These different weights can then be picked up by the limit setting framework to interpret the different models.
 		"""
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
 		self.MCEventType = selections.MCEventType(self.tree)  # if data then MCEventType weight defaults to 1
@@ -824,12 +831,54 @@ class Analysis(object):
 		mass_lt_weight_LNC_only_single_flavour = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, single_flavour_mixing = True)
 		mass_lt_weight_LNC_plus_LNV_single_flavour = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, single_flavour_mixing = True)
 
+		mass_lt_weight_LNC_only_ih = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, ih_mixing = True)
+		mass_lt_weight_LNC_plus_LNV_ih = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, ih_mixing = True)
+		mass_lt_weight_LNC_only_nh = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, nh_mixing = True)
+		mass_lt_weight_LNC_plus_LNV_nh = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, nh_mixing = True)
+
+		if self.tree.channel == "uue" or self.tree.channel == "eeu":
+			self.MCEventType_flip_e_and_mu = selections.MCEventType(self.tree, flip_e_and_mu = True) 
+			mass_lt_weight_LNC_only_ih_flip_e_and_mu = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, ih_mixing = True, flip_e_and_mu = True)
+			mass_lt_weight_LNC_plus_LNV_ih_flip_e_and_mu = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, ih_mixing = True, flip_e_and_mu = True)
+			mass_lt_weight_LNC_only_nh_flip_e_and_mu = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, nh_mixing = True, flip_e_and_mu = True)
+			mass_lt_weight_LNC_plus_LNV_nh_flip_e_and_mu = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, nh_mixing = True, flip_e_and_mu = True)
+
 		if self.weight_override is None:
+			# normal and inverted heiarchy weights
+			# uue or eeu weight
+			weight_LNC_only_ih = mass_lt_weight_LNC_only_ih * self.MCEventType.weight * self.tree['weight_pileup']
+			weight_LNC_only_nh = mass_lt_weight_LNC_only_nh * self.MCEventType.weight * self.tree['weight_pileup']
+			weight_LNC_plus_LNV_ih = mass_lt_weight_LNC_plus_LNV_ih * self.MCEventType.weight * self.tree['weight_pileup']
+			weight_LNC_plus_LNV_nh = mass_lt_weight_LNC_plus_LNV_nh * self.MCEventType.weight * self.tree['weight_pileup']
+			
+			if self.tree.channel == "uue" or self.tree.channel == "eeu":	
+				# compute a second weight for ueu or eue events
+				weight_LNC_only_ih_2 = mass_lt_weight_LNC_only_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight * self.tree['weight_pileup']
+				weight_LNC_only_nh_2 = mass_lt_weight_LNC_only_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight * self.tree['weight_pileup']
+				weight_LNC_plus_LNV_ih_2 = mass_lt_weight_LNC_plus_LNV_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight * self.tree['weight_pileup']
+				weight_LNC_plus_LNV_nh_2 = mass_lt_weight_LNC_plus_LNV_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight * self.tree['weight_pileup']
+				
+				# Total weight is the sum of the two events for models where HNL mixes with both e and mu
+				self.weight_LNC_only_ih = weight_LNC_only_ih + weight_LNC_only_ih_2
+				self.weight_LNC_only_nh = weight_LNC_only_nh + weight_LNC_only_nh_2
+				self.weight_LNC_plus_LNV_ih = weight_LNC_plus_LNV_ih + weight_LNC_plus_LNV_ih_2
+				self.weight_LNC_plus_LNV_nh = weight_LNC_plus_LNV_nh + weight_LNC_plus_LNV_nh_2
+			else:
+				self.weight_LNC_only_ih = weight_LNC_only_ih
+				self.weight_LNC_only_nh = weight_LNC_only_nh
+				self.weight_LNC_plus_LNV_ih = weight_LNC_plus_LNV_ih
+				self.weight_LNC_plus_LNV_nh = weight_LNC_plus_LNV_nh
+			
+			# single flavour mixing
 			self.weight_LNC_only = mass_lt_weight_LNC_only_single_flavour * self.MCEventType.weight * self.tree['weight_pileup']
 			self.weight_LNC_plus_LNV = mass_lt_weight_LNC_plus_LNV_single_flavour * self.MCEventType.weight * self.tree['weight_pileup']
 		else:
 			self.weight_LNC_only = self.weight_override
 			self.weight_LNC_plus_LNV = self.weight_override
+			self.weight_LNC_only_ih = self.weight_override
+			self.weight_LNC_only_nh = self.weight_override
+			self.weight_LNC_plus_LNV_ih = self.weight_override 
+			self.weight_LNC_plus_LNV_nh = self.weight_override
 
 	def DVSelection(self):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
@@ -1149,12 +1198,17 @@ class Analysis(object):
 				pass
 
 			# ____________________________________________________________
-			# fill the DV weight for LNC or LNV only model assumption (Dirac neutrino)
+			# Fill the DV weight for LNC or LNV only single flavour mixed model assumption (Dirac neutrino)
 			self.fill_hist(sel, 'DV_weight_LNC_only', self.weight_LNC_only)
+			self.fill_hist(sel, 'DV_weight_LNC_only_ih_model', self.weight_LNC_only_ih)
+			self.fill_hist(sel, 'DV_weight_LNC_only_nh_model', self.weight_LNC_only_nh)
+
 			# fill the DV weight for LNC plus LNV signal model assumption (Majorana neutrino)
 			# extra factor of 1/2 is from the U, m , ctau relationship changing due to there being twice
 			# as many decay channels open if the HNL can decay both LNC and LNV
 			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV', self.weight_LNC_plus_LNV)
+			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV_ih_model', self.weight_LNC_plus_LNV_ih)
+			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV_nh_model', self.weight_LNC_plus_LNV_nh)
 			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
 			self.fill_hist(sel, 'event_is_LNV', self.MCEventType.isLNV)
 
