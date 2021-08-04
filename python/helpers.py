@@ -123,27 +123,124 @@ class ReadBRdat:
 					return self.BReee[i]
 				if channel == 'eeu':
 					return self.BReeu[i]
+				if channel == 'uee':
+					return self.BReee[i]
+				if channel == 'euu':
+					return self.BRuuu[i]
 
+def hnl_xsec_single_flavour_mixing(channel, br, mass, ctau, LNC_only = True):
 
-def hnl_xsec(br, U2, mass):
+	# calculate Gronau coupling; parametrization depends on coupling flavour you are probing
+	if channel == 'uuu' or channel == 'uue' or channel == 'uee':
+		U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
+	if channel == 'eee' or channel == 'eeu' or channel == 'euu':
+		U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
+
+	# HNL decays in only a lepton-number conserving way
+	if LNC_only: k = 1
+	# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
+	else: k = 0.5
+
 	mW = 80.379  # mass of W boson in GeV
-	xsec = br * 20.6e6 * U2 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
+	xsec = br * 20.6e6 * k * U2Gronau * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
 	return xsec
 
+def hnl_xsec_generic_model(channel, br_single_flavour_mixing, mass, ctau, LNC_only = True, x_e = 1, x_mu = 0, x_tau = 0):
+	# HNL decays in only a lepton-number conserving way
+	if LNC_only: k = 1
+	# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
+	else: k = 0.5
 
-def get_mass_lt_weight(tree, lnc_plus_lnv=False):
+	#Gronau parametrization relates mass, coupling and lifetime
+
+	#constants for Gronau approx
+	tau_0_e = 4.15e-12 # in seconds
+	tau_0_mu = 4.49e-12  # in seconds
+	tau_0_tau = 1.08e-11  # in seconds	
+	b_e = 5.17
+	b_mu = 5.19
+	b_tau = 5.44
+
+	e_term   = x_e   * mass ** b_e / (tau_0_e * 3e8) # in 1/m 
+	mu_term  = x_mu  * mass ** b_mu / (tau_0_mu * 3e8) # in 1/m 
+	tau_term = x_tau * mass ** b_tau / (tau_0_tau * 3e8) # in 1/m 
+
+	U2Gronau = (1 / (ctau / 1000))*(1 / (mu_term + e_term + tau_term )) # unitless (ctau is in mm )
+	
+	# compute branching ratios with single flavour mixing. 
+	# Get partial widths by multiplying br total width from single flavour mixing
+	if channel == "uuu" or channel == "uue" or channel == "euu" or channel == "eue":
+		tau_0_single_flavour = tau_0_mu	
+		b_single_flavour = b_mu
+	elif channel == "eee" or channel == "eeu" or channel == "uee" or channel == "ueu": 
+		tau_0_single_flavour = tau_0_e
+		b_single_flavour = b_e
+	else:
+		logger.error("Can't determine the what constants to use to compute the partial width. Please check your sample!")
+		sys.exit(1) # abort becuase of an error
+	# total width with unit coupling
+	total_width_single_flavour_mixing =  mass**b_single_flavour / (tau_0_single_flavour *3e8) # in 1/m
+	
+	# partial width should be independent of the interpretation
+	# Used single flavour mixing br numbers to compute the partial widths
+	partial_width = br_single_flavour_mixing * total_width_single_flavour_mixing
+
+	# define the prod and decay ratios depending on the channel
+	if channel == 'uuu' or channel == 'uue': 
+		x_prod  = x_mu
+		x_decay = x_mu
+	if channel == 'eee' or channel == 'eeu': 
+		x_prod  = x_e
+		x_decay = x_e
+	if channel == 'ueu' or channel == 'uee': 
+		x_prod  = x_mu
+		x_decay = x_e
+	if channel == 'eue' or channel == 'euu':
+		x_prod  = x_e
+		x_decay = x_mu
+
+	mW = 80.379  # mass of W boson in GeV
+	xsec = 20.6e6 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2)) * partial_width * k *  U2Gronau ** 2 * (ctau/1000) * x_prod * x_decay  # in fb
+	return xsec
+
+def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = False, ih_mixing = False, nh_mixing = False, flip_e_and_mu = False):
 	"""
 	Calculates the weight of the event based on the Gronau parametrization
 	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
 	Sets the weight of events for this tree
 	@param tree: Tree object with mass and lifetime info
 	@param lnc_plus_lnv: if both lnc and lnv decays are possible then lifetime is reduced by a factor of 2
+	@parm single_flavour_mixing:  use single flavour mixing model
+	@parm ih_mixing: use inverted heiarchy model
+	@parm nh_mixing: use normal heiarchy model
 	@return: calculated weight.
 	"""
 	mass = tree.mass  # GeV
 	ctau = tree.ctau  # mm
 	mc_campaign = tree.mc_campaign
 	channel = tree.channel
+
+	# Overwrite channel name if flip_e_and_mu is true!
+	if channel == "uue" and flip_e_and_mu: channel = "ueu"
+	if channel == "eeu" and flip_e_and_mu: channel = "eue"
+	
+	if single_flavour_mixing: 
+		if channel == "uuu" or channel == "uue" or channel == "uee" or channel == "ueu":
+			x_e = 0
+			x_mu = 1
+			x_tau = 0
+		if channel == "eee" or channel == "eeu" or channel == "euu" or channel == "eue":
+			x_e = 1
+			x_mu = 0
+			x_tau = 0
+	elif ih_mixing:
+		x_e = 1.0/3.0 
+		x_mu = 1.0/3.0
+		x_tau = 1.0/3.0
+	elif nh_mixing:
+		x_e   = 0.06
+		x_mu  = 0.48	
+		x_tau = 0.46
 
 	if mass == -1 or ctau == -1:  # MC weighting error
 		logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
@@ -156,18 +253,11 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False):
 	if tree.is_data or tree.not_hnl_mc:  # you are running on data non non-hnl MC
 		return 1
 	else:  # you are running on a signal MC file
-		# calculate Gronau coupling; parametrization depends on coupling flavour you are probing
-		if channel == 'uuu' or channel == 'uue':
-			U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
-		if channel == 'eee' or channel == 'eeu':
-			U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
+		xsec_LNC_only = hnl_xsec_generic_model(channel = channel, x_e = x_e, x_mu = x_mu, x_tau = x_tau, 
+								br_single_flavour_mixing=tree.br, mass=mass, ctau = ctau, LNC_only = True)  # in fb
+		xsec_LNC_plus_LNV = hnl_xsec_generic_model(channel= channel, x_e = x_e, x_mu = x_mu, x_tau = x_tau, 
+								br_single_flavour_mixing=tree.br, mass=mass, ctau = ctau, LNC_only = False)  # in fb
 
-		# HNL decays in only a lepton-number conserving way
-		U2_LNC_only = U2Gronau
-		xsec_LNC_only = hnl_xsec(br=tree.br, U2=U2_LNC_only, mass=mass)  # in fb
-		# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
-		U2_LNC_plus_LNV = 0.5 * U2Gronau
-		xsec_LNC_plus_LNV = hnl_xsec(br=tree.br, U2=U2_LNC_plus_LNV, mass=mass)  # in fb
 		# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
 		# LNC and LNV branches are split into into separate LNC and LNV branches
 		# total num. of MC events = (tree.all_entries / 2) because pythia samples have a 50% mix of LNC+ LNV
@@ -187,6 +277,7 @@ class Truth:
 		self.dNu_vec = ROOT.TLorentzVector()
 		self.trkVec = []
 		self.dLepVec = []
+		self.dLep_pdgID = []
 		self.dLepCharge = []
 		self.dEl = []
 		self.dEl_charge = []
@@ -278,6 +369,8 @@ class Truth:
 							self.dNu_vec = nu_vec
 
 					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
+						dLep_pdgID =  abs(tree['truthVtx_outP_pdgId'][ivx][i])
+						self.dLep_pdgID.append(dLep_pdgID)
 						dLepVec = ROOT.TLorentzVector()
 						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
 											 tree['truthVtx_outP_eta'][ivx][i],
@@ -772,6 +865,78 @@ class MCInfo:
 		mc_info[313013] = ["eeu", "20G", "lt1dd"]
 		mc_info[313014] = ["eeu", "20G", "lt10dd"]
 		mc_info[313015] = ["eeu", "20G", "lt100dd"]
+		mc_info[313419] = ["uee", "3G", "lt1dd"]
+		mc_info[313420] = ["uee", "3G", "lt10dd"]
+		mc_info[313421] = ["uee", "3G", "lt100dd"]
+		mc_info[313422] = ["euu", "3G", "lt1dd"]
+		mc_info[313423] = ["euu", "3G", "lt10dd"]
+		mc_info[313424] = ["euu", "3G", "lt100dd"]
+		mc_info[313425] = ["uee", "4G", "lt1dd"]
+		mc_info[313426] = ["uee", "4G", "lt10dd"]
+		mc_info[313427] = ["uee", "4G", "lt100dd"]
+		mc_info[313428] = ["euu", "4G", "lt1dd"]
+		mc_info[313429] = ["euu", "4G", "lt10dd"]
+		mc_info[313430] = ["euu", "4G", "lt100dd"]
+		mc_info[313431] = ["uee", "4p5G", "lt1dd"]
+		mc_info[313432] = ["uee", "4p5G", "lt10dd"]
+		mc_info[313433] = ["uee", "4p5G", "lt100dd"]
+		mc_info[313434] = ["euu", "4p5G", "lt1dd"]
+		mc_info[313435] = ["euu", "4p5G", "lt10dd"]
+		mc_info[313436] = ["euu", "4p5G", "lt100dd"]
+		mc_info[313437] = ["uee", "5G", "lt1dd"]
+		mc_info[313438] = ["uee", "5G", "lt10dd"]
+		mc_info[313439] = ["uee", "5G", "lt100dd"]
+		mc_info[313440] = ["euu", "5G", "lt1dd"]
+		mc_info[313441] = ["euu", "5G", "lt10dd"]
+		mc_info[313442] = ["euu", "5G", "lt100dd"]
+		mc_info[313443] = ["uee", "7p5G", "lt1dd"]
+		mc_info[313444] = ["uee", "7p5G", "lt10dd"]
+		mc_info[313445] = ["uee", "7p5G", "lt100dd"]
+		mc_info[313446] = ["euu", "7p5G", "lt1dd"]
+		mc_info[313447] = ["euu", "7p5G", "lt10dd"]
+		mc_info[313448] = ["euu", "7p5G", "lt100dd"]
+		mc_info[313449] = ["uee", "10G", "lt1dd"]
+		mc_info[313450] = ["uee", "10G", "lt10dd"]
+		mc_info[313451] = ["uee", "10G", "lt100dd"]
+		mc_info[313452] = ["euu", "10G", "lt1dd"]
+		mc_info[313453] = ["euu", "10G", "lt10dd"]
+		mc_info[313454] = ["euu", "10G", "lt100dd"]
+		mc_info[313455] = ["uee", "12p5G", "lt1dd"]
+		mc_info[313456] = ["uee", "12p5G", "lt10dd"]
+		mc_info[313457] = ["uee", "12p5G", "lt100dd"]
+		mc_info[313458] = ["euu", "12p5G", "lt1dd"]
+		mc_info[313459] = ["euu", "12p5G", "lt10dd"]
+		mc_info[313460] = ["euu", "12p5G", "lt100dd"]
+		mc_info[313461] = ["uee", "15G", "lt1dd"]
+		mc_info[313462] = ["uee", "15G", "lt10dd"]
+		mc_info[313463] = ["uee", "15G", "lt100dd"]
+		mc_info[313464] = ["euu", "15G", "lt1dd"]
+		mc_info[313465] = ["euu", "15G", "lt10dd"]
+		mc_info[313466] = ["euu", "15G", "lt100dd"]
+		mc_info[313467] = ["uee", "17p5G", "lt1dd"]
+		mc_info[313468] = ["uee", "17p5G", "lt10dd"]
+		mc_info[313469] = ["uee", "17p5G", "lt100dd"]
+		mc_info[313470] = ["euu", "17p5G", "lt1dd"]
+		mc_info[313471] = ["euu", "17p5G", "lt10dd"]
+		mc_info[313472] = ["euu", "17p5G", "lt100dd"]
+		mc_info[313473] = ["uee", "20G", "lt1dd"]
+		mc_info[313474] = ["uee", "20G", "lt10dd"]
+		mc_info[313475] = ["uee", "20G", "lt100dd"]
+		mc_info[313476] = ["euu", "20G", "lt1dd"]
+		mc_info[313477] = ["euu", "20G", "lt10dd"]
+		mc_info[313478] = ["euu", "20G", "lt100dd"]
+		mc_info[313479] = ["uue", "2p5G", "lt1dd"]
+		mc_info[313480] = ["uue", "2p5G", "lt10dd"]
+		mc_info[313481] = ["uue", "2p5G", "lt100dd"]
+		mc_info[313482] = ["eeu", "2p5G", "lt1dd"]
+		mc_info[313483] = ["eeu", "2p5G", "lt10dd"]
+		mc_info[313484] = ["eeu", "2p5G", "lt100dd"]
+		mc_info[313485] = ["utt", "10G", "lt1dd"]
+		mc_info[313486] = ["utt", "10G", "lt10dd"]
+		mc_info[313487] = ["utt", "10G", "lt100dd"]
+		mc_info[313488] = ["ett", "10G", "lt1dd"]
+		mc_info[313489] = ["ett", "10G", "lt10dd"]
+		mc_info[313490] = ["ett", "10G", "lt100dd"]
 
 		if dsid is None:
 			logger.warning("No dsid")
@@ -781,8 +946,9 @@ class MCInfo:
 		else:
 			pmuon_dsid = (311602 <= dsid) and (dsid <= 311661)
 			pel_dsid = (312956 <= dsid) and (dsid <= 313015)
+			mixed_coupling_dsid =  (313419 <= dsid) and (dsid <= 313490)
 
-			if pmuon_dsid or pel_dsid:
+			if pmuon_dsid or pel_dsid or mixed_coupling_dsid:
 				self.mass_str = mc_info[dsid][1]
 				self.ctau_str = mc_info[dsid][2]
 				self.ch_str = mc_info[dsid][0]

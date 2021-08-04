@@ -1240,6 +1240,11 @@ class PV:
 class MCEventType:
 	"""
 	Matrix elements for the trilepton process, when only the charged-current contribution is present.
+	
+	@param wrong_lep_order: default True.  Used to reweight Pythia samples that were generated with
+											the leptons in the wrong order (rel. 21 samples)
+	@param flip_e_and_mu: default False. Used to switch which fermion leg the electron and muon 
+										 are in the HNL decay diagram. This is used to generate weights
 
 	Input:
 	- All masses are in GeV, and all Mandelstam variables in GeV^2.
@@ -1261,7 +1266,7 @@ class MCEventType:
 	  In particular: M2_nocorr = M2_LNC + M2_LNV.
 	"""
 
-	def __init__(self, tree, wrong_lep_order=True):
+	def __init__(self, tree, wrong_lep_order=True, flip_e_and_mu= False):
 		self.weight = 1  # if not data weight is default, event is neither LNC or LNV
 		self.M2_spin_corr = -1
 		self.M2_nocorr = -1
@@ -1294,6 +1299,10 @@ class MCEventType:
 				self.p_2 = truth_info.dLepVec[0]
 				self.p_3 = truth_info.dLepVec[1]
 				self.p_4 = truth_info.dLepVec[2]
+				if flip_e_and_mu:
+					self.p_2 = truth_info.dLepVec[1]
+					self.p_3 = truth_info.dLepVec[0]
+					self.p_4 = truth_info.dLepVec[2]
 			else:
 				self.p_2 = truth_info.dLepVec[2]
 				self.p_3 = truth_info.dLepVec[0]
