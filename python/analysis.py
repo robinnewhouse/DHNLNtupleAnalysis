@@ -874,8 +874,6 @@ class Analysis(object):
 			# Single flavour mixing
 			self.weight_LNC_only = mass_lt_weight_LNC_only_single_flavour * self.MCEventType.weight * self.tree['weight_pileup']
 			self.weight_LNC_plus_LNV = mass_lt_weight_LNC_plus_LNV_single_flavour * self.MCEventType.weight * self.tree['weight_pileup']
-
-			print(self.weight_LNC_only)
 		else:
 			self.weight_LNC_only = self.weight_override
 			self.weight_LNC_plus_LNV = self.weight_override
@@ -892,12 +890,18 @@ class Analysis(object):
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin)
-				self.CutFlow_LNC_weighted.Fill(nbin, self.weight_LNC_only)  # weight LNC only
+				self.CutFlow_LNC_weighted.Fill(nbin, self.weight_LNC_only)  # weight LNC only single flavour model
+				self.CutFlow_LNC_weighted_ih.Fill(nbin, self.weight_LNC_only_ih)  # weight LNC only inverted heiarchy model
+				self.CutFlow_LNC_weighted_nh.Fill(nbin, self.weight_LNC_only_nh)  # weight LNC only normal heiarchy model
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.Fill(nbin)
 				self.CutFlow_LNV_weighted.Fill(nbin, self.weight_LNC_only)  # weight LNC only since LNV events are scaled to 100% LNV (do not include extra factor of 2 for LNC+LNV model)
+				self.CutFlow_LNV_weighted_ih.Fill(nbin, self.weight_LNC_only_ih)
+				self.CutFlow_LNV_weighted_nh.Fill(nbin, self.weight_LNC_only_nh)
 			self.CutFlow.Fill(nbin)
-			self.CutFlow_LNC_plus_LNV.Fill(nbin, self.weight_LNC_plus_LNV)
+			self.CutFlow_LNC_plus_LNV.Fill(nbin, self.weight_LNC_plus_LNV) # single flavour mixing
+			self.CutFlow_LNC_plus_LNV_ih.Fill(nbin, self.weight_LNC_plus_LNV_ih) # inverted heiarchy
+			self.CutFlow_LNC_plus_LNV_nh.Fill(nbin, self.weight_LNC_plus_LNV_nh) # normal heiarchy
 		else:
 			self.CutFlow.Fill(nbin)
 
@@ -1211,14 +1215,14 @@ class Analysis(object):
 			# ____________________________________________________________
 			# Fill the DV weight for LNC or LNV only single flavour mixed model assumption (Dirac neutrino)
 			self.fill_hist(sel, 'DV_weight_LNC_only', self.weight_LNC_only)
-			self.fill_hist(sel, 'DV_weight_LNC_only_ih_model', self.weight_LNC_only_ih)
-			self.fill_hist(sel, 'DV_weight_LNC_only_nh_model', self.weight_LNC_only_nh)
+			self.fill_hist(sel, 'DV_weight_LNC_only_ih', self.weight_LNC_only_ih)
+			self.fill_hist(sel, 'DV_weight_LNC_only_nh', self.weight_LNC_only_nh)
 			# fill the DV weight for LNC plus LNV signal model assumption (Majorana neutrino)
 			# extra factor of 1/2 is from the U, m , ctau relationship changing due to there being twice
 			# as many decay channels open if the HNL can decay both LNC and LNV
 			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV', self.weight_LNC_plus_LNV)
-			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV_ih_model', self.weight_LNC_plus_LNV_ih)
-			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV_nh_model', self.weight_LNC_plus_LNV_nh)
+			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV_ih', self.weight_LNC_plus_LNV_ih)
+			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV_nh', self.weight_LNC_plus_LNV_nh)
 			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
 			self.fill_hist(sel, 'event_is_LNV', self.MCEventType.isLNV)
 
@@ -1870,6 +1874,14 @@ class run2Analysis(Analysis):
 		self.CutFlow_LNC_plus_LNV = self.CutFlow.Clone()
 		self.CutFlow_LNC_plus_LNV.SetName("CutFlow_LNC_plus_LNV"+"_"+self.ch)
 		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_plus_LNV'] = self.CutFlow_LNC_plus_LNV
+		self.CutFlow_LNC_plus_LNV_ih = self.CutFlow.Clone()
+		self.CutFlow_LNC_plus_LNV_ih.SetName("CutFlow_LNC_plus_LNV_ih"+"_"+self.ch)
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_plus_LNV_ih'] = self.CutFlow_LNC_plus_LNV_ih
+		self.CutFlow_LNC_plus_LNV_nh = self.CutFlow.Clone()
+		self.CutFlow_LNC_plus_LNV_nh.SetName("CutFlow_LNC_plus_LNV_nh"+"_"+self.ch)
+		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_plus_LNV_nh'] = self.CutFlow_LNC_plus_LNV_nh
+
+
 		# Store LNC and LNV cutflows in the observables collection
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self.CutFlow_LNV = self.CutFlow.Clone()
@@ -1878,13 +1890,26 @@ class run2Analysis(Analysis):
 			self.CutFlow_LNC.SetName("CutFlow_LNC"+"_"+self.ch)
 			self.CutFlow_LNV_weighted = self.CutFlow.Clone()
 			self.CutFlow_LNC_weighted = self.CutFlow.Clone()
+			self.CutFlow_LNV_weighted_ih = self.CutFlow.Clone()
+			self.CutFlow_LNC_weighted_ih = self.CutFlow.Clone()
+			self.CutFlow_LNV_weighted_nh = self.CutFlow.Clone()
+			self.CutFlow_LNC_weighted_nh = self.CutFlow.Clone()
 			self.CutFlow_LNV_weighted.SetName("CutFlow_weighted_LNV"+"_"+self.ch)
 			self.CutFlow_LNC_weighted.SetName("CutFlow_weighted_LNC"+"_"+self.ch)
-
+			self.CutFlow_LNV_weighted_ih.SetName("CutFlow_weighted_ih_LNV"+"_"+self.ch)
+			self.CutFlow_LNC_weighted_ih.SetName("CutFlow_weighted_ih_LNC"+"_"+self.ch)
+			self.CutFlow_LNV_weighted_nh.SetName("CutFlow_weighted_nh_LNV"+"_"+self.ch)
+			self.CutFlow_LNC_weighted_nh.SetName("CutFlow_weighted_nh_LNC"+"_"+self.ch)
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV'] = self.CutFlow_LNV
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_LNV'] = self.CutFlow_LNV_weighted
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_LNC'] = self.CutFlow_LNC_weighted
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_ih_LNV'] = self.CutFlow_LNV_weighted_ih
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_ih_LNC'] = self.CutFlow_LNC_weighted_ih
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_nh_LNV'] = self.CutFlow_LNV_weighted_nh
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_nh_LNC'] = self.CutFlow_LNC_weighted_nh
+
+
 
 	def DVSelection(self):
 		######################################################################################################
