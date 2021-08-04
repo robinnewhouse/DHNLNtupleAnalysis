@@ -946,8 +946,9 @@ class MCInfo:
 		else:
 			pmuon_dsid = (311602 <= dsid) and (dsid <= 311661)
 			pel_dsid = (312956 <= dsid) and (dsid <= 313015)
+			mixed_coupling_dsid =  (313419 <= dsid) and (dsid <= 313490)
 
-			if pmuon_dsid or pel_dsid:
+			if pmuon_dsid or pel_dsid or mixed_coupling_dsid:
 				self.mass_str = mc_info[dsid][1]
 				self.ctau_str = mc_info[dsid][2]
 				self.ch_str = mc_info[dsid][0]
