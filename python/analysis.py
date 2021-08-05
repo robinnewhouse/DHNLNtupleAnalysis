@@ -1654,7 +1654,7 @@ class Analysis(object):
 
 				if self.dv_type == "mumu":
 					# Get the truth index (truth matching by charge)
-					if not self.tree.not_hnl_mc and self.tree.mc_ch_str != "utt":
+					if not self.tree.not_hnl_mc and 'tt' not in self.tree.mc_ch_str:
 						print("passed check!!!")
 						if self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[0]: trk_0_truth_index = 0
 						elif self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[1]: trk_0_truth_index = 1
@@ -1673,12 +1673,12 @@ class Analysis(object):
 
 				if self.dv_type == "emu":
 					# truth d0 # it looks like these are already matched so track0 is always the muon. Could that be?
-					if not self.tree.not_hnl_mc and self.tree.mc_ch_str != "utt":
+					if not self.tree.not_hnl_mc and 'tt' not in self.tree.mc_ch_str:
 						self.fill_hist(sel, 'DV_trk_0_d0_truth', truth_info.dMu_d0[0])
 						self.fill_hist(sel, 'DV_trk_1_d0_truth', truth_info.dEl_d0[0])
 
 				if self.dv_type == "ee":
-					if not self.tree.not_hnl_mc and self.tree.mc_ch_str != "utt":
+					if not self.tree.not_hnl_mc and 'tt' not in self.tree.mc_ch_str:
 						# Get the truth index (truth matching by charge)
 						if self.tree.dv('trk_charge')[0] == truth_info.dEl_charge[0]: trk_0_truth_index = 0
 						elif self.tree.dv('trk_charge')[0] == truth_info.dEl_charge[1]: trk_0_truth_index = 1
