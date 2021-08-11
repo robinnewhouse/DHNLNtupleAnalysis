@@ -3,6 +3,7 @@ import numpy as np
 import sys
 import os
 import time
+import json
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
@@ -39,6 +40,30 @@ def get_debug_level(level):
 	elif level == "ERROR":
 		debug_level = logging.ERROR
 	return debug_level
+
+
+
+class ReadBRjson:
+	def __init__(self, filename):
+		with open(filename) as fp:
+			self.branchings = json.load(fp)
+		
+		
+	
+	def get_BR(self, channel, mass, model):
+		mass_str = str(int(mass))
+		if   channel == "uuu": decay_str = "mmv"
+		elif channel == "uue": decay_str = "mev"
+		elif channel == "ueu": decay_str = "emv"
+		elif channel == "uee": decay_str = "eev"
+		elif channel == "eee": decay_str = "eev"
+		elif channel == "eeu": decay_str = "emv"
+		elif channel == "eue": decay_str = "mev"
+		elif channel == "euu": decay_str = "mmv"
+
+		br = self.branchings[mass_str][decay_str][model]
+
+		return br
 
 
 class ReadBRdat:
@@ -145,7 +170,7 @@ def hnl_xsec_single_flavour_mixing(channel, br, mass, ctau, LNC_only = True):
 	xsec = br * 20.6e6 * k * U2Gronau * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
 	return xsec
 
-def hnl_xsec_generic_model(channel, br_single_flavour_mixing, mass, ctau, LNC_only = True, x_e = 1, x_mu = 0, x_tau = 0):
+def hnl_xsec_generic_model(channel, br, mass, ctau, LNC_only = True, x_e = 1, x_mu = 0, x_tau = 0, U2 = None):
 	# HNL decays in only a lepton-number conserving way
 	if LNC_only: k = 1
 	# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
@@ -167,23 +192,23 @@ def hnl_xsec_generic_model(channel, br_single_flavour_mixing, mass, ctau, LNC_on
 
 	U2Gronau = (1 / (ctau / 1000))*(1 / (mu_term + e_term + tau_term )) # unitless (ctau is in mm )
 	
-	# compute branching ratios with single flavour mixing. 
-	# Get partial widths by multiplying br total width from single flavour mixing
-	if channel == "uuu" or channel == "uue" or channel == "euu" or channel == "eue":
-		tau_0_single_flavour = tau_0_mu	
-		b_single_flavour = b_mu
-	elif channel == "eee" or channel == "eeu" or channel == "uee" or channel == "ueu": 
-		tau_0_single_flavour = tau_0_e
-		b_single_flavour = b_e
-	else:
-		logger.error("Can't determine the what constants to use to compute the partial width. Please check your sample!")
-		sys.exit(1) # abort becuase of an error
-	# total width with unit coupling
-	total_width_single_flavour_mixing =  mass**b_single_flavour / (tau_0_single_flavour *3e8) # in 1/m
+	# # compute branching ratios with single flavour mixing. 
+	# # Get partial widths by multiplying br total width from single flavour mixing
+	# if channel == "uuu" or channel == "uue" or channel == "euu" or channel == "eue":
+	# 	tau_0_single_flavour = tau_0_mu	
+	# 	b_single_flavour = b_mu
+	# elif channel == "eee" or channel == "eeu" or channel == "uee" or channel == "ueu": 
+	# 	tau_0_single_flavour = tau_0_e
+	# 	b_single_flavour = b_e
+	# else:
+	# 	logger.error("Can't determine the what constants to use to compute the partial width. Please check your sample!")
+	# 	sys.exit(1) # abort becuase of an error
+	# # total width with unit coupling
+	# total_width_single_flavour_mixing =  mass**b_single_flavour / (tau_0_single_flavour *3e8) # in 1/m
 	
-	# partial width should be independent of the interpretation
-	# Used single flavour mixing br numbers to compute the partial widths
-	partial_width = br_single_flavour_mixing * total_width_single_flavour_mixing
+	# # partial width should be independent of the interpretation
+	# # Used single flavour mixing br numbers to compute the partial widths
+	# partial_width = br_single_flavour_mixing * total_width_single_flavour_mixing
 
 	# define the prod and decay ratios depending on the channel
 	if channel == 'uuu' or channel == 'uue': 
@@ -198,9 +223,11 @@ def hnl_xsec_generic_model(channel, br_single_flavour_mixing, mass, ctau, LNC_on
 	if channel == 'eue' or channel == 'euu':
 		x_prod  = x_e
 		x_decay = x_mu
+	# print("gronau coupling: ", U2Gronau)
 
 	mW = 80.379  # mass of W boson in GeV
-	xsec = 20.6e6 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2)) * partial_width * k *  U2Gronau ** 2 * (ctau/1000) * x_prod * x_decay  # in fb
+	xsec = 20.6e6 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  * x_prod *  U2Gronau  * br * k # in fb
+
 	return xsec
 
 def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = False, ih_mixing = False, nh_mixing = False, flip_e_and_mu = False):
@@ -226,21 +253,34 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = False, 
 	
 	if single_flavour_mixing: 
 		if channel == "uuu" or channel == "uue" or channel == "uee" or channel == "ueu":
+			model = "mu_only"
 			x_e = 0
 			x_mu = 1
 			x_tau = 0
 		if channel == "eee" or channel == "eeu" or channel == "euu" or channel == "eue":
+			model = "e_only"
 			x_e = 1
 			x_mu = 0
-			x_tau = 0
+			x_tau = 0 
 	elif ih_mixing:
+		model = "IH"
 		x_e = 1.0/3.0 
 		x_mu = 1.0/3.0
 		x_tau = 1.0/3.0
 	elif nh_mixing:
+		model = "NH"
 		x_e   = 0.06
 		x_mu  = 0.48	
 		x_tau = 0.46
+	
+
+	#  BR files contain a dictionaries of BR[mass][decay][model] for signal-flavour mixing, NH and IH models.
+	#  BranchingRatios_DifferentMixings_Gronau_lifetime.json computes lifetime via Gronau formulas and thus has 10-20% difference
+	#  BranchingRatios_DifferentMixings_Olegs_lifetime.json computes lifetime as the sum over all exclusive channel 
+	#  As of Aug 11 2021 using the BranchingRatios_DifferentMixings_Gronau_lifetime.json file and the Gronau approximation. -DT
+
+	f_br = ReadBRjson(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Olegs_lifetime.json')
+	br = f_br.get_BR(channel, mass, model)
 
 	if mass == -1 or ctau == -1:  # MC weighting error
 		logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
@@ -253,10 +293,16 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = False, 
 	if tree.is_data or tree.not_hnl_mc:  # you are running on data non non-hnl MC
 		return 1
 	else:  # you are running on a signal MC file
+		# print (channel, mass, ctau)
+		# print('branching ratio: ', round(br,5))
+
 		xsec_LNC_only = hnl_xsec_generic_model(channel = channel, x_e = x_e, x_mu = x_mu, x_tau = x_tau, 
-								br_single_flavour_mixing=tree.br, mass=mass, ctau = ctau, LNC_only = True)  # in fb
+								br= br, mass=mass, ctau = ctau, LNC_only = True)  # in fb
 		xsec_LNC_plus_LNV = hnl_xsec_generic_model(channel= channel, x_e = x_e, x_mu = x_mu, x_tau = x_tau, 
-								br_single_flavour_mixing=tree.br, mass=mass, ctau = ctau, LNC_only = False)  # in fb
+								br= br, mass=mass, ctau = ctau, LNC_only = False)  # in fb
+		
+		# print("%s LNC+LNV xsec: %s fb "%(model, round(xsec_LNC_plus_LNV,5)) )
+		# print(" ")
 
 		# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
 		# LNC and LNV branches are split into into separate LNC and LNV branches
@@ -737,9 +783,6 @@ class FileInfo:
 		if self.mass_str: self.output_filename += "_" + self.mass_str
 		if self.ctau_str: self.output_filename += "_" + self.ctau_str
 		self.output_filename += "_" + channel + ".root"
-
-		f_br = ReadBRdat(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/HNL_branching_20GeV.dat')
-		self.br = f_br.get_BR(channel, self.mass)
 
 
 class MCInfo:
