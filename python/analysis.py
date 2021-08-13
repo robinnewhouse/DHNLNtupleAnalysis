@@ -1192,9 +1192,33 @@ class Analysis(object):
 				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 			else: self.micro_ntuples[sel].fill()
 
+	def _fill_systematic_branches(self, sel):
+		"""
+		Fills the branches to be used for systematic variations.
+		These systematic weights should be applied by multiplication with the existing event weight.
+		This is done in the statistical interpretation framework.
+		@param sel: selection step in cuts
+		"""
+		lepton_reco_sf_nominal = scale_factors.get_reco_scale_factor(self, systematic='nominal')
+		lepton_reco_sf_up = scale_factors.get_reco_scale_factor(self, systematic='up')
+		lepton_reco_sf_down = scale_factors.get_reco_scale_factor(self, systematic='down')
+		self.fill_hist(sel, 'lepton_reco_sf_1UP', lepton_reco_sf_up / lepton_reco_sf_nominal)
+		self.fill_hist(sel, 'lepton_reco_sf_1DOWN', lepton_reco_sf_down / lepton_reco_sf_nominal)
+
+		lepton_trigger_sf_nominal = scale_factors.get_trigger_scale_factor(self, systematic='nominal')
+		lepton_trigger_sf_up = scale_factors.get_trigger_scale_factor(self, systematic='up')
+		lepton_trigger_sf_down = scale_factors.get_trigger_scale_factor(self, systematic='down')
+		self.fill_hist(sel, 'lepton_trigger_sf_1UP', lepton_trigger_sf_up / lepton_trigger_sf_nominal)
+		self.fill_hist(sel, 'lepton_trigger_sf_1DOWN', lepton_trigger_sf_down / lepton_trigger_sf_nominal)
+
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
 		if self._locked < FILL_LOCKED and do_lock:
 			# these are the histograms you only want to fill ONCE per DV
+
+			# ____________________________________________________________
+			# Systematics
+			if self.saveNtuples == sel:
+				self._fill_systematic_branches(sel)
 
 			# ____________________________________________________________
 			# pileup (not to be used for full SF)
