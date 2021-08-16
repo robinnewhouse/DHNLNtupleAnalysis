@@ -40,6 +40,21 @@ class Analysis(object):
 		self.events_with_trig_match_dlep = 0
 		self.events_with_trig_match_both_pdlep =0
 
+		# prepare systematics
+		self.lepton_reco_sf = {'nominal': 1,
+							   'MUON_EFF_RECO_SYS__1down': 1,
+							   'MUON_EFF_RECO_SYS__1up': 1,
+							   'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
+							   'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1,
+							   'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
+							   'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1, }
+		self.lepton_trig_sf = {'nominal': 1,
+							   'MUON_EFF_TrigSystUncertainty__1down': 1,
+							   'MUON_EFF_TrigSystUncertainty__1up': 1,
+							   'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
+							   'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1,
+							   }
+
 		# setting all the relevant variables for the cuts based on the input selections
 		# trigger cut
 		self.do_trigger_cut = False
@@ -846,18 +861,18 @@ class Analysis(object):
 
 
 		if self.weight_override is None:
-			# Normal and inverted heiarchy weights
-			weight_LNC_only_ih = mass_lt_weight_LNC_only_ih * self.MCEventType.weight * self.tree['weight_pileup']
-			weight_LNC_only_nh = mass_lt_weight_LNC_only_nh * self.MCEventType.weight * self.tree['weight_pileup']
-			weight_LNC_plus_LNV_ih = mass_lt_weight_LNC_plus_LNV_ih * self.MCEventType.weight * self.tree['weight_pileup']
-			weight_LNC_plus_LNV_nh = mass_lt_weight_LNC_plus_LNV_nh * self.MCEventType.weight * self.tree['weight_pileup']
+			# Normal and inverted hierarchy weights
+			weight_LNC_only_ih = mass_lt_weight_LNC_only_ih * self.MCEventType.weight
+			weight_LNC_only_nh = mass_lt_weight_LNC_only_nh * self.MCEventType.weight
+			weight_LNC_plus_LNV_ih = mass_lt_weight_LNC_plus_LNV_ih * self.MCEventType.weight
+			weight_LNC_plus_LNV_nh = mass_lt_weight_LNC_plus_LNV_nh * self.MCEventType.weight
 
 			if self.tree.channel == "uue" or self.tree.channel == "eeu":
 				# Compute a second weight to reweight uue --> ueu  or eeu --> eue	
-				weight_LNC_only_ih_2 = mass_lt_weight_LNC_only_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight * self.tree['weight_pileup']
-				weight_LNC_only_nh_2 = mass_lt_weight_LNC_only_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight * self.tree['weight_pileup']
-				weight_LNC_plus_LNV_ih_2 = mass_lt_weight_LNC_plus_LNV_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight * self.tree['weight_pileup']
-				weight_LNC_plus_LNV_nh_2 = mass_lt_weight_LNC_plus_LNV_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight * self.tree['weight_pileup']
+				weight_LNC_only_ih_2 = mass_lt_weight_LNC_only_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_LNC_only_nh_2 = mass_lt_weight_LNC_only_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_LNC_plus_LNV_ih_2 = mass_lt_weight_LNC_plus_LNV_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_LNC_plus_LNV_nh_2 = mass_lt_weight_LNC_plus_LNV_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
 
 				# Total weight is the sum of the two channels for models 
 				# where HNL mixes with both e and mu
@@ -872,8 +887,8 @@ class Analysis(object):
 				self.weight_LNC_plus_LNV_nh = weight_LNC_plus_LNV_nh
 
 			# Single flavour mixing
-			self.weight_LNC_only = mass_lt_weight_LNC_only_single_flavour * self.MCEventType.weight * self.tree['weight_pileup']
-			self.weight_LNC_plus_LNV = mass_lt_weight_LNC_plus_LNV_single_flavour * self.MCEventType.weight * self.tree['weight_pileup']
+			self.weight_LNC_only = mass_lt_weight_LNC_only_single_flavour * self.MCEventType.weight
+			self.weight_LNC_plus_LNV = mass_lt_weight_LNC_plus_LNV_single_flavour * self.MCEventType.weight
 		else:
 			self.weight_LNC_only = self.weight_override
 			self.weight_LNC_plus_LNV = self.weight_override
@@ -888,20 +903,22 @@ class Analysis(object):
 
 	def _fill_cutflow(self, nbin):
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
+			# store weighted cutflow with nominal scale factors
+			scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin)
-				self.CutFlow_LNC_weighted.Fill(nbin, self.weight_LNC_only)  # weight LNC only single flavour model
-				self.CutFlow_LNC_weighted_ih.Fill(nbin, self.weight_LNC_only_ih)  # weight LNC only inverted heiarchy model
-				self.CutFlow_LNC_weighted_nh.Fill(nbin, self.weight_LNC_only_nh)  # weight LNC only normal heiarchy model
+				self.CutFlow_LNC_weighted.Fill(nbin, self.weight_LNC_only * scale_factor)  # weight LNC only single flavour model
+				self.CutFlow_LNC_weighted_ih.Fill(nbin, self.weight_LNC_only_ih * scale_factor)  # weight LNC only inverted heiarchy model
+				self.CutFlow_LNC_weighted_nh.Fill(nbin, self.weight_LNC_only_nh * scale_factor)  # weight LNC only normal heiarchy model
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.Fill(nbin)
-				self.CutFlow_LNV_weighted.Fill(nbin, self.weight_LNC_only)  # weight LNC only since LNV events are scaled to 100% LNV (do not include extra factor of 2 for LNC+LNV model)
-				self.CutFlow_LNV_weighted_ih.Fill(nbin, self.weight_LNC_only_ih)
-				self.CutFlow_LNV_weighted_nh.Fill(nbin, self.weight_LNC_only_nh)
+				self.CutFlow_LNV_weighted.Fill(nbin, self.weight_LNC_only * scale_factor)  # weight LNC only since LNV events are scaled to 100% LNV (do not include extra factor of 2 for LNC+LNV model)
+				self.CutFlow_LNV_weighted_ih.Fill(nbin, self.weight_LNC_only_ih * scale_factor)
+				self.CutFlow_LNV_weighted_nh.Fill(nbin, self.weight_LNC_only_nh * scale_factor)
 			self.CutFlow.Fill(nbin)
-			self.CutFlow_LNC_plus_LNV.Fill(nbin, self.weight_LNC_plus_LNV) # single flavour mixing
-			self.CutFlow_LNC_plus_LNV_ih.Fill(nbin, self.weight_LNC_plus_LNV_ih) # inverted heiarchy
-			self.CutFlow_LNC_plus_LNV_nh.Fill(nbin, self.weight_LNC_plus_LNV_nh) # normal heiarchy
+			self.CutFlow_LNC_plus_LNV.Fill(nbin, self.weight_LNC_plus_LNV * scale_factor)  # single flavour mixing
+			self.CutFlow_LNC_plus_LNV_ih.Fill(nbin, self.weight_LNC_plus_LNV_ih * scale_factor)  # inverted heiarchy
+			self.CutFlow_LNC_plus_LNV_nh.Fill(nbin, self.weight_LNC_plus_LNV_nh * scale_factor)  # normal heiarchy
 		else:
 			self.CutFlow.Fill(nbin)
 
@@ -1195,21 +1212,24 @@ class Analysis(object):
 	def _fill_systematic_branches(self, sel):
 		"""
 		Fills the branches to be used for systematic variations.
-		These systematic weights should be applied by multiplication with the existing event weight.
+		These systematic weights (inc.uding nominal) should be applied by multiplication with the existing event weight.
 		This is done in the statistical interpretation framework.
 		@param sel: selection step in cuts
 		"""
-		lepton_reco_sf_nominal = scale_factors.get_reco_scale_factor(self, systematic='nominal')
-		lepton_reco_sf_up = scale_factors.get_reco_scale_factor(self, systematic='up')
-		lepton_reco_sf_down = scale_factors.get_reco_scale_factor(self, systematic='down')
-		self.fill_hist(sel, 'lepton_reco_sf_1UP', lepton_reco_sf_up / lepton_reco_sf_nominal)
-		self.fill_hist(sel, 'lepton_reco_sf_1DOWN', lepton_reco_sf_down / lepton_reco_sf_nominal)
+		# fill nominal branch
+		self.fill_hist(sel, 'SF_nominal', self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup'])
+		# vary lepton reconstruction systematics, hold rest nominal
+		for systematic in self.lepton_reco_sf.keys():
+			if systematic == 'nominal': continue
+			self.fill_hist(sel, 'SF_' + systematic, self.lepton_reco_sf[systematic] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup'])
+		# vary lepton trigger systematics, hold rest nominal
+		for systematic in self.lepton_trig_sf.keys():
+			if systematic == 'nominal': continue
+			self.fill_hist(sel, 'SF_' + systematic, self.lepton_reco_sf['nominal'] * self.lepton_trig_sf[systematic] * self.tree['weight_pileup'])
+		# vary lepton trigger systematics, hold rest nominal
+		for systematic in ['weight_pileup_up', 'weight_pileup_down']:
+			self.fill_hist(sel, 'SF_' + systematic, self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree[systematic])
 
-		lepton_trigger_sf_nominal = scale_factors.get_trigger_scale_factor(self, systematic='nominal')
-		lepton_trigger_sf_up = scale_factors.get_trigger_scale_factor(self, systematic='up')
-		lepton_trigger_sf_down = scale_factors.get_trigger_scale_factor(self, systematic='down')
-		self.fill_hist(sel, 'lepton_trigger_sf_1UP', lepton_trigger_sf_up / lepton_trigger_sf_nominal)
-		self.fill_hist(sel, 'lepton_trigger_sf_1DOWN', lepton_trigger_sf_down / lepton_trigger_sf_nominal)
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
 		if self._locked < FILL_LOCKED and do_lock:
@@ -1219,22 +1239,6 @@ class Analysis(object):
 			# Systematics
 			if self.saveNtuples == sel:
 				self._fill_systematic_branches(sel)
-
-			# ____________________________________________________________
-			# pileup (not to be used for full SF)
-			try:
-				# self.fill_hist(sel, 'weight_pileup', self.tree['weight_pileup'])
-				# in the case that the pileup weight is zero, ignore this event. 
-				# Perhaps it is more correct to do the full systmeatic range, but it will be such a small weight, and this is more straightforward.
-				if self.tree['weight_pileup'] == 0: 
-					raise ZeroDivisionError
-				# pileup systematics
-				self.fill_hist(sel, 'pileup_1UP', self.tree['weight_pileup_up']/self.tree['weight_pileup'])
-				self.fill_hist(sel, 'pileup_1DOWN', self.tree['weight_pileup_down']/self.tree['weight_pileup'])
-			except (KeyError, ZeroDivisionError):
-				# pileup weight is probably zero
-				self.fill_hist(sel, 'pileup_1UP', 1)
-				self.fill_hist(sel, 'pileup_1DOWN', 1)
 
 			# ____________________________________________________________
 			# Fill the DV weight for LNC or LNV only single flavour mixed model assumption (Dirac neutrino)
@@ -1941,6 +1945,11 @@ class run2Analysis(Analysis):
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
 		######################################################################################################
+		# reset lepton systematics for each DV
+		for key in self.lepton_reco_sf.keys():
+			self.lepton_reco_sf[key] = 1
+		for key in self.lepton_trig_sf.keys():
+			self.lepton_trig_sf[key] = 1
 
 		# Fill all the histograms with ALL DVs (this could be more that 1 per event). Useful for vertexing efficiency studies.
 		self._fill_all_dv_histos()
@@ -2030,13 +2039,8 @@ class run2Analysis(Analysis):
 
 					if not self.do_CR and not self.tree.is_data:
 						# update event weight
-						lepton_reco_sf = scale_factors.get_reco_scale_factor(self)
-						self.weight_LNC_only *= lepton_reco_sf
-						self.weight_LNC_plus_LNV *= lepton_reco_sf
-						self.weight_LNC_only_ih *= lepton_reco_sf
-						self.weight_LNC_plus_LNV_ih *= lepton_reco_sf
-						self.weight_LNC_only_nh *= lepton_reco_sf
-						self.weight_LNC_plus_LNV_nh *= lepton_reco_sf
+						for systematic in self.lepton_reco_sf.keys():
+							self.lepton_reco_sf[systematic] *= scale_factors.get_reco_scale_factor(self, systematic)
 
 					if not self.dv_type == "ee": self._fill_cutflow(13)
 					else: self._fill_cutflow(13+1)
@@ -2052,13 +2056,8 @@ class run2Analysis(Analysis):
 
 					if not self.do_CR and not self.tree.is_data:
 						# update event weight
-						lepton_trigger_sf = scale_factors.get_trigger_scale_factor(self)
-						self.weight_LNC_only *= lepton_trigger_sf
-						self.weight_LNC_plus_LNV *= lepton_trigger_sf
-						self.weight_LNC_only_ih *= lepton_trigger_sf
-						self.weight_LNC_plus_LNV_ih *= lepton_trigger_sf
-						self.weight_LNC_only_nh *= lepton_trigger_sf
-						self.weight_LNC_plus_LNV_nh *= lepton_trigger_sf
+						for systematic in self.lepton_trig_sf.keys():
+							self.lepton_trig_sf[systematic] *= scale_factors.get_trigger_scale_factor(self, systematic)
 
 					if not self.dv_type == "ee": self._fill_cutflow(14)
 					else: self._fill_cutflow(14+1)
