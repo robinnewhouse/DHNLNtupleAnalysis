@@ -111,9 +111,9 @@ def main():
 
 			# override if available
 			if options.output_file: output_file = os.path.abspath(options.output_file)
-			if not tree_name == 'nominal': output_file.replace('.root', tree_name+'.root')
+			# if not tree_name == 'nominal': output_file.replace('.root', tree_name+'.root')
 
-			if os.path.exists(output_file):
+			if os.path.exists(output_file) and tree_name == 'nominal':
 				if not options.force:
 					logger.error("Output {} file already exists. Either re-run with -f/--force OR choose a different output path.".format(output_file))
 					exit()
@@ -126,7 +126,7 @@ def main():
 			# specify this to reduce number of entries loaded in each array
 			if options.skipEvents is not None: entries = entries + options.skipEvents  # if skipping events then entries needs to be updated
 			tree.max_entries = entries
-			logger.info('Going to process {}  events'.format(entries))
+			logger.info('Going to process {} events'.format(entries))
 
 			# loop over the vertex containers in each channel (usually just VSI & VSI Leptons)
 			for vtx_container in config_file[channel]["vtx_containers"]:

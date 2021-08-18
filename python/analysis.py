@@ -15,7 +15,7 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, name, tree, vtx_container, selection_list, outputFile, saveNtuples, weight_override=None):
+	def __init__(self, name, tree, vtx_container, selection_list, output_file, save_ntuples, weight_override=None):
 		# set up logger for self
 		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=helpers.logger_debug_level)
 		# set up logger for helper module
@@ -24,11 +24,11 @@ class Analysis(object):
 		self.name = name
 		self.weight_override = weight_override
 		self.sel = selection_list
-		self.outputFile = outputFile
-		self.fi = ROOT.TFile.Open(outputFile, 'update')
+		self.output_file = output_file
+		self.fi = ROOT.TFile.Open(output_file, 'update')
 		self.ch = vtx_container
-		self.saveNtuples = saveNtuples
-		self.histSuffixes = [self.ch]
+		self.save_ntuples = save_ntuples
+		self.hist_suffixes = [self.ch]
 		self.h = {}
 		self.micro_ntuples = {}
 		self.tree = tree
@@ -294,7 +294,7 @@ class Analysis(object):
 			self.do_inverted_mlll_cut = True
 			self.do_inverted_mhnl_cut = False
 			self.do_trilepton_mass_cut = False
-			self.saveNtuples = "mvis" # only save ntuples after mlll selection is applied!
+			self.save_ntuples = "mvis" # only save ntuples after mlll selection is applied!
 		elif "inverted_mhnl" in self.sel:
 			self.logger.warning('You are looking at a validation region with a SR pre-selection and an inverted m_hnl cut!')
 			self.do_CR = False
@@ -306,7 +306,7 @@ class Analysis(object):
 			self.do_inverted_mhnl_cut = True
 			self.do_HNL_mass_cut = False
 			self.do_trilepton_mass_cut = False
-			self.saveNtuples = "mhnl" # only save ntuples after mlll selection is applied!
+			self.save_ntuples = "mhnl" # only save ntuples after mlll selection is applied!
 		else:
 			self.do_CR = False
 			self.tree.fake_aod = False
@@ -381,7 +381,7 @@ class Analysis(object):
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
 		# TODO Can we clean this up in some way?
-		save_sel = self.saveNtuples == selection or 'truth_'+self.saveNtuples == selection or self.saveNtuples == 'allcuts'
+		save_sel = self.save_ntuples == selection or 'truth_' + self.save_ntuples == selection or self.save_ntuples == 'allcuts'
 		if fill_ntuple and (variable_2 is None) and save_sel:
 			# Need selection to define ntuple tree
 			# TODO redo this method to use the directory correctly
@@ -445,9 +445,12 @@ class Analysis(object):
 	def write(self):
 		# Move ROOT to base directory
 		self.fi.cd()
-		[ntuple.write(self.ch+'_ntuples_'+key) for key, ntuple in self.micro_ntuples.items()]
-		self.observables.write_histograms(root_file=self.fi)
-		self.logger.info("Histograms written to {}".format(self.outputFile))
+		self.fi.mkdir(self.tree.tree_name)
+		self.fi.cd(self.tree.tree_name)
+		for key, ntuple in self.micro_ntuples.items():
+			ntuple.write(self.ch + '_ntuples_' + key)
+		self.observables.write_histograms(root_file=self.fi, tree_name=self.tree.tree_name)
+		self.logger.info("Histograms written to {}".format(self.output_file))
 
 		self.fi.Close()
 
@@ -1063,7 +1066,7 @@ class Analysis(object):
 		self.fill_hist(sel, 'DV_chi2', self.tree.dv('chi2'))
 		# self.fill_hist(sel, 'DV_chi2_assoc', self.tree.dv('chi2_assoc'))
 		
-		if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
+		if sel == self.save_ntuples or self.save_ntuples == 'allcuts':
 			if self.MCEventType.isLNC: 
 				self.micro_ntuples["LNC_"+sel].fill()
 				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
@@ -1204,7 +1207,7 @@ class Analysis(object):
 
 
 			# TODO: figure out a ntuple scheme that can store these variables as well
-		if sel == self.saveNtuples or self.saveNtuples == 'allcuts':
+		if sel == self.save_ntuples or self.save_ntuples == 'allcuts':
 			if self.MCEventType.isLNC:
 				self.micro_ntuples["LNC_"+sel].fill()
 				self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
@@ -1232,6 +1235,7 @@ class Analysis(object):
 			self.fill_hist(sel, 'SF_' + systematic, self.lepton_reco_sf['nominal'] * self.lepton_trig_sf[systematic] * self.tree['weight_pileup'])
 		# vary lepton trigger systematics, hold rest nominal
 		for systematic in ['weight_pileup_up', 'weight_pileup_down']:
+			if not self.tree.tree_name == 'nominal': continue # only do pileup systematics on nominal tree
 			self.fill_hist(sel, 'SF_' + systematic, self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree[systematic])
 
 
@@ -1241,7 +1245,7 @@ class Analysis(object):
 
 			# ____________________________________________________________
 			# Systematics
-			if self.saveNtuples == sel:
+			if self.save_ntuples == sel:
 				self._fill_systematic_branches(sel)
 
 			# ____________________________________________________________
@@ -1769,7 +1773,7 @@ class Analysis(object):
 
 			# ============================================================
 			# fill TTree with ntuple information. Already set by fill_hist
-			if sel == self.saveNtuples or self.saveNtuples == 'allcuts':
+			if sel == self.save_ntuples or self.save_ntuples == 'allcuts':
 				if self.MCEventType.isLNC:
 					self.micro_ntuples["LNC_" + sel].fill()
 					self.micro_ntuples["LNC_plus_LNV_" + sel].fill()
@@ -2151,9 +2155,9 @@ class run2Analysis(Analysis):
 
 
 class BEAnalysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
+	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None):
 
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
+		Analysis.__init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override)
 		self.logger.info('Running Background Estimate Analysis Cuts')
 
 		# Define cutflow histogram "by hand"
@@ -2306,8 +2310,8 @@ class BEAnalysis(Analysis):
 
 
 class KShort(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
+	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None):
+		Analysis.__init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override)
 		self.logger.info('Running KShort Analysis cuts')
 
 		self.add('CutFlow', 17, -0.5, 16.5)
@@ -2394,7 +2398,7 @@ class KShort(Analysis):
 			self.fill_hist(sel, 'DV_sum_track_pt_diff', track_sum.sum_track_pt_wrt_pv - track_sum.sum_track_pt)
 			self.fill_hist(sel, 'DV_sum_track_charge', track_sum.sum_track_charge)
 
-			if sel == self.saveNtuples or self.saveNtuples == 'allcuts': 
+			if sel == self.save_ntuples or self.save_ntuples == 'allcuts':
 				if self.MCEventType.isLNC: 
 					self.micro_ntuples["LNC_"+sel].fill()
 					self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
@@ -2475,9 +2479,9 @@ class KShort(Analysis):
 
 
 class BEAnalysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override=None):
+	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None):
 
-		Analysis.__init__(self, name, tree, vtx_container, selections, outputFile, saveNtuples, weight_override)
+		Analysis.__init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override)
 		self.logger.info('Running Background Estimate Analysis Cuts')
 
 		# Define cutflow histogram "by hand"

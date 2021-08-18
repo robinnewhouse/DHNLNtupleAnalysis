@@ -64,19 +64,22 @@ class Observables:
 		hist.SetDirectory(0)
 		self.histogram_dict[directory + hist_name] = hist
 
-	def write_histograms(self, root_file):
+	def write_histograms(self, root_file, tree_name):
 		"""
 		Write all histograms to the specified root file.
 		Root file must be open.
-		:param root_file: a ROOT.TFile() object
+		@param root_file: a ROOT.TFile() object
+		@param tree_name: the name of the systematics tree, used for directory organization
 		"""
 		root_file.cd()
+		# root_file.mkdir(tree_name)
+		# root_file.cd(tree_name)
 
 		for hist_path, histogram in self.histogram_dict.items():
 			# split the identifier into directory and name
 			tokens = hist_path.split('/')
 			hist_name = tokens[-1]
-			directory = '/'.join(tokens[:-1])
+			directory = tree_name +'/' + '/'.join(tokens[:-1])
 			# make the directory if it doesn't exist and cd to it
 			if not root_file.GetDirectory(directory):
 				root_file.mkdir(directory)
