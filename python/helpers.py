@@ -50,8 +50,10 @@ class ReadBRjson:
 		
 		
 	
-	def get_BR(self, channel, mass, model):
-		mass_str = str(int(mass))
+	def get_BR(self, channel, mass, model, use_str = False):
+		if use_str: mass_str = mass
+		else: mass_str = str(int(mass))
+
 		if   channel == "uuu": decay_str = "mmv"
 		elif channel == "uue": decay_str = "mev"
 		elif channel == "ueu": decay_str = "emv"
@@ -279,7 +281,7 @@ def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = False, 
 	#  BranchingRatios_DifferentMixings_Olegs_lifetime.json computes lifetime as the sum over all exclusive channel 
 	#  As of Aug 11 2021 using the BranchingRatios_DifferentMixings_Gronau_lifetime.json file and the Gronau approximation. -DT
 
-	f_br = ReadBRjson(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Olegs_lifetime.json')
+	f_br = ReadBRjson(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Gronau_lifetime.json')
 	br = f_br.get_BR(channel, mass, model)
 
 	if mass == -1 or ctau == -1:  # MC weighting error
