@@ -41,19 +41,23 @@ class Analysis(object):
 		self.events_with_trig_match_both_pdlep =0
 
 		# prepare systematics
-		self.lepton_reco_sf = {'nominal': 1,
-							   'MUON_EFF_RECO_SYS__1down': 1,
-							   'MUON_EFF_RECO_SYS__1up': 1,
-							   'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
-							   'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1,
-							   'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
-							   'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1, }
-		self.lepton_trig_sf = {'nominal': 1,
-							   'MUON_EFF_TrigSystUncertainty__1down': 1,
-							   'MUON_EFF_TrigSystUncertainty__1up': 1,
-							   'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
-							   'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1,
-							   }
+		if self.tree.tree_name == 'nominal':
+			self.lepton_reco_sf = {'nominal': 1,
+								   'MUON_EFF_RECO_SYS__1down': 1,
+								   'MUON_EFF_RECO_SYS__1up': 1,
+								   'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
+								   'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1,
+								   'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
+								   'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1, }
+			self.lepton_trig_sf = {'nominal': 1,
+								   'MUON_EFF_TrigSystUncertainty__1down': 1,
+								   'MUON_EFF_TrigSystUncertainty__1up': 1,
+								   'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
+								   'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1up': 1,
+								   }
+		else:
+			self.lepton_reco_sf = {'nominal': 1}
+			self.lepton_trig_sf = {'nominal': 1}
 
 		# setting all the relevant variables for the cuts based on the input selections
 		# trigger cut
@@ -1212,7 +1216,7 @@ class Analysis(object):
 	def _fill_systematic_branches(self, sel):
 		"""
 		Fills the branches to be used for systematic variations.
-		These systematic weights (inc.uding nominal) should be applied by multiplication with the existing event weight.
+		These systematic weights (including nominal) should be applied by multiplication with the existing event weight.
 		This is done in the statistical interpretation framework.
 		@param sel: selection step in cuts
 		"""
@@ -1683,7 +1687,6 @@ class Analysis(object):
 				if self.dv_type == "mumu":
 					# Get the truth index (truth matching by charge)
 					if not self.tree.not_hnl_mc and 'tt' not in self.tree.mc_ch_str:
-						print("passed check!!!")
 						if self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[0]: trk_0_truth_index = 0
 						elif self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[1]: trk_0_truth_index = 1
 						else: raise Exception("Can't truth match lepton by charge. Something is strange.")
