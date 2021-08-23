@@ -43,13 +43,21 @@ def get_debug_level(level):
 
 
 
-class ReadBRjson:
+class Readjson_files:
 	def __init__(self, filename):
 		with open(filename) as fp:
-			self.branchings = json.load(fp)
-		
-		
+			self.file = json.load(fp)
 	
+	def get_coupling(self, mass, ctau,  model, use_str = False):
+		if use_str:
+			mass_str = mass
+			ctau_str = ctau
+		else:
+			mass_str = str(int(mass))
+			ctau_str = str(int(ctau))
+		coupling = self.file[mass_str][ctau_str][model]
+		return coupling
+
 	def get_BR(self, channel, mass, model, use_str = False):
 		if use_str: mass_str = mass
 		else: mass_str = str(int(mass))
@@ -63,8 +71,7 @@ class ReadBRjson:
 		elif channel == "eue": decay_str = "mev"
 		elif channel == "euu": decay_str = "mmv"
 
-		br = self.branchings[mass_str][decay_str][model]
-
+		br = self.file[mass_str][decay_str][model]
 		return br
 
 
@@ -155,168 +162,195 @@ class ReadBRdat:
 				if channel == 'euu':
 					return self.BRuuu[i]
 
-def hnl_xsec_single_flavour_mixing(channel, br, mass, ctau, LNC_only = True):
+class MC_event_weight:
+	def __init__(self, tree, model, use_gronau = True ):
+		"""
+		Class use for computing MC event weights and HNL cross sections.
 
-	# calculate Gronau coupling; parametrization depends on coupling flavour you are probing
-	if channel == 'uuu' or channel == 'uue' or channel == 'uee':
-		U2Gronau = 4.49e-12 * 3e8 * mass ** (-5.19) / (ctau / 1000)  # LNC prediction
-	if channel == 'eee' or channel == 'eeu' or channel == 'euu':
-		U2Gronau = 4.15e-12 * 3e8 * mass ** (-5.17) / (ctau / 1000)  # LNC prediction
+		@parm tree: ntuple analysis tree
+		@parm model: HNL model to be used in the computation: single-flavour, IH or NH
+		@parm use_gronau: use Gronau parametrization (https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539) in the computation of U2 and br. Otherwise Oleg's parametrization will be used
+		"""
+		self.tree = tree
+		self.use_gronau = use_gronau
+		self.model = model
+		self.channel = tree.channel
+		# Overwrite channel name if flip_e_and_mu is true!
+		if self.channel == "uue" and flip_e_and_mu: self.channel = "ueu"
+		if self.channel == "eeu" and flip_e_and_mu: self.channel = "eue"
 
-	# HNL decays in only a lepton-number conserving way
-	if LNC_only: k = 1
-	# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
-	else: k = 0.5
+		# Name the single flavour mixing model depnding on the channel
+		if self.model == "single-flavour":
+			if self.channel == "uuu" or self.channel == "uue" or self.channel == "uee":
+				self.model = "mu_only"
+			if self.channel == "eee" or self.channel == "eeu" or self.channel == "euu":
+				self.model = "e_only"
 
-	mW = 80.379  # mass of W boson in GeV
-	xsec = br * 20.6e6 * k * U2Gronau * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  # in fb
-	return xsec
+		# ###########################################################
+		# Define the model dependent coupling fractions
+		# x_alpha = U_alpha^2 / U_tot^2 such that alpha = e, mu, tau
+		# ###########################################################
+		if self.model == "mu_only":
+			self.x_e = 0
+			self.x_mu = 1
+			self.x_tau = 0
+		if self.model == "e_only":
+			self.x_e = 1
+			self.x_mu = 0
+			self.x_tau = 0 
+		if self.model == "IH":
+			self.x_e = 1.0/3.0 
+			self.x_mu = 1.0/3.0
+			self.x_tau = 1.0/3.0
+		if self.model == "NH":
+			self.x_e   = 0.06
+			self.x_mu  = 0.48	
+			self.x_tau = 0.46
 
-def hnl_xsec_generic_model(channel, br, mass, ctau, LNC_only = True, x_e = 1, x_mu = 0, x_tau = 0, U2 = None):
-	# HNL decays in only a lepton-number conserving way
-	if LNC_only: k = 1
-	# if HNL decays to LNC and LNV, then lifetime is reduced by a factor of 2 (more decay channels available)
-	else: k = 0.5
+		# Define the prod and decay coupling ratios depending on the channel,
+		# where x_alpha = U_alpha^2 / U_tot^2 such that alpha = e, mu, tau
+		if self.channel == 'uuu' or self.channel == 'uue': 
+			self.x_prod  = self.x_mu
+			self.x_decay = self.x_mu
+		if self.channel == 'eee' or self.channel == 'eeu': 
+			self.x_prod  = self.x_e
+			self.x_decay = self.x_e
+		if self.channel == 'ueu' or self.channel == 'uee': 
+			self.x_prod  = self.x_mu
+			self.x_decay = self.x_e
+		if self.channel == 'eue' or self.channel == 'euu':
+			self.x_prod  = self.x_e
+			self.x_decay = self.x_mu
 
-	#Gronau parametrization relates mass, coupling and lifetime
+		# ######################################################################################################################################################
+		# Get branching ratios (BR). BR depend on the mass, decay mode and model 
+		# BR json files contain a dictionaries of BR[mass][decay][model] for e_only, mu_only, NH and IH models.
+		# ######################################################################################################################################################
+		#  Computes lifetime via Gronau formulas and thus has 10-20% difference
+		if self.use_gronau: f_br = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Gronau_lifetime.json')
+		#  BranchingRatios_DifferentMixings_Olegs_lifetime.json computes lifetime via Oleg's parametrization (better agreement with MG)
+		else: f_br = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Olegs_lifetime.json ')
+		self.br = f_br.get_BR(self.channel, self.tree.mass, self.model)
 
-	#constants for Gronau approx
-	tau_0_e = 4.15e-12 # in seconds
-	tau_0_mu = 4.49e-12  # in seconds
-	tau_0_tau = 1.08e-11  # in seconds	
-	b_e = 5.17
-	b_mu = 5.19
-	b_tau = 5.44
+		# ######################################################################################################################################################
+		# Get coupling squared. Coupling depends on the mass, lifetime and model 
+		# Theta2 json files contain a dictionaries of BR[mass][lifetime][model] for e_only, mu_only, NH and IH models.
+		# ######################################################################################################################################################
+		#  Theta2 files contain a dictionaries of coupling2[mass][ctau][model] for signal-flavour mixing, NH and IH models.
+		if use_gronau: f_coupling = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/Theta2_DifferentMixings_Gronau_lifetime.json')
+		else: f_coupling = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/Theta2_DifferentMixings_Olegs_lifetime.json')
+		self.U2 = f_coupling.get_coupling(self.tree.mass, self.tree.ctau, self.model)
 
-	e_term   = x_e   * mass ** b_e / (tau_0_e * 3e8) # in 1/m 
-	mu_term  = x_mu  * mass ** b_mu / (tau_0_mu * 3e8) # in 1/m 
-	tau_term = x_tau * mass ** b_tau / (tau_0_tau * 3e8) # in 1/m 
+	def get_mc_event_weight(self, use_gronau = True, dirac_particle = False, flip_e_and_mu = False):
+		"""
+		Calculates the MC event weight as luminosit x cross section / total number of MC events
+		Cross section is model dependent an therefore the mc event weight is also model dependent
 
-	U2Gronau = (1 / (ctau / 1000))*(1 / (mu_term + e_term + tau_term )) # unitless (ctau is in mm )
+		@param tree: Tree object with mass and lifetime info
+		@param model: name of the HNL model that should be used to compute the cross section
+		@parm use_gronau: use Gronau parametrization in the computation of U2 and br. Otherwise Oleg's parametrization will be used
+		@parm  dirac_particle: Dirac particle nature, otherwise assume Majorana
+		@parm flip_e_and_mu: flip order of e and mu in channel name
+		@return: calculated weight.
+		"""
+		if self.tree.mass == -1 or self.tree.ctau == -1:  # MC weighting error
+			logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
+			return 1
+
+		# #############################################################################
+		# Get the luminosity for the different mc campaigns
+		# lumi_tot = lumi['mc16a'] + lumi['mc16d'] + lumi['mc16e']
+		# #############################################################################
+		lumi = {'mc16a': 36.10416, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0}
+
+		if self.tree.is_data or self.tree.not_hnl_mc:  # Running on data non non-hnl MC
+			return 1 # mc event weight equals 1
+		else:  # Running on an HNL signal file
+			# #############################################################################
+			# Get the cross sections for the different HNL models
+			# #############################################################################
+			# One HNL Majorana model
+			one_hnl_majorana_hnl_xsec = self.hnl_xsec_generic_model(channel = self.channel,mass=self.tree.mass, ctau = self.tree.ctau,  
+																	x_e = self.x_e, x_mu = self.x_mu, x_tau = self.x_tau )  # in fb
+			# HNL Dirac models only have LNC decays. LNC rates are coherently enhanced by a factor of 2 compared to Majorana HNLs
+			xsec_one_hnl_dirac = one_hnl_majorana_hnl_xsec * 2
+			#Quasi-Dirac "Majorana-like" model has two Majorana particles mediating the process, enhances cross sections by a factor of 2 compared to Dirac rates
+			xsec_two_quasi_dirac_majorana_like = one_hnl_majorana_hnl_xsec * 2
+
+			if self.model == "NH" or self.model == "IH":
+				hnl_xsec = xsec_two_quasi_dirac_majorana_like
+			if self.model == "e_only" or self.model == "mu_only":
+				if dirac_particle: hnl_xsec = xsec_one_hnl_dirac
+				else: hnl_xsec = one_hnl_majorana_hnl_xsec
+			
+			if dirac_particle: 
+				# LNC decays only --> total num. of MC events = (all entries / 2) because Pythia8 samples have a 50% mix of LNC+ LNV
+				n_mc_events = self.tree.all_entries / 2
+			else: 
+				# Both LNC and LNV decays possible --> total num. of MC events = all entries
+				n_mc_events = self.tree.all_entries
+
+			# Compute MC event weight as "L * xsec / total num. of MC events"
+			weight = lumi[self.tree.mc_campaign] * hnl_xsec / n_mc_events
+
+		return weight
 	
-	# # compute branching ratios with single flavour mixing. 
-	# # Get partial widths by multiplying br total width from single flavour mixing
-	# if channel == "uuu" or channel == "uue" or channel == "euu" or channel == "eue":
-	# 	tau_0_single_flavour = tau_0_mu	
-	# 	b_single_flavour = b_mu
-	# elif channel == "eee" or channel == "eeu" or channel == "uee" or channel == "ueu": 
-	# 	tau_0_single_flavour = tau_0_e
-	# 	b_single_flavour = b_e
-	# else:
-	# 	logger.error("Can't determine the what constants to use to compute the partial width. Please check your sample!")
-	# 	sys.exit(1) # abort becuase of an error
-	# # total width with unit coupling
-	# total_width_single_flavour_mixing =  mass**b_single_flavour / (tau_0_single_flavour *3e8) # in 1/m
-	
-	# # partial width should be independent of the interpretation
-	# # Used single flavour mixing br numbers to compute the partial widths
-	# partial_width = br_single_flavour_mixing * total_width_single_flavour_mixing
+	def hnl_xsec_generic_model(self, channel, mass, ctau , x_e = 1, x_mu = 0, x_tau = 0, use_U2_input = True, majorana_particle = True ):
+		"""
+		Calculates the HNL cross section given a br, mass, ctau
+		Cross section is model dependent an therefore the mc event weight is also model dependent
 
-	# define the prod and decay ratios depending on the channel
-	if channel == 'uuu' or channel == 'uue': 
-		x_prod  = x_mu
-		x_decay = x_mu
-	if channel == 'eee' or channel == 'eeu': 
-		x_prod  = x_e
-		x_decay = x_e
-	if channel == 'ueu' or channel == 'uee': 
-		x_prod  = x_mu
-		x_decay = x_e
-	if channel == 'eue' or channel == 'euu':
-		x_prod  = x_e
-		x_decay = x_mu
-	# print("gronau coupling: ", U2Gronau)
-
-	mW = 80.379  # mass of W boson in GeV
-	xsec = 20.6e6 * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  * x_prod *  U2Gronau  * br * k # in fb
-
-	return xsec
-
-def get_mass_lt_weight(tree, lnc_plus_lnv=False, single_flavour_mixing = False, ih_mixing = False, nh_mixing = False, flip_e_and_mu = False):
-	"""
-	Calculates the weight of the event based on the Gronau parametrization
-	https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539
-	Sets the weight of events for this tree
-	@param tree: Tree object with mass and lifetime info
-	@param lnc_plus_lnv: if both lnc and lnv decays are possible then lifetime is reduced by a factor of 2
-	@parm single_flavour_mixing:  use single flavour mixing model
-	@parm ih_mixing: use inverted heiarchy model
-	@parm nh_mixing: use normal heiarchy model
-	@return: calculated weight.
-	"""
-	mass = tree.mass  # GeV
-	ctau = tree.ctau  # mm
-	mc_campaign = tree.mc_campaign
-	channel = tree.channel
-
-	# Overwrite channel name if flip_e_and_mu is true!
-	if channel == "uue" and flip_e_and_mu: channel = "ueu"
-	if channel == "eeu" and flip_e_and_mu: channel = "eue"
-	
-	if single_flavour_mixing: 
-		if channel == "uuu" or channel == "uue" or channel == "uee" or channel == "ueu":
-			model = "mu_only"
-			x_e = 0
-			x_mu = 1
-			x_tau = 0
-		if channel == "eee" or channel == "eeu" or channel == "euu" or channel == "eue":
-			model = "e_only"
-			x_e = 1
-			x_mu = 0
-			x_tau = 0 
-	elif ih_mixing:
-		model = "IH"
-		x_e = 1.0/3.0 
-		x_mu = 1.0/3.0
-		x_tau = 1.0/3.0
-	elif nh_mixing:
-		model = "NH"
-		x_e   = 0.06
-		x_mu  = 0.48	
-		x_tau = 0.46
-	
-
-	#  BR files contain a dictionaries of BR[mass][decay][model] for signal-flavour mixing, NH and IH models.
-	#  BranchingRatios_DifferentMixings_Gronau_lifetime.json computes lifetime via Gronau formulas and thus has 10-20% difference
-	#  BranchingRatios_DifferentMixings_Olegs_lifetime.json computes lifetime as the sum over all exclusive channel 
-	#  As of Aug 11 2021 using the BranchingRatios_DifferentMixings_Gronau_lifetime.json file and the Gronau approximation. -DT
-
-	f_br = ReadBRjson(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Gronau_lifetime.json')
-	br = f_br.get_BR(channel, mass, model)
-
-	if mass == -1 or ctau == -1:  # MC weighting error
-		logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
-		return 1
-
-	# define luminosity for the different mc campaigns
-	lumi = {'mc16a': 36.10416, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0}
-	# lumi_tot = lumi['mc16a'] + lumi['mc16d'] + lumi['mc16e']
-
-	if tree.is_data or tree.not_hnl_mc:  # you are running on data non non-hnl MC
-		return 1
-	else:  # you are running on a signal MC file
-		# print (channel, mass, ctau)
-		# print('branching ratio: ', round(br,5))
-
-		xsec_LNC_only = hnl_xsec_generic_model(channel = channel, x_e = x_e, x_mu = x_mu, x_tau = x_tau, 
-								br= br, mass=mass, ctau = ctau, LNC_only = True)  # in fb
-		xsec_LNC_plus_LNV = hnl_xsec_generic_model(channel= channel, x_e = x_e, x_mu = x_mu, x_tau = x_tau, 
-								br= br, mass=mass, ctau = ctau, LNC_only = False)  # in fb
+		@param channel: HNL channel
+		@param mass: HNL mass in GeV
+		@param mass: HNL lifetime in mm
+		@param x_e: U_e^2 / U_tot ^2
+		@param x_mu: U_mu^2 / U_tot ^2
+		@param x_tau: U_tau^2 / U_tot ^2
+		@param use_U2_input use self.U2 read from the json file as the coupling squared
 		
-		# print("%s LNC+LNV xsec: %s fb "%(model, round(xsec_LNC_plus_LNV,5)) )
-		# print(" ")
+		@parm  dirac_particle: Dirac particle nature, otherwise assume Majorana
+		@parm flip_e_and_mu: flip order of e and mu in channel name
+		@return: calculated weight.
+		"""
 
-		# mass-lifetime weight = BR(N->llv) * L * xsec / total num. of MC events
-		# LNC and LNV branches are split into into separate LNC and LNV branches
-		# total num. of MC events = (tree.all_entries / 2) because pythia samples have a 50% mix of LNC+ LNV
-		weight_LNC_only = lumi[mc_campaign] * xsec_LNC_only / (tree.all_entries / 2)
-		# for LNC plus LNV then all MC events are added to the output tree so total number of events == tree.all_entries
-		weight_LNC_plus_LNV = lumi[mc_campaign] * xsec_LNC_plus_LNV / tree.all_entries
+		# Get lifetime either from class attribute or compute it by hand using the Gronau parametrization.
+		# If you are using the Gronau json file to get the couplings and majorana_particle= True, then these two methods are identical
+		if use_U2_input: U2 = self.U2
+		else: U2_for_xsec = U2 = self.get_Gronau_U2(mass, ctau, majorana_particle)
 
-	if lnc_plus_lnv:
-		return weight_LNC_plus_LNV
-	else:
-		return weight_LNC_only
+		# ########################################################################################################################
+		# Calculate the HNL cross section
+		# ########################################################################################################################
+		# constants used in cross section computation
+		mW = 80.379  # mass of W boson in GeV from PDG (https://pdg.lbl.gov/2019/listings/rpp2019-list-w-boson.pdf)
+		xsec_pp_times_br_W_to_l_nu = 20.6e6 # in fb from ATLAS W cross section measurement (https://arxiv.org/abs/1603.09222)
+		hnl_xsec =  xsec_pp_times_br_W_to_l_nu * ((1 - (mass / mW) ** 2) ** 2) * (1 + (mass ** 2) / (2 * mW ** 2))  * self.x_prod *  U2  * self.br  # in fb
+
+		return hnl_xsec
+	
+	def get_Gronau_U2(self,mass, ctau, x_e, x_mu, x_tau, majorana_particle):
+		''''
+		Computes U2 for a given mass and lifetime and model parameters (x_e, x_mu, x_tau) using Gronau parametrization (https://journals.aps.org/prd/abstract/10.1103/PhysRevD.29.2539)
+		'''
+		# Compute coupling using the Gronau parametrization
+		# Model constants from Gronau
+		tau_0_e = 4.15e-12 # in seconds
+		tau_0_mu = 4.49e-12  # in seconds
+		tau_0_tau = 1.08e-11  # in seconds
+		b_e = 5.17
+		b_mu = 5.19
+		b_tau = 5.44
+		# For Majorana model, both LNC and LNV decays are allowed, which means twice as many decay channels are opened and, as a result, the lifetime is reduced by a factor of 2.
+		if majorana_particle: 
+			tau_0_e = tau_0_e * 0.5
+			tau_0_mu = tau_0_mu * 0.5
+			tau_0_tau = tau_0_tau * 0.5
+		e_term   = x_e   * mass ** b_e / (tau_0_e * 3e8) # in 1/m 
+		mu_term  = x_mu  * mass ** b_mu / (tau_0_mu * 3e8) # in 1/m 
+		tau_term = x_tau * mass ** b_tau / (tau_0_tau * 3e8) # in 1/m 
+		U2Gronau = (1 / (ctau / 1000))*(1 / (mu_term + e_term + tau_term )) # unitless (ctau is in mm )
+		
+		return U2Gronau
 
 
 class Truth:

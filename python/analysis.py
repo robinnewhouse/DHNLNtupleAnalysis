@@ -40,22 +40,18 @@ class Analysis(object):
 		self.events_with_trig_match_dlep = 0
 		self.events_with_trig_match_both_pdlep =0
 
-		# Calculate mass lifetime weight for the sample (one number per file)
-		#single flavour mixing
-		self.mass_lt_weight_LNC_only_single_flavour = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, single_flavour_mixing = True)
-		self.mass_lt_weight_LNC_plus_LNV_single_flavour = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, single_flavour_mixing = True)
+		# Calculate MC event weights as "L * xsec / num. MC events" (One number per file)
+		# Single flavour mixing
+		self.mc_event_weight_one_dirac_hnl_single_flavour = helpers.MC_event_weight(self.tree, model = "single-flavour").get_mc_event_weight(dirac_particle = True)
+		self.mc_event_weight_one_majorana_hnl_single_flavour = helpers.MC_event_weight(self.tree, model = "single-flavour").get_mc_event_weight()
 		# inverted heiarchy
-		self.mass_lt_weight_LNC_only_ih = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, ih_mixing = True)
-		self.mass_lt_weight_LNC_plus_LNV_ih = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, ih_mixing = True)
+		self.mc_event_weight_ih = helpers.MC_event_weight(self.tree, model = "IH").get_mc_event_weight()
 		# normal heiarchy
-		self.mass_lt_weight_LNC_only_nh = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, nh_mixing = True)
-		self.mass_lt_weight_LNC_plus_LNV_nh = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, nh_mixing = True)
+		self.mc_event_weight_nh = helpers.MC_event_weight(self.tree, model = "NH").get_mc_event_weight()
 
 		if self.tree.channel == "uue" or self.tree.channel == "eeu":
-			self.mass_lt_weight_LNC_only_ih_flip_e_and_mu = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, ih_mixing = True, flip_e_and_mu = True)
-			self.mass_lt_weight_LNC_plus_LNV_ih_flip_e_and_mu = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, ih_mixing = True, flip_e_and_mu = True)
-			self.mass_lt_weight_LNC_only_nh_flip_e_and_mu = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=False, nh_mixing = True, flip_e_and_mu = True)
-			self.mass_lt_weight_LNC_plus_LNV_nh_flip_e_and_mu = helpers.get_mass_lt_weight(self.tree, lnc_plus_lnv=True, nh_mixing = True, flip_e_and_mu = True)
+			self.mc_event_weight_ih_flip_e_and_mu = helpers.MC_event_weight(self.tree, model = "IH").get_mc_event_weight(flip_e_and_mu = True)
+			self.mc_event_weight_nh_flip_e_and_mu = helpers.MC_event_weight(self.tree, model = "NH").get_mc_event_weight(flip_e_and_mu = True)
 
 		# prepare systematics
 		if self.tree.tree_name == 'nominal':
@@ -379,21 +375,21 @@ class Analysis(object):
 		:param weight: Used to override weight calculation. Useful for storing actual weights which should not be themselves weighted.
 		"""
 		# use calculated weight for this event unless a weight is specified
-		weight_LNC_only = self.weight_LNC_only if weight is None else weight
-		weight_LNC_plus_LNV = self.weight_LNC_plus_LNV if weight is None else weight
+		weight_one_dirac_hnl_single_flavour = self.model_weight_one_dirac_hnl_single_flavour if weight is None else weight
+		weight_one_majorana_hnl_single_flavour = self.model_weight_one_majorana_hnl_single_flavour if weight is None else weight
 
 		# define here the directory structure where this histogram is stored.
 		directory = '{ch}/{selection}/'.format(ch=self.ch, selection=selection)
 		# fill LNC histograms. Not used for data.
 		if self.MCEventType.isLNC:
-			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, weight_LNC_only)
+			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, weight_one_dirac_hnl_single_flavour)
 		# fill LNV histograms. Not used for data.
 		if self.MCEventType.isLNV:
-			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, weight_LNC_only)
+			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, weight_one_dirac_hnl_single_flavour)
 		if self.MCEventType.isLNC or self.MCEventType.isLNV:
 			#fill LNC_plus_LNV histograms for every event
 			# U, m, ctau relationship changes becuase twice as many decay channels avaliable if HNL can decay via LNC and LNV
-			self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, weight_LNC_plus_LNV)
+			self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
@@ -472,28 +468,7 @@ class Analysis(object):
 		self.fi.Close()
 
 	def end(self):
-		# make acceptance Histograms
-		# for hist in self.observables.histogram_dict.values():
-		# 	hist.SetBinContent(hist.GetNbinsX(), hist.GetBinContent(hist.GetNbinsX()) + hist.GetBinContent(hist.GetNbinsX() + 1)) # merge overflow into last bin
-		# 	hist.SetBinContent(1, hist.GetBinContent(1) + hist.GetBinContent(0)) # merge underflow into first bin
 
-		# make acceptance Histograms
-		# TOD: it doesnt looks like on data the acceptance histograms are working as expected. -DT
-		if not self.tree.is_data and not self.tree.not_hnl_mc:
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'] = self.CutFlow_LNV.Clone()
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'] = self.CutFlow_LNC.Clone()
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].SetName("CutFlow_LNV_acceptance"+"_"+self.ch)
-			if self.CutFlow_LNV.GetBinContent(1) != 0: # Protect against zero-division
-				self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_acceptance'].Scale(1.0/self.CutFlow_LNV.GetBinContent(1))
-			if self.CutFlow_LNC.GetBinContent(1) != 0: # Protect against zero-division
-				self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_acceptance'].Scale(1.0/self.CutFlow_LNC.GetBinContent(1))
-
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'] = self.CutFlow.Clone()
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'].SetName("CutFlow_acceptance"+"_"+self.ch)
-		if self.CutFlow.GetBinContent(1) != 0: # Protect against zero-division
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_acceptance'].Scale(1.0/self.CutFlow.GetBinContent(1))
-		
 		self.write()
 
 		# Clean up memory
@@ -772,11 +747,7 @@ class Analysis(object):
 
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			self._fill_truth_histos(sel='truth/all')
-		# 	if self.MCEventType.isLNC:
-		# 		self.CutFlow_LNC.SetBinContent(1, self.tree.all_entries/2)  # all events
-		# 	if self.MCEventType.isLNV:
-		# 		self.CutFlow_LNV.SetBinContent(1, self.tree.all_entries/2)  # all events
-		# self.CutFlow.SetBinContent(1, self.tree.all_entries)  # all events
+
 		self._fill_cutflow(0)
 
 		######################################################################################################
@@ -868,41 +839,31 @@ class Analysis(object):
 			self.MCEventType_flip_e_and_mu = selections.MCEventType(self.tree, flip_e_and_mu = True) 
 
 		if self.weight_override is None:
-			# Normal and inverted hierarchy weights
-			weight_LNC_only_ih = self.mass_lt_weight_LNC_only_ih * self.MCEventType.weight
-			weight_LNC_only_nh = self.mass_lt_weight_LNC_only_nh * self.MCEventType.weight
-			weight_LNC_plus_LNV_ih = self.mass_lt_weight_LNC_plus_LNV_ih * self.MCEventType.weight
-			weight_LNC_plus_LNV_nh = self.mass_lt_weight_LNC_plus_LNV_nh * self.MCEventType.weight
+			# #####################################################################################
+			# Compute "model weight" as the product of mc event weight x spin corr weight
+			# #####################################################################################
+			weight_ih = self.mc_event_weight_ih * self.MCEventType.weight
+			weight_nh = self.mc_event_weight_nh * self.MCEventType.weight
 
-			if self.tree.channel == "uue" or self.tree.channel == "eeu":
-				# Compute a second weight to reweight uue --> ueu  or eeu --> eue	
-				weight_LNC_only_ih_2 = self.mass_lt_weight_LNC_only_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
-				weight_LNC_only_nh_2 = self.mass_lt_weight_LNC_only_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
-				weight_LNC_plus_LNV_ih_2 = self.mass_lt_weight_LNC_plus_LNV_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
-				weight_LNC_plus_LNV_nh_2 = self.mass_lt_weight_LNC_plus_LNV_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
-
+			# For uue and eeu channels, compute a second weight to reweight uue --> ueu  or eeu --> eue
+			if self.tree.channel == "uue" or self.tree.channel == "eeu":	
+				weight_ih_2 = self.mc_event_weight_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_nh_2 = self.mc_event_weight_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
 				# Total weight is the sum of the two channels for models 
-				# when HNL mixes with both e and mu
-				self.weight_LNC_only_ih = weight_LNC_only_ih + weight_LNC_only_ih_2
-				self.weight_LNC_only_nh = weight_LNC_only_nh + weight_LNC_only_nh_2
-				self.weight_LNC_plus_LNV_ih = weight_LNC_plus_LNV_ih + weight_LNC_plus_LNV_ih_2
-				self.weight_LNC_plus_LNV_nh = weight_LNC_plus_LNV_nh + weight_LNC_plus_LNV_nh_2
+				self.model_weight_ih = weight_ih + weight_ih_2
+				self.model_weight_nh = weight_nh + weight_nh_2
+			# For all other channels the weight
 			else:
-				self.weight_LNC_only_ih = weight_LNC_only_ih
-				self.weight_LNC_only_nh = weight_LNC_only_nh
-				self.weight_LNC_plus_LNV_ih = weight_LNC_plus_LNV_ih
-				self.weight_LNC_plus_LNV_nh = weight_LNC_plus_LNV_nh
-
-			# Single flavour mixing
-			self.weight_LNC_only = self.mass_lt_weight_LNC_only_single_flavour * self.MCEventType.weight
-			self.weight_LNC_plus_LNV = self.mass_lt_weight_LNC_plus_LNV_single_flavour * self.MCEventType.weight
+				self.model_weight_ih = weight_ih
+				self.model_weight_nh = weight_nh
+			# Single flavour mixing models 
+			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour * self.MCEventType.weight
+			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour * self.MCEventType.weight
 		else:
-			self.weight_LNC_only = self.weight_override
-			self.weight_LNC_plus_LNV = self.weight_override
-			self.weight_LNC_only_ih = self.weight_override
-			self.weight_LNC_only_nh = self.weight_override
-			self.weight_LNC_plus_LNV_ih = self.weight_override 
-			self.weight_LNC_plus_LNV_nh = self.weight_override
+			self.model_weight_one_dirac_hnl_single_flavour = self.weight_override
+			self.one_majorana_hnl_single_flavour = self.weight_override
+			self.model_weight_ih = self.weight_override
+			self.model_weight_nh = self.weight_override
 
 
 	def DVSelection(self):
@@ -913,19 +874,16 @@ class Analysis(object):
 			# store weighted cutflow with nominal scale factors
 			scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
 			if self.MCEventType.isLNC:
-				self.CutFlow_LNC.Fill(nbin)
-				self.CutFlow_LNC_weighted.Fill(nbin, self.weight_LNC_only * scale_factor)  # weight LNC only single flavour model
-				self.CutFlow_LNC_weighted_ih.Fill(nbin, self.weight_LNC_only_ih * scale_factor)  # weight LNC only inverted heiarchy model
-				self.CutFlow_LNC_weighted_nh.Fill(nbin, self.weight_LNC_only_nh * scale_factor)  # weight LNC only normal heiarchy model
+				self.CutFlow_LNC.Fill(nbin) # raw counts
+				self.CutFlow_LNC_weighted.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor)
 			if self.MCEventType.isLNV:
-				self.CutFlow_LNV.Fill(nbin)
-				self.CutFlow_LNV_weighted.Fill(nbin, self.weight_LNC_only * scale_factor)  # weight LNC only since LNV events are scaled to 100% LNV (do not include extra factor of 2 for LNC+LNV model)
-				self.CutFlow_LNV_weighted_ih.Fill(nbin, self.weight_LNC_only_ih * scale_factor)
-				self.CutFlow_LNV_weighted_nh.Fill(nbin, self.weight_LNC_only_nh * scale_factor)
-			self.CutFlow.Fill(nbin)
-			self.CutFlow_LNC_plus_LNV.Fill(nbin, self.weight_LNC_plus_LNV * scale_factor)  # single flavour mixing
-			self.CutFlow_LNC_plus_LNV_ih.Fill(nbin, self.weight_LNC_plus_LNV_ih * scale_factor)  # inverted heiarchy
-			self.CutFlow_LNC_plus_LNV_nh.Fill(nbin, self.weight_LNC_plus_LNV_nh * scale_factor)  # normal heiarchy
+				self.CutFlow_LNV.Fill(nbin) # raw counts
+				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor)
+	
+			self.CutFlow.Fill(nbin) # raw counts
+			self.CutFlow_weighted_ih.Fill(nbin, self.model_weight_ih * scale_factor)
+			self.CutFlow_weighted_nh.Fill(nbin, self.model_weight_nh * scale_factor)
+			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
 		else:
 			self.CutFlow.Fill(nbin)
 
@@ -1249,16 +1207,22 @@ class Analysis(object):
 				self._fill_systematic_branches(sel)
 
 			# ____________________________________________________________
-			# Fill the DV weight for LNC or LNV only single flavour mixed model assumption (Dirac neutrino)
-			self.fill_hist(sel, 'DV_weight_LNC_only', self.weight_LNC_only)
-			self.fill_hist(sel, 'DV_weight_LNC_only_ih', self.weight_LNC_only_ih)
-			self.fill_hist(sel, 'DV_weight_LNC_only_nh', self.weight_LNC_only_nh)
-			# fill the DV weight for LNC plus LNV signal model assumption (Majorana neutrino)
-			# extra factor of 1/2 is from the U, m , ctau relationship changing due to there being twice
-			# as many decay channels open if the HNL can decay both LNC and LNV
-			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV', self.weight_LNC_plus_LNV)
-			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV_ih', self.weight_LNC_plus_LNV_ih)
-			self.fill_hist(sel, 'DV_weight_LNC_plus_LNV_nh', self.weight_LNC_plus_LNV_nh)
+			# Fill mc weights for the different HNL models
+			self.fill_hist(sel, 'model_weight_one_dirac_hnl_single_flavour', self.model_weight_one_dirac_hnl_single_flavour)
+			self.fill_hist(sel, 'model_weight_one_majorana_hnl_single_flavour', self.model_weight_one_majorana_hnl_single_flavour)
+			self.fill_hist(sel, 'model_weight_ih', self.model_weight_ih)
+			self.fill_hist(sel, 'model_weight_nh', self.model_weight_nh)
+			# ____________________________________________________________
+			# Fill HNL cross sections for different models
+			one_majorana_hnl_single_flavour_xsec = helpers.MC_event_weight(self.tree, model = "single-flavour").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
+			ih_xsec = helpers.MC_event_weight(self.tree, model = "IH").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
+			nh_xsec = helpers.MC_event_weight(self.tree, model = "NH").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
+			self.fill_hist(sel, 'one_majorana_hnl_single_flavour_xsec', one_majorana_hnl_single_flavour_xsec)
+			self.fill_hist(sel, 'one_dirac_hnl_single_flavour_xsec', one_majorana_hnl_single_flavour_xsec*2)
+			self.fill_hist(sel, 'NH_xsec', nh_xsec)
+			self.fill_hist(sel, 'IH_xsec', ih_xsec)
+
+			# ____________________________________________________________
 			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
 			self.fill_hist(sel, 'event_is_LNV', self.MCEventType.isLNV)
 
@@ -1824,9 +1788,9 @@ class run2Analysis(Analysis):
 		# Define cutflow histogram "by hand"
 		self.cutflow_dir = self.ch + '/CutFlow/'
 		if not self.dv_type == "ee":
-			self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 21, -0.5, 20.5)
+			self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow_raw_counts', 'CutFlow_raw_counts', 21, -0.5, 20.5)
 		else:
-			self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow', 'CutFlow', 22, -0.5, 21.5)
+			self.observables.histogram_dict[self.cutflow_dir+ 'CutFlow'] = ROOT.TH1D('CutFlow_raw_counts', 'CutFlow_raw_counts', 22, -0.5, 21.5)
 		self.CutFlow = self.observables.histogram_dict[self.cutflow_dir + 'CutFlow']
 		# Bin labels are 1 greater than histogram bins
 		self.CutFlow.GetXaxis().SetBinLabel(1, "all")
@@ -1907,43 +1871,47 @@ class run2Analysis(Analysis):
 			if not self.dv_type == "ee": truth_match_bin = 21
 			else: truth_match_bin = 22
 			self.CutFlow.GetXaxis().SetBinLabel(truth_match_bin, "truth matched")
-		self.CutFlow_LNC_plus_LNV = self.CutFlow.Clone()
-		self.CutFlow_LNC_plus_LNV.SetName("CutFlow_LNC_plus_LNV"+"_"+self.ch)
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_plus_LNV'] = self.CutFlow_LNC_plus_LNV
-		self.CutFlow_LNC_plus_LNV_ih = self.CutFlow.Clone()
-		self.CutFlow_LNC_plus_LNV_ih.SetName("CutFlow_LNC_plus_LNV_ih"+"_"+self.ch)
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_plus_LNV_ih'] = self.CutFlow_LNC_plus_LNV_ih
-		self.CutFlow_LNC_plus_LNV_nh = self.CutFlow.Clone()
-		self.CutFlow_LNC_plus_LNV_nh.SetName("CutFlow_LNC_plus_LNV_nh"+"_"+self.ch)
-		self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_plus_LNV_nh'] = self.CutFlow_LNC_plus_LNV_nh
+		
+		
 
 
 		# Store LNC and LNV cutflows in the observables collection
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
-			self.CutFlow_LNV = self.CutFlow.Clone()
+			# #########################################################################################################
+			# raw cutflows
+			# #########################################################################################################
 			self.CutFlow_LNC = self.CutFlow.Clone()
-			self.CutFlow_LNV.SetName("CutFlow_LNV"+"_"+self.ch)
-			self.CutFlow_LNC.SetName("CutFlow_LNC"+"_"+self.ch)
+			self.CutFlow_LNC.SetName("CutFlow_one_hnl_dirac"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC_raw_counts'] = self.CutFlow_LNC
+
+			self.CutFlow_LNV = self.CutFlow.Clone()
+			self.CutFlow_LNV.SetName("CutFlow_LNV_only"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_raw_counts'] = self.CutFlow_LNV
+			
+			# #########################################################################################################
+			# weighted cutflows
+			# #########################################################################################################
+			# LNV decays only (for comparing LNC and LNV decays, not a valid model on its own)
 			self.CutFlow_LNV_weighted = self.CutFlow.Clone()
+			self.CutFlow_LNV_weighted.SetName("CutFlow_weighted_LNV_only"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_LNV_only'] = self.CutFlow_LNV_weighted
+
+			# one hnl Dirac model
 			self.CutFlow_LNC_weighted = self.CutFlow.Clone()
-			self.CutFlow_LNV_weighted_ih = self.CutFlow.Clone()
-			self.CutFlow_LNC_weighted_ih = self.CutFlow.Clone()
-			self.CutFlow_LNV_weighted_nh = self.CutFlow.Clone()
-			self.CutFlow_LNC_weighted_nh = self.CutFlow.Clone()
-			self.CutFlow_LNV_weighted.SetName("CutFlow_weighted_LNV"+"_"+self.ch)
-			self.CutFlow_LNC_weighted.SetName("CutFlow_weighted_LNC"+"_"+self.ch)
-			self.CutFlow_LNV_weighted_ih.SetName("CutFlow_weighted_ih_LNV"+"_"+self.ch)
-			self.CutFlow_LNC_weighted_ih.SetName("CutFlow_weighted_ih_LNC"+"_"+self.ch)
-			self.CutFlow_LNV_weighted_nh.SetName("CutFlow_weighted_nh_LNV"+"_"+self.ch)
-			self.CutFlow_LNC_weighted_nh.SetName("CutFlow_weighted_nh_LNC"+"_"+self.ch)
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV'] = self.CutFlow_LNV
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNC'] = self.CutFlow_LNC
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_LNV'] = self.CutFlow_LNV_weighted
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_LNC'] = self.CutFlow_LNC_weighted
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_ih_LNV'] = self.CutFlow_LNV_weighted_ih
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_ih_LNC'] = self.CutFlow_LNC_weighted_ih
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_nh_LNV'] = self.CutFlow_LNV_weighted_nh
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_nh_LNC'] = self.CutFlow_LNC_weighted_nh
+			self.CutFlow_LNC_weighted.SetName("CutFlow_weighted_one_hnl_dirac"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_one_hnl_dirac'] = self.CutFlow_LNC_weighted
+			# one hnl Majorana model
+			self.CutFlow_weighted_one_hnl_majorana = self.CutFlow.Clone()
+			self.CutFlow_weighted_one_hnl_majorana.SetName("CutFlow_weighted_one_hnl_majorana"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_one_hnl_majorana'] = self.CutFlow_weighted_one_hnl_majorana
+			# inverted hierarchy model
+			self.CutFlow_weighted_ih = self.CutFlow.Clone()
+			self.CutFlow_weighted_ih.SetName("CutFlow_weighted_ih"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_ih'] = self.CutFlow_weighted_ih
+			# normal hierarchy model
+			self.CutFlow_weighted_nh = self.CutFlow.Clone()
+			self.CutFlow_weighted_nh.SetName("CutFlow_weighted_nh"+"_"+self.ch)		
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_nh'] = self.CutFlow_weighted_nh
 
 
 
