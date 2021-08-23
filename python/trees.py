@@ -50,6 +50,7 @@ class Tree:
 		self.fake_aod = fake_aod
 		self.channel = channel
 		self.dsid = dsid
+		self.tree_name = tree_name
 		self.mc_ch_str = helpers.MCInfo(dsid).ch_str
 		# temporary. Switching from "outTree" to "nominal". Remove this when data ntuples are remade.
 		try: self.tree = self.file[tree_name]
