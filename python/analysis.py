@@ -386,13 +386,12 @@ class Analysis(object):
 		directory = '{ch}/{selection}/'.format(ch=self.ch, selection=selection)
 		# fill LNC histograms. Not used for data.
 		if self.MCEventType.isLNC:
-			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, weight_one_dirac_hnl_single_flavour)
+			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
 		# fill LNV histograms. Not used for data.
 		if self.MCEventType.isLNV:
-			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, weight_one_dirac_hnl_single_flavour)
+			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
 		if self.MCEventType.isLNC or self.MCEventType.isLNV:
 			#fill LNC_plus_LNV histograms for every event
-			# U, m, ctau relationship changes becuase twice as many decay channels avaliable if HNL can decay via LNC and LNV
 			self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
