@@ -261,9 +261,9 @@ if __name__ == "__main__":
 
 	parser.add_argument('-s', '--saveNtuples',
 						dest="saveNtuples",
-						default="DVtype",
+						default="mHNL",
 						type=str,
-						help='Name of cut after which you want to save the micro-ntuples. Default is the save them after DV type cut')
+						help='Name of cut after which you want to save the micro-ntuples. Default is the final SR selection called "mHNL".')
 
 	parser.add_argument('-d', '--debug',
 						dest="debug_level",
