@@ -225,24 +225,29 @@ class MC_event_weight:
 			self.x_prod  = self.x_e
 			self.x_decay = self.x_mu
 
-		# ######################################################################################################################################################
-		# Get branching ratios (BR). BR depend on the mass, decay mode and model 
-		# BR json files contain a dictionaries of BR[mass][decay][model] for e_only, mu_only, NH and IH models.
-		# ######################################################################################################################################################
-		#  Computes lifetime via Gronau formulas and thus has 10-20% difference
-		if self.use_gronau: f_br = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Gronau_lifetime.json')
-		#  BranchingRatios_DifferentMixings_Olegs_lifetime.json computes lifetime via Oleg's parametrization (better agreement with MG)
-		else: f_br = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Olegs_lifetime.json')
-		self.br = f_br.get_BR(self.channel, self.tree.mass, self.mixing_type)
+		if not self.tree.is_data:
+			# ######################################################################################################################################################
+			# Get branching ratios (BR). BR depend on the mass, decay mode and model
+			# BR json files contain a dictionaries of BR[mass][decay][model] for e_only, mu_only, NH and IH models.
+			# ######################################################################################################################################################
+			#  Computes lifetime via Gronau formulas and thus has 10-20% difference
+			if self.use_gronau: f_br = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Gronau_lifetime.json')
+			#  BranchingRatios_DifferentMixings_Olegs_lifetime.json computes lifetime via Oleg's parametrization (better agreement with MG)
+			else: f_br = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Olegs_lifetime.json')
+			self.br = f_br.get_BR(self.channel, self.tree.mass, self.mixing_type)
 
-		# ######################################################################################################################################################
-		# Get coupling squared. Coupling depends on the mass, lifetime and model 
-		# Theta2 json files contain a dictionaries of BR[mass][lifetime][model] for e_only, mu_only, NH and IH models.
-		# ######################################################################################################################################################
-		#  Theta2 files contain a dictionaries of coupling2[mass][ctau][model] for signal-flavour mixing, NH and IH models.
-		if self.use_gronau: f_coupling = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/Theta2_DifferentMixings_Gronau_lifetime.json')
-		else: f_coupling = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/Theta2_DifferentMixings_Olegs_lifetime.json')
-		self.U2 = f_coupling.get_coupling(self.tree.mass, self.tree.ctau, self.mixing_type)
+			# ######################################################################################################################################################
+			# Get coupling squared. Coupling depends on the mass, lifetime and model
+			# Theta2 json files contain a dictionaries of BR[mass][lifetime][model] for e_only, mu_only, NH and IH models.
+			# ######################################################################################################################################################
+			#  Theta2 files contain a dictionaries of coupling2[mass][ctau][model] for signal-flavour mixing, NH and IH models.
+			if self.use_gronau: f_coupling = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/Theta2_DifferentMixings_Gronau_lifetime.json')
+			else: f_coupling = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/Theta2_DifferentMixings_Olegs_lifetime.json')
+			self.U2 = f_coupling.get_coupling(self.tree.mass, self.tree.ctau, self.mixing_type)
+		else:
+			self.U2 = -1
+			self.br = -1
+
 
 	def get_mc_event_weight(self):
 		"""
