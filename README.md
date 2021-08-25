@@ -188,14 +188,12 @@ To correctly compute the predicted number of events in the signal region for the
 ** Combinations ** 
 Applying the weights to the mini-trees listed above in each channel will give you the singal contribution in each respective channels. To get an overall combined signal strength for the different models, you will need to combine the various channels together. Here is a summary of the channels that should be combined for the various models: 
 
-1. **One Dirac HNL with single-flavour mixing**:
-  - muon-only mixing: u-uu + u-ue + u-ee
-  - electron-only mixing: e-ee + e-eu + e-uu
+1. a) **One Dirac HNL with muon-only mixing**: u-uu + u-ue + u-ee
+1. b) **One Dirac HNL with electron-only mixing**:e-ee + e-eu + e-uu
 2. **Quasi-Dirac pair _"Dirac limit"_ with IH mixing**: u-uu + u-ue + u-ee + e-ee + e-eu + e-uu
 3. **Quasi-Dirac pair _"Dirac limit"_ with NH mixing**: u-uu + u-ue + u-ee + e-ee + e-eu + e-uu
-4. **One Majorana HNL with single-flavour mixing**:
-  - muon-only mixing: u-uu + u-ue + u-ee
-  - electron-only mixing: e-ee + e-eu + e-uu
+4. a) **One Majorana HNL with muon-only mixing**: u-uu + u-ue + u-ee
+4. b) **One Majorana HNL with muon-only mixing**: e-ee + e-eu + e-uu
 5. **Quasi-Dirac pair _"Majorana limit"_ with IH mixing**: u-uu + u-ue + u-ee + e-ee + e-eu + e-uu
 6. **Quasi-Dirac pair _"Majorana limit"_ with NH mixing**: u-uu + u-ue + u-ee + e-ee + e-eu + e-uu
 
