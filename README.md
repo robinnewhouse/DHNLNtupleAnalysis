@@ -84,7 +84,7 @@ Event-level scale factors have been implemented in the framework (also see [Syst
 
 This scale factor is saved in mini-tree as the variable `SF_nominal`. 
 
-*Note:* Some scale factors default to 1 and are only updated one the corresponding selection has been made. For example, the lepton trigger scale factor is only defined after the trigger matched lepton is selected in the `trigger_matched_medium_lepton_cut`. This means that in order to save the correct scale factor in the mini tree you must save the mini-trees after this cut. 
+**Note:** Some scale factors default to 1 and are only updated once the corresponding selection has been made. For example, the lepton trigger scale factor is only defined after the trigger matched lepton is selected in the `trigger_matched_medium_lepton_cut`. This means that in order to save the correct scale factor in the mini tree you must save the mini-trees after this cut. 
 
 
 ## Configs
@@ -107,7 +107,7 @@ Within the different folders there are configs that are setup to run the event s
 - eeu: Prompt electron, 1-displaced muon & 1-displaced electron 
 - eee: Prompt electron, 2-displaced electrons
 
-### Systematics 
+## Systematics 
 
 Systematics types are broadly separated into scale factor and tree systematics.
 
