@@ -30,7 +30,7 @@ python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu
 ```
 One root file will be saved in DHNLNtupleAnalysis/output/ folder. 
 
-For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_mc16x_uuu.root. To see a full list of channels see this [section](#list-of-configuration-files). (The x will be either a,d or e depending on what nutple was given as an input).
+For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_mc16x_uuu.root. To see a full list of channels see this [section](#configs). (The x will be either a,d or e depending on what nutple was given as an input).
 
 For a full list of configurable options for `makeHistograms.py` see this list of [options](#list-of-makehistogramspy-options).
 
@@ -38,7 +38,7 @@ For a full list of configurable options for `makeHistograms.py` see this list of
 
 This ntuple analysis code is designed to output histograms for analysis selection variables in the dHNL analysis. 
 
-The `makeHistogram.py` file is the steering code for making histograms. To run the code, a configuration file is needed that provides the analysis code with a list of selections associated to a given channel name. For a list of the supported channel names see [List of configuration files](#list-of-configuration-files).
+The `makeHistogram.py` file is the steering code for making histograms. To run the code, a configuration file is needed that provides the analysis code with a list of selections associated to a given channel name. For a list of the supported channel names see [List of configuration files](#configs).
 
 To add a new channel, edit the corresponding config file and make a new channel that includes the cuts you wish to apply. 
 
@@ -65,6 +65,7 @@ In order properly calculate the cross section for the signal model, the mass and
 ```
 this is becuase your file is not appropriately named. Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_WmuHNL_DAOD_RPVLLonly_updatedRECO.txt) for naming conventions.
 
+A full lists of models and the descripton of what weights and trees should be used can be found [here](#HNL-models).
 
 **2. Truth weight for spin correlations and leptons ordering bug fix**
 
@@ -156,6 +157,36 @@ Here is a list of cuts that you can update the code using the `-s` or `--saveNtu
 - mDV
 - Zmass_veto
 - mHNL
+
+## HNL Models
+In the interpretation of the analysis there are six different models. These models vary as to whether both LNC and LNV decays are allowed and what mixing angles are allowed and how strong the mixing to the various flavours are. 
+
+**1. Mixing Models**
+- *Single-flavour mixing*: HNL only mixes with muon or electron neutrinos 
+        - Depending on mixing (electron or muon) only certain channels are non-zero. 
+        - Muon-only mixing weights are saved for channels with prompt muons 
+        - Electron-only mixing weights are saved for channels with prompt electrons 
+
+- *Inverted heirarchy (IH) mixing*: Equal mixing with all three flavours of neutrinos
+
+- *Normal heirarchy (NH) mixing*: Roughly equal mixing with muon and tau neutrinos. Mixing with electron neutrinos is supressed.
+
+**2. HNL Models**
+- *One Dirac HNL*: one HNL with only LNC decays.
+- *One Majorana HNL*: one HNL with 50% LNC and 50% LNV decays.
+- *Quasi-Dirac pair*: two HNLs depending on the mass splitting between the two HNLs LNC and LNV decays contribution differently amounts.
+        - "Majorana limit": limit where HNL decays 50% LNC and 50% LNV.
+        - "Dirac limit"   : limit where HNL decays 100% LNC.
+
+
+To correctly compute the predicted number of events in the signal region for the different models you must select _both_ the correct model weight and the correct mini-tree. A summary is as follows: 
+
+- One Dirac HNL with single-flavour mixing: LNC mini-tree + `model_weight_one_dirac_hnl_LNC_single_flavour_mixing`
+- Quasi-Dirac pair "Dirac limit" with IH mixing: LNC mini-tree + `model_weight_quasi_dirac_pair_LNC_ih_mixing`
+- Quasi-Dirac pair "Dirac limit" with NH mixing: LNC mini-tree + `model_weight_quasi_dirac_pair_LNC_nh_mixing`
+- One Majorana HNL with single-flavour mixing: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing`
+- Quasi-Dirac pair "Majorana limit" with IH mixing:: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing`
+- Quasi-Dirac pair "Majorana limit" with NH mixing:: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing`
 
 
 ## Study the displaced vertex efficiency using different VSI configurations
