@@ -186,6 +186,7 @@ To correctly compute the predicted number of events in the signal region for the
 6. **Quasi-Dirac pair _"Majorana limit"_ with NH mixing**: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing`
 
 **Combinations** 
+
 Applying the weights to the mini-trees listed above in each channel will give you the singal contribution in each respective channels. To get an overall combined signal strength for the different models, you will need to combine the various channels together. Here is a summary of the channels that should be combined for the various models: 
 
 1. **One Dirac HNL with single-flavour mixing**: 
