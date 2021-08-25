@@ -41,17 +41,21 @@ class Analysis(object):
 		self.events_with_trig_match_both_pdlep =0
 
 		# Calculate MC event weights as "L * xsec / num. MC events" (One number per file)
-		# Single flavour mixing
-		self.mc_event_weight_one_dirac_hnl_single_flavour = helpers.MC_event_weight(self.tree, model = "single-flavour").get_mc_event_weight(dirac_particle = True)
-		self.mc_event_weight_one_majorana_hnl_single_flavour = helpers.MC_event_weight(self.tree, model = "single-flavour").get_mc_event_weight()
-		# inverted heiarchy
-		self.mc_event_weight_ih = helpers.MC_event_weight(self.tree, model = "IH").get_mc_event_weight()
-		# normal heiarchy
-		self.mc_event_weight_nh = helpers.MC_event_weight(self.tree, model = "NH").get_mc_event_weight()
+		# Single flavour mixing weights
+		self.mc_event_weight_one_dirac_hnl_single_flavour = helpers.MC_event_weight(self.tree, mixing_type = "single-flavour", dirac_limit = True).get_mc_event_weight()
+		self.mc_event_weight_one_majorana_hnl_single_flavour = helpers.MC_event_weight(self.tree, mixing_type = "single-flavour").get_mc_event_weight()
+		# Quasi-dirac pair "Majorana limit" with IH or NH mixing
+		self.mc_event_weight_majorana_limit_ih = helpers.MC_event_weight(self.tree, mixing_type = "IH").get_mc_event_weight()
+		self.mc_event_weight_majorana_limit_nh = helpers.MC_event_weight(self.tree, mixing_type = "NH").get_mc_event_weight()
+		# Quasi-dirac pair "Majorana limit" with IH or NH mixing
+		self.mc_event_weight_dirac_limit_ih = helpers.MC_event_weight(self.tree, mixing_type = "IH", dirac_limit = True).get_mc_event_weight()
+		self.mc_event_weight_dirac_limit_nh = helpers.MC_event_weight(self.tree, mixing_type = "NH", dirac_limit = True).get_mc_event_weight()
 
 		if self.tree.channel == "uue" or self.tree.channel == "eeu":
-			self.mc_event_weight_ih_flip_e_and_mu = helpers.MC_event_weight(self.tree, model = "IH").get_mc_event_weight(flip_e_and_mu = True)
-			self.mc_event_weight_nh_flip_e_and_mu = helpers.MC_event_weight(self.tree, model = "NH").get_mc_event_weight(flip_e_and_mu = True)
+			self.mc_event_weight_majorana_limit_ih_flip_e_and_mu = helpers.MC_event_weight(self.tree, mixing_type = "IH", flip_e_and_mu = True).get_mc_event_weight()
+			self.mc_event_weight_majorana_limit_nh_flip_e_and_mu = helpers.MC_event_weight(self.tree, mixing_type = "NH", flip_e_and_mu = True).get_mc_event_weight()
+			self.mc_event_weight_dirac_limit_ih_flip_e_and_mu = helpers.MC_event_weight(self.tree, mixing_type = "IH", flip_e_and_mu = True, dirac_limit = True).get_mc_event_weight()
+			self.mc_event_weight_dirac_limit_nh_flip_e_and_mu = helpers.MC_event_weight(self.tree, mixing_type = "NH", flip_e_and_mu = True, dirac_limit = True).get_mc_event_weight()
 
 		# prepare systematics
 		if self.tree.tree_name == 'nominal':
@@ -842,28 +846,38 @@ class Analysis(object):
 			# #####################################################################################
 			# Compute "model weight" as the product of mc event weight x spin corr weight
 			# #####################################################################################
-			weight_ih = self.mc_event_weight_ih * self.MCEventType.weight
-			weight_nh = self.mc_event_weight_nh * self.MCEventType.weight
+			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih * self.MCEventType.weight
+			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh * self.MCEventType.weight
+			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih * self.MCEventType.weight
+			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh * self.MCEventType.weight
 
 			# For uue and eeu channels, compute a second weight to reweight uue --> ueu  or eeu --> eue
 			if self.tree.channel == "uue" or self.tree.channel == "eeu":	
-				weight_ih_2 = self.mc_event_weight_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
-				weight_nh_2 = self.mc_event_weight_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_majorana_limit_ih_2 = self.mc_event_weight_majorana_limit_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_majorana_limit_nh_2 = self.mc_event_weight_majorana_limit_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_dirac_limit_ih_2 = self.mc_event_weight_dirac_limit_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_dirac_limit_nh_2 = self.mc_event_weight_dirac_limit_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
 				# Total weight is the sum of the two channels for models 
-				self.model_weight_ih = weight_ih + weight_ih_2
-				self.model_weight_nh = weight_nh + weight_nh_2
+				self.model_weight_majorana_limit_ih = weight_majorana_limit_ih + weight_majorana_limit_ih_2
+				self.model_weight_majorana_limit_nh = weight_majorana_limit_nh + weight_majorana_limit_nh_2
+				self.model_weight_dirac_limit_ih = weight_dirac_limit_ih + weight_dirac_limit_ih_2
+				self.model_weight_dirac_limit_nh = weight_dirac_limit_nh + weight_dirac_limit_nh_2
 			# For all other channels the weight
 			else:
-				self.model_weight_ih = weight_ih
-				self.model_weight_nh = weight_nh
+				self.model_weight_majorana_limit_ih = weight_majorana_limit_ih
+				self.model_weight_majorana_limit_nh = weight_majorana_limit_nh
+				self.model_weight_dirac_limit_ih = weight_dirac_limit_ih
+				self.model_weight_dirac_limit_nh = weight_dirac_limit_nh
 			# Single flavour mixing models 
 			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour * self.MCEventType.weight
 			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour * self.MCEventType.weight
 		else:
 			self.model_weight_one_dirac_hnl_single_flavour = self.weight_override
 			self.one_majorana_hnl_single_flavour = self.weight_override
-			self.model_weight_ih = self.weight_override
-			self.model_weight_nh = self.weight_override
+			self.model_weight_diract_limit_ih = self.weight_override
+			self.model_weight_diract_limit_nh = self.weight_override
+			self.model_weight_majorana_limit_ih = self.weight_override
+			self.model_weight_majorana_limit_nh = self.weight_override
 
 
 	def DVSelection(self):
@@ -874,15 +888,19 @@ class Analysis(object):
 			# store weighted cutflow with nominal scale factors
 			scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
 			if self.MCEventType.isLNC:
-				self.CutFlow_LNC.Fill(nbin) # raw counts
-				self.CutFlow_LNC_weighted.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor)
+				self.CutFlow_LNC.Fill(nbin) # raw counts (only LNC events)
+				self.CutFlow_LNC_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
+				self.CutFlow_weighted_one_hnl_dirac.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor)
 			if self.MCEventType.isLNV:
-				self.CutFlow_LNV.Fill(nbin) # raw counts
-				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor)
-	
-			self.CutFlow.Fill(nbin) # raw counts
-			self.CutFlow_weighted_ih.Fill(nbin, self.model_weight_ih * scale_factor)
-			self.CutFlow_weighted_nh.Fill(nbin, self.model_weight_nh * scale_factor)
+				self.CutFlow_LNV.Fill(nbin) # raw counts (only LNV events)
+				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
+
+			self.CutFlow.Fill(nbin) # raw counts (all events)
+			# Models that count both LNC and LNV events!
+			self.CutFlow_weighted_majorana_limit_ih.Fill(nbin, self.model_weight_majorana_limit_ih * scale_factor)
+			self.CutFlow_weighted_majorana_limit_nh.Fill(nbin, self.model_weight_majorana_limit_nh * scale_factor)
+			self.CutFlow_weighted_dirac_limit_ih.Fill(nbin, self.model_weight_dirac_limit_ih * scale_factor)
+			self.CutFlow_weighted_dirac_limit_nh.Fill(nbin, self.model_weight_dirac_limit_nh * scale_factor)
 			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
 		else:
 			self.CutFlow.Fill(nbin)
@@ -1208,19 +1226,23 @@ class Analysis(object):
 
 			# ____________________________________________________________
 			# Fill mc weights for the different HNL models
-			self.fill_hist(sel, 'model_weight_one_dirac_hnl_single_flavour', self.model_weight_one_dirac_hnl_single_flavour)
-			self.fill_hist(sel, 'model_weight_one_majorana_hnl_single_flavour', self.model_weight_one_majorana_hnl_single_flavour)
-			self.fill_hist(sel, 'model_weight_ih', self.model_weight_ih)
-			self.fill_hist(sel, 'model_weight_nh', self.model_weight_nh)
+			# Weights for LNC + LNV decays
+			self.fill_hist(sel, 'model_weight_one_majorana_hnl_LNCplusLNV_single_flavour_mixing', self.model_weight_one_majorana_hnl_single_flavour)
+			self.fill_hist(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing', self.model_weight_majorana_limit_ih)
+			self.fill_hist(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing', self.model_weight_majorana_limit_nh)
+			# LNC only weights
+			self.fill_hist(sel, 'model_weight_one_dirac_hnl_LNC_single_flavour_mixing', self.model_weight_one_dirac_hnl_single_flavour)
+			self.fill_hist(sel, 'model_weight_quasi_dirac_pair_LNC_ih_mixing', self.model_weight_dirac_limit_ih)
+			self.fill_hist(sel, 'model_weight_quasi_dirac_pair_LNC_nh_mixing', self.model_weight_dirac_limit_nh)
 			# ____________________________________________________________
 			# Fill HNL cross sections for different models
-			one_majorana_hnl_single_flavour_xsec = helpers.MC_event_weight(self.tree, model = "single-flavour").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
-			ih_xsec = helpers.MC_event_weight(self.tree, model = "IH").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
-			nh_xsec = helpers.MC_event_weight(self.tree, model = "NH").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
-			self.fill_hist(sel, 'one_majorana_hnl_single_flavour_xsec', one_majorana_hnl_single_flavour_xsec)
-			self.fill_hist(sel, 'one_dirac_hnl_single_flavour_xsec', one_majorana_hnl_single_flavour_xsec*2)
-			self.fill_hist(sel, 'NH_xsec', nh_xsec)
-			self.fill_hist(sel, 'IH_xsec', ih_xsec)
+			one_majorana_hnl_single_flavour_xsec = helpers.MC_event_weight(self.tree, mixing_type = "single-flavour").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
+			ih_xsec = helpers.MC_event_weight(self.tree, mixing_type = "IH").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
+			nh_xsec = helpers.MC_event_weight(self.tree, mixing_type = "NH").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
+			self.fill_hist(sel, 'LNC_xsec_one_majorana_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec)
+			self.fill_hist(sel, 'LNC_xsec_one_dirac_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec*2)
+			self.fill_hist(sel, 'NH_xsec', nh_xsec*2)
+			self.fill_hist(sel, 'IH_xsec', ih_xsec*4)
 
 			# ____________________________________________________________
 			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
@@ -1878,7 +1900,7 @@ class run2Analysis(Analysis):
 		# Store LNC and LNV cutflows in the observables collection
 		if not self.tree.is_data and not self.tree.not_hnl_mc:
 			# #########################################################################################################
-			# raw cutflows
+			# Raw cutflows
 			# #########################################################################################################
 			self.CutFlow_LNC = self.CutFlow.Clone()
 			self.CutFlow_LNC.SetName("CutFlow_one_hnl_dirac"+"_"+self.ch)
@@ -1889,29 +1911,46 @@ class run2Analysis(Analysis):
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_LNV_raw_counts'] = self.CutFlow_LNV
 			
 			# #########################################################################################################
-			# weighted cutflows
+			# Weighted cutflows
 			# #########################################################################################################
-			# LNV decays only (for comparing LNC and LNV decays, not a valid model on its own)
-			self.CutFlow_LNV_weighted = self.CutFlow.Clone()
-			self.CutFlow_LNV_weighted.SetName("CutFlow_weighted_LNV_only"+"_"+self.ch)
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_LNV_only'] = self.CutFlow_LNV_weighted
 
-			# one hnl Dirac model
-			self.CutFlow_LNC_weighted = self.CutFlow.Clone()
-			self.CutFlow_LNC_weighted.SetName("CutFlow_weighted_one_hnl_dirac"+"_"+self.ch)
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_one_hnl_dirac'] = self.CutFlow_LNC_weighted
-			# one hnl Majorana model
+			# One HNL Majorana model (combined LNC and LNV decays)
 			self.CutFlow_weighted_one_hnl_majorana = self.CutFlow.Clone()
 			self.CutFlow_weighted_one_hnl_majorana.SetName("CutFlow_weighted_one_hnl_majorana"+"_"+self.ch)
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_one_hnl_majorana'] = self.CutFlow_weighted_one_hnl_majorana
-			# inverted hierarchy model
-			self.CutFlow_weighted_ih = self.CutFlow.Clone()
-			self.CutFlow_weighted_ih.SetName("CutFlow_weighted_ih"+"_"+self.ch)
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_ih'] = self.CutFlow_weighted_ih
-			# normal hierarchy model
-			self.CutFlow_weighted_nh = self.CutFlow.Clone()
-			self.CutFlow_weighted_nh.SetName("CutFlow_weighted_nh"+"_"+self.ch)		
-			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_nh'] = self.CutFlow_weighted_nh
+			# LNC only decays for one Majorana HNL model (for comparing LNC and LNV acceptance)
+			self.CutFlow_LNV_weighted = self.CutFlow.Clone()
+			self.CutFlow_LNV_weighted.SetName("CutFlow_weighted_one_hnl_majorana_LNV_only"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_one_hnl_majorana_LNV_only'] = self.CutFlow_LNV_weighted
+			# LNC only decays for one Majorana HNL model (for comparing LNC and LNV acceptance)
+			self.CutFlow_LNC_weighted = self.CutFlow.Clone()
+			self.CutFlow_LNC_weighted.SetName("CutFlow_weighted_one_hnl_majorana_LNC_only"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_one_hnl_majorana_LNC_only'] = self.CutFlow_LNC_weighted
+
+			# One HNL Dirac model (LNC only decays)
+			self.CutFlow_weighted_one_hnl_dirac = self.CutFlow.Clone()
+			self.CutFlow_weighted_one_hnl_dirac.SetName("CutFlow_weighted_one_hnl_dirac"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_one_hnl_dirac'] = self.CutFlow_weighted_one_hnl_dirac
+
+			# Quasi-Dirac pair "Majorana limit" with inverted hierarchy mixing
+			self.CutFlow_weighted_majorana_limit_ih = self.CutFlow.Clone()
+			self.CutFlow_weighted_majorana_limit_ih.SetName("CutFlow_weighted_majorana_limit_ih"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_majorana_limit_ih'] = self.CutFlow_weighted_majorana_limit_ih
+
+			# Quasi-Dirac pair "Majorana limit" with normal hierarchy mixing
+			self.CutFlow_weighted_majorana_limit_nh = self.CutFlow.Clone()
+			self.CutFlow_weighted_majorana_limit_nh.SetName("CutFlow_weighted_majorana_limit_nh"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_majorana_limit_nh'] = self.CutFlow_weighted_majorana_limit_nh
+
+			# Quasi-Dirac pair "Dirac limit" with inverted hierarchy mixing
+			self.CutFlow_weighted_dirac_limit_ih = self.CutFlow.Clone()
+			self.CutFlow_weighted_dirac_limit_ih.SetName("CutFlow_weighted_dirac_limit_ih"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_dirac_limit_ih'] = self.CutFlow_weighted_dirac_limit_ih
+
+			# Quasi-Dirac pair "Dirac limit" with normal hierarchy mixing
+			self.CutFlow_weighted_dirac_limit_nh = self.CutFlow.Clone()
+			self.CutFlow_weighted_dirac_limit_nh.SetName("CutFlow_weighted_dirac_limit_nh"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_dirac_limit_nh'] = self.CutFlow_weighted_dirac_limit_nh
 
 
 
