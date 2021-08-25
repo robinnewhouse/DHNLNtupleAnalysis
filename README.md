@@ -126,8 +126,7 @@ An example file of 1000 events can be found here: [https://cernbox.cern.ch/index
 ## Guide To Using The Mini-Ntuples
 Mini-ntuples are saved to the output file when you run `makeHistograms.py`. Mini-ntuples are designed to store the full tree information (not just the binned histogram) for each variable. Having access to a micro-ntuple means you can quickly re-bin or plot correlations after some selections are applied. By default the mini-ntuples are saved after the mHNL cut (the fianl SR selection). 
 
-Inside of the histogram output file you will find the mini-ntuple trees in: 
-- nominal/VSI_Leptons_Mod/ntuples_DVtype_VSI_Leptons_Mod
+Inside of the histogram output file you will find the mini-ntuple trees in: `nominal/VSI_Leptons_Mod/ntuples_DVtype_VSI_Leptons_Mod`
 
 
 If you want to change the cut to a different point in the event selection so that you can study the impact of the selection in data and mc (e.g. save ntuples after the `DVtype` cut), you can run: 
@@ -163,9 +162,9 @@ In the interpretation of the analysis there are six different models. These mode
 
 **Mixing Models**
 - **Single-flavour mixing**: HNL only mixes with muon or electron neutrinos 
-        - Depending on mixing (electron or muon) only certain channels are non-zero. 
-        - Muon-only mixing weights are saved for channels with prompt muons 
-        - Electron-only mixing weights are saved for channels with prompt electrons 
+  - Depending on mixing (electron or muon) only certain channels are non-zero. 
+  - Muon-only mixing weights are saved for channels with prompt muons 
+  - Electron-only mixing weights are saved for channels with prompt electrons 
 - **Inverted heirarchy (IH) mixing**: Equal mixing with all three flavours of neutrinos
 - **Normal heirarchy (NH) mixing**: Roughly equal mixing with muon and tau neutrinos. Mixing with electron neutrinos is supressed.
 
@@ -173,8 +172,8 @@ In the interpretation of the analysis there are six different models. These mode
 - **One Dirac HNL**: one HNL with only LNC decays.
 - **One Majorana HNL**: one HNL with 50% LNC and 50% LNV decays.
 - **Quasi-Dirac pair**: two HNLs depending on the mass splitting between the two HNLs LNC and LNV decays contribution differently amounts.
-        - "Majorana limit": limit where HNL decays 50% LNC and 50% LNV.
-        - "Dirac limit"   : limit where HNL decays 100% LNC.
+  - "Majorana limit": limit where HNL decays 50% LNC and 50% LNV.
+  - "Dirac limit"   : limit where HNL decays 100% LNC.
 
 
 To correctly compute the predicted number of events in the signal region for the different models you must select _both_ the correct model weight and the correct mini-tree. A summary is as follows: 
