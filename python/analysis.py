@@ -830,7 +830,7 @@ class Analysis(object):
 		Do not use this for final signal weighting. These weights must be combined with
 		the object-level scale factors.
 
-		In general the weight is equal to (cross section weight * spin correlations weight * pileup weight)
+		In general the weight is equal to (cross section weight * spin correlations weight)
 		Due to the various models (single flavour mixing, inverted heiarchy (ih) and normal heiarchy (nh)),
 		different weights are computed and saved to the mini-trees.
 
