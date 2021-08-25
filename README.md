@@ -34,19 +34,6 @@ For this example, the code will save the file DHNLNtupleAnalysis/output/histogra
 
 For a full list of configurable options for `makeHistograms.py` see this list of [options](#list-of-makehistogramspy-options).
 
-### Running plotHistograms.py
-
-Note: plotHistograms is very out of date. Only use as an example. Check out the separate plotting repository for upto date plotting code: [DHNLPlotting](https://gitlab.cern.ch/dtrischu/dhnlplotting/-/tree/master)
-
-Once you have run makeHistograms.py edit `../data/config_plotting.json` to include a path to the histogram files you want to plot, as well as an identifying label for each file.
-
-Then run:
-```
-python plotHistograms.py --config ../data/other/config_plotting.json
-```
-
-The plotHisotograms.py code will be user specific depending on what histograms you want to plot. Please feel free to use the plotting functions in plotting.py in your own plotting scripts. Or use the example plotHistograms.py that is provided. 
-
 ## Quick Start Guide
 
 This ntuple analysis code is designed to output histograms for analysis selection variables in the dHNL analysis. 
@@ -66,45 +53,89 @@ To add new histograms, add a new observable to the list in `observables.py`. The
 To add a new selection, make a new class in `selections.py`.
 
 
-## A note about MC weighting
+## Weights
 
-Event weighting for monte carlo samples is implemented in the framework. There are currently 2 different weight that are calculated specifically for MC weighting.
+**1. MC event weight**
 
-**1. Mass-lifetime weight**
+MC event weights are computed in the `MC_event_weight` class in `helpers.py`. One weight is computed for each model in the interpretation.
 
 In order properly calculate the cross section for the signal model, the mass and lifetime of the sample you are running is required to be in the name of the input string in the same format as the DAOD_RPVLL container names. If you see a warning such as:
-
 ```
 "Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!"
 ```
 this is becuase your file is not appropriately named. Either rename your ntuple file following the convention from the DAOD_RPVLL conatiner name you used to make the ntuple or make due without MC event weighting. See the list of DAOD_RPVLL samples [here](https://twiki.cern.ch/twiki/pub/AtlasProtected/ExoticLongLivedHeavyNeutralLeptonRel21/MC16a_MC16d_MC16e_dHNL_WmuHNL_DAOD_RPVLLonly_updatedRECO.txt) for naming conventions.
 
+
 **2. Truth weight for spin correlations and leptons ordering bug fix**
 
 Truth reweighting was introducted to add spin correlations with Pythia did not take into acount when simulating the truth distributions. This reweighting also fixed a lepton ordering bug that was also found in our official Pythia MC samples. For more details about these effects please see [this talk](https://indico.cern.ch/event/944478/contributions/3968769/attachments/2102276/3534533/MC_Reweighting_Sept15_20.pdf) and [this talk](https://indico.cern.ch/event/944479/contributions/3968779/attachments/2106444/3542592/MC_Reweighting_Sept22_20.pdf). 
 
-In `selections.py` a class called `MCEventType` will determine is the current events is LNC or LNV and accordingly calcute a weight based on the truth distributions from the particular event. 
+In `selections.py` a class called `MCEventType` is used to determine if the current event is an LNC or LNV decay and accordingly calcute a weight based on the truth distributions from the particular event.
 
-The overall MC event weight is calculated in `analysis.py` the function called `calculate_event_weight` and takes into account both the mass-lifetime weight for the events and the MCtype (LNC or LNV) weight. 
-
-## Inverted Prompt Lepton Control Region
-To run the analysis selection in the inverted prompt lepton control region add "CR" to the list of selections in the config file in data/.
+An overall "model event weight" is calculated in `analysis.py` the function called `calculate_event_weight`. The model weight is the product of both the MC event weight and the LNC/V weight.
 
 
-## Quick guide to using the micro-ntuples
-Micro-ntuples are saved to the output file when you run `makeHistograms.py`. Micro-ntuples are designed to store the full tree information (not just the binned histogram) for each variable. Having access to a micro-ntuple means you can quickly re-bin or plot correlations after some selections are applied. By default the micro-ntuples are saved after the DV type cut (2-muon DV, 2-electron DV or 1-electron and 1-muon DV). 
+**2. Scale factors**
 
-Inside of the histogram output file you will find the micro-ntuple trees in: 
-- VSI/ntuples_DVtype_VSI
-- VSI_Leptons/ntuples_DVtype_VSI_Leptons
+Event-level scale factors have been implemented in the framework (also see [Systematics](## Systematics) selction below). The nominal scale factor is the product of three weights: 
 
-To change the cut where the micro-ntuples are saved (e.g. save ntuples after the trkqual cut), you can run: 
+`scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']`
+
+This scale factor is saved in mini-tree as the variable `SF_nominal`. 
+
+*Note:* Some scale factors default to 1 and are only updated one the corresponding selection has been made. For example, the lepton trigger scale factor is only defined after the trigger matched lepton is selected in the `trigger_matched_medium_lepton_cut`. This means that in order to save the correct scale factor in the mini tree you must save the mini-trees after this cut. 
+
+
+## Configs
+
+Various configs are included in the `data/` folder. Here you will find various configs that are set up to run event selection for: 
+- HNL signal samples (mc)
+- inverted prompt lepton validation region (CR)
+- inverted mhnl control region (inverted_mhnl)
+- inverted tri-lepton mass region (inverted_mlll)
+- kshort analysis (for tracking studies)
+- same-sign background selection (SSbkg)
+- unblinded signal region (unblind_SR)
+
+Within the different folders there are configs that are setup to run the event selection for the six signal channels: 
+
+- uuu: Prompt muon, 2-displaced muons
+- uue: Prompt muon, 1-displaced muon & 1-displaced electron 
+- uee: Prompt muon, 2-displaced electrons
+- euu: Prompt electron, 2-displaced muons
+- eeu: Prompt electron, 1-displaced muon & 1-displaced electron 
+- eee: Prompt electron, 2-displaced electrons
+
+### Systematics 
+
+Systematics types are broadly separated into scale factor and tree systematics.
+
+- SF systematics can be handled by providing a different weight for each scale factor.
+- Tree systematics have different quantities for physics variables (muon pt, etc.) so the selections can be different. This requires a different tree for each.
+
+The systematics can be run using --doSystematics as a command-line option.
+
+A directory structure is used to separate different systematics. The nominal directory contains the tree without systematic variations. The other variations are kept in directories such as nominalMUON_ID__1down (see pictures in comment below). Only the nominal tree contains the scale factor variation ntuples (e.g. nominalMUON_ID__1down does not contain the ntuple MUON_EFF_RECO_SYS__1down).
+
+The event weight must be multiplied by a scale factor. The nominal scale factor is SF_nominal but for systematic variations these would be MUON_EFF_RECO_SYS__1down etc. So each variable must be weighted by the event weight and the scale factor. e.g. HNLm * DV_weight_LNC_only * SF_nominal for the nominal variation and HNLm * DV_weight_LNC_only * MUON_EFF_RECO_SYS__1down for the muon reconstruction systematic variation.
+
+An example file of 1000 events can be found here: [https://cernbox.cern.ch/index.php/s/GN0CtC4HrRnzPFc](https://cernbox.cern.ch/index.php/s/GN0CtC4HrRnzPFc).
+
+
+## Guide To Using The Mini-Ntuples
+Mini-ntuples are saved to the output file when you run `makeHistograms.py`. Mini-ntuples are designed to store the full tree information (not just the binned histogram) for each variable. Having access to a micro-ntuple means you can quickly re-bin or plot correlations after some selections are applied. By default the mini-ntuples are saved after the mHNL cut (the fianl SR selection). 
+
+Inside of the histogram output file you will find the mini-ntuple trees in: 
+- nominal/VSI_Leptons_Mod/ntuples_DVtype_VSI_Leptons_Mod
+
+
+If you want to change the cut to a different point in the event selection so that you can study the impact of the selection in data and mc (e.g. save ntuples after the `DVtype` cut), you can run: 
 
 ```
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu.json --saveNtuples trkqual
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu.json --saveNtuples DVtype
 ```
 
-Or if you want to save them after EVERY cut: 
+Or if you want to save mini-trees after every cut: 
 
 ```
 python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu.json --saveNtuples allcuts
@@ -115,85 +146,55 @@ N.B This "allcuts" option makes the histogram output files much larger, especial
 Here is a list of cuts that you can update the code using the `-s` or `--saveNtuples` option: 
 
 - all 
-- charge
 - DVtype
-- trkqual
 - cosmic
-- mlll
-- sel
+- DVlep_pt
+- matveto (only for e-ee and u-ee channels)
+- trkqual
+- trig_match
+- mvis
+- mDV
+- Zmass_veto
+- mHNL
 
 
-## List of Configuration Files
+## Study the displaced vertex efficiency using different VSI configurations
 
-The following are the default channels that have corresponding config files in DHNLNtupleAnalysis/data: 
-- uuu: Prompt muon, 2-displaced muons
-- ueu: Prompt muon, 1-displaced muon & 1-displaced electron 
-- uee: Prompt muon, 2-displaced electrons
-- euu: Prompt electron, 2-displaced muons
-- eeu: Prompt electron, 1-displaced muon & 1-displaced electron 
-- eee: Prompt electron, 2-displaced electrons
-
-
-## New Vertex Configuration Working Points
-New developments have been included to modify the VSI vertex configurations in the derivation step and produced SUSY15 derivation files with new vertex containers. If you are running on an nutple that was produced from a SUSY15 derivation file you may want to run over different vertex container names. The original and new container names are listed below: 
-- **VSI**: Original VSI container that was created in the DRAW-> AOD step. This container is just copied during the AOD -> DAOD (derivation) step. 
-- **VSI Leptons**: Original VSI Leptons container that was created in the DRAW-> AOD step. This container is just copied during the derivation step. 
-- **VSI_LRTR3_1p0**: New WP for vertexing with all tracks. This container was created in the derivation step.
-- **VSI_LeptonsMod_LRTR3_1p0**: New WP for vertexing with leptons only + all track attatchment. This container was created in the derivation step.
-
-N.B An additonal container called "VSI_LeptonsLRTR3_1p0" also exisits in the dHNL ntuples made from SUSY15 DAODs, but this vertex configuration has very large backgrounds since the additional track attatchment step is not run. It is not recommended to use this vertex configuration. 
-
-To run with the new container names use the customVSI configuration files in data/. For example: 
+By default, the DHNLAlgorithm will only run on the `VSI_Leptons_Mod` container, which uses the custom VSI configuration to run the displaced vertex reconstruction. 
+However, if your DHNL ntuples has been produced with different vertex containers you may be able to run the event selection to study the efficiency of the differen vertex configurations.
+To run with a different vertex configuration, add the name of the new configuration to the `vtx_containers` list in the `DHNLNtupleAnalysis` configs located in 'data/'
+For example, to run on VSI, VSI_Leptons and VSI_Leptons_Mod modify the config like this:
 ```
-cd python 
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_customVSI_uuu.json
+{
+"OS_ee":{
+        "vtx_containers" :  ["VSI", "VSI_Leptons", "VSI_LeptonsMod"],
+        "selections":["CR", "nDV", "fidvol","2track","OS", "ee","2-veryveryloose","cosmicveto","DVmass" ]
+        }
+}
 ```
+
 ### Output File Structure 
 
 When you run makeHistograms.py on a dHNL nutple you will get an output file located in the `DHNLNtupleAnalysis/ouput/` folder. This ouput file will contain variaous folders full of different histograms that were filled when you ran the event selection cuts in `analysis.py`. When you run on HNL signal samples you should get the following folder structure: 
 
 ```
-├── VSI_ntuples_DVtype <-- ntuples from VSI DVs that are saved after the DVtype cut 
-├── VSI <-- folder that contains all histograms filled by VSI DVs
-│   ├──truth <-- folder containing all truth histograms
-│       ├──all <-- all truth histograms
-│           ├──LNC <--LNC truth histograms 
+├── nominal
+│    ├── VSI_Leptons_Mod_ntuples_LNC_plus_LNV_mHNL <-- mini-ntuples from VSI Lepton Mod DVs that are saved after the mHNL cut with both LNC and LNV decays
+│    ├── VSI_Leptons_Mod_ntuples_LNC_mHNL <-- mini-ntuples from VSI Lepton Mod DVs that are saved after the mHNL cut with LNC decays only
+│    ├── VSI_Leptons_Mod_ntuples_LNV_mHNL <-- mini-ntuples from VSI Lepton Mod DVs that are saved after the mHNL cut with LNV decays only
+│    ├── VSI_Leptons_Mod <-- folder that contains all histograms filled by VSI DVs
+│       ├──truth <-- folder containing all truth histograms
+│           ├──all <-- all truth histograms
+│               ├──LNC <--LNC truth histograms 
+│               └──LNV <-- LNV truth histograms
+|           └── presel <-- truth histograms after preselection 
+│       ├── all <-- histograms from all events and all DVs
+│       ├── DVtype <-- histograms from events and all DVs after DVtype selection is applied
+│           ├──LNC <-- LNC truth histograms 
 │           └──LNV <-- LNV truth histograms
-|       └── presel <-- truth histograms after preselection 
-│   ├── all <-- reco histograms from all events and all DVs
-│   ├── DVtype <-- reco histograms from events and all DVs after DVtype selection is applied
-│       ├──LNC <--LNC truth histograms 
-│       └──LNV <-- LNV truth histograms
-│   ... (more folders the same structure for all the differnt cuts)
-│   └── CutFlow <-- VSI cutflows
-├── VSI_Leptons_ntuples_DVtype <-- ntuples from VSI Lepton DVs that are saved after the DVtype cut 
-├── VSI Leptons <-- folder that contains all histograms filled by VSI Leptons DVs
-│   ├── truth
-│   ├── all
-│   ...
-│   └── CutFlow <-- VSI Leptons cutflows 
+│       ... (more folders the same structure for all the differnt cuts)
+│       └── CutFlow <-- VSI Leptons Mod cutflows
 ```
-
-## Making Pretty Plots
-
-Please see `DHNLPlotting` repository for making plots. [DHNLPlotting](https://gitlab.cern.ch/dtrischu/dhnlplotting/-/tree/master).
-
-###Old Plotting Code:
-
-Plotting functions are defined in `plotting.py`. The steering code `plotHistograms.py` defines what kinds of plots to save in the default output directory `DHNLNtupleAnalysis/output/plots/`. Running plotHistograms.py you can plot different distribtions on the same canvas and save them to the output directory.
-
-Make sure you edit `DHNLNtupleAnalysis/data/config_plotting.json` to include the files you wish to plot.
-
-For making cutflow plots: 
-
-1. open `plotHistogram.py`
-2. edit the function makeCutflows() following the example provided. 
-3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/Cutflows`
-
-For comparing histograms: 
-1. open `plotHistogram.py`
-2. edit compare_histograms() following the examples provided.
-3. run `plotHistograms.py` and the output will be in `DHNLNtupleAnalysis/output/plots/`
 
 
 ## List of makeHistograms.py Options
@@ -207,11 +208,20 @@ For comparing histograms:
 | `-a` or `--analysis` | name of the analysis you want to run (default: Full run 2 analysis) |
 | `-s` or `--saveNtuples` | name of cut after which you want to save the micro-ntuples. (default: DVtype) |
 | `-d` or `--debug`| Debug level. Options included are CRITICAL, ERROR, WARNING, INFO, DEBUG (default: INFO) |
-| `--nevents` | max number of events to be processed |
+| `--output_file` | Overrides the output filename and output directory |
+| `--nevents` | Max. number of events to be processed |
+| `--skipEvents` | Start processing the DHNL ntuple file a this event index. Event index starts a 0 and runs to n_max_events -1. |
 | `--weight` | Use this flag to override the dHNL signal weight calculation for this sample. |
+| `--notHNLmc` | Use this flag when running on mc that is not an HNL signal file. This will turn off HNL specific selections (e.g. HNL truth infomation.). |
+| `--doSystematics` | Enable the filling of the systematic trees. Warning: due to the large number of systematics enabling doSystematics will make the hisotgram run run about 16 times more slowly.|
 
 
-## Note about colour logs
+
+## Making Plots
+
+Please see `DHNLPlotting` repository for making plots. [DHNLPlotting](https://gitlab.cern.ch/dtrischu/dhnlplotting/-/tree/master).
+
+## Note About Colour Logs
 
 This analysis code uses a python package called `coloredlogs` to output colourful logs to easily flag warning and error messages. To check if your python environment has the `coloredlogs` package installed run: 
 
