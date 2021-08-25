@@ -171,7 +171,7 @@ In the interpretation of the analysis there are six different models. These mode
 **HNL Models**
 - **One Dirac HNL**: one HNL with only LNC decays.
 - **One Majorana HNL**: one HNL with 50% LNC and 50% LNV decays.
-- **Quasi-Dirac pair**: two HNLs depending on the mass splitting between the two HNLs LNC and LNV decays contribution differently amounts.
+- **Quasi-Dirac pair**: two HNLs depending on the mass splitting between the two HNLs, LNC and LNV decays have different contributions.
   - "Majorana limit": limit where HNL decays 50% LNC and 50% LNV.
   - "Dirac limit"   : limit where HNL decays 100% LNC.
 
