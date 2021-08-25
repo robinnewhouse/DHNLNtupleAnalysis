@@ -162,31 +162,29 @@ Here is a list of cuts that you can update the code using the `-s` or `--saveNtu
 In the interpretation of the analysis there are six different models. These models vary as to whether both LNC and LNV decays are allowed and what mixing angles are allowed and how strong the mixing to the various flavours are. 
 
 **1. Mixing Models**
-- *Single-flavour mixing*: HNL only mixes with muon or electron neutrinos 
+- **Single-flavour mixing**: HNL only mixes with muon or electron neutrinos 
         - Depending on mixing (electron or muon) only certain channels are non-zero. 
         - Muon-only mixing weights are saved for channels with prompt muons 
         - Electron-only mixing weights are saved for channels with prompt electrons 
-
-- *Inverted heirarchy (IH) mixing*: Equal mixing with all three flavours of neutrinos
-
-- *Normal heirarchy (NH) mixing*: Roughly equal mixing with muon and tau neutrinos. Mixing with electron neutrinos is supressed.
+- **Inverted heirarchy (IH) mixing**: Equal mixing with all three flavours of neutrinos
+- **Normal heirarchy (NH) mixing**: Roughly equal mixing with muon and tau neutrinos. Mixing with electron neutrinos is supressed.
 
 **2. HNL Models**
-- *One Dirac HNL*: one HNL with only LNC decays.
-- *One Majorana HNL*: one HNL with 50% LNC and 50% LNV decays.
-- *Quasi-Dirac pair*: two HNLs depending on the mass splitting between the two HNLs LNC and LNV decays contribution differently amounts.
+- **One Dirac HNL**: one HNL with only LNC decays.
+- **One Majorana HNL**: one HNL with 50% LNC and 50% LNV decays.
+- **Quasi-Dirac pair**: two HNLs depending on the mass splitting between the two HNLs LNC and LNV decays contribution differently amounts.
         - "Majorana limit": limit where HNL decays 50% LNC and 50% LNV.
         - "Dirac limit"   : limit where HNL decays 100% LNC.
 
 
 To correctly compute the predicted number of events in the signal region for the different models you must select _both_ the correct model weight and the correct mini-tree. A summary is as follows: 
 
-- One Dirac HNL with single-flavour mixing: LNC mini-tree + `model_weight_one_dirac_hnl_LNC_single_flavour_mixing`
-- Quasi-Dirac pair "Dirac limit" with IH mixing: LNC mini-tree + `model_weight_quasi_dirac_pair_LNC_ih_mixing`
-- Quasi-Dirac pair "Dirac limit" with NH mixing: LNC mini-tree + `model_weight_quasi_dirac_pair_LNC_nh_mixing`
-- One Majorana HNL with single-flavour mixing: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing`
-- Quasi-Dirac pair "Majorana limit" with IH mixing:: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing`
-- Quasi-Dirac pair "Majorana limit" with NH mixing:: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing`
+- **One Dirac HNL with single-flavour mixing**: LNC mini-tree + `model_weight_one_dirac_hnl_LNC_single_flavour_mixing`
+- **Quasi-Dirac pair _"Dirac limit"_ with IH mixing**: LNC mini-tree + `model_weight_quasi_dirac_pair_LNC_ih_mixing`
+- **Quasi-Dirac pair _"Dirac limit"_ with NH mixing**: LNC mini-tree + `model_weight_quasi_dirac_pair_LNC_nh_mixing`
+- **One Majorana HNL with single-flavour mixing**: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing`
+- **Quasi-Dirac pair _"Majorana limit"_ with IH mixing**: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing`
+- **Quasi-Dirac pair _"Majorana limit"_ with NH mixing**: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing`
 
 
 ## Study the displaced vertex efficiency using different VSI configurations
