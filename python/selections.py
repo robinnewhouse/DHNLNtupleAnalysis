@@ -368,7 +368,7 @@ class PromptLeptonOverlap:
 				# if eta_diff < 0.05 and phi_diff < 0.05:
 				if dR < min_dR and tree['el_LHMedium'][el_index] == 1 and abs(el_d0) < 3 and abs(el_z0sintheta) < 0.5 and el_pt > min_el_pt:
 					# selected prompt muon overlaps with a prompt electron! Event fails overlap check.
-					print("failed prompt overlap")
+					# print("failed prompt overlap")
 					self.pass_overlap_check = False
 		if plep == "electron":
 			plep_eta = selected_plep.plepVec.Phi()
