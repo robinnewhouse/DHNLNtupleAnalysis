@@ -185,6 +185,21 @@ To correctly compute the predicted number of events in the signal region for the
 5. **Quasi-Dirac pair _"Majorana limit"_ with IH mixing**: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing`
 6. **Quasi-Dirac pair _"Majorana limit"_ with NH mixing**: LNC_plus_LNV mini-tree + `model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing`
 
+** Combinations ** 
+Applying the weights to the mini-trees listed above in each channel will give you the singal contribution in each respective channels. To get an overall combined signal strength for the different models, you will need to combine the various channels together. Here is a summary of the channels that should be combined for the various models: 
+
+1. **One Dirac HNL with single-flavour mixing**:
+  - muon-only mixing: u-uu + u-ue + u-ee
+  - electron-only mixing: e-ee + e-eu + e-uu
+2. **Quasi-Dirac pair _"Dirac limit"_ with IH mixing**: u-uu + u-ue + u-ee + e-ee + e-eu + e-uu
+3. **Quasi-Dirac pair _"Dirac limit"_ with NH mixing**: u-uu + u-ue + u-ee + e-ee + e-eu + e-uu
+4. **One Majorana HNL with single-flavour mixing**:
+  - muon-only mixing: u-uu + u-ue + u-ee
+  - electron-only mixing: e-ee + e-eu + e-uu
+5. **Quasi-Dirac pair _"Majorana limit"_ with IH mixing**: u-uu + u-ue + u-ee + e-ee + e-eu + e-uu
+6. **Quasi-Dirac pair _"Majorana limit"_ with NH mixing**: u-uu + u-ue + u-ee + e-ee + e-eu + e-uu
+
+These combinations assume that the accpetance to tau channels is zero.
 
 ## Study the displaced vertex efficiency using different VSI configurations
 
