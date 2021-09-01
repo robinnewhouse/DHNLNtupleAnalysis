@@ -25,6 +25,7 @@ def getLogger(name = None, level = logging.INFO):
 logger = getLogger('dHNLAnalysis.helpers')
 logger_debug_level = logging.INFO # default
 
+
 def get_debug_level(level):
 	import logging
 	# supported levels are: CRITICAL, ERROR, WARNING, INFO, DEBUG
@@ -42,25 +43,24 @@ def get_debug_level(level):
 	return debug_level
 
 
-
-class Readjson_files:
+class ReadJsonFiles:
 	def __init__(self, filename):
 		with open(filename) as fp:
-			self.file = json.load(fp)
-	
-	def get_coupling(self, mass, ctau,  model, use_str = False):
+			self.json_string = json.load(fp)
+
+	def get_coupling(self, mass, ctau, model, use_str=False):
 		if use_str:
 			mass_str = mass
 			ctau_str = ctau
 		else:
-			mass_str = str(int(mass))
+			mass_str = str(mass)
 			ctau_str = str(int(ctau))
-		coupling = self.file[mass_str][ctau_str][model]
+		coupling = self.json_string[mass_str][ctau_str][model]
 		return coupling
 
-	def get_BR(self, channel, mass, model, use_str = False):
+	def get_br(self, channel, mass, model, use_str=False):
 		if use_str: mass_str = mass
-		else: mass_str = str(int(mass))
+		else: mass_str = str(mass)
 
 		if   channel == "uuu": decay_str = "mmv"
 		elif channel == "uue": decay_str = "mev"
@@ -71,7 +71,7 @@ class Readjson_files:
 		elif channel == "eue": decay_str = "mev"
 		elif channel == "euu": decay_str = "mmv"
 
-		br = self.file[mass_str][decay_str][model]
+		br = self.json_string[mass_str][decay_str][model]
 		return br
 
 
@@ -162,8 +162,9 @@ class ReadBRdat:
 				if channel == 'euu':
 					return self.BRuuu[i]
 
-class MC_event_weight:
-	def __init__(self, tree, mixing_type, dirac_limit = False, flip_e_and_mu = False, use_gronau = False ):
+
+class MCEventWeight:
+	def __init__(self, tree, mixing_type, dirac_limit=False, flip_e_and_mu=False, use_gronau=False):
 		"""
 		Class use for computing MC event weights and HNL cross sections.
 		@parm tree: ntuple analysis tree
@@ -182,7 +183,7 @@ class MC_event_weight:
 		# Overwrite channel name if flip_e_and_mu is true!
 		if self.channel == "uue" and self.flip_e_and_mu: self.channel = "ueu"
 		if self.channel == "eeu" and self.flip_e_and_mu: self.channel = "eue"
-		# Name the single flavour mixing model depnding on the channel
+		# Name the single flavour mixing model depending on the channel
 		if self.mixing_type == "single-flavour":
 			if self.channel == "uuu" or self.channel == "uue" or self.channel == "uee":
 				self.mixing_type = "mu_only"
@@ -200,29 +201,29 @@ class MC_event_weight:
 		if self.mixing_type == "e_only":
 			self.x_e = 1
 			self.x_mu = 0
-			self.x_tau = 0 
+			self.x_tau = 0
 		if self.mixing_type == "IH":
-			self.x_e = 1.0/3.0 
-			self.x_mu = 1.0/3.0
-			self.x_tau = 1.0/3.0
+			self.x_e = 1.0 / 3.0
+			self.x_mu = 1.0 / 3.0
+			self.x_tau = 1.0 / 3.0
 		if self.mixing_type == "NH":
-			self.x_e   = 0.06
-			self.x_mu  = 0.48	
+			self.x_e = 0.06
+			self.x_mu = 0.48
 			self.x_tau = 0.46
 
 		# Define the prod and decay coupling ratios depending on the channel,
 		# where x_alpha = U_alpha^2 / U_tot^2 such that alpha = e, mu, tau
-		if self.channel == 'uuu' or self.channel == 'uue': 
-			self.x_prod  = self.x_mu
+		if self.channel == 'uuu' or self.channel == 'uue':
+			self.x_prod = self.x_mu
 			self.x_decay = self.x_mu
-		if self.channel == 'eee' or self.channel == 'eeu': 
-			self.x_prod  = self.x_e
+		if self.channel == 'eee' or self.channel == 'eeu':
+			self.x_prod = self.x_e
 			self.x_decay = self.x_e
-		if self.channel == 'ueu' or self.channel == 'uee': 
-			self.x_prod  = self.x_mu
+		if self.channel == 'ueu' or self.channel == 'uee':
+			self.x_prod = self.x_mu
 			self.x_decay = self.x_e
 		if self.channel == 'eue' or self.channel == 'euu':
-			self.x_prod  = self.x_e
+			self.x_prod = self.x_e
 			self.x_decay = self.x_mu
 
 		if not self.tree.is_data:
@@ -230,19 +231,20 @@ class MC_event_weight:
 			# Get branching ratios (BR). BR depend on the mass, decay mode and model
 			# BR json files contain a dictionaries of BR[mass][decay][model] for e_only, mu_only, NH and IH models.
 			# ######################################################################################################################################################
+			br_root_path = os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/'
 			#  Computes lifetime via Gronau formulas and thus has 10-20% difference
-			if self.use_gronau: f_br = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Gronau_lifetime.json')
+			if self.use_gronau: f_br = ReadJsonFiles(br_root_path + 'BranchingRatios_DifferentMixings_Gronau_lifetime.json')
 			#  BranchingRatios_DifferentMixings_Olegs_lifetime.json computes lifetime via Oleg's parametrization (better agreement with MG)
-			else: f_br = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/BranchingRatios_DifferentMixings_Olegs_lifetime.json')
-			self.br = f_br.get_BR(self.channel, self.tree.mass, self.mixing_type)
+			else: f_br = ReadJsonFiles(br_root_path + 'BranchingRatios_DifferentMixings_Olegs_lifetime.json')
+			self.br = f_br.get_br(self.channel, self.tree.mass, self.mixing_type)
 
 			# ######################################################################################################################################################
 			# Get coupling squared. Coupling depends on the mass, lifetime and model
 			# Theta2 json files contain a dictionaries of BR[mass][lifetime][model] for e_only, mu_only, NH and IH models.
 			# ######################################################################################################################################################
 			#  Theta2 files contain a dictionaries of coupling2[mass][ctau][model] for signal-flavour mixing, NH and IH models.
-			if self.use_gronau: f_coupling = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/Theta2_DifferentMixings_Gronau_lifetime.json')
-			else: f_coupling = Readjson_files(os.path.dirname(os.path.abspath(__file__)) + '/../data/BR/Theta2_DifferentMixings_Olegs_lifetime.json')
+			if self.use_gronau: f_coupling = ReadJsonFiles(br_root_path + '/Theta2_DifferentMixings_Gronau_lifetime.json')
+			else: f_coupling = ReadJsonFiles(br_root_path + '/Theta2_DifferentMixings_Olegs_lifetime.json')
 			self.U2 = f_coupling.get_coupling(self.tree.mass, self.tree.ctau, self.mixing_type)
 		else:
 			self.U2 = -1
@@ -251,7 +253,7 @@ class MC_event_weight:
 
 	def get_mc_event_weight(self):
 		"""
-		Calculates the MC event weight as luminosit x cross section / total number of MC events
+		Calculates the MC event weight as luminosity x cross section / total number of MC events
 		Cross section is model dependent an therefore the mc event weight is also model dependent
 		@return: calculated weight.
 		"""

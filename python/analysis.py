@@ -42,20 +42,20 @@ class Analysis(object):
 
 		# Calculate MC event weights as "L * xsec / num. MC events" (One number per file)
 		# Single flavour mixing weights
-		self.mc_event_weight_one_dirac_hnl_single_flavour = helpers.MC_event_weight(self.tree, mixing_type = "single-flavour", dirac_limit = True).get_mc_event_weight()
-		self.mc_event_weight_one_majorana_hnl_single_flavour = helpers.MC_event_weight(self.tree, mixing_type = "single-flavour").get_mc_event_weight()
+		self.mc_event_weight_one_dirac_hnl_single_flavour = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour", dirac_limit = True).get_mc_event_weight()
+		self.mc_event_weight_one_majorana_hnl_single_flavour = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour").get_mc_event_weight()
 		# Quasi-dirac pair "Majorana limit" with IH or NH mixing
-		self.mc_event_weight_majorana_limit_ih = helpers.MC_event_weight(self.tree, mixing_type = "IH").get_mc_event_weight()
-		self.mc_event_weight_majorana_limit_nh = helpers.MC_event_weight(self.tree, mixing_type = "NH").get_mc_event_weight()
+		self.mc_event_weight_majorana_limit_ih = helpers.MCEventWeight(self.tree, mixing_type ="IH").get_mc_event_weight()
+		self.mc_event_weight_majorana_limit_nh = helpers.MCEventWeight(self.tree, mixing_type ="NH").get_mc_event_weight()
 		# Quasi-dirac pair "Majorana limit" with IH or NH mixing
-		self.mc_event_weight_dirac_limit_ih = helpers.MC_event_weight(self.tree, mixing_type = "IH", dirac_limit = True).get_mc_event_weight()
-		self.mc_event_weight_dirac_limit_nh = helpers.MC_event_weight(self.tree, mixing_type = "NH", dirac_limit = True).get_mc_event_weight()
+		self.mc_event_weight_dirac_limit_ih = helpers.MCEventWeight(self.tree, mixing_type ="IH", dirac_limit = True).get_mc_event_weight()
+		self.mc_event_weight_dirac_limit_nh = helpers.MCEventWeight(self.tree, mixing_type ="NH", dirac_limit = True).get_mc_event_weight()
 
 		if self.tree.channel == "uue" or self.tree.channel == "eeu":
-			self.mc_event_weight_majorana_limit_ih_flip_e_and_mu = helpers.MC_event_weight(self.tree, mixing_type = "IH", flip_e_and_mu = True).get_mc_event_weight()
-			self.mc_event_weight_majorana_limit_nh_flip_e_and_mu = helpers.MC_event_weight(self.tree, mixing_type = "NH", flip_e_and_mu = True).get_mc_event_weight()
-			self.mc_event_weight_dirac_limit_ih_flip_e_and_mu = helpers.MC_event_weight(self.tree, mixing_type = "IH", flip_e_and_mu = True, dirac_limit = True).get_mc_event_weight()
-			self.mc_event_weight_dirac_limit_nh_flip_e_and_mu = helpers.MC_event_weight(self.tree, mixing_type = "NH", flip_e_and_mu = True, dirac_limit = True).get_mc_event_weight()
+			self.mc_event_weight_majorana_limit_ih_flip_e_and_mu = helpers.MCEventWeight(self.tree, mixing_type ="IH", flip_e_and_mu = True).get_mc_event_weight()
+			self.mc_event_weight_majorana_limit_nh_flip_e_and_mu = helpers.MCEventWeight(self.tree, mixing_type ="NH", flip_e_and_mu = True).get_mc_event_weight()
+			self.mc_event_weight_dirac_limit_ih_flip_e_and_mu = helpers.MCEventWeight(self.tree, mixing_type ="IH", flip_e_and_mu = True, dirac_limit = True).get_mc_event_weight()
+			self.mc_event_weight_dirac_limit_nh_flip_e_and_mu = helpers.MCEventWeight(self.tree, mixing_type ="NH", flip_e_and_mu = True, dirac_limit = True).get_mc_event_weight()
 
 		# prepare systematics
 		if self.tree.tree_name == 'nominal':
@@ -1235,13 +1235,13 @@ class Analysis(object):
 			self.fill_hist(sel, 'model_weight_quasi_dirac_pair_LNC_nh_mixing', self.model_weight_dirac_limit_nh)
 			# ____________________________________________________________
 			# Fill HNL cross sections for different models
-			one_majorana_hnl_single_flavour_xsec = helpers.MC_event_weight(self.tree, mixing_type = "single-flavour").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
-			ih_xsec = helpers.MC_event_weight(self.tree, mixing_type = "IH").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
-			nh_xsec = helpers.MC_event_weight(self.tree, mixing_type = "NH").hnl_xsec_generic_model(channel = self.tree.channel, mass=self.tree.mass, ctau = self.tree.ctau)
+			one_majorana_hnl_single_flavour_xsec = helpers.MCEventWeight(self.tree, mixing_type="single-flavour").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
+			ih_xsec = helpers.MCEventWeight(self.tree, mixing_type="IH").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
+			nh_xsec = helpers.MCEventWeight(self.tree, mixing_type="NH").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
 			self.fill_hist(sel, 'LNC_xsec_one_majorana_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec)
-			self.fill_hist(sel, 'LNC_xsec_one_dirac_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec*2)
-			self.fill_hist(sel, 'NH_xsec', nh_xsec*2)
-			self.fill_hist(sel, 'IH_xsec', ih_xsec*4)
+			self.fill_hist(sel, 'LNC_xsec_one_dirac_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec * 2)
+			self.fill_hist(sel, 'NH_xsec', nh_xsec * 2)
+			self.fill_hist(sel, 'IH_xsec', ih_xsec * 4)
 
 			# ____________________________________________________________
 			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
