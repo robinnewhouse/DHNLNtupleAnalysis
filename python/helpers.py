@@ -574,7 +574,7 @@ class Tracks:
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
 			std_lepVec = ROOT.TLorentzVector()
-			lepmatched_lepVec =  ROOT.TLorentzVector()
+			lepmatched_lepVec = ROOT.TLorentzVector()
 			if self.tree.dv('trk_muonIndex')[itrk] >= 0:  # matched muon!
 				if self.tree.dv('trk_electronIndex')[itrk] >= 0:  # also matched to an electron!
 					# get the muon index
@@ -582,7 +582,7 @@ class Tracks:
 						muon_index = get_lepton_index(self.tree, itrk, 'muon')
 						if muon_index is None: continue
 					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
-					#If track is NOT matched to a loose muon --> no muon match!
+					# If track is NOT matched to a loose muon --> no muon match!
 					if not pass_muon_loose == 1:
 						# skip tracks matched to muons with no quality!
 						continue
@@ -772,7 +772,10 @@ class FileInfo:
 			self.ctau = 100.0
 			self.ctau_str = "100mm"
 
-		if "_3G" in infile or sig_info.mass_str == "3G":
+		if "_2p5G" in infile or sig_info.mass_str == "2p5G":
+			self.mass = 2.5
+			self.mass_str = "2p5G"
+		elif "_3G" in infile or sig_info.mass_str == "3G":
 			self.mass = 3.0
 			self.mass_str = "3G"
 		elif "_4G" in infile or sig_info.mass_str == "4G":
@@ -1028,9 +1031,9 @@ class MCInfo:
 			self.ctau_str = None
 			self.ch_str = None
 		else:
-			pmuon_dsid = (311602 <= dsid) and (dsid <= 311661)
-			pel_dsid = (312956 <= dsid) and (dsid <= 313015)
-			mixed_coupling_dsid =  (313419 <= dsid) and (dsid <= 313490)
+			pmuon_dsid = dsid in range(311602, 311661 + 1) or dsid in range(313482, 313484 + 1)
+			pel_dsid = dsid in range(312956, 313015 + 1) or dsid in range(313479, 313481 + 1)
+			mixed_coupling_dsid = dsid in range(313419, 313490 + 1) and not dsid in range(313479, 313484 + 1)
 
 			if pmuon_dsid or pel_dsid or mixed_coupling_dsid:
 				self.mass_str = mc_info[dsid][1]
