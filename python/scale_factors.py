@@ -65,7 +65,7 @@ def get_trigger_scale_factor(analysis, systematic='nominal'):
         trigger_scale_factor_el_medium = analysis.tree[
             'el_TrigEff_SF_SINGLE_E_2015_e24_lhmedium_L1EM20VH_OR_e60_lhmedium_OR_e120_lhloose_2016_2018_e26_lhtight_nod0_ivarloose_OR_e60_lhmedium_nod0_OR_e140_lhloose_nod0_Medium_isolGradient'
         ][lep_index]
-        if len(trigger_scale_factor_el_medium) > 1:
+        if len(trigger_scale_factor_el_medium) >= 1:
             trigger_scale_factor_el_medium = trigger_scale_factor_el_medium[
                 syst_index[systematic if 'EL_EFF_Trigger' in systematic else 'nominal']
             ]
