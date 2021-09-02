@@ -459,12 +459,19 @@ class Analysis(object):
 		self._locked = UNLOCKED
 
 	def write(self):
+		"""
+		Write ntuples and histograms to root file
+		"""
+		# ____________________________________________________________
+		# Write ntuples
 		# Move ROOT to base directory
 		self.fi.cd()
-		self.fi.mkdir(self.tree.tree_name)
-		self.fi.cd(self.tree.tree_name)
+		# self.fi.mkdir(self.tree.tree_name)
+		# self.fi.cd(self.tree.tree_name)
 		for key, ntuple in self.micro_ntuples.items():
-			ntuple.write(self.ch + '_ntuples_' + key)
+			ntuple.write(self.tree.tree_name + '_' + self.ch + '_ntuples_' + key)
+		# ____________________________________________________________
+		# Write histograms
 		self.observables.write_histograms(root_file=self.fi, tree_name=self.tree.tree_name)
 		self.logger.info("Histograms written to {}".format(self.output_file))
 
