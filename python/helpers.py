@@ -54,6 +54,8 @@ class ReadJsonFiles:
 			ctau_str = ctau
 		else:
 			mass_str = str(mass)
+			# strip .0 away from mass str
+			if ".0" in mass_str: mass_str = str(int(float(mass_str)))
 			ctau_str = '{ctau} mm'.format(ctau = int(ctau))
 		coupling = self.json_string[mass_str][ctau_str][model]
 		return coupling
