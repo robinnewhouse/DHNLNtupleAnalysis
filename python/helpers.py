@@ -54,7 +54,7 @@ class ReadJsonFiles:
 			ctau_str = ctau
 		else:
 			mass_str = str(mass)
-			ctau_str = str(int(ctau))
+			ctau_str = '{ctau} mm'.format(ctau = int(ctau))
 		coupling = self.json_string[mass_str][ctau_str][model]
 		return coupling
 
