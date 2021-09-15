@@ -83,7 +83,7 @@ def get_combined_d0_extrapolation_systematic(lepton_0_d0, lepton_0_type, lepton_
     lepton_1_systematic = get_d0_extrapolation_systematic(lepton_1_d0, lepton_1_type)
     # calculate in quadrature
     # total_systematic = 1 - np.sqrt(np.square(1 - lepton_0_systematic) + np.square(1 - lepton_1_systematic))
-    # just kidding, calculate linearly since they are correlated systmeatics
+    # just kidding, calculate linearly since they are correlated systematics
     total_systematic = lepton_0_systematic * lepton_1_systematic
     return total_systematic
 

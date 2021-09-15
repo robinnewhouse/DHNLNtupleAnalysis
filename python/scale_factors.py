@@ -5,9 +5,13 @@ import helpers
 muon_trigger_systematics = ['nominal', 'MUON_EFF_TrigStatUncertainty__1down', 'MUON_EFF_TrigStatUncertainty__1up', 'MUON_EFF_TrigSystUncertainty__1down', 'MUON_EFF_TrigSystUncertainty__1up']
 
 # indices for scale factor systematics as stored in trees
+
+
 syst_index = {
     'nominal': 0,
     # MuonEfficiencyCorrector_RecoSyst_RecoMedium
+    'MUON_EFF_RECO_SYS_LOWPT__1down': 5,
+    'MUON_EFF_RECO_SYS_LOWPT__1up': 6,
     'MUON_EFF_RECO_SYS__1down': 7,
     'MUON_EFF_RECO_SYS__1up': 8,
     # MuonEfficiencyCorrector_TrigSyst_RecoMedium

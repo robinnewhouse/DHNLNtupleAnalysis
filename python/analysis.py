@@ -60,6 +60,8 @@ class Analysis(object):
 		# prepare systematics
 		if self.tree.tree_name == 'nominal':
 			self.lepton_reco_sf = {'nominal': 1,
+								   'MUON_EFF_RECO_SYS_LOWPT__1down': 1,
+								   'MUON_EFF_RECO_SYS_LOWPT__1up': 1,
 								   'MUON_EFF_RECO_SYS__1down': 1,
 								   'MUON_EFF_RECO_SYS__1up': 1,
 								   'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1down': 1,
