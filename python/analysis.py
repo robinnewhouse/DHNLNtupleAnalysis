@@ -844,25 +844,22 @@ class Analysis(object):
 		These different weights can then be picked up by the limit setting framework to interpret the different models.
 		"""
 		# MC re-weighting to include spin correlations and fix lepton ordering bug (One number per event)
-		self.MCEventType = selections.MCEventType(self.tree)  # if data then MCEventType weight defaults to 1
-		if self.tree.channel == "uue" or self.tree.channel == "eeu":
-			self.MCEventType_flip_e_and_mu = selections.MCEventType(self.tree, flip_e_and_mu = True) 
-
+		self.MCEventType = selections.MCEventType(self.tree, mixing_type = "single-flavour")  # if data then MCEventType weight defaults to 1
 		if self.weight_override is None:
 			# #####################################################################################
 			# Compute "model weight" as the product of mc event weight x spin corr weight
 			# #####################################################################################
-			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih * self.MCEventType.weight
-			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh * self.MCEventType.weight
-			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih * self.MCEventType.weight
-			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh * self.MCEventType.weight
+			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih * selections.MCEventType(self.tree, mixing_type = "IH").weight
+			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh * selections.MCEventType(self.tree, mixing_type = "NH").weight
+			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih * selections.MCEventType(self.tree, mixing_type = "IH").weight
+			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh * selections.MCEventType(self.tree, mixing_type = "NH").weight
 
 			# For uue and eeu channels, compute a second weight to reweight uue --> ueu  or eeu --> eue
 			if self.tree.channel == "uue" or self.tree.channel == "eeu":	
-				weight_majorana_limit_ih_2 = self.mc_event_weight_majorana_limit_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
-				weight_majorana_limit_nh_2 = self.mc_event_weight_majorana_limit_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
-				weight_dirac_limit_ih_2 = self.mc_event_weight_dirac_limit_ih_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
-				weight_dirac_limit_nh_2 = self.mc_event_weight_dirac_limit_nh_flip_e_and_mu * self.MCEventType_flip_e_and_mu.weight
+				weight_majorana_limit_ih_2 = self.mc_event_weight_majorana_limit_ih_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "IH",flip_e_and_mu = True).weight
+				weight_majorana_limit_nh_2 = self.mc_event_weight_majorana_limit_nh_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "NH",flip_e_and_mu = True).weight
+				weight_dirac_limit_ih_2 = self.mc_event_weight_dirac_limit_ih_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "IH",flip_e_and_mu = True).weight
+				weight_dirac_limit_nh_2 = self.mc_event_weight_dirac_limit_nh_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "NH",flip_e_and_mu = True).weight
 				# Total weight is the sum of the two channels for models 
 				self.model_weight_majorana_limit_ih = weight_majorana_limit_ih + weight_majorana_limit_ih_2
 				self.model_weight_majorana_limit_nh = weight_majorana_limit_nh + weight_majorana_limit_nh_2
@@ -875,8 +872,8 @@ class Analysis(object):
 				self.model_weight_dirac_limit_ih = weight_dirac_limit_ih
 				self.model_weight_dirac_limit_nh = weight_dirac_limit_nh
 			# Single flavour mixing models 
-			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour * self.MCEventType.weight
-			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour * self.MCEventType.weight
+			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour * selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
+			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour * selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
 		else:
 			self.model_weight_one_dirac_hnl_single_flavour = self.weight_override
 			self.one_majorana_hnl_single_flavour = self.weight_override
