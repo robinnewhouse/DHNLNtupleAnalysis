@@ -1286,6 +1286,8 @@ class MCEventType:
 		channel = tree.channel
 		mN= tree.mass # in GeV
 		ctau = tree.ctau # in mm
+		# Note: GammaN is only included in the matrix calcualtions to get the correct units, 
+		# but the actual weight (ratio of matrix elements) is independent of GammaN
 		GammaN = (1/ctau)* 10e-12  # GeV
 
 		if mixing_type == "single-flavour":
