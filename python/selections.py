@@ -1239,20 +1239,18 @@ class PV:
 
 class MCEventType:
 	"""
-	Matrix elements for the trilepton process, when only the charged-current contribution is present.
-	
-	@param wrong_lep_order: default True.  Used to reweight Pythia samples that were generated with
-											the leptons in the wrong order (rel. 21 samples)
-	@param flip_e_and_mu: default False. Used to switch which fermion leg the electron and muon 
-										 are in the HNL decay diagram. This is used to generate weights
+	Matrix elements for the trilepton process, when:
+	- only the charged-current contribution is present (CC),
+	- only the neutral-current contribution is present (NC),
+	- both the charged- and neutral-current constributions are present, and they interfere (CC+NC).
 
 	Input:
+	- Model types: single-flavour, IH, NH
 	- All masses are in GeV, and all Mandelstam variables in GeV^2.
-	- pW2 = p(W)^2 = mW^2
 	- The Mandelstam variables are defined as follows:
 	      s13 = (p(l1)+p(l3))^2
 	      s24 = (p(l2)+p(nu))^2
-	  with:
+	  with (using the charged-current diagram for the definitions):
 	    - l1 the charged lepton produced along with the HNL;
 	    - l2 the charged lepton produced in the HNL decay, on the same fermion line as the HNL;
 	    - l3 the charged lepton produced in the HNL decay, on the same fermion line as the light neutrino;
@@ -1261,31 +1259,147 @@ class MCEventType:
 
 	Assumptions:
 	- Light lepton (e, mu) masses are neglected.
-	- Some off-shell effects coming from the finite width of the W are neglected.
-	- Matrix elements are given up to a dimensionful constant, but should be consistent among themselves.
-	  In particular: M2_nocorr = M2_LNC + M2_LNV.
+	- The mixing angle U^4 has been factored out of the matrix elements, but they should be consistent among themselves.
+	  In particular: M2_nocorr = (M2_LNC + M2_LNV) / 2.
+
+	Notes:
+	- If a matrix element evaluates to a negative value, it should be set to zero instead.
+
+	CHANGELOG:
+	
+	v3:
+	- Added NC and CC+NC.
+	- Properly handle the off-shell W.
+	- Matrix elements should now have the correct normalization.
+	- Fix a factor of 2 in M2_CC_nocorr.
+
+
 	"""
 
-	def __init__(self, tree, wrong_lep_order=True, flip_e_and_mu= False):
+	def __init__(self, tree, mixing_type, wrong_lep_order=True, flip_e_and_mu= False):
 		self.weight = 1  # if not data weight is default, event is neither LNC or LNV
 		self.M2_spin_corr = -1
 		self.M2_nocorr = -1
 		self.isLNC = False
 		self.isLNV = False
 
+		channel = tree.channel
+		mN= tree.mass # in GeV
+		ctau = tree.ctau # in mm
+		# Note: GammaN is only included in the matrix calcualtions to get the correct units, 
+		# but the actual weight (ratio of matrix elements) is independent of GammaN
+		GammaN = (1/ctau)* 10e-12  # GeV
+
+		if mixing_type == "single-flavour":
+			if channel == "uuu" or channel == "uue" or channel == "uee":
+				mixing_type = "mu_only"
+			if channel == "eee" or channel == "eeu" or channel == "euu":
+				mixing_type = "e_only"
+		
+		# ###########################################################
+		# Define the model dependent coupling fractions
+		# x_alpha = U_alpha^2 / U_tot^2 such that alpha = e, mu, tau
+		# ###########################################################
+		if mixing_type == "mu_only":
+			x_e = 0
+			x_mu = 1
+			x_tau = 0
+		if mixing_type == "e_only":
+			x_e = 1
+			x_mu = 0
+			x_tau = 0
+		if mixing_type == "IH":
+			x_e = 1.0 / 3.0
+			x_mu = 1.0 / 3.0
+			x_tau = 1.0 / 3.0
+		if mixing_type == "NH":
+			x_e = 0.06
+			x_mu = 0.48
+			x_tau = 0.46
+		
+		ll_channels = ["uuu", "eee", "uee", "euu"]
+		same_flavour_hnl_decay = channel in ll_channels
+		if channel == "uuu" or channel == "euu": x_l = x_mu
+		if channel == "eee" or channel == "uee": x_l = x_e
+
 		MW = 80.379  # Change the W mass to match your particle data. This is the latest PDG value.
+		sinW2 = 0.231 # sin^2(\Theta_W). Next decimals depend on the renormalization scheme and scale.
+		GF = 1.166379e-5 # Fermi constant in GeV^-2
+		g = np.sqrt(4*np.sqrt(2)*MW**2*GF)
 
 		# Lepton number conserving charged-current trilepton process.
-		def M2_LNC(MN, pW2, s13, s24):
-			return s24 * (2 * MW ** 2 * pW2 * (MN ** 2 - s24) + MN ** 4 * (s13 - 2 * MW ** 2) + 2 * (s24 - s13) * MN ** 2 * MW ** 2) / (6 * MW ** 6)
+		def M2_CC_LNC(MN, GammaN, pW2, s12, s13, s23, s24):
+			return np.pi * g**6 * s24 * (
+				s13 * MN**2 * (MN**2 - 2 * pW2)
+				+ 2 * pW2 * (MN**2 - s24) * (pW2 - MN**2)
+			) / ( 6 * MN * GammaN * MW**4 * pW2 )
 
 		# Lepton number violating charged-current trilepton process.
-		def M2_LNV(MN, pW2, s13, s24):
-			return - s24 * MN ** 2 * (pW2 * (s24 - MN ** 2) + (s13 - s24) * MN ** 2 + MN ** 4 - 2 * s13 * MW ** 2) / (6 * MW ** 6)
+		def M2_CC_LNV(MN, GammaN, pW2, s12, s13, s23, s24):
+			return - np.pi * g**6 * s24 * MN**2 * (
+				- MN**2 * (pW2 - s13 + s24)
+				+ MN**4
+				+ (s24 - 2 * s13) * pW2
+			) / ( 6 * MN * GammaN * MW**4 * pW2 )
 
 		# Charged-current trilepton process, ignoring spin correlations between the HNL production and its decay.
-		def M2_nocorr(MN, pW2, s24):
-			return (s24 * (MN ** 2 - s24) * (MN ** 2 + 2 * MW ** 2) * (pW2 - MN ** 2)) / (6 * MW ** 6)
+		def M2_CC_nocorr(MN, GammaN, pW2, s12, s13, s23, s24):
+			return - np.pi * g**6 * s24 * (MN**2 - s24) * (MN**2 * pW2 + MN**4 - 2 * pW2**2) / (
+				12 * MN * GammaN * MW**4 * pW2 )
+		
+		# Same expression as above, but making it explicit that it only depends on one Mandelstam variable.
+		def M2_PYTHIA(MN, GammaN, pW2, sBC):
+			return - np.pi * g**6 * sBC * (MN**2 - sBC) * (MN**2 * pW2 + MN**4 - 2 * pW2**2) / (
+				12 * MN * GammaN * MW**4 * pW2 )
+
+		# Lepton number conserving neutral-current trilepton process.
+		def M2_NC_LNC(MN, GammaN, pW2, s12, s13, s23, s24):
+			return np.pi * g**6 * (
+				8 * s23**2 * pW2 * sinW2**2 * (MN**2 - pW2) - 4 * s23 * sinW2**2 * (MN**4 * (2 * pW2 + s12) - 2 * MN**2 * pW2 * (pW2 + s12 + 2 * s24) + 4 * s24 * pW2**2)
+				+ s13 * s24 * MN**2 * (1 - 2 * sinW2)**2 * (MN**2 - 2 * pW2)
+				+ 2 * (MN**2 - s24) * (2 * s12 * MN**2 * sinW2**2 * (MN**2 - 2 * pW2) + s24 * pW2 * (8 * sinW2**2 - 4*sinW2 + 1) * (pW2 - MN**2))
+			) / ( 24 * MN * GammaN * MW**4 * pW2 )
+
+		# Lepton number violating neutral-current trilepton process.
+		def M2_NC_LNV(MN, GammaN, pW2, s12, s13, s23, s24):
+			return np.pi * g**6 * MN**2 * (
+				4 * (s23 - MN**2) * sinW2**2 * (s12 * (MN**2 - 2 * pW2) + s23 * (MN**2 - pW2))
+				+ s24**2 * (8 * sinW2**2 - 4 * sinW2 + 1) * (MN**2 - pW2)
+				+ s24 * (8 * s23 * sinW2**2 * (MN**2 - pW2) + MN**2 * (pW2 * (8 * sinW2**2 - 4 * sinW2 + 1) + 4 * s12 * sinW2**2 - s13 * (1 - 2 * sinW2)**2) + MN**4 * (-8 * sinW2**2 + 4 * sinW2 - 1) + 2 * pW2 * (s13 * (1 - 2 * sinW2)**2 - 4 * s12 * sinW2**2))
+			) / ( 24 * MN * GammaN * MW**4 * pW2 )
+
+		# Neutral-current trilepton process, ignoring spin correlations between the HNL production and its decay.
+		def M2_NC_nocorr(MN, GammaN, pW2, s12, s13, s23, s24):
+			return np.pi * g**6 * (MN**2 * pW2 + MN**4 - 2 * pW2**2) * (
+				- 4 * s23 * (MN**2 - 2 * s24) * sinW2**2
+				+ s24 * (s24 - MN**2) * (8 * sinW2**2 - 4 * sinW2 + 1)
+				+ 4 * s23**2 * sinW2**2
+			) / ( 48 * MN * GammaN * MW**4 * pW2 )
+
+		# Lepton number conserving charged+neutral-current trilepton process.
+		def M2_CCNC_LNC(MN, GammaN, pW2, s12, s13, s23, s24):
+			return np.pi * g**6 * (
+				8 * s23**2 * pW2 * sinW2**2 * (MN**2 - pW2)
+				- 4 * s23 * sinW2**2 * (MN**4 * (2 * pW2 + s12) - 2 * MN**2 * pW2 * (pW2 + s12 + 2 * s24) + 4 * s24 * pW2**2)
+				+ s13 * s24 * MN**2 * (2 * sinW2 + 1)**2 * (MN**2 - 2 * pW2)
+				+ 2 * (MN**2 - s24) * (2 * s12 * MN**2 * sinW2**2 * (MN**2 - 2 * pW2) + s24 * pW2 * (8 * sinW2**2 + 4 * sinW2 + 1) * (pW2 - MN**2))
+			) / ( 24 * MN * GammaN * MW**4 * pW2 )
+
+		# Lepton number violating charged+neutral-current trilepton process.
+		def M2_CCNC_LNV(MN, GammaN, pW2, s12, s13, s23, s24):
+			return np.pi * g**6 * MN**2 * (
+				4 * (s23 - MN**2) * sinW2**2 * (s12 * (MN**2 - 2 * pW2) + s23 * (MN**2 - pW2))
+				+ s24**2 * (8 * sinW2**2 + 4 * sinW2 + 1) * (MN**2 - pW2)
+				+ s24 * (8 * s23 * sinW2**2 * (MN**2 - pW2) + MN**2 * (pW2 * (8 * sinW2**2 + 4 * sinW2 + 1) + 4 * s12 * sinW2**2 - s13 * (2 * sinW2 + 1)**2) - MN**4 * (8 * sinW2**2 + 4 * sinW2 + 1) + 2 * pW2 * (s13 * (2 * sinW2 + 1)**2 - 4 * s12 * sinW2**2))
+			) / ( 24 * MN * GammaN * MW**4 * pW2 )
+
+		# Charged+neutral-current trilepton process, ignoring spin correlations between the HNL production and its decay.
+		def M2_CCNC_nocorr(MN, GammaN, pW2, s12, s13, s23, s24):
+			return np.pi * g**6 * (MN**2 * pW2 + MN**4 - 2 * pW2**2) * (
+				- 4 * s23 * (MN**2 - 2 * s24) * sinW2**2
+				+ s24 * (s24 - MN**2) * (8 * sinW2**2 + 4 * sinW2 + 1)
+				+ 4 * s23**2 * sinW2**2
+			) / ( 48 * MN * GammaN * MW**4 * pW2 )	
 
 		if not tree.is_data and not tree.not_hnl_mc:
 			truth_info = helpers.Truth()
@@ -1330,21 +1444,29 @@ class MCEventType:
 			self.s23 = p23.Mag2()
 			self.s24 = p24.Mag2()
 			self.s34 = p34.Mag2()
-
-			# calculate the correct matrix that takes into account LNC or LNV decay
-			if self.isLNC:
-				self.M2_spin_corr = M2_LNC(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
-			if self.isLNV:
-				self.M2_spin_corr = M2_LNV(MN=MN, pW2=pW2, s13=self.s13, s24=self.s24)
-
+			# Default to weight 1 if pW2 = 0, otherwise weight is infinite 
+			if pW2 == 0: 
+				return 
 			if wrong_lep_order:
 				# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
 				# For official samples, swap s24 -> s34
-				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24=self.s34)  # wrong matrix used when generating pythia samples, includes lepton permutation
+				self.M2_nocorr = M2_PYTHIA(MN=MN, GammaN=GammaN, pW2=pW2, sBC=self.s34)  # wrong matrix used when generating pythia samples, includes lepton permutation
 			else:
-				self.M2_nocorr = M2_nocorr(MN=MN, pW2=pW2, s24=self.s24)  # wrong matrix used when generating pythia samples, NO lepton permutation
+				self.M2_nocorr = M2_PYTHIA(MN=MN, GammaN=GammaN, pW2=pW2, sBC=self.s24)
 
-			self.weight = 2 * self.M2_spin_corr / self.M2_nocorr  # factor of 2 here is because M2_nocorr as calculated includes LNC + LNV decays
+			# calculate the correct matrix that takes into account LNC or LNV decay
+			if same_flavour_hnl_decay: 
+				if self.isLNC:
+					self.M2_spin_corr = x_l * M2_CCNC_LNC(MN=MN, GammaN=GammaN, pW2=pW2, s12=self.s12, s13=self.s13, s23=self.s23, s24=self.s24) + (1-x_l) * M2_NC_LNC(MN=MN, GammaN=GammaN, pW2=pW2, s12=self.s12, s13=self.s13, s23=self.s23, s24=self.s24)
+				elif self.isLNV:
+					self.M2_spin_corr = x_l * M2_CCNC_LNV(MN=MN, GammaN=GammaN, pW2=pW2, s12=self.s12, s13=self.s13, s23=self.s23, s24=self.s24) + (1-x_l) * M2_NC_LNV(MN=MN, GammaN=GammaN, pW2=pW2, s12=self.s12, s13=self.s13, s23=self.s23, s24=self.s24)
+			else: 
+				if self.isLNC:
+					self.M2_spin_corr = M2_CC_LNC(MN=MN, GammaN=GammaN, pW2=pW2, s12=self.s12, s13=self.s13, s23=self.s23, s24=self.s24)
+				elif self.isLNV:
+					self.M2_spin_corr = M2_CC_LNV(MN=MN, GammaN=GammaN, pW2=pW2, s12=self.s12, s13=self.s13, s23=self.s23, s24=self.s24)
+
+			self.weight =  self.M2_spin_corr / self.M2_nocorr
 
 
 class LeptonTriggerMatching:
