@@ -676,7 +676,7 @@ class Analysis(object):
 	def calculate_event_weight(self):
 		# MC re-weighting to include spin correlations and fix lepton ordering bug
 		# if sample is: data or MG or not HNL signal, then MCEventType weight defaults to 1
-		if self.tree.isMG: wrong_lep_order = False
+		if self.tree.isMG: wrong_lep_order = True
 		else: wrong_lep_order = True
 		self.MCEventType = selections.MCEventType(self.tree,wrong_lep_order=wrong_lep_order) 
 		# calculate mass lifetime weight 
