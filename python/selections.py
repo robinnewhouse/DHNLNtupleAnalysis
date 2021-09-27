@@ -1442,7 +1442,9 @@ class MCEventType:
 			self.s23 = p23.Mag2()
 			self.s24 = p24.Mag2()
 			self.s34 = p34.Mag2()
-
+			# Default to weight 1 if pW2 = 0, otherwise weight is infinite 
+			if pW2 == 0: 
+				return 
 			if wrong_lep_order:
 				# N.B Official samples have wrong lepton ordering where lepton 2 and lepton 4 are swapped i.e instead of 1234 we have 1423.
 				# For official samples, swap s24 -> s34
