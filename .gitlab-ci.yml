@@ -1,17 +1,20 @@
 
 stages:
-  - build
+  - package
   - run
   - test
 
 build_image:
-  stage: build
-  variables:
-    TO: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
-  tags:
-    - docker-image-build
+  stage: package
+  image:
+    name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
+    entrypoint: [""]
   script:
-    - ignore
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context "${CI_PROJECT_DIR}"
+                       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+                       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
+
 
 # teplate for tests
 .run_test:
