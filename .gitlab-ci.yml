@@ -1,8 +1,18 @@
 
 stages:
+  - build
   - run
   - test
-      
+
+build_image:
+  stage: build
+  variables:
+    TO: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  tags:
+    - docker-image-build
+  script:
+    - ignore
+
 # teplate for tests
 .run_test:
   stage: run
