@@ -1,11 +1,13 @@
-FROM atlasamglab/stats-base:root6.24.04-python3.8
+FROM continuumio/miniconda3
 COPY python /ntuple_analysis/python
 COPY data /ntuple_analysis/data
 
 # Build the image as root user
 USER root
 # Install the necessary packages
-RUN pip install uproot3
+RUN conda install -c conda-forge root -y && \
+    pip install uproot3
+
 # Add user "docker"
 RUN useradd -ms /bin/bash docker
 
