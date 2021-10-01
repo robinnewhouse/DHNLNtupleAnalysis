@@ -14,3 +14,4 @@ WORKDIR /ntuple_analysis/run
 
 # Start the image as user "docker"
 USER docker
+CMD [ "/bin/bash" ]
