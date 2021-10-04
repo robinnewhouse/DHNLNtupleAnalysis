@@ -1,5 +1,8 @@
 # we use uproot3 for now
-import uproot
+try:
+	import uproot
+except ModuleNotFoundError:
+	import uproot3 as uproot
 if int(uproot.__version__.split('.')[0]) == 4:
 	print('uproot version is {}. Importing uproot3 as uproot.'.format(uproot.__version__))
 	import uproot3 as uproot
