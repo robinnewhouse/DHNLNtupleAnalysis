@@ -4,10 +4,10 @@
 ._*
 .DS_Store*
 *.pdf
-.*
 python/*.txt
 python/histograms
 python/plotHistograms.py
 output/
 venv/
 run/
+.idea/
