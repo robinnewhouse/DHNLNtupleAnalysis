@@ -11,3 +11,4 @@ output/
 venv/
 run/
 .idea/
+.ipynb_checkpoints/

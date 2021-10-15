@@ -64,7 +64,7 @@ class Observables:
 		hist.SetDirectory(0)
 		self.histogram_dict[directory + hist_name] = hist
 
-	def write_histograms(self, root_file, tree_name):
+	def write_histograms(self, root_file, tree_name, cutflow_only=False):
 		"""
 		Write all histograms to the specified root file.
 		Root file must be open.
@@ -76,6 +76,8 @@ class Observables:
 		# root_file.cd(tree_name)
 
 		for hist_path, histogram in self.histogram_dict.items():
+			if cutflow_only and not "CutFlow" in hist_path:
+				continue
 			# split the identifier into directory and name
 			tokens = hist_path.split('/')
 			hist_name = tokens[-1]

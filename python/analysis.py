@@ -387,14 +387,14 @@ class Analysis(object):
 		# define here the directory structure where this histogram is stored.
 		directory = '{ch}/{selection}/'.format(ch=self.ch, selection=selection)
 		# fill LNC histograms. Not used for data.
-		if self.MCEventType.isLNC:
-			self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
-		# fill LNV histograms. Not used for data.
-		if self.MCEventType.isLNV:
-			self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
-		if self.MCEventType.isLNC or self.MCEventType.isLNV:
-			#fill LNC_plus_LNV histograms for every event
-			self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
+		# if self.MCEventType.isLNC:
+		# 	self.observables.fill_hist(directory+'LNC/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
+		# # fill LNV histograms. Not used for data.
+		# if self.MCEventType.isLNV:
+		# 	self.observables.fill_hist(directory+'LNV/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
+		# if self.MCEventType.isLNC or self.MCEventType.isLNV:
+		# 	#fill LNC_plus_LNV histograms for every event
+		# 	self.observables.fill_hist(directory+'LNC_plus_LNV/', hist_name, variable_1, variable_2, weight_one_majorana_hnl_single_flavour)
 
 		# Unless suppressed, fill the corresponding micro-ntuple with the variable
 		# Will not fill variables from 2D histograms to prevent double-counting
@@ -474,7 +474,7 @@ class Analysis(object):
 			ntuple.write(self.tree.tree_name + '_' + self.ch + '_ntuples_' + key)
 		# ____________________________________________________________
 		# Write histograms
-		self.observables.write_histograms(root_file=self.fi, tree_name=self.tree.tree_name)
+		self.observables.write_histograms(root_file=self.fi, tree_name=self.tree.tree_name, cutflow_only=True)
 		self.logger.info("Histograms written to {}".format(self.output_file))
 
 		self.fi.Close()
