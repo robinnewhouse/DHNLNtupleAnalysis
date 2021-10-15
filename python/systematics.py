@@ -61,7 +61,7 @@ def plot_vertexing_systematic():
 
 
 # ____________________________________________________________
-# Displaced lepton d0 extrapoliation systematic
+# Displaced lepton d0 extrapolation systematic
 
 d0_extrapolation_systematic_bins = [0, 3, 10, 20, 30, 40, 50, 60]
 d0_extrapolation_electron_systematic = [1.0, 0.9797764420509338, 0.9509709477424622, 0.9440935254096985, 0.9337978959083557, 0.9336843490600586, 0.943777322769165]

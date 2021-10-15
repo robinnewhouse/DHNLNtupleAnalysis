@@ -773,18 +773,20 @@ class Mlll:
 		self.plll = ROOT.TLorentzVector(0, 0, 0, 0)
 
 		if self.decaymode == "leptonic":
+			try:
+				if self.dv_type == "emu":
+					self.plll = self.plep + self.dEl[0] + self.dMu[0]
 
-			if self.dv_type == "emu":
-				self.plll = self.plep + self.dEl[0] + self.dMu[0]
+				if self.dv_type == "mumu":
+					self.plll = self.plep + self.dMu[0] + self.dMu[1]
 
-			if self.dv_type == "mumu":
-				self.plll = self.plep + self.dMu[0] + self.dMu[1]
+				if self.dv_type == "ee":
+					self.plll = self.plep + self.dEl[0] + self.dEl[1]
 
-			if self.dv_type == "ee":
-				self.plll = self.plep + self.dEl[0] + self.dEl[1]
-
-			self.mlll = self.plll.M()
-			self.mtrans = self.plll.Perp()
+				self.mlll = self.plll.M()
+				self.mtrans = self.plll.Perp()
+			except IndexError as e:
+				print('Missing expected leptons. Are you calculating the masses before applying the DVtype cut?')
 
 	def passes(self):
 		if not self.invert:
@@ -1049,17 +1051,21 @@ class Mhnl:
 			dtrks.append(trks[0])
 			dtrks.append(trks[1])
 		else:
-			if dv_type == "emu":
-				dtrks.append(dEl[0])
-				dtrks.append(dMu[0])
+			try:
+				if dv_type == "emu":
+					dtrks.append(dEl[0])
+					dtrks.append(dMu[0])
 
-			if dv_type == "mumu":
-				dtrks.append(dMu[0])
-				dtrks.append(dMu[1])
+				if dv_type == "mumu":
+					dtrks.append(dMu[0])
+					dtrks.append(dMu[1])
 
-			if dv_type == "ee":
-				dtrks.append(dEl[0])
-				dtrks.append(dEl[1])
+				if dv_type == "ee":
+					dtrks.append(dEl[0])
+					dtrks.append(dEl[1])
+			except IndexError as e:
+				print('Missing expected leptons. Are you calculating the masses before applying the DVtype cut?')
+				return
 
 		# Get 3 vectors
 		if not use_truth:
