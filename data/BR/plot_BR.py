@@ -9,9 +9,9 @@ import matplotlib.colors
 
 
 
-f_br = helpers.ReadBRjson(os.path.dirname(os.path.abspath(__file__)) + '/BranchingRatios_DifferentMixings_Gronau_lifetime.json')
+f_br = helpers.ReadJsonFiles(os.path.dirname(os.path.abspath(__file__)) + '/BranchingRatios_DifferentMixings_Olegs_lifetime.json')
 
-mass = ["2", "2.5", "3", "4", "4.5", "5", "7.5","10","12.5", "15", "17.5","20"]
+mass = ["2.0", "2.5", "3.0", "4.0", "4.5", "5.0", "7.5","10.0","12.5", "15.0", "17.5","20.0"]
 model = ["e_only", "mu_only", "IH", "NH"]
 channel = ["mmv", "mev", "emv", "eev"]
 
@@ -41,9 +41,9 @@ pink = matplotlib.colors.to_rgb('#CC0063')
 orange = matplotlib.colors.to_rgb('#FE9603')
 
 
-
+mass_float= []
 for m in mass: 
-
+    mass_float.append(float(m))
     br_e_only_eev.append(f_br.get_br("eee", m, "e_only", use_str = True))
     br_e_only_emv.append(f_br.get_br("eeu", m, "e_only", use_str = True))
     br_e_only_mmv.append(f_br.get_br("uuu", m, "e_only", use_str = True))
@@ -65,47 +65,47 @@ for m in mass:
     br_NH_mev.append(f_br.get_br("uue", m, "NH", use_str = True))
 
 plt.figure(0)
-plt.plot(mass,br_e_only_eev, linestyle="", marker= 'o',label ="BR($N \\rightarrow ee\\nu$)",markersize=6, color = blue)
-plt.plot(mass,br_e_only_emv, linestyle="", marker= 'o',label ="BR($N \\rightarrow e\\mu\\nu$ )",markersize=6, color = orange)
-plt.plot(mass,br_e_only_mev, linestyle="", marker= 'o',label ="BR($N \\rightarrow \\mu e\\nu$)",markersize=6, color = pink)
-plt.plot(mass,br_e_only_mmv, linestyle="", marker= 'o',label ="BR($N \\rightarrow \\mu\\mu\\nu$ )",markersize=6, color = purple)
-plt.xlabel("HNL mass [GeV] ",fontsize=12)
-plt.ylabel("BR($N \\rightarrow ll\\nu$) - any flavour neutrino",fontsize=12)
-plt.title("Electron coupling only \n ($x_e$ = 1 , $x_\\mu$ = 0 , $x_\\tau$ = 0) ",fontsize=12)
+plt.plot(mass_float,br_e_only_eev, marker= 'o',label ="BR($N \\rightarrow ee\\nu$)",markersize=6, color = blue)
+plt.plot(mass_float,br_e_only_emv, marker= 'v',label ="BR($N \\rightarrow e\\mu\\nu$ )",markersize=6, color = orange)
+plt.plot(mass_float,br_e_only_mev, marker= 's',label ="BR($N \\rightarrow \\mu e\\nu$)",markersize=6, color = pink)
+plt.plot(mass_float,br_e_only_mmv, marker= '^',label ="BR($N \\rightarrow \\mu\\mu\\nu$ )",markersize=6, color = purple)
+plt.xlabel("$m_N$ [GeV] ",fontsize=14)
+plt.ylabel("BR($N \\rightarrow ll\\nu$) - any flavour neutrino",fontsize=14)
+plt.title("Electron-only mixing \n ($x_e$ = 1 , $x_\\mu$ = 0 , $x_\\tau$ = 0) ",fontsize=16)
 plt.legend(numpoints=1,loc='upper right')
 
 plt.savefig('br_e_only.pdf')
 
 plt.figure(1)
-plt.plot(mass,br_mu_only_eev, linestyle="", marker= 'o',label ="BR($N \\rightarrow ee\\nu$)",markersize=6, color = blue)
-plt.plot(mass,br_mu_only_emv, linestyle="", marker= 'o',label ="BR($N \\rightarrow e\\mu\\nu$ )",markersize=6, color = orange)
-plt.plot(mass,br_mu_only_mev, linestyle="", marker= 'o',label ="BR($N \\rightarrow \\mu e\\nu$)",markersize=6, color = pink)
-plt.plot(mass,br_mu_only_mmv, linestyle="", marker= 'o',label ="BR($N \\rightarrow \\mu\\mu\\nu$ )",markersize=6, color = purple)
-plt.xlabel("HNL mass [GeV] ",fontsize=12)
-plt.ylabel("BR($N \\rightarrow ll\\nu$) - any flavour neutrino",fontsize=12)
-plt.title("Muon coupling only \n ($x_e$ = 0 , $x_\\mu$ = 1 , $x_\\tau$ = 0)",fontsize=12)
+plt.plot(mass_float,br_mu_only_eev, marker= 'o',label ="BR($N \\rightarrow ee\\nu$)",markersize=6, color = blue)
+plt.plot(mass_float,br_mu_only_emv, marker= 'v',label ="BR($N \\rightarrow e\\mu\\nu$ )",markersize=6, color = orange)
+plt.plot(mass_float,br_mu_only_mev, marker= 's',label ="BR($N \\rightarrow \\mu e\\nu$)",markersize=6, color = pink)
+plt.plot(mass_float,br_mu_only_mmv, marker= '^',label ="BR($N \\rightarrow \\mu\\mu\\nu$ )",markersize=6, color = purple)
+plt.xlabel("$m_N$ [GeV] ",fontsize=14)
+plt.ylabel("BR($N \\rightarrow ll\\nu$) - any flavour neutrino",fontsize=14)
+plt.title("Muon-only mixing \n ($x_e$ = 0 , $x_\\mu$ = 1 , $x_\\tau$ = 0)",fontsize=16)
 plt.legend(numpoints=1,loc='upper right')
 
 plt.savefig('br_mu_only.pdf')
 
 plt.figure(2)
-plt.plot(mass,br_IH_eev, linestyle="", marker= 'o',label ="BR($N \\rightarrow ee\\nu$)",markersize=6, color = blue)
-plt.plot(mass,br_IH_emv, linestyle="", marker= 'o',label ="BR($N \\rightarrow e\\mu\\nu$ )",markersize=6, color = orange)
-plt.plot(mass,br_IH_mev, linestyle="", marker= '^',label ="BR($N \\rightarrow \\mu e\\nu$)",markersize=4, color = pink)
-plt.plot(mass,br_IH_mmv, linestyle="", marker= 'o',label ="BR($N \\rightarrow \\mu\\mu\\nu$ )",markersize=6, color = purple)
-plt.xlabel("HNL mass [GeV] ",fontsize=12)
-plt.ylabel("BR($N \\rightarrow ll\\nu$) - any flavour neutrino",fontsize=12)
-plt.title("Inverted neutrino hierarchy model \n ($x_e$ = 1/3 , $x_\\mu$ = 1/3 , $x_\\tau$ = 1/3)",fontsize=12)
+plt.plot(mass_float,br_IH_eev, marker= 'o',label ="BR($N \\rightarrow ee\\nu$)",markersize=6, color = blue)
+plt.plot(mass_float,br_IH_emv, marker= 'v',label ="BR($N \\rightarrow e\\mu\\nu$ )",markersize=6, color = orange)
+plt.plot(mass_float,br_IH_mev, marker= 's',label ="BR($N \\rightarrow \\mu e\\nu$)",markersize=4, color = pink)
+plt.plot(mass_float,br_IH_mmv, marker= '^',label ="BR($N \\rightarrow \\mu\\mu\\nu$ )",markersize=6, color = purple)
+plt.xlabel("$m_N$ [GeV] ",fontsize=14)
+plt.ylabel("BR($N \\rightarrow ll\\nu$) - any flavour neutrino",fontsize=14)
+plt.title("Inverted hierarchy mixing \n ($x_e$ = 1/3 , $x_\\mu$ = 1/3 , $x_\\tau$ = 1/3)",fontsize=16)
 plt.legend(numpoints=1,loc='upper right')
 plt.savefig('br_IH.pdf')
 
 plt.figure(3)
-plt.plot(mass,br_NH_eev, linestyle="", marker= 'o',label ="BR($N \\rightarrow ee\\nu$)",markersize=6, color = blue)
-plt.plot(mass,br_NH_emv, linestyle="", marker= 'o',label ="BR($N \\rightarrow e\\mu\\nu$ )",markersize=6, color = orange)
-plt.plot(mass,br_NH_mev, linestyle="", marker= 'o',label ="BR($N \\rightarrow \\mu e\\nu$)",markersize=6, color = pink)
-plt.plot(mass,br_NH_mmv, linestyle="", marker= 'o',label ="BR($N \\rightarrow \\mu\\mu\\nu$ )",markersize=6, color = purple)
-plt.xlabel("HNL mass [GeV] ",fontsize=12)
-plt.ylabel("BR($N \\rightarrow ll\\nu$) - any flavour neutrino",fontsize=12)
-plt.title("Normal neutrino hierarchy model \n ($x_e$ = 0.06 , $x_\\mu$ = 0.48 , $x_\\tau$ = 0.46)",fontsize=12)
+plt.plot(mass_float,br_NH_eev, marker= 'o',label ="BR($N \\rightarrow ee\\nu$)",markersize=6, color = blue)
+plt.plot(mass_float,br_NH_emv, marker= 'v',label ="BR($N \\rightarrow e\\mu\\nu$ )",markersize=6, color = orange)
+plt.plot(mass_float,br_NH_mev, marker= 's',label ="BR($N \\rightarrow \\mu e\\nu$)",markersize=6, color = pink)
+plt.plot(mass_float,br_NH_mmv, marker= '^',label ="BR($N \\rightarrow \\mu\\mu\\nu$ )",markersize=6, color = purple)
+plt.xlabel("$m_N$ [GeV] ",fontsize=14)
+plt.ylabel("BR($N \\rightarrow ll\\nu$) - any flavour neutrino",fontsize=14)
+plt.title("Normal hierarchy mixing \n ($x_e$ = 0.06 , $x_\\mu$ = 0.48 , $x_\\tau$ = 0.46)",fontsize=16)
 plt.legend(numpoints=1,loc='upper right')
 plt.savefig('br_NH.pdf')
