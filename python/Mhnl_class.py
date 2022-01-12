@@ -1,6 +1,7 @@
 import ROOT
 import numpy as np
 
+
 class Mhnl:
     """
     The class used to compute the HNL mass (m_HNL) for each event.
@@ -138,3 +139,22 @@ class Mhnl:
         self.hnl_phi = pHNL1.Phi()
         self.m_lll = plll.M()
         self.alt_mhnl = pHNL2.M()
+
+
+'''Here is an example event to show the functionality of the above class.'''
+if __name__ == "__main__":
+    print("HNL mass calculation examples", "\n")
+
+    # example 1
+    print("Example 1 is from an MC generated 10 GeV HNL")
+    dv_1 = ROOT.TVector3(15.512019157409668, 19.17801856994629, -107.96952056884766)
+    pv_1 = ROOT.TVector3(-0.5000697374343872, -0.5047531723976135, -40.7725830078125)
+    displaced_leptons_1 = [ROOT.TLorentzVector(), ROOT.TLorentzVector()]
+    displaced_leptons_1[0].SetPxPyPzE(2.48017372631826, -0.2136493157850394, -4.773501905451388, 666)
+    displaced_leptons_1[1].SetPxPyPzE(9.90227566884341, 15.053740580375933, -43.85763404407506, 666)
+    prompt_lepton_1 = ROOT.TLorentzVector()
+    prompt_lepton_1.SetPxPyPzE(-19.65923058291866, -32.908382397006065, -198.16919648843634, 666)
+    example_1 = Mhnl(pv_1, dv_1, displaced_leptons_1, prompt_lepton_1, fix_w_mass=False)
+
+    print("Truth HNL mass:", "10 GeV")
+    print("Calculated HNL mass:", example_1.mhnl, "GeV")
