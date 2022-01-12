@@ -2,7 +2,7 @@ import ROOT
 import numpy as np
 
 
-class Mhnl:
+class HNLMassCalculation:
     """
     The class used to compute the HNL mass (m_HNL) for each event.
     Inputs:
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     displaced_leptons_1[1].SetPxPyPzE(9.90227566884341, 15.053740580375933, -43.85763404407506, 666)
     prompt_lepton_1 = ROOT.TLorentzVector()
     prompt_lepton_1.SetPxPyPzE(-19.65923058291866, -32.908382397006065, -198.16919648843634, 666)
-    example_1 = Mhnl(pv_1, dv_1, displaced_leptons_1, prompt_lepton_1, fix_w_mass=False)
+    example_1 = HNLMassCalculation(pv_1, dv_1, displaced_leptons_1, prompt_lepton_1, fix_w_mass=False)
 
     print("Truth HNL mass:", "10 GeV")
     print("Calculated HNL mass:", example_1.mhnl, "GeV")
