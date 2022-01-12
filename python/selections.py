@@ -1030,14 +1030,29 @@ class DVLepPt:
 		return self.pass_pt_cuts
 
 class Mhnl:
-	def __init__(self, tree, dv_type, plep, dMu, dEl, MW=80.379, fixWMass=False, hnlmasscut=20, use_truth=False, truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(), trks=[], use_tracks=False, invert=False):
-		# Global W pole mass
-		MW = 80.379
+	"""
+	This class returns the HNL mass (m_HNL) for each event.
+
+	Inputs:
+	- tree: structure that contains infomation about the event (e.g. location of the DV, PV etc.)
+	- dMu: List of ROOT TLorentzVector objects for muons in the DV. See: https://root.cern.ch/doc/master/classTLorentzVector.html
+	- dEl: List of ROOT TLorentzVector objects for electrons in the DV. See: https://root.cern.ch/doc/master/classTLorentzVector.html
+	- fixWMass: A boolean flag that determines whether the W mass is fixed to the MW in the energy momentum conservation. Default: False
+	- hnlmasscut: The maximum m_HNL (e.g. mHNL < hnlmasscut). Default: 20 GeV
+	- use_truth: A boolean flag that will use truth_pv and truth_dv for the vertex location.
+	- truth_pv: location of the truth PV.
+	- truth_dv: location of the truth PV.
+	- use_tracks: A boolean flag that configure the class to use the vector in trks to compute the HNL mass.
+	- trks: List of ROOT TLorentzVector objects for all tracks in the DV
+	- invert: A boolean that will invert the HNL mass cut from a maximum to a minimum (e.g. mHNL > hnlmasscut).
+	"""
+	def __init__(self, tree, dv_type, plep, dMu, dEl, fixWMass=False, hnlmasscut=20, use_truth=False, truth_pv=ROOT.TVector3(), truth_dv=ROOT.TVector3(), trks=[], use_tracks=False, invert=False):
+		MW = 80.379 # W boson pole mass in GeV
 		MW2 = MW**2
-		WGamma = 2.085
+		WGamma = 2.085 # W boson width in GeV
 		self.hnlmasscut = hnlmasscut
-		self.mhnl = -1
-		self.alt_mhnl = -1
+		self.mhnl = -1 # HNL mass
+		self.alt_mhnl = -1  # alternatie HNL mass from solution of the quadratic equation
 		self.hnlpt = -1
 		self.hnleta = -99
 		self.hnlphi = -99
@@ -1061,7 +1076,7 @@ class Mhnl:
 				dtrks.append(dEl[0])
 				dtrks.append(dEl[1])
 
-		# Get 3 vectors
+		# Get 3 vectors for the location of the DV and PV
 		if not use_truth:
 			dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
 			pv = ROOT.TVector3(tree['vertex_x'], tree['vertex_y'], tree['vertex_z'])
@@ -1069,8 +1084,10 @@ class Mhnl:
 			pv = truth_pv
 			dv = truth_dv
 
+		# Get 3 vectors for the prompt lepton
 		p0 = ROOT.TVector3(plep.Px(), plep.Py(), plep.Pz())
 
+		# Get 3 vectors for the two displaced leptons
 		d0 = ROOT.TVector3(dtrks[0].Px(), dtrks[0].Py(), dtrks[0].Pz())
 		d1 = ROOT.TVector3(dtrks[1].Px(), dtrks[1].Py(), dtrks[1].Pz())
 
@@ -1107,7 +1124,7 @@ class Mhnl:
 			# A = A/E
 			B = B / E
 
-			# Min W mass possible
+			# Minimum possible W mass
 			alpha = qperp * B / np.sqrt(1 - B ** 2)
 			qn1 = ROOT.TVector3(0, -qperp, alpha)
 			En1 = qn1.Mag()
@@ -1118,7 +1135,7 @@ class Mhnl:
 
 			cdVal = 0.5 + np.arctan((mWMin2 - MW2) / MW / WGamma) / np.pi
 			cdMed = (1 + cdVal) / 2
-			# invert to get mass of median allowed range
+			# Invert to get mass of median allowed range
 			mMed2 = MW2 + MW * WGamma * np.tan(np.pi * (cdMed - 0.5))
 			# mMed = MW + WGamma*np.tan(np.pi*(cdMed-0.5))
 
@@ -1139,7 +1156,7 @@ class Mhnl:
 			c = (A * A - qperp2) / (B * B - 1)
 
 			arg = b * b - 4 * c
-			# protect against imaginary solutions (investigate any of these)
+			# Protect against imaginary solutions
 			noSol = 0
 			if arg > 0:
 				rad = np.sqrt(arg)
@@ -1161,17 +1178,17 @@ class Mhnl:
 			qtot1 = qv + qn1
 			qtot2 = qv + qn2
 
-			# neutrino momentum in original coordinates 
+			# Neutrino momentum in original coordinates
 			dn1 = y * (-1 * qperp) + z * sol1
 			dn2 = y * (-1 * qperp) + z * sol2
 
-			# mass of nuetrino+d0 lepton
+			# Mass of nuetrino+d0 lepton
 			qn0 = dn1 + d0
 			mn01 = np.sqrt((d0.Mag() + En1) ** 2 - qn0.Dot(qn0))
 			qn0 = dn2 + d0
 			mn02 = np.sqrt((d0.Mag() + En2) ** 2 - qn0.Dot(qn0))
 
-			# And the mass of the N
+			# And the mass of the HNL
 			mN21 = (Ev + En1) ** 2 - qtot1.Dot(qtot1)
 			mN22 = (Ev + En2) ** 2 - qtot2.Dot(qtot2)
 
@@ -1182,36 +1199,29 @@ class Mhnl:
 			dmN2dMW = (Ev * sol2 / np.sqrt(qperp2 + sol2 ** 2) - qv[2]) / np.sqrt(mN22) * (A + B * sol2) * np.sqrt(MW2) / \
 					  (((B ** 2 - 1) * sol2 + A * B) * E)
 
-			# make 4-vectors in original coordinates
+			# Make 4-vectors in original coordinates
+			# Use pion mass assumption for mass of tracks (default in ATLAS tracking)  
 			pnu2 = ROOT.TLorentzVector(dn2, dn2.Mag())
 			pnu1 = ROOT.TLorentzVector(dn1, dn1.Mag())
-			pion_mass = 0.139  # GeV
+			pion_mass = 0.139  # pion mass in GeV
 			plep0 = ROOT.TLorentzVector()
 			ptrk0 = ROOT.TLorentzVector()
 			ptrk1 = ROOT.TLorentzVector()
-			# using tracking assumption of pion mass for consistency with trk quantities  
 			plep0.SetPxPyPzE(p0.X(), p0.Y(), p0.Z(), np.sqrt(p0.Mag() ** 2 + pion_mass ** 2))
 			ptrk0.SetPxPyPzE(d0.X(), d0.Y(), d0.Z(), np.sqrt(d0.Mag() ** 2 + pion_mass ** 2))
 			ptrk1.SetPxPyPzE(d1.X(), d1.Y(), d1.Z(), np.sqrt(d1.Mag() ** 2 + pion_mass ** 2))
-
-			# assume massless tracks 
-			# plep0 = ROOT.TLorentzVector( p0 ,p0.Mag())
-			# ptrk0 = ROOT.TLorentzVector( d0 ,d0.Mag())
-			# ptrk0 = ROOT.TLorentzVector( d1,d1.Mag())
-
 			pHNL1 = pnu1 + ptrk0 + ptrk1
 			pHNL2 = pnu2 + ptrk0 + ptrk1
-
 			plll = plep0 + ptrk0 + ptrk1
 
-			# set the attributes of the class
+			# Set the final attributes of the class
 			self.mhnl = pHNL1.M()
 			self.hnlpt = pHNL1.Pt()
 			self.hnleta = pHNL1.Eta()
 			self.hnlphi = pHNL1.Phi()
 			self.mlll = plll.M()
 
-			self.alt_mhnl = pHNL1.M()
+			self.alt_mhnl = pHNL2.M()
 
 		findMass(pv, dv, p0, d0, d1, MW2, fixWMass)
 
