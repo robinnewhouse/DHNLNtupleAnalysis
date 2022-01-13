@@ -150,11 +150,10 @@ if __name__ == "__main__":
     print("Example 1 is from a simulated event with a 10 GeV HNL")
     dv_1 = ROOT.TVector3(15.512019157409668, 19.17801856994629, -107.96952056884766)
     pv_1 = ROOT.TVector3(-0.5000697374343872, -0.5047531723976135, -40.7725830078125)
-    displaced_leptons_1 = [ROOT.TVector3(), ROOT.TVector3()]
-    displaced_leptons_1[0].SetXYZ(2.48017372631826, -0.2136493157850394, -4.773501905451388)
-    displaced_leptons_1[1].SetXYZ(9.90227566884341, 15.053740580375933, -43.85763404407506)
-    prompt_lepton_1 = ROOT.TVector3()
-    prompt_lepton_1.SetXYZ(-19.65923058291866, -32.908382397006065, -198.16919648843634)
+    displaced_leptons_1 = [
+        ROOT.TVector3(2.48017372631826, -0.2136493157850394, -4.773501905451388),
+        ROOT.TVector3(9.90227566884341, 15.053740580375933, -43.85763404407506)]
+    prompt_lepton_1 = ROOT.TVector3(-19.65923058291866, -32.908382397006065, -198.16919648843634)
     example_1 = HNLMassCalculation(pv_1, dv_1, displaced_leptons_1, prompt_lepton_1, fix_w_mass=False)
 
     print("Simluated HNL mass:", "10 GeV")
