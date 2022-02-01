@@ -1,9 +1,10 @@
 import helpers
-
+import selections
 # trigger systematics order
 # TODO: systematics are repeated in data tree (e.g. len(muon_TrigEff_SF_HLT_mu26_ivarmedium_RecoMedium)[0] = 15 when it should = 5 (nominal +stat up/down +syst up/down)
 muon_trigger_systematics = ['nominal', 'MUON_EFF_TrigStatUncertainty__1down', 'MUON_EFF_TrigStatUncertainty__1up', 'MUON_EFF_TrigSystUncertainty__1down', 'MUON_EFF_TrigSystUncertainty__1up']
-
+logger = helpers.getLogger('dHNLAnalysis.scale_factors', level=helpers.logger_debug_level)
+selections.logger.setLevel(helpers.logger_debug_level)
 # indices for scale factor systematics as stored in trees
 
 
@@ -59,9 +60,9 @@ def get_trigger_scale_factor(analysis, systematic='nominal'):
             trigger_scale_factor_mu20_iloose_L1MU15 = trigger_scale_factor_mu20_iloose_L1MU15[syst_index['nominal']]
         # deal wih any weird circumstances
         if trigger_scale_factor_mu26_ivarmedium >= 0.0 and trigger_scale_factor_mu20_iloose_L1MU15 >= 0.0:
-            analysis.logger.warning("Two trigger scale factors. What do we do here?")
+            logger.debug("Two trigger scale factors.")
         if trigger_scale_factor_mu26_ivarmedium == 0.0 and trigger_scale_factor_mu20_iloose_L1MU15 == 0.0:
-            analysis.logger.warning("Trigger scale factor is zero")
+            logger.debug("Trigger scale factor is zero")
         trigger_scale_factor = max(trigger_scale_factor_mu26_ivarmedium, trigger_scale_factor_mu20_iloose_L1MU15)  # safe for now
 
     if lep_type == 'electron':

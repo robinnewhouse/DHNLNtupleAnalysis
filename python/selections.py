@@ -1083,6 +1083,8 @@ class Mhnl:
 		else:
 			pv = truth_pv
 			dv = truth_dv
+		vec_d_lab = pv - dv
+		self.d_lab = abs(vec_d_lab.Mag())
 
 		# Get 3 vectors for the prompt lepton
 		p0 = ROOT.TVector3(plep.Px(), plep.Py(), plep.Pz())
@@ -1163,6 +1165,15 @@ class Mhnl:
 			else:
 				rad = -1000
 				noSol = 1
+				self.mhnl = -1
+				self.hnlpt = -1
+				self.hnleta = -1
+				self.hnlphi = -1
+				self.mlll = -1
+				self.alt_mhnl = -1
+				self.lifetime_hnl = -1
+				# If no solution, set attributes to -1 and exit function.
+				return
 
 			# These are the possible z momenta for the neutrino
 			sol1 = (-b + rad) / 2
@@ -1220,8 +1231,12 @@ class Mhnl:
 			self.hnleta = pHNL1.Eta()
 			self.hnlphi = pHNL1.Phi()
 			self.mlll = plll.M()
-
 			self.alt_mhnl = pHNL2.M()
+			# Compute ctau
+			gamma = pHNL1.E()/ self.mhnl
+			beta = np.sqrt(1 - 1 / gamma ** 2)
+			print (beta)
+			self.lifetime_hnl = self.d_lab / (gamma * beta)
 
 		findMass(pv, dv, p0, d0, d1, MW2, fixWMass)
 
