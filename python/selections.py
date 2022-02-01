@@ -1084,7 +1084,7 @@ class Mhnl:
 			pv = truth_pv
 			dv = truth_dv
 		vec_d_lab = pv - dv
-		self.d_lab = abs(vec_d_lab.Mag())
+		self.d_lab = vec_d_lab.Mag()
 
 		# Get 3 vectors for the prompt lepton
 		p0 = ROOT.TVector3(plep.Px(), plep.Py(), plep.Pz())
@@ -1235,7 +1235,6 @@ class Mhnl:
 			# Compute ctau
 			gamma = pHNL1.E()/ self.mhnl
 			beta = np.sqrt(1 - 1 / gamma ** 2)
-			print (beta)
 			self.lifetime_hnl = self.d_lab / (gamma * beta)
 
 		findMass(pv, dv, p0, d0, d1, MW2, fixWMass)
