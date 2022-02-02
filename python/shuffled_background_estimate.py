@@ -108,6 +108,7 @@ def main():
 
     # for shuffled branch (matching name convensions in original ntuple code.)
     h["HNLm"] = ROOT.TH1D('h_HNLm', 'h_HNLm', 25, 0, 50)
+    h["HNLlifetime"] = ROOT.TH1D('h_HNLlifetime', 'h_HNLlifetime', 500, 0, 50)
     h["mvis"]  = ROOT.TH1D('h_mvis', 'h_mvis', 25, 0, 200)
     h["mll_1"] = ROOT.TH1D('h_mll_1', 'h_mll_1', 100, 0, 200)
     h["mll_0"] = ROOT.TH1D('h_mll_0', 'h_mll_0', 100, 0, 200)
@@ -378,6 +379,7 @@ def main():
                         Mlll_shuffle = selections.Mlll("ee", plep=plep_shuffle_vec, dMu=muVec,dEl=elVec)
             
                         fill_hist(selection,"HNLm", Mhnl_shuffle.mhnl, weight = 1.0/shuffling_factor)
+                        fill_hist(selection,"HNLlifetime", Mhnl_shuffle.lifetime_hnl, weight = 1.0/shuffling_factor)
                         fill_hist(selection,"mvis", Mlll_shuffle.mlll, weight = 1.0/shuffling_factor)
                         fill_hist(selection, "DV_mass", tree.DV_mass)
                         fill_hist(selection, "DV_r", tree.DV_r)
@@ -545,6 +547,27 @@ def main():
         x_max = 4,
         ntup_nbins =100,
         scaleLumi = 139.0,
+        norm = norm,
+        log_scale_y = log_scale_y,
+        draw_markers = draw_markers,
+        atlas_mod = "Internal",
+        extra_legend_lines = [vtx_alg ]
+        )
+
+        Hist1D(hist_channels= [],
+        hists = [h_to_plot["HNLlifetime"]],
+        labels = ["ch. {}".format(ch_str)],
+        vtx_alg = vtx_alg,
+        types = samples,
+        outputDir = outputDir,
+        name="HNLlifetime",
+        x_title ="HNL lifetime",
+        x_units ="",
+        y_min = y_min,
+        x_min = 0,
+        x_max = 50,
+        ntup_nbins =50,
+        rebin = 20,
         norm = norm,
         log_scale_y = log_scale_y,
         draw_markers = draw_markers,
