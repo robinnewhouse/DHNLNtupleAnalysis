@@ -404,7 +404,7 @@ class Truth:
 					self.truth_dvx = tree['truthVtx_x'][ivx]
 					self.truth_dvy = tree['truthVtx_y'][ivx]
 					self.truth_dvz = tree['truthVtx_z'][ivx]
-					# mod by Christian for proper lifetime calculation
+					# for proper lifetime calculation
 					self.gamma = tree['truthVtx_parent_E'][ivx] / tree['truthVtx_parent_M'][ivx]
 					self.beta = np.sqrt(1 - 1 / self.gamma ** 2)
 
