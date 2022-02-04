@@ -292,7 +292,7 @@ As with unshuffled events, each shuffled event has a tri-lepton mass and HNL mas
 
 The shuffled background estimate can be run using the `shuffled_background_estimate.py` script. This script requires as input mini-ntuples for both SS events from the SR and OS/SS events from the VR. These mini ntuples are created by the DHNLNtupleAnalysis script (see instructions above). When running the script you must select a channel (e.g. uuu). This will then select the corresponding flavour of prompt lepton and DVs from the data events to create the sample of shuffled events. 
 
-To run the main shuffled background estimate: 
+To run the main shuffled background estimate:
 ```
 python shuffled_background_estimate.py --channel {channel} --run --VR_charge OS --select_plep_from_loose_regionB --select_DV_from_VR
 ```
@@ -312,10 +312,10 @@ python shuffled_background_estimate.py --channel {channel} --run --VR_charge OS 
 
 | **Option** | **Action** |
 | ---------- | ---------- |
-| `--channel` | The channel you want to produce the shuffled sample for (e.g. uuu, uue, eeu, eee, uee or euu). Requred. |
+| `--channel` | The channel you want to produce the shuffled sample for (e.g. uuu, uue, eeu, eee, uee or euu). Required. |
 | `--run ` | make the shuffled event sample. Default: False |
-| `-p` or `--plot` | Plot the output of the shuffled background estimate. This will make validatio plots as well.  |
-| `--VR_charge` | The charge selection for the DV in the Validation region. Default: "OS" (Alternativly choose "SS") |
+| `-p` or `--plot` | Plot the output of the shuffled background estimate. This will make validation plots as well.  |
+| `--VR_charge` | The charge selection for the DV in the Validation region. Default: "OS" (Alternatively choose "SS") |
 | `--select_plep_from_loose_regionB` | Select prompt leptons from the looser prompt lepton SR. This option will give you more prompt leptons to shuffle with and increase the background estimate statistics. Default: True |
 | `--use_loose_DVs` | This flag will use a loose DV selection. This option is included for testing purposes only. Default: False |
 | `--select_DV_from_VR`| Select DVs from the Validation Region. By default the code will select SR SS DVs. Default:False |
