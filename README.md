@@ -308,6 +308,9 @@ python shuffled_background_estimate.py --channel {channel} --run --VR_charge OS 
 
 ```
 
+The output of the shuffled background estimate in a mini-ntuple in the same format as the main DHNLNtupleAnalysis mini-ntuple containing the relevent information about the shuffled events (i.e. not all mini-ntuple tress will be avaliable, but the necessary ones for the events selection/ statistical analysis code will be avaliable).
+
+
 ## List of shuffled_background_estimate.py Options
 
 | **Option** | **Action** |
