@@ -530,14 +530,17 @@ def get_lepton_index(tree, itrk, lepton_type):
 	"""
 	lepton_index = None
 	if lepton_type == 'muon':
-		lepton_index = np.where(tree['muon_index'] == tree.dv('trk_muonIndex')[itrk])
+		# lepton_index = np.where(tree['muon_index'] == tree.dv('trk_muonIndex')[itrk])
+		lepton_index = [  muix for muix in range (tree['nmuon']) if tree['muon_index'][muix] == tree.dv('trk_muonIndex')[itrk]  ]
+
 	if lepton_type == 'electron':
-		lepton_index = np.where(tree['el_index'] == tree.dv('trk_electronIndex')[itrk])
-	if len(lepton_index[0]) > 0:
-		if tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0][0]] - tree.dv('trk_phi')[itrk] > 0.02:
+		lepton_index = [  elix for elix in range (tree['nel']) if tree['el_index'][elix] == tree.dv('trk_electronIndex')[itrk]  ]
+		# lepton_index = np.where(tree['el_index'] == tree.dv('trk_electronIndex')[itrk])
+	if len(lepton_index) > 0:
+		if tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]] - tree.dv('trk_phi')[itrk] > 0.02:
 			logger.error("Lepton and track phi to not match. Check index counting. phi_lep: {}, phi_track: {}".format(
-				tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0][0]], tree.dv('trk_phi')[itrk]))
-		return lepton_index[0][0]
+				tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]], tree.dv('trk_phi')[itrk]))
+		return lepton_index[0]
 	else:
 		return None
 
@@ -572,7 +575,6 @@ class Tracks:
 
 	def get_muons(self):
 		self.ntracks = self.tree.ntrk
-		# print "number of tracks: ", self.ntracks
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
 			std_lepVec = ROOT.TLorentzVector()

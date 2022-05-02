@@ -2,7 +2,8 @@
 import os, sys
 import helpers
 import analysis
-import trees
+# import trees
+import NTAUtrees as trees
 import json
 
 # This blinding flag can be set to ensure you do not accidentally unblind when looking at data.

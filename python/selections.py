@@ -400,7 +400,7 @@ class Alpha:
 		self.max_alpha = max_alpha
 		# compute alpha (3D angle between DV 3-momentum and rDV)
 		dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-		pv = ROOT.TVector3(tree['vertex_x'], tree['vertex_y'], tree['vertex_z'])
+		pv = ROOT.TVector3(tree['vertex_x'][0], tree['vertex_y'][0], tree['vertex_z'][0])
 		decay_vector = dv - pv
 
 		dv_4vec = ROOT.TLorentzVector()
@@ -502,6 +502,7 @@ class DVType:
 
 			self.electrons = helpers.Electrons(self.tree)
 			self.nel = len(self.electrons.lepVec)
+			# print("nmu = {0}, nel = {1}".format(self.nmu,self.nel))
 
 	def passes(self):
 		combined = 0
@@ -1079,7 +1080,7 @@ class Mhnl:
 		# Get 3 vectors for the location of the DV and PV
 		if not use_truth:
 			dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-			pv = ROOT.TVector3(tree['vertex_x'], tree['vertex_y'], tree['vertex_z'])
+			pv = ROOT.TVector3(tree['vertex_x'][0], tree['vertex_y'][0], tree['vertex_z'][0])
 		else:
 			pv = truth_pv
 			dv = truth_dv
@@ -1249,9 +1250,9 @@ class Mhnl:
 class PV:
 	def __init__(self, tree):
 
-		self.pv_x = tree['vertex_x']
-		self.pv_y = tree['vertex_y']
-		self.pv_z = tree['vertex_z']
+		self.pv_x = tree['vertex_x'][0]
+		self.pv_y = tree['vertex_y'][0]
+		self.pv_z = tree['vertex_z'][0]
 
 	def passes(self):
 

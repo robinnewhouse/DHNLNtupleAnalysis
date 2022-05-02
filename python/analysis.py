@@ -435,6 +435,15 @@ class Analysis(object):
 		# The name of the ntuple
 		if not full_name:
 			full_name = ntuple_name
+		
+		try: 
+			self.micro_ntuples[selection][full_name] = variable
+		except: 
+			try: 
+				variable = int(variable)
+			except: 
+				# print ("failed to fill var: '{0}': |{1}|".format(full_name, variable))
+				variable = 0
 		self.micro_ntuples[selection][full_name] = variable
 
 	def check_input_consistency(self):
@@ -1261,7 +1270,7 @@ class Analysis(object):
 
 				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
 				dv = ROOT.TVector3(self.tree.dv('x'), self.tree.dv('y'), self.tree.dv('z'))
-				pv = ROOT.TVector3(self.tree['vertex_x'], self.tree['vertex_y'], self.tree['vertex_z'])
+				pv = ROOT.TVector3(self.tree['vertex_x'][0], self.tree['vertex_y'][0], self.tree['vertex_z'][0])
 				decay_vector = dv - pv
 				pvec_0 = ROOT.TVector3(tracks.lepVec[0].Px(), tracks.lepVec[0].Py(), tracks.lepVec[0].Pz())
 				pvec_1 = ROOT.TVector3(tracks.lepVec[1].Px(), tracks.lepVec[1].Py(), tracks.lepVec[1].Pz())
@@ -1516,9 +1525,9 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
 			self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
 			self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
-			self.fill_hist(sel, 'PV_x', self.tree['vertex_x'])
-			self.fill_hist(sel, 'PV_y', self.tree['vertex_y'])
-			self.fill_hist(sel, 'PV_z', self.tree['vertex_z'])
+			self.fill_hist(sel, 'PV_x', self.tree['vertex_x'][0])
+			self.fill_hist(sel, 'PV_y', self.tree['vertex_y'][0])
+			self.fill_hist(sel, 'PV_z', self.tree['vertex_z'][0])
 			self.fill_hist(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
 			self.fill_hist(sel, 'DV_mass', self.tree.dv('mass'))
 			self.fill_hist(sel, 'DV_pt', self.tree.dv('pt'))
