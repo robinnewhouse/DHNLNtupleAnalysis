@@ -1,13 +1,15 @@
-# we use uproot3 for now
+# here, we use NtupleAnalysisUtils in place of uproot. 
+# Experimental for now
 import ROOT
 import os
 
 import helpers
 try: 
     import cppyy
-    cppyy.add_include_path(os.environ["TestArea"]+'/x86_64-centos7-gcc11-opt/include/')
-    cppyy.include('DHNLNtupleAnalysis/DHNLNtuple.h') 
-    cppyy.load_library('libNtupleAnalysisUtils') 
+    cppyy.add_include_path(os.environ["TestArea"]+'/'+os.environ["BINARY_TAG"]+'/include/')
+    cppyy.include('NtupleAnalysisUtils/Ntuple/NTAUNtupleIncludes.h') 
+    # Why is the following not needed? There are binary components - do we just get lucky by not calling them? 
+    # cppyy.load_library('libNtupleAnalysisUtils') 
 except: 
     pass
 
@@ -48,7 +50,9 @@ class Tree:
         self.file = ROOT.TFile.Open(file_name, "READ")
         self.cutflow = self.file.Get("cutflow") 
         theTree = self.file.Get(tree_name) 
-        self.tree = cppyy.gbl.DHNLNtuple(theTree)
+        # self.tree = cppyy.gbl.DHNLNtuple(theTree)
+        self.tree = cppyy.gbl.NtupleBranchMgr(theTree)
+        self.tree.getMissedBranches(theTree)
         self.tree.getEntry(0)
         self.all_entries = self.cutflow.GetBinContent(1)  # total entries in AOD
         self.init_entries = self.cutflow.GetBinContent(2)  # total entries in DAOD

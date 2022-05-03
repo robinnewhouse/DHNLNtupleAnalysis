@@ -10,16 +10,16 @@ To clone the project:
 ```
 setupATLAS
 lsetup git
-git clone ssh://git@gitlab.cern.ch:7999/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git
+git clone --recursive ssh://git@gitlab.cern.ch:7999/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git
 ```
 
-The analysis code uses the package `uproot` to load root files. For more details see [uproot documentation](https://pypi.org/project/uproot/). To setup python to include the `uproot` package on lxplus do the following: 
+The analysis code uses the package `NTupleAnalysisUtils` to load root files. For more details see [NTupleAnalysisUtils documentation](https://gitlab.cern.ch/Atlas-Inner-Tracking/NtupleAnalysisUtils_tutorial). To setup to run, use a recent release 22 analysis release, for example: 
 
 ```
-source /cvmfs/sft.cern.ch/lcg/views/LCG_96c_LS/x86_64-centos7-gcc8-opt/setup.sh
+asetup AnalysisBase,master,latest
 ```
 
-If you are running on a local cluster the complier version might change (i.e. gcc9 -> gcc8). Alternatively you can setup python and install the uproot package locally yourself. 
+Then perform a standard ATLAS analysis build (`cd build; cmake ../source; make ; source x*/setup.sh`) - this will make NTupleAnalysisUtils available, while the python scripts in this package will only need the python and ROOT versions that come with the release.
 
 ### Running makeHistograms.py
 
