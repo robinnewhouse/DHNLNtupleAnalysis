@@ -5,21 +5,27 @@ that was developed for the displaced heavy neutral lepton (DHNL) analysis. For i
 
 ## Getting Started
 
-To clone the project: 
+The analysis code uses the package `NTupleAnalysisUtils` to load root files. For more details see [NTupleAnalysisUtils documentation](https://gitlab.cern.ch/Atlas-Inner-Tracking/NtupleAnalysisUtils_tutorial). To setup to run, use a recent release 22 analysis release, for example: 
 
+To set up the environment (from scratch): 
 ```
 setupATLAS
 lsetup git
-git clone --recursive ssh://git@gitlab.cern.ch:7999/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git
+mkdir build; cd build; asetup AnalysisBase,master,latest 
+cd .. 
 ```
-
-The analysis code uses the package `NTupleAnalysisUtils` to load root files. For more details see [NTupleAnalysisUtils documentation](https://gitlab.cern.ch/Atlas-Inner-Tracking/NtupleAnalysisUtils_tutorial). To setup to run, use a recent release 22 analysis release, for example: 
-
+To clone the package: 
 ```
-asetup AnalysisBase,master,latest
+git clone --recursive -b refactorTreeIO https://:@gitlab.cern.ch:8443/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git source
 ```
-
-Then perform a standard ATLAS analysis build (`cd build; cmake ../source; make ; source x*/setup.sh`) - this will make NTupleAnalysisUtils available, while the python scripts in this package will only need the python and ROOT versions that come with the release.
+To build the C++ backend (only needed the first time or when changing NtupleAnalysisUtils): 
+```
+cd build; 
+cmake ../source; 
+make ; 
+source x*/setup.sh
+```
+This will make NTupleAnalysisUtils available, while the python scripts in this package will only need the python and ROOT versions that come with the release.
 
 ### Running makeHistograms.py
 
