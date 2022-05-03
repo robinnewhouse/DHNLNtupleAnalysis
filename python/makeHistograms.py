@@ -2,8 +2,8 @@
 import os, sys
 import helpers
 import analysis
-# import trees
-import NTAUtrees as trees
+import trees
+# import NTAUtrees as trees
 import json
 
 # This blinding flag can be set to ensure you do not accidentally unblind when looking at data.
@@ -77,7 +77,13 @@ def main():
 			# Try to load only the number of entries of you need
 			entries = options.nevents if options.nevents else None
 			# Create new Tree class using uproot
-			tree = trees.Tree(input_file, tree_name, entries, mc_campaign=file_info.mc_campaign, dsid=file_info.dsid, mass=file_info.mass,
+			if options.useNTAU: 
+				print ("NTAU")
+				from trees import ntauTree as treeType 
+			else: 
+				print ("uproot")
+				from trees import uprootTree as treeType
+			tree = treeType(input_file, tree_name, entries, mc_campaign=file_info.mc_campaign, dsid=file_info.dsid, mass=file_info.mass,
 							  channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents)
 			# logger.info('Mass dependent BR: {}'.format(file_info.br))
 
@@ -283,6 +289,12 @@ if __name__ == "__main__":
 						default=None,
 						type=int,
 						help='Skip this number of events when processing inputfile.')
+
+	parser.add_argument('--useNTAU',
+						dest="useNTAU",
+						action="store_true",
+						default=False,
+						help='Use NTupleAnalysisUtils for I/O.')
 
 	parser.add_argument('--doSystematics',
 						action="store_true",

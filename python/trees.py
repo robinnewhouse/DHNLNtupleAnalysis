@@ -1,16 +1,8 @@
 # we use uproot3 for now
-try:
-	import uproot
-except ModuleNotFoundError:
-	import uproot3 as uproot
-if int(uproot.__version__.split('.')[0]) == 4:
-	print('uproot version is {}. Importing uproot3 as uproot.'.format(uproot.__version__))
-	import uproot3 as uproot
-	print('uproot version is now {}. '.format(uproot.__version__))
 import helpers
 
-
-class Tree:
+class Tree(object):
+	
 	def __init__(self, file_name, tree_name, max_entries, channel, skip_events=None, mc_campaign=None,
 				 dsid=None, mass=1.0, ctau=1.0, not_hnl_mc=False, fake_aod=False):
 		"""
@@ -44,10 +36,6 @@ class Tree:
 		self.arrays = {}
 		# Calculated class attributes
 		# Open and load uproot trees
-		self.file = uproot.open(file_name)
-		self.cutflow = self.file["cutflow"]
-		self.all_entries = self.cutflow[1]  # total entries in AOD
-		self.init_entries = self.cutflow[2]  # total entries in DAOD
 		self.vtx_container = ""
 		self.not_hnl_mc = not_hnl_mc
 		self.fake_aod = fake_aod
@@ -55,9 +43,7 @@ class Tree:
 		self.dsid = dsid
 		self.tree_name = tree_name
 		self.mc_ch_str = helpers.MCInfo(dsid).ch_str
-		# temporary. Switching from "outTree" to "nominal". Remove this when data ntuples are remade.
-		try: self.tree = self.file[tree_name]
-		except KeyError: self.tree = self.file["outTree"]
+		self.attachTree(file_name, tree_name)
 
 	def increment_event(self):
 		self.ievt += 1
@@ -76,14 +62,6 @@ class Tree:
 	def reset_dv(self):
 		"""Sets the displaced vertex index to zero."""
 		self.idv = 0
-
-	def add(self, key):
-		"""Loads a tree from uproot into a numpy array."""
-		self.logger.debug("Accessing tree {} for the first time. Loading from file.".format(key))
-		try:
-			self.arrays[key] = self.tree[key].array(entrystop=self.max_entries)
-		except KeyError as e:
-			raise KeyError("Key not found: {} Make sure this key is in your ntuple.".format(key))
 
 	def get(self, key):
 		"""A helper function if you want to avoid the [] operator."""
@@ -114,7 +92,7 @@ class Tree:
 		if key not in self.arrays:
 			# Load the tree from uproot if it hasn't been loaded yet.
 			self.add(key)
-		val = self.arrays[key][ievt]
+		val = self.getVal(self.arrays[key], ievt)
 		if idv is not None:
 			val = val[idv]
 		if itrk is not None:
@@ -139,14 +117,6 @@ class Tree:
 	def __setitem__(self, key, value):
 		raise AttributeError("Can't set attribute")
 
-	@property
-	def numentries(self):
-		return self.tree.numentries
-
-	@property
-	def is_data(self):
-		"""Checks if this tree represents real data"""
-		return b'truthVtx_x' not in self.tree.keys()
 
 	@property
 	def ndv(self):
@@ -161,3 +131,99 @@ class Tree:
 		if not self.vtx_container:
 			raise AttributeError("vtx_container is not set. please specify a vtx_container (e.g. VSI or VSI_Leptons")
 		return "secVtx_{}".format(self.vtx_container)
+
+class ntauTree (Tree, object):
+	def __init__(self, *args, **kwargs):
+		super(ntauTree,self).__init__(*args, **kwargs)
+		print ("Accessing the tree using NTAU I/O")
+
+	def attachTree(self,file_name, tree_name): 
+		import os
+		import ROOT
+		try: 
+			import cppyy
+			cppyy.add_include_path(os.environ["TestArea"]+'/'+os.environ["BINARY_TAG"]+'/include/')
+			cppyy.include('NtupleAnalysisUtils/Ntuple/NTAUNtupleIncludes.h') 
+		except: 
+			print ("Failed to set up NTAU via cppyy!")
+			raise 
+		self.file = ROOT.TFile.Open(file_name, "READ")
+		self.cutflow = self.file.Get("cutflow") 
+		theTree = self.file.Get(tree_name) 
+		# self.tree = cppyy.gbl.DHNLNtuple(theTree)
+		self.tree = cppyy.gbl.NtupleBranchMgr(theTree)
+		self.tree.getMissedBranches(theTree)
+		self.tree.getEntry(0)
+		self.all_entries = self.cutflow.GetBinContent(1)  # total entries in AOD
+		self.init_entries = self.cutflow.GetBinContent(2)  # total entries in DAOD
+	
+	def increment_event(self):
+		super(ntauTree,self).increment_event()
+		self.tree.getEntry(self.ievt) 
+
+	def reset_event(self):
+		super(ntauTree,self).reset_event()
+		self.tree.getEntry(self.ievt) 
+
+
+	def add(self, key):
+		"""Loads a tree from uproot into a numpy array."""
+		self.logger.debug("Accessing tree {} for the first time. Loading from file.".format(key))
+		thebranch = self.tree.getBranch(key)
+		self.arrays[key] = thebranch
+		if not thebranch:
+			raise KeyError("Key not found: {} Make sure this key is in your ntuple.".format(key))
+
+	def getVal(self,entry,ievt):
+		return entry()
+
+	@property
+	def numentries(self):
+		return self.tree.getEntries()
+
+	@property
+	def is_data(self):
+		"""Checks if this tree represents real data"""
+		return not self.tree.hasBranchInTree('truthVtx_x')
+
+class uprootTree (Tree, object):
+	def __init__(self, *args, **kwargs):
+		print ("args",args," kwargs ",kwargs)
+		super(uprootTree,self).__init__(*args, **kwargs)
+		print ("Accessing the tree using uproot I/O")
+
+	def attachTree(self, file_name, tree_name): 
+		try:
+			import uproot
+		except ModuleNotFoundError:
+			import uproot3 as uproot
+		if int(uproot.__version__.split('.')[0]) == 4:
+			print('uproot version is {}. Importing uproot3 as uproot.'.format(uproot.__version__))
+			import uproot3 as uproot
+			print('uproot version is now {}. '.format(uproot.__version__))
+		self.file = uproot.open(file_name)
+		self.cutflow = self.file["cutflow"]
+		self.all_entries = self.cutflow[1]  # total entries in AOD
+		self.init_entries = self.cutflow[2]  # total entries in DAOD
+		try: self.tree = self.file[tree_name]
+		except KeyError: self.tree = self.file["outTree"]
+	
+	def add(self, key):
+		"""Loads a tree from uproot into a numpy array."""
+		self.logger.debug("Accessing tree {} for the first time. Loading from file.".format(key))
+		try:
+			self.arrays[key] = self.tree[key].array(entrystop=self.max_entries)
+		except KeyError as e:
+			raise KeyError("Key not found: {} Make sure this key is in your ntuple.".format(key))
+	
+	def getVal(self, entry, ievt):
+		return entry[ievt]
+
+	@property
+	def numentries(self):
+		return self.tree.numentries
+
+	@property
+	def is_data(self):
+		"""Checks if this tree represents real data"""
+		return b'truthVtx_x' not in self.tree.keys()
