@@ -143,7 +143,9 @@ class ntauTree (Tree, object):
 		try: 
 			import cppyy
 			cppyy.add_include_path(os.environ["TestArea"]+'/'+os.environ["BINARY_TAG"]+'/include/')
-			cppyy.include('NtupleAnalysisUtils/Ntuple/NTAUNtupleIncludes.h') 
+			cppyy.include('NtupleAnalysisUtils/Ntuple/NTAUNtupleIncludes.h')
+			cppyy.load_library('libNtupleAnalysisUtils')  
+			cppyy.include('DHNLTree.h') 
 		except: 
 			self.logger.error  ("Failed to set up NTAU via cppyy!")
 			raise 
@@ -151,8 +153,8 @@ class ntauTree (Tree, object):
 		self.cutflow = self.file.Get("cutflow") 
 		theTree = self.file.Get(tree_name) 
 		# self.tree = cppyy.gbl.DHNLNtuple(theTree)
-		self.tree = cppyy.gbl.NtupleBranchMgr(theTree)
-		self.tree.getMissedBranches(theTree)
+		self.tree = cppyy.gbl.DHNLTree(theTree)
+		# self.tree.getMissedBranches(theTree)
 		self.tree.getEntry(0)
 		self.all_entries = self.cutflow.GetBinContent(1)  # total entries in AOD
 		self.init_entries = self.cutflow.GetBinContent(2)  # total entries in DAOD
