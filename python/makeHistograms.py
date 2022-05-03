@@ -76,12 +76,10 @@ def main():
 			file_info = helpers.FileInfo(input_file, channel)
 			# Try to load only the number of entries of you need
 			entries = options.nevents if options.nevents else None
-			# Create new Tree class using uproot
+			# Create new Tree class using uproot or NTAU, as requested by the user
 			if options.useNTAU: 
-				print ("NTAU")
 				from trees import ntauTree as treeType 
 			else: 
-				print ("uproot")
 				from trees import uprootTree as treeType
 			tree = treeType(input_file, tree_name, entries, mc_campaign=file_info.mc_campaign, dsid=file_info.dsid, mass=file_info.mass,
 							  channel=channel, ctau=file_info.ctau, not_hnl_mc=options.notHNLmc, skip_events=options.skipEvents)
