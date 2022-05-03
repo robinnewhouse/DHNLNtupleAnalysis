@@ -1,20 +1,4 @@
 # we use uproot3 for now
-
-try:
-	import uproot
-except ModuleNotFoundError:
-	try: 
-		import uproot3 as uproot
-	except: 
-		print ("Note: no uproot found - not a problem in case you are using NTAU I/O")
-		pass
-try: 
-	if int(uproot.__version__.split('.')[0]) == 4:
-		print('uproot version is {}. Importing uproot3 as uproot.'.format(uproot.__version__))
-		import uproot3 as uproot
-		print('uproot version is now {}. '.format(uproot.__version__))
-except: 
-	pass
 import helpers
 
 class Tree(object):
@@ -208,6 +192,14 @@ class uprootTree (Tree, object):
 		self.logger.info  ("Accessing the tree using uproot I/O")
 
 	def attachTree(self, file_name, tree_name): 
+		try:
+			import uproot
+		except ModuleNotFoundError:
+			import uproot3 as uproot
+		if int(uproot.__version__.split('.')[0]) == 4:
+			print('uproot version is {}. Importing uproot3 as uproot.'.format(uproot.__version__))
+			import uproot3 as uproot
+			print('uproot version is now {}. '.format(uproot.__version__))
 		self.file = uproot.open(file_name)
 		self.cutflow = self.file["cutflow"]
 		self.all_entries = self.cutflow[1]  # total entries in AOD
