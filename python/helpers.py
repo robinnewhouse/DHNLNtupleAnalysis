@@ -410,79 +410,51 @@ class Truth:
 		self.properLifetime = -1
 
 	def get_truth_particles(self, tree):
-		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
+		nVx = len(tree['truthVtx_parent_pdgId'])
+		have_DV = False 
+		have_PV = False
+		for ivx in range(nVx):
+			if have_DV and have_PV: break
 			# get the DV!
-			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50:  # PDGID 50: Heavy Neutral Lepton
-				if len(tree['truthVtx_outP_pdgId'][ivx]) == 3:  # Has three children (two leptons and neutrino)
-
+			vx_pdg = abs(tree['truthVtx_parent_pdgId'][ivx])
+			vx_nChildren = len(tree['truthVtx_outP_pdgId'][ivx])
+			if vx_pdg == 50:  # PDGID 50: Heavy Neutral Lepton
+				if vx_nChildren == 3:  # Has three children (two leptons and neutrino)
 					self.truth_dvx = tree['truthVtx_x'][ivx]
 					self.truth_dvy = tree['truthVtx_y'][ivx]
 					self.truth_dvz = tree['truthVtx_z'][ivx]
 					# for proper lifetime calculation
 					self.gamma = tree['truthVtx_parent_E'][ivx] / tree['truthVtx_parent_M'][ivx]
 					self.beta = np.sqrt(1 - 1 / self.gamma ** 2)
-
 					self.truth_dv = ROOT.TVector3(self.truth_dvx, self.truth_dvy, self.truth_dvz)
 					self.truth_dvr = np.sqrt(self.truth_dvx ** 2 + self.truth_dvy ** 2)
-					visTrkVec = ROOT.TLorentzVector()
-					truthVec = ROOT.TLorentzVector()
-					nu_vec = ROOT.TLorentzVector()
-
-					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
+					for i in range(vx_nChildren):
 						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i])
+						p4_out = ROOT.TLorentzVector()
+						p4_out.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+												tree['truthVtx_outP_eta'][ivx][i],
+												tree['truthVtx_outP_phi'][ivx][i],
+												tree['truthVtx_outP_M'][ivx][i]
+												)
+						q_out =  tree['truthVtx_outP_charge'][ivx][i]
+						d0_out = tree['truthVtx_outP_d0'][ivx][i]
 						if trk_pdgId == 13:
-							TrkVec = ROOT.TLorentzVector()
-							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												tree['truthVtx_outP_eta'][ivx][i],
-												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i]
-												)
-							mu_charge = tree['truthVtx_outP_charge'][ivx][i]
-							mu_d0 = tree['truthVtx_outP_d0'][ivx][i]
-							self.dMu.append(TrkVec)
-							self.dMu_charge.append(mu_charge)
-							self.dMu_d0.append(mu_d0)
+							self.dMu.append(p4_out)
+							self.dMu_charge.append(q_out)
+							self.dMu_d0.append(d0_out)
 						if trk_pdgId == 11:
-							TrkVec = ROOT.TLorentzVector()
-							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												tree['truthVtx_outP_eta'][ivx][i],
-												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i]
-												)
-							el_charge = tree['truthVtx_outP_charge'][ivx][i]
-							el_d0 = tree['truthVtx_outP_d0'][ivx][i]
-							self.dEl.append(TrkVec)
-							self.dEl_charge.append(el_charge)
-							self.dEl_d0.append(el_d0)
+							self.dEl.append(p4_out)
+							self.dEl_charge.append(q_out)
+							self.dEl_d0.append(d0_out)
 
 						if trk_pdgId == 13 or trk_pdgId == 11:  # is track a muon of electron? Then these are our visible (charged) truth tracks
-							visTrkVec = ROOT.TLorentzVector()
-							visTrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												   tree['truthVtx_outP_eta'][ivx][i],
-												   tree['truthVtx_outP_phi'][ivx][i],
-												   tree['truthVtx_outP_M'][ivx][i]
-												   )
-							self.trkVec.append(visTrkVec)  # only add visible leptons to trkVec list
+							self.trkVec.append(p4_out)  # only add visible leptons to trkVec list
 						else:  # remaining child is the neutrino
-							nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												tree['truthVtx_outP_eta'][ivx][i],
-												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i]
-												)
-							self.dNu_vec = nu_vec
-
-					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
-						dLep_pdgID =  abs(tree['truthVtx_outP_pdgId'][ivx][i])
-						self.dLep_pdgID.append(dLep_pdgID)
-						dLepVec = ROOT.TLorentzVector()
-						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-											 tree['truthVtx_outP_eta'][ivx][i],
-											 tree['truthVtx_outP_phi'][ivx][i],
-											 tree['truthVtx_outP_M'][ivx][i]
-											 )
-						self.dLepVec.append(dLepVec)  # add all the displaced leptons to one list in the order they are in pythia
-						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
-						# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i])
+							self.dNu_vec = p4_out
+						self.dLep_pdgID.append(trk_pdgId)
+						self.dLepVec.append(p4_out)  # add all the displaced leptons to one list in the order they are in pythia
+						self.dLepCharge.append(q_out)
+						# self.dTrk_d0.append(d0_out)
 						self.dTrk_d0.append(-1)  # fill with -1 for now, default DHNLalg does not have truth d0
 
 					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
@@ -490,10 +462,11 @@ class Truth:
 											  tree['truthVtx_parent_phi'][ivx],
 											  tree['truthVtx_parent_M'][ivx]
 											  )
+					have_DV = True
 
 			# get the primary vertex
-			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 24:  # PDGID 24: W Boson
-				if len(tree['truthVtx_outP_pdgId'][ivx]) == 2:  # Has two children (HNL and lepton)
+			elif vx_pdg == 24:  # PDGID 24: W Boson
+				if vx_nChildren == 2:  # Has two children (HNL and lepton)
 					# TODO: Should we be checking if one of the children is an HNL?
 					self.truth_pvx = tree['truthVtx_x'][ivx]
 					self.truth_pvy = tree['truthVtx_y'][ivx]
@@ -512,13 +485,14 @@ class Truth:
 											tree['truthVtx_parent_M'][ivx]
 											)
 					self.W_charge = tree['truthVtx_parent_charge'][ivx]
+					have_PV = True
 
-			# calculate proper lifetime
-			dx = np.abs(self.truth_pvx - self.truth_dvx)
-			dy = np.abs(self.truth_pvy - self.truth_dvy)
-			dz = np.abs(self.truth_pvz - self.truth_dvz)
-			dr = np.sqrt(dx**2 + dy**2 + dz**2)
-			self.properLifetime = dr/(self.gamma * self.beta)
+		# calculate proper lifetime
+		dx = np.abs(self.truth_pvx - self.truth_dvx)
+		dy = np.abs(self.truth_pvy - self.truth_dvy)
+		dz = np.abs(self.truth_pvz - self.truth_dvz)
+		dr = np.sqrt(dx**2 + dy**2 + dz**2)
+		self.properLifetime = dr/(self.gamma * self.beta)
 
 		# TO DO: bug with truth mHNL calculation
 		# try:
