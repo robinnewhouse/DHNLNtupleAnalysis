@@ -1,4 +1,20 @@
 # we use uproot3 for now
+
+try:
+	import uproot
+except ModuleNotFoundError:
+	try: 
+		import uproot3 as uproot
+	except: 
+		print ("Note: no uproot found - not a problem in case you are using NTAU I/O")
+		pass
+try: 
+	if int(uproot.__version__.split('.')[0]) == 4:
+		print('uproot version is {}. Importing uproot3 as uproot.'.format(uproot.__version__))
+		import uproot3 as uproot
+		print('uproot version is now {}. '.format(uproot.__version__))
+except: 
+	pass
 import helpers
 
 class Tree(object):
@@ -135,7 +151,7 @@ class Tree(object):
 class ntauTree (Tree, object):
 	def __init__(self, *args, **kwargs):
 		super(ntauTree,self).__init__(*args, **kwargs)
-		print ("Accessing the tree using NTAU I/O")
+		self.logger.info ("Accessing the tree using NTAU I/O")
 
 	def attachTree(self,file_name, tree_name): 
 		import os
@@ -145,7 +161,7 @@ class ntauTree (Tree, object):
 			cppyy.add_include_path(os.environ["TestArea"]+'/'+os.environ["BINARY_TAG"]+'/include/')
 			cppyy.include('NtupleAnalysisUtils/Ntuple/NTAUNtupleIncludes.h') 
 		except: 
-			print ("Failed to set up NTAU via cppyy!")
+			self.logger.error  ("Failed to set up NTAU via cppyy!")
 			raise 
 		self.file = ROOT.TFile.Open(file_name, "READ")
 		self.cutflow = self.file.Get("cutflow") 
@@ -188,19 +204,10 @@ class ntauTree (Tree, object):
 
 class uprootTree (Tree, object):
 	def __init__(self, *args, **kwargs):
-		print ("args",args," kwargs ",kwargs)
 		super(uprootTree,self).__init__(*args, **kwargs)
-		print ("Accessing the tree using uproot I/O")
+		self.logger.info  ("Accessing the tree using uproot I/O")
 
 	def attachTree(self, file_name, tree_name): 
-		try:
-			import uproot
-		except ModuleNotFoundError:
-			import uproot3 as uproot
-		if int(uproot.__version__.split('.')[0]) == 4:
-			print('uproot version is {}. Importing uproot3 as uproot.'.format(uproot.__version__))
-			import uproot3 as uproot
-			print('uproot version is now {}. '.format(uproot.__version__))
 		self.file = uproot.open(file_name)
 		self.cutflow = self.file["cutflow"]
 		self.all_entries = self.cutflow[1]  # total entries in AOD
