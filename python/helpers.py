@@ -42,6 +42,20 @@ def get_debug_level(level):
 		debug_level = logging.ERROR
 	return debug_level
 
+# Sanitize branch contents passed from ROOT as Char 
+# (mainly Si hit counts) which are mis-interpreted
+# as strings in python. This converts to the intended
+# integer type. 
+def charToInt(value): 
+	if type(value)==str: 
+		try: 
+			return ord(value)
+		except:
+			try: 
+				return int(value)
+			except:
+				print ("out of ideas for '{0}'".format(value))
+	return value
 
 class ReadJsonFiles:
 	def __init__(self, filename):

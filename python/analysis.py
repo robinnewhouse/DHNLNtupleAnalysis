@@ -439,12 +439,8 @@ class Analysis(object):
 		try: 
 			self.micro_ntuples[selection][full_name] = variable
 		except: 
-			try: 
-				variable = int(variable)
-			except: 
-				# print ("failed to fill var: '{0}': |{1}|".format(full_name, variable))
-				variable = 0
-		self.micro_ntuples[selection][full_name] = variable
+			print ("failed to fill var: '{0}': saw value '{1}' (of type {2})".format(full_name, variable,type(variable)))
+			raise
 
 	def check_input_consistency(self):
 		if self.do_trilepton_mass_cut or self.do_HNL_mass_cut or self.do_HNL_pt_cut:
@@ -1294,8 +1290,8 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[1])
 					self.fill_hist(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[1])
 					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[1])
-					self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[1])
-					self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[1])
+					self.fill_hist(sel, 'DV_trk_0_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[1]))
+					self.fill_hist(sel, 'DV_trk_0_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[1]))
 					self.fill_hist(sel, 'DV_trk_0_mom_parall', mom_parall_1)
 					self.fill_hist(sel, 'DV_trk_0_mom_perp', mom_perp_1)
 					self.fill_hist(sel, 'DV_trk_0_mom_mag', pvec_1_mag)
@@ -1308,8 +1304,8 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[0])
 					self.fill_hist(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[0])
 					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[0])
-					self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[0])
-					self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[0])
+					self.fill_hist(sel, 'DV_trk_1_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[0]))
+					self.fill_hist(sel, 'DV_trk_1_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[0]))
 					self.fill_hist(sel, 'DV_trk_1_mom_parall', mom_parall_0)
 					self.fill_hist(sel, 'DV_trk_1_mom_perp', mom_perp_0)
 					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_0_mag)
@@ -1322,8 +1318,8 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[0])
 					self.fill_hist(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[0])
 					self.fill_hist(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[0])
-					self.fill_hist(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[0])
-					self.fill_hist(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[0])
+					self.fill_hist(sel, 'DV_trk_0_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[0]))
+					self.fill_hist(sel, 'DV_trk_0_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[0]))
 					self.fill_hist(sel, 'DV_trk_0_mom_parall', mom_parall_0)
 					self.fill_hist(sel, 'DV_trk_0_mom_perp', mom_perp_0)
 					self.fill_hist(sel, 'DV_trk_0_mom_mag', pvec_0_mag)
@@ -1336,8 +1332,8 @@ class Analysis(object):
 					self.fill_hist(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[1])
 					self.fill_hist(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[1])
 					self.fill_hist(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[1])
-					self.fill_hist(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[1])
-					self.fill_hist(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[1])
+					self.fill_hist(sel, 'DV_trk_1_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[1]))
+					self.fill_hist(sel, 'DV_trk_1_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[1]))
 					self.fill_hist(sel, 'DV_trk_1_mom_parall', mom_parall_1)
 					self.fill_hist(sel, 'DV_trk_1_mom_perp', mom_perp_1)
 					self.fill_hist(sel, 'DV_trk_1_mom_mag', pvec_1_mag)
@@ -1505,13 +1501,13 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_trk_absz0', abs(self.tree.dv('trk_z0')[i]))
 				self.fill_hist(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[i])
 				self.fill_hist(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2')[i])
-				self.fill_hist(sel, 'DV_trk_isLRT', self.tree.dv('trk_isLRT')[i])
-				self.fill_hist(sel, 'DV_trk_isSelected', self.tree.dv('trk_isSelected')[i])
-				self.fill_hist(sel, 'DV_trk_isAssociated', self.tree.dv('trk_isAssociated')[i])
-				self.fill_hist(sel, 'DV_trk_nPixelHits', self.tree.dv('trk_nPixelHits')[i])
-				self.fill_hist(sel, 'DV_trk_nSCTHits', self.tree.dv('trk_nSCTHits')[i])
+				self.fill_hist(sel, 'DV_trk_isLRT',  helpers.charToInt(self.tree.dv('trk_isLRT')[i]))
+				self.fill_hist(sel, 'DV_trk_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[i]))
+				self.fill_hist(sel, 'DV_trk_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[i]))
+				self.fill_hist(sel, 'DV_trk_nPixelHits', helpers.charToInt(self.tree.dv('trk_nPixelHits')[i]))
+				self.fill_hist(sel, 'DV_trk_nSCTHits', helpers.charToInt(self.tree.dv('trk_nSCTHits')[i]))
 				# self.fill_hist(sel, 'DV_trk_nSCTHoles', self.tree.dv('trk_nSCTHoles')[i])
-				self.fill_hist(sel, 'DV_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i] + self.tree.dv('trk_nPixelHits')[i])
+				self.fill_hist(sel, 'DV_trk_nSiHits', helpers.charToInt(self.tree.dv('trk_nSCTHits')[i]) + helpers.charToInt(self.tree.dv('trk_nPixelHits')[i]))
 				# self.fill_hist(sel, 'DV_trk_dTheta', self.tree.dv('trk_dTheta')[i])
 				self.fill_hist(sel, 'DV_trk_chi2_toSV'.format(i), self.tree.dv('trk_chi2_toSV')[i])
 				self.fill_hist(sel, 'DV_trk_d0_wrtSV'.format(i), self.tree.dv('trk_d0_wrtSV')[i])
