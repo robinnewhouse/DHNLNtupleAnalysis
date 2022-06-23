@@ -94,7 +94,7 @@ class Analysis(object):
 			self.logger.warn('You did not specify a trigger configuration for this channel. Skipping trigger selection.')
 			
 		# filter cut
-		self.do_filter_cut = True
+		self.do_filter_cut = False
 		if '4-filter' in self.sel:
 			self.filter_type = '4-filter'
 		elif '3-filter' in self.sel:
@@ -364,7 +364,7 @@ class Analysis(object):
 
 	# Getter helper functions
 	def get_dv(self, key):
-		return self.tree['secVtx_{}_{}'.format(self.ch, key)]
+		return self.tree['secVtxLoose_{}_{}'.format(self.ch, key)]
 
 	def get(self, key):
 		return self.tree[key]
@@ -1261,7 +1261,7 @@ class Analysis(object):
 
 				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
 				dv = ROOT.TVector3(self.tree.dv('x'), self.tree.dv('y'), self.tree.dv('z'))
-				pv = ROOT.TVector3(self.tree['vertex_x'], self.tree['vertex_y'], self.tree['vertex_z'])
+				pv = ROOT.TVector3(self.tree['PV_x'], self.tree['PV_y'], self.tree['PV_z'])
 				decay_vector = dv - pv
 				pvec_0 = ROOT.TVector3(tracks.lepVec[0].Px(), tracks.lepVec[0].Py(), tracks.lepVec[0].Pz())
 				pvec_1 = ROOT.TVector3(tracks.lepVec[1].Px(), tracks.lepVec[1].Py(), tracks.lepVec[1].Pz())
@@ -1516,9 +1516,9 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
 			self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
 			self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
-			self.fill_hist(sel, 'PV_x', self.tree['vertex_x'])
-			self.fill_hist(sel, 'PV_y', self.tree['vertex_y'])
-			self.fill_hist(sel, 'PV_z', self.tree['vertex_z'])
+			self.fill_hist(sel, 'PV_x', self.tree['PV_x'])
+			self.fill_hist(sel, 'PV_y', self.tree['PV_y'])
+			self.fill_hist(sel, 'PV_z', self.tree['PV_z'])
 			self.fill_hist(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
 			self.fill_hist(sel, 'DV_mass', self.tree.dv('mass'))
 			self.fill_hist(sel, 'DV_pt', self.tree.dv('pt'))

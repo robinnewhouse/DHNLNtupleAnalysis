@@ -229,7 +229,7 @@ class PromptLepton:
 		self.plep_index = -1
 
 		lepquality = ""
-		passPfilter = False
+		#passPfilter = False
 		if lepton == "muon":
 			if quality == "tight":  # tight muon is requested
 				lepquality = 'muon_isTight'
@@ -239,7 +239,7 @@ class PromptLepton:
 				lepquality = 'muon_isLoose'
 
 			nleps = len(tree['muon_pt'])
-			passPfilter = tree['muon_passesPromptCuts']
+			#passPfilter = tree['muon_passesPromptCuts']
 
 		if lepton == "electron":
 			if quality == "tight":  # tight electron is requested
@@ -250,7 +250,7 @@ class PromptLepton:
 				lepquality = 'el_LHLoose'
 
 			nleps = len(tree['el_pt'])
-			passPfilter = tree['el_passesPromptCuts']
+			#passPfilter = tree['el_passesPromptCuts']
 
 		# variable for the highest pt lepton				
 		self.highestpt_lep = ROOT.TLorentzVector(0, 0, 0, 0)
@@ -400,7 +400,7 @@ class Alpha:
 		self.max_alpha = max_alpha
 		# compute alpha (3D angle between DV 3-momentum and rDV)
 		dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-		pv = ROOT.TVector3(tree['vertex_x'], tree['vertex_y'], tree['vertex_z'])
+		pv = ROOT.TVector3(tree['PV_x'], tree['PV_y'], tree['PV_z'])
 		decay_vector = dv - pv
 
 		dv_4vec = ROOT.TLorentzVector()
@@ -1079,7 +1079,7 @@ class Mhnl:
 		# Get 3 vectors for the location of the DV and PV
 		if not use_truth:
 			dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-			pv = ROOT.TVector3(tree['vertex_x'], tree['vertex_y'], tree['vertex_z'])
+			pv = ROOT.TVector3(tree['PV_x'], tree['PV_y'], tree['PV_z'])
 		else:
 			pv = truth_pv
 			dv = truth_dv
@@ -1249,9 +1249,9 @@ class Mhnl:
 class PV:
 	def __init__(self, tree):
 
-		self.pv_x = tree['vertex_x']
-		self.pv_y = tree['vertex_y']
-		self.pv_z = tree['vertex_z']
+		self.pv_x = tree['PV_x']
+		self.pv_y = tree['PV_y']
+		self.pv_z = tree['PV_z']
 
 	def passes(self):
 

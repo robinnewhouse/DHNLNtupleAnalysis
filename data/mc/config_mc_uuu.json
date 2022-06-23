@@ -1,7 +1,7 @@
 {
    "uuu": {
       "vtx_containers": [
-         "VSI_LeptonsMod"
+         "Loose"
       ],
       "selections": [
          "alltriggers",
