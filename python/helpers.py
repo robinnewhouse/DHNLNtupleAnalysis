@@ -653,15 +653,15 @@ class Tracks:
 						el_index = get_lepton_index(self.tree, itrk, 'electron')
 						if el_index is None: continue
 					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
-					pass_electron_vvl = self.tree['el_isLHVeryLoose_mod1'][el_index]
+					# pass_electron_vvl = self.tree['el_isLHVeryLoose_mod1'][el_index] (TODO: fix this (Christian), incl l662..)
 					# If track is matched to a loose muon --> no electron match!
 					if pass_muon_loose == 1:
 						# skip tracks matched to loose muons
 						continue
 					# else if track is NOT vvl electron --> no electron match!
-					elif not pass_electron_vvl == 1:
-						# skip track with no electron quality!
-						continue
+					# elif not pass_electron_vvl == 1:
+					# 	# skip track with no electron quality!
+					# 	continue
 
 				# Default: use track quantities wrt SV
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
