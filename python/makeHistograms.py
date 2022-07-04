@@ -34,7 +34,6 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 # 					help="Is this data?")
 
 parser.add_argument("-i", "--input",
-					dest="input",
 					required=True,
 					action=AppendActionCleanDefault,
 					type=str,
@@ -42,24 +41,20 @@ parser.add_argument("-i", "--input",
 					metavar="INPUT")
 
 parser.add_argument("-o", "--output",
-					dest="output",
 					type=str,
 					default="",
 					help="Output directory to store histograms.")
 
 parser.add_argument("--output_file",
-					dest="output_file",
 					type=str,
 					default="",
 					help="Overrides the output filename and output directory.")
 
 parser.add_argument("-f", "--force",
 					action="store_true",
-					dest="force",
 					help="Overwrite previous histograms output file if it exists. (default: False)")
 
 parser.add_argument("--config",
-					dest="config",
 					type=str,
 					required=True,
 					help="Input config file for makeHisotgrams.py.")
@@ -75,38 +70,32 @@ parser.add_argument('--weight',
 					help='Use this flag if you want to override the weight calculation for this sample.')
 
 parser.add_argument('-a', '--analysis',
-					dest="analysis",
 					default="run2Analysis",
 					type=str,
 					help='Name of the analysis you want to run. Default is the full run 2 139fb dHNL analysis')
 
 parser.add_argument('-s', '--saveNtuples',
-					dest="saveNtuples",
 					default="mHNL",
 					type=str,
 					help='Name of cut after which you want to save the micro-ntuples. Default is the final SR selection called "mHNL".')
 
 parser.add_argument('-d', '--debug',
-					dest="debug_level",
 					default='INFO',
 					type=str,
 					help='debug level. Default is INFO. Options include are CRITICAL, ERROR, WARNING, INFO, DEBUG ')
 
 parser.add_argument('--notHNLmc',
 					action="store_true",
-					dest="notHNLmc",
 					default=False,
 					help='Not running on HNL mc. Default: False. Useful for running on mc that is not HNL mc. Turn HNL specific truth info storing off.')
 
 parser.add_argument('--skipEvents',
-					dest="skipEvents",
 					default=None,
 					type=int,
 					help='Skip this number of events when processing inputfile.')
 
 parser.add_argument('--doSystematics',
 					action="store_true",
-					dest="do_systematics",
 					default=False,
 					help='Run all systematics? False (default) will run only the nominal tree.')
 
@@ -119,7 +108,7 @@ args = parent_parser.parse_args()
 
 start = helpers.get_time()
 # set debug level
-helpers.logger_debug_level = helpers.get_debug_level(args.debug_level)
+helpers.logger_debug_level = helpers.get_debug_level(args.debug)
 # set up own logger
 logger = helpers.getLogger('dHNLAnalysis.makeHistograms', level=helpers.logger_debug_level)
 # set up logger for helper module
@@ -153,7 +142,7 @@ tree_name = "nominal"  # define tree name
 
 # systematics
 systematic_trees = ['nominal']
-if args.do_systematics:
+if args.doSystematics:
 	systematic_trees = [
 		'nominal',
 		'nominalMUON_ID__1down',
