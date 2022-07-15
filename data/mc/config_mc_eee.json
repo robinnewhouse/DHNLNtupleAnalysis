@@ -1,7 +1,7 @@
 {
     "eee": {
         "vtx_containers": [
-            "VSI_LeptonsMod"
+            "LeptonsMod_LRTR3_1p0"
         ],
         "selections": [
             "alltriggers",

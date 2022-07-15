@@ -160,4 +160,4 @@ class Tree:
 	def dv_prefix(self):
 		if not self.vtx_container:
 			raise AttributeError("vtx_container is not set. please specify a vtx_container (e.g. VSI or VSI_Leptons")
-		return "secVtx{}".format(self.vtx_container)
+		return "secVtx_{}".format(self.vtx_container)

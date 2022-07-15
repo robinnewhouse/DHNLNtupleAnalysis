@@ -792,7 +792,7 @@ class FileInfo:
 		elif "_7p5G" in infile or sig_info.mass_str == "7p5G":
 			self.mass = 7.5
 			self.mass_str = "7p5G"
-		elif "_10G" in infile or sig_info.mass_str == "10G":
+		elif "10G" in infile or sig_info.mass_str == "10G": #Test file name has 10G instead of _10G -- probably want to change this back later
 			self.mass = 10.0
 			self.mass_str = "10G"
 		elif "_12p5G" in infile or sig_info.mass_str == "12p5G":

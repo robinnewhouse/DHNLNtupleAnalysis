@@ -737,7 +737,7 @@ class Analysis(object):
 		self.selected_dv_index = -1
 
 
-	def preSelection(self):
+	def preSelection(self,use_truth=False):
 		# if self.tree.max_entries == self.tree.ievt +1:
 		# 	print "number of events with prompt lepton trigger matched: ", self.events_with_trig_match_plep
 		# 	print "number of events with disp. lepton trigger matched: ", self.events_with_trig_match_dlep
@@ -757,7 +757,7 @@ class Analysis(object):
 		if not self.tree.fake_aod:
 			self._fill_leptons()
 
-		if not self.tree.is_data and not self.tree.not_hnl_mc:
+		if use_truth and not self.tree.is_data and not self.tree.not_hnl_mc:
 			self._fill_truth_histos(sel='truth/all')
 
 		self._fill_cutflow(0)
@@ -830,7 +830,7 @@ class Analysis(object):
 
 		# If you've made it here, preselection is passed
 		self.passed_preselection_cuts = True
-		if not self.tree.is_data and not self.tree.not_hnl_mc:
+		if use_truth and not self.tree.is_data and not self.tree.not_hnl_mc:
 			self._fill_truth_histos(sel='truth/presel')
 
 	def calculate_event_weight(self):
@@ -1421,9 +1421,9 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_el_1_electron_LHTight', self.tree.get('el_LHTight')[electrons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_el_1_electron_LHMedium', self.tree.get('el_LHMedium')[electrons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_el_1_electron_LHLoose', self.tree.get('el_LHLoose')[electrons.lepIndex[0]])
-				self.fill_hist(sel, 'DV_el_1_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[0]])
-				self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[0]])
-				self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[0]])
+				#self.fill_hist(sel, 'DV_el_1_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[0]])
+				#self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[0]])
+				#self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[0]])
 
 			if self.dv_type == "ee":
 				assert(tracks.ntracks == 2)
@@ -1464,15 +1464,15 @@ class Analysis(object):
 				self.fill_hist(sel, 'DV_el_0_electron_LHTight', self.tree.get('el_LHTight')[electrons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_el_0_electron_LHMedium', self.tree.get('el_LHMedium')[electrons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_el_0_electron_LHLoose', self.tree.get('el_LHLoose')[electrons.lepIndex[0]])
-				self.fill_hist(sel, 'DV_el_0_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[0]])
-				self.fill_hist(sel, 'DV_el_0_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[0]])
-				self.fill_hist(sel, 'DV_el_0_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[0]])
+				#self.fill_hist(sel, 'DV_el_0_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[0]])
+				#self.fill_hist(sel, 'DV_el_0_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[0]])
+				#self.fill_hist(sel, 'DV_el_0_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[0]])
 				self.fill_hist(sel, 'DV_el_1_electron_LHTight', self.tree.get('el_LHTight')[electrons.lepIndex[1]])
 				self.fill_hist(sel, 'DV_el_1_electron_LHMedium', self.tree.get('el_LHMedium')[electrons.lepIndex[1]])
 				self.fill_hist(sel, 'DV_el_1_electron_LHLoose', self.tree.get('el_LHLoose')[electrons.lepIndex[1]])
-				self.fill_hist(sel, 'DV_el_1_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[1]])
-				self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[1]])
-				self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[1]])
+				#self.fill_hist(sel, 'DV_el_1_electron_isLHVeryLoose', self.tree.get('el_isLHVeryLoose')[electrons.lepIndex[1]])
+				#self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLoose', self.tree.get('el_isLHVeryLoose_mod1')[electrons.lepIndex[1]])
+				#self.fill_hist(sel, 'DV_el_1_electron_VeryVeryLooseSi', self.tree.get('el_isLHVeryLoose_modSi')[electrons.lepIndex[1]])
 
 			# fill standard track variables for electrons
 			for lep in range(len(el_vec)):
@@ -1607,14 +1607,15 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_tight_loose', trk_quality.DV_tight_loose)
 			self.fill_hist(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
 			self.fill_hist(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
-			self.fill_hist(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
-			self.fill_hist(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
-			self.fill_hist(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
-			self.fill_hist(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
-			self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
-			self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
-			self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
-			self.fill_hist(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
+            # Can't handle veryloose or veryveryloose WP yet
+			#self.fill_hist(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
+			#self.fill_hist(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
+			#self.fill_hist(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
+			#self.fill_hist(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
+			#self.fill_hist(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
+			#self.fill_hist(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
+			#self.fill_hist(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
+			#self.fill_hist(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
 
 			# ____________________________________________________________
 			# Trigger matching requirement
@@ -1678,7 +1679,7 @@ class Analysis(object):
 
 
 class run2Analysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None):
+	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None,use_truth=False):
 
 		Analysis.__init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
@@ -1764,7 +1765,7 @@ class run2Analysis(Analysis):
 			if not self.dv_type == "ee": alpha_bin = 20
 			else: alpha_bin = 21
 			self.CutFlow.GetXaxis().SetBinLabel(alpha_bin, "alpha")
-		if not self.tree.is_data:
+		if use_truth and not self.tree.is_data:
 
 			if not self.dv_type == "ee": truth_match_bin = 21
 			else: truth_match_bin = 22
@@ -1830,7 +1831,7 @@ class run2Analysis(Analysis):
 
 
 
-	def DVSelection(self):
+	def DVSelection(self,use_truth=False):
 		######################################################################################################
 		# DV Selection is any cuts that are done per DV
 		# Current cuts include: fiducial vol, ntrack, OS, DVtype, track quality, cosmic veto, mlll, mDV
@@ -2030,7 +2031,7 @@ class run2Analysis(Analysis):
 				return
 
 		# Fill histos of truth-matched DVs
-		if not self.tree.is_data and not self.tree.not_hnl_mc:
+		if use_truth and not self.tree.is_data and not self.tree.not_hnl_mc:
 			if self._truth_match():
 				if not self.dv_type == "ee": self._fill_cutflow(20)
 				else: self._fill_cutflow(20+1)

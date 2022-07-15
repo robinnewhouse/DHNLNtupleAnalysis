@@ -628,17 +628,18 @@ class TrackQuality:
 					elisTight = electrons.el_isTight[iel]
 					elisMedium = electrons.el_isMedium[iel]
 					elisLoose = electrons.el_isLoose[iel]
-					elisVeryLoose = electrons.el_isveryLoose[iel]
-					elisVeryVeryLoose = electrons.el_isveryveryLoose[iel]
-					elisVeryVeryLooseSi = electrons.el_isveryveryLooseSi[iel]
+					# Can't handle very/very very loose WPs yet
+					#elisVeryLoose = electrons.el_isveryLoose[iel]
+					#elisVeryVeryLoose = electrons.el_isveryveryLoose[iel]
+					#elisVeryVeryLooseSi = electrons.el_isveryveryLooseSi[iel]
 				else:  # get quality infomation from matching electrons
 					elindex = electrons.lepIndex[iel]
 					elisTight = self.tree['el_LHTight'][elindex]
 					elisMedium = self.tree['el_LHMedium'][elindex]
 					elisLoose = self.tree['el_LHLoose'][elindex]
-					elisVeryLoose = self.tree['el_isLHVeryLoose'][elindex]
-					elisVeryVeryLoose = self.tree['el_isLHVeryLoose_mod1'][elindex]
-					elisVeryVeryLooseSi = self.tree['el_isLHVeryLoose_modSi'][elindex]
+					#elisVeryLoose = self.tree['el_isLHVeryLoose'][elindex]
+					#elisVeryVeryLoose = self.tree['el_isLHVeryLoose_mod1'][elindex]
+					#elisVeryVeryLooseSi = self.tree['el_isLHVeryLoose_modSi'][elindex]
 
 				if elisTight == 1:
 					self.nel_tight = self.nel_tight + 1
@@ -646,12 +647,12 @@ class TrackQuality:
 					self.nel_medium = self.nel_medium + 1
 				if elisLoose == 1:
 					self.nel_loose = self.nel_loose + 1
-				if elisVeryLoose == 1:
-					self.nel_veryloose = self.nel_veryloose + 1
-				if elisVeryVeryLoose == 1:
-					self.nel_veryveryloose = self.nel_veryveryloose + 1
-				if elisVeryVeryLooseSi == 1:
-					self.nel_veryveryloosesi = self.nel_veryveryloosesi + 1
+				#if elisVeryLoose == 1:
+				#	self.nel_veryloose = self.nel_veryloose + 1
+				#if elisVeryVeryLoose == 1:
+				#	self.nel_veryveryloose = self.nel_veryveryloose + 1
+				#if elisVeryVeryLooseSi == 1:
+				#	self.nel_veryveryloosesi = self.nel_veryveryloosesi + 1
 
 			self.DV_2tight = self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1)
 			self.DV_2medium = self.nmu_medium == 2 or self.nel_medium == 2 or (self.nmu_medium == 1 and self.nel_medium == 1)
@@ -1425,7 +1426,11 @@ class MCEventType:
 				+ 4 * s23**2 * sinW2**2
 			) / ( 48 * MN * GammaN * MW**4 * pW2 )	
 
-		if not tree.is_data and not tree.not_hnl_mc:
+		use_truth = False #Avoid all truth things for now
+		if not use_truth and not tree.is_data and not tree.not_hnl_mc:
+			self.isLNC = tree["event_is_LNC"] #isLNC and isLNV are usually defined with truth info -- define here for now
+			self.isLNV = tree["event_is_LNV"]
+		if use_truth and not tree.is_data and not tree.not_hnl_mc:
 			truth_info = helpers.Truth()
 			truth_info.get_truth_particles(tree)
 			pW2 = truth_info.W_vec.Mag2()
