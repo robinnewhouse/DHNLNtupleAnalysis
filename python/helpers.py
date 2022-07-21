@@ -362,6 +362,28 @@ class MCEventWeight:
 
 class Truth:
 	def __init__(self):
+
+		self.N_pt = -1
+		self.N_eta = -1
+		self.N_phi = -1
+
+		self.W_pt = -1
+		self.W_eta = -1
+		self.W_phi = -1
+		self.W_mass = -1
+
+		self.event_is_LNC = -1
+		self.event_is_LNV = -1
+
+		self.dv_track_1 = ROOT.TLorentzVector()
+		self.dv_track_2 = ROOT.TLorentzVector()
+
+		self.DV_mass = -1
+		self.DV_r = -1
+
+
+
+
 		self.HNL_vec = ROOT.TLorentzVector()
 		self.dNu_vec = ROOT.TLorentzVector()
 		self.trkVec = []
@@ -395,116 +417,169 @@ class Truth:
 		self.beta = 1
 		self.properLifetime = -1
 
+
 	def get_truth_particles(self, tree):
-		for ivx in range(len(tree['truthVtx_parent_pdgId'])):
-			# get the DV!
-			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50:  # PDGID 50: Heavy Neutral Lepton
-				if len(tree['truthVtx_outP_pdgId'][ivx]) == 3:  # Has three children (two leptons and neutrino)
+		N_child_Id = tree['N_child_Id']
+		N_child_pt = tree['N_child_pt']
+		N_child_eta = tree['N_child_eta']
+		N_child_phi = tree['N_child_phi']
+		N_child_m = tree['N_child_m']
 
-					self.truth_dvx = tree['truthVtx_x'][ivx]
-					self.truth_dvy = tree['truthVtx_y'][ivx]
-					self.truth_dvz = tree['truthVtx_z'][ivx]
-					# for proper lifetime calculation
-					self.gamma = tree['truthVtx_parent_E'][ivx] / tree['truthVtx_parent_M'][ivx]
-					self.beta = np.sqrt(1 - 1 / self.gamma ** 2)
+		self.event_is_LNC = tree['event_is_LNC']
+		self.event_is_LNV = tree['event_is_LNV']
 
-					self.truth_dv = ROOT.TVector3(self.truth_dvx, self.truth_dvy, self.truth_dvz)
-					self.truth_dvr = np.sqrt(self.truth_dvx ** 2 + self.truth_dvy ** 2)
-					visTrkVec = ROOT.TLorentzVector()
-					truthVec = ROOT.TLorentzVector()
-					nu_vec = ROOT.TLorentzVector()
+		self.N_pt = tree['N_pt']
+		self.N_eta = tree['N_eta']
+		self.N_phi = tree['N_phi']
 
-					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
-						trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i])
-						if trk_pdgId == 13:
-							TrkVec = ROOT.TLorentzVector()
-							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												tree['truthVtx_outP_eta'][ivx][i],
-												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i]
-												)
-							mu_charge = tree['truthVtx_outP_charge'][ivx][i]
-							mu_d0 = tree['truthVtx_outP_d0'][ivx][i]
-							self.dMu.append(TrkVec)
-							self.dMu_charge.append(mu_charge)
-							self.dMu_d0.append(mu_d0)
-						if trk_pdgId == 11:
-							TrkVec = ROOT.TLorentzVector()
-							TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												tree['truthVtx_outP_eta'][ivx][i],
-												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i]
-												)
-							el_charge = tree['truthVtx_outP_charge'][ivx][i]
-							el_d0 = tree['truthVtx_outP_d0'][ivx][i]
-							self.dEl.append(TrkVec)
-							self.dEl_charge.append(el_charge)
-							self.dEl_d0.append(el_d0)
+		self.W_pt = tree['dHNL_W_pt']
+		self.W_eta = tree['dHNL_W_pt']
+		self.W_phi = tree['dHNL_W_phi']
+		self.W_mass = tree['dHNL_W_mass']
 
-						if trk_pdgId == 13 or trk_pdgId == 11:  # is track a muon of electron? Then these are our visible (charged) truth tracks
-							visTrkVec = ROOT.TLorentzVector()
-							visTrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												   tree['truthVtx_outP_eta'][ivx][i],
-												   tree['truthVtx_outP_phi'][ivx][i],
-												   tree['truthVtx_outP_M'][ivx][i]
-												   )
-							self.trkVec.append(visTrkVec)  # only add visible leptons to trkVec list
-						else:  # remaining child is the neutrino
-							nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-												tree['truthVtx_outP_eta'][ivx][i],
-												tree['truthVtx_outP_phi'][ivx][i],
-												tree['truthVtx_outP_M'][ivx][i]
-												)
-							self.dNu_vec = nu_vec
+		self.DV_r = tree['N_decayvtx_R']
+		
 
-					for i in range(len(tree['truthVtx_outP_pt'][ivx])):
-						dLep_pdgID =  abs(tree['truthVtx_outP_pdgId'][ivx][i])
-						self.dLep_pdgID.append(dLep_pdgID)
-						dLepVec = ROOT.TLorentzVector()
-						dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
-											 tree['truthVtx_outP_eta'][ivx][i],
-											 tree['truthVtx_outP_phi'][ivx][i],
-											 tree['truthVtx_outP_M'][ivx][i]
-											 )
-						self.dLepVec.append(dLepVec)  # add all the displaced leptons to one list in the order they are in pythia
-						self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
-						# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i])
-						self.dTrk_d0.append(-1)  # fill with -1 for now, default DHNLalg does not have truth d0
 
-					self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
-											  tree['truthVtx_parent_eta'][ivx],
-											  tree['truthVtx_parent_phi'][ivx],
-											  tree['truthVtx_parent_M'][ivx]
-											  )
 
-			# get the primary vertex
-			if abs(tree['truthVtx_parent_pdgId'][ivx]) == 24:  # PDGID 24: W Boson
-				if len(tree['truthVtx_outP_pdgId'][ivx]) == 2:  # Has two children (HNL and lepton)
-					# TODO: Should we be checking if one of the children is an HNL?
-					self.truth_pvx = tree['truthVtx_x'][ivx]
-					self.truth_pvy = tree['truthVtx_y'][ivx]
-					self.truth_pvz = tree['truthVtx_z'][ivx]
-					self.truth_pv = ROOT.TVector3(self.truth_pvx, self.truth_pvy, self.truth_pvz)
+		# if HNL has three children:
+		if len(N_child_Id) == 3:
+			index = []
+			for child in range(0, 3):
+				if abs(N_child_Id[child]) in [11, 13]: # find electrons and muons TODO: if we want to look at tau samples, we need to add taus here
+					index.append(child)
+			
+			self.dv_track_1.SetPtEtaPhiM(
+				N_child_pt[index[0]],
+				N_child_eta[index[0]],
+				N_child_phi[index[0]],
+				N_child_m[index[0]]
+			)
 
-					self.plep_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][0],
-											   tree['truthVtx_outP_eta'][ivx][0],
-											   tree['truthVtx_outP_phi'][ivx][0],
-											   tree['truthVtx_outP_M'][ivx][0]
-											   )
-					self.plep_charge = tree['truthVtx_outP_charge'][ivx][0]
-					self.W_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
-											tree['truthVtx_parent_eta'][ivx],
-											tree['truthVtx_parent_phi'][ivx],
-											tree['truthVtx_parent_M'][ivx]
-											)
-					self.W_charge = tree['truthVtx_parent_charge'][ivx]
+			self.dv_track_2.SetPtEtaPhiM(
+				N_child_pt[index[1]],
+				N_child_eta[index[1]],
+				N_child_phi[index[1]],
+				N_child_m[index[1]]
+			)
 
-			# calculate proper lifetime
-			dx = np.abs(self.truth_pvx - self.truth_dvx)
-			dy = np.abs(self.truth_pvy - self.truth_dvy)
-			dz = np.abs(self.truth_pvz - self.truth_dvz)
-			dr = np.sqrt(dx**2 + dy**2 + dz**2)
-			self.properLifetime = dr/(self.gamma * self.beta)
+			DV_vec = self.dv_track_1 + self.dv_track_2
+
+			self.DV_mass = DV_vec.M() # get displaced vertex mass
+			
+
+
+
+	# def get_truth_particles_old(self, tree):
+	# 	for ivx in range(len(tree['truthVtx_parent_pdgId'])):
+	# 		# get the DV!
+	# 		if abs(tree['truthVtx_parent_pdgId'][ivx]) == 50:  # PDGID 50: Heavy Neutral Lepton
+	# 			if len(tree['truthVtx_outP_pdgId'][ivx]) == 3:  # Has three children (two leptons and neutrino)
+
+	# 				self.truth_dvx = tree['truthVtx_x'][ivx]
+	# 				self.truth_dvy = tree['truthVtx_y'][ivx]
+	# 				self.truth_dvz = tree['truthVtx_z'][ivx]
+	# 				# for proper lifetime calculation
+	# 				self.gamma = tree['truthVtx_parent_E'][ivx] / tree['truthVtx_parent_M'][ivx]
+	# 				self.beta = np.sqrt(1 - 1 / self.gamma ** 2)
+
+	# 				self.truth_dv = ROOT.TVector3(self.truth_dvx, self.truth_dvy, self.truth_dvz)
+	# 				self.truth_dvr = np.sqrt(self.truth_dvx ** 2 + self.truth_dvy ** 2)
+	# 				visTrkVec = ROOT.TLorentzVector()
+	# 				truthVec = ROOT.TLorentzVector()
+	# 				nu_vec = ROOT.TLorentzVector()
+
+	# 				for i in range(len(tree['truthVtx_outP_pt'][ivx])):
+	# 					trk_pdgId = abs(tree['truthVtx_outP_pdgId'][ivx][i])
+	# 					if trk_pdgId == 13:
+	# 						TrkVec = ROOT.TLorentzVector()
+	# 						TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+	# 											tree['truthVtx_outP_eta'][ivx][i],
+	# 											tree['truthVtx_outP_phi'][ivx][i],
+	# 											tree['truthVtx_outP_M'][ivx][i]
+	# 											)
+	# 						mu_charge = tree['truthVtx_outP_charge'][ivx][i]
+	# 						mu_d0 = tree['truthVtx_outP_d0'][ivx][i]
+	# 						self.dMu.append(TrkVec)
+	# 						self.dMu_charge.append(mu_charge)
+	# 						self.dMu_d0.append(mu_d0)
+	# 					if trk_pdgId == 11:
+	# 						TrkVec = ROOT.TLorentzVector()
+	# 						TrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+	# 											tree['truthVtx_outP_eta'][ivx][i],
+	# 											tree['truthVtx_outP_phi'][ivx][i],
+	# 											tree['truthVtx_outP_M'][ivx][i]
+	# 											)
+	# 						el_charge = tree['truthVtx_outP_charge'][ivx][i]
+	# 						el_d0 = tree['truthVtx_outP_d0'][ivx][i]
+	# 						self.dEl.append(TrkVec)
+	# 						self.dEl_charge.append(el_charge)
+	# 						self.dEl_d0.append(el_d0)
+
+	# 					if trk_pdgId == 13 or trk_pdgId == 11:  # is track a muon of electron? Then these are our visible (charged) truth tracks
+	# 						visTrkVec = ROOT.TLorentzVector()
+	# 						visTrkVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+	# 											   tree['truthVtx_outP_eta'][ivx][i],
+	# 											   tree['truthVtx_outP_phi'][ivx][i],
+	# 											   tree['truthVtx_outP_M'][ivx][i]
+	# 											   )
+	# 						self.trkVec.append(visTrkVec)  # only add visible leptons to trkVec list
+	# 					else:  # remaining child is the neutrino
+	# 						nu_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+	# 											tree['truthVtx_outP_eta'][ivx][i],
+	# 											tree['truthVtx_outP_phi'][ivx][i],
+	# 											tree['truthVtx_outP_M'][ivx][i]
+	# 											)
+	# 						self.dNu_vec = nu_vec
+
+	# 				for i in range(len(tree['truthVtx_outP_pt'][ivx])):
+	# 					dLep_pdgID =  abs(tree['truthVtx_outP_pdgId'][ivx][i])
+	# 					self.dLep_pdgID.append(dLep_pdgID)
+	# 					dLepVec = ROOT.TLorentzVector()
+	# 					dLepVec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][i],
+	# 										 tree['truthVtx_outP_eta'][ivx][i],
+	# 										 tree['truthVtx_outP_phi'][ivx][i],
+	# 										 tree['truthVtx_outP_M'][ivx][i]
+	# 										 )
+	# 					self.dLepVec.append(dLepVec)  # add all the displaced leptons to one list in the order they are in pythia
+	# 					self.dLepCharge.append(tree['truthVtx_outP_charge'][ivx][i])
+	# 					# self.dTrk_d0.append(tree['truthVtx_outP_d0'][ivx][i])
+	# 					self.dTrk_d0.append(-1)  # fill with -1 for now, default DHNLalg does not have truth d0
+
+	# 				self.HNL_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
+	# 										  tree['truthVtx_parent_eta'][ivx],
+	# 										  tree['truthVtx_parent_phi'][ivx],
+	# 										  tree['truthVtx_parent_M'][ivx]
+	# 										  )
+
+	# 		# get the primary vertex
+	# 		if abs(tree['truthVtx_parent_pdgId'][ivx]) == 24:  # PDGID 24: W Boson
+	# 			if len(tree['truthVtx_outP_pdgId'][ivx]) == 2:  # Has two children (HNL and lepton)
+	# 				# TODO: Should we be checking if one of the children is an HNL?
+	# 				self.truth_pvx = tree['truthVtx_x'][ivx]
+	# 				self.truth_pvy = tree['truthVtx_y'][ivx]
+	# 				self.truth_pvz = tree['truthVtx_z'][ivx]
+	# 				self.truth_pv = ROOT.TVector3(self.truth_pvx, self.truth_pvy, self.truth_pvz)
+
+	# 				self.plep_vec.SetPtEtaPhiM(tree['truthVtx_outP_pt'][ivx][0],
+	# 										   tree['truthVtx_outP_eta'][ivx][0],
+	# 										   tree['truthVtx_outP_phi'][ivx][0],
+	# 										   tree['truthVtx_outP_M'][ivx][0]
+	# 										   )
+	# 				self.plep_charge = tree['truthVtx_outP_charge'][ivx][0]
+	# 				self.W_vec.SetPtEtaPhiM(tree['truthVtx_parent_pt'][ivx],
+	# 										tree['truthVtx_parent_eta'][ivx],
+	# 										tree['truthVtx_parent_phi'][ivx],
+	# 										tree['truthVtx_parent_M'][ivx]
+	# 										)
+	# 				self.W_charge = tree['truthVtx_parent_charge'][ivx]
+
+	# 		# calculate proper lifetime
+	# 		dx = np.abs(self.truth_pvx - self.truth_dvx)
+	# 		dy = np.abs(self.truth_pvy - self.truth_dvy)
+	# 		dz = np.abs(self.truth_pvz - self.truth_dvz)
+	# 		dr = np.sqrt(dx**2 + dy**2 + dz**2)
+	# 		self.properLifetime = dr/(self.gamma * self.beta)
 
 		# TO DO: bug with truth mHNL calculation
 		# try:

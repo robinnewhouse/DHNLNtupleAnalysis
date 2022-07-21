@@ -1426,9 +1426,9 @@ class MCEventType:
 				+ 4 * s23**2 * sinW2**2
 			) / ( 48 * MN * GammaN * MW**4 * pW2 )	
 
-		use_truth = False #Avoid all truth things for now
+		use_truth = False #Audrey: Avoid all truth things for now
 		if not use_truth and not tree.is_data and not tree.not_hnl_mc:
-			self.isLNC = tree["event_is_LNC"] #isLNC and isLNV are usually defined with truth info -- define here for now
+			self.isLNC = tree["event_is_LNC"] #isLNC and isLNV are usually defined with truth info -- Audrey: define here for now
 			self.isLNV = tree["event_is_LNV"]
 		if use_truth and not tree.is_data and not tree.not_hnl_mc:
 			truth_info = helpers.Truth()

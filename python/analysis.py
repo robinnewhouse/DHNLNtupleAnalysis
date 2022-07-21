@@ -737,7 +737,7 @@ class Analysis(object):
 		self.selected_dv_index = -1
 
 
-	def preSelection(self,use_truth=False):
+	def preSelection(self,use_truth=True):
 		# if self.tree.max_entries == self.tree.ievt +1:
 		# 	print "number of events with prompt lepton trigger matched: ", self.events_with_trig_match_plep
 		# 	print "number of events with disp. lepton trigger matched: ", self.events_with_trig_match_dlep
@@ -975,7 +975,7 @@ class Analysis(object):
 		self.fill_hist(sel, 'phi_hnl', truth_info.HNL_vec.Phi())
 		self.fill_hist(sel, 'mhnl', truth_info.HNL_vec.M())
 		self.fill_hist(sel, 'generated_mN', truth_info.mhnl)
-		self.fill_hist(sel, 'DV_mass', truth_info.dvmass)
+		self.fill_hist(sel, 'DV_mass', truth_info.DV_mass)
 		self.fill_hist(sel, 'DV_r', truth_info.truth_dvr)
 		self.fill_hist(sel, 'DV_x', truth_info.truth_dvx)
 		self.fill_hist(sel, 'DV_y', truth_info.truth_dvy)
@@ -1543,12 +1543,14 @@ class Analysis(object):
 
 			# if not self.tree.is_data:
 			# 	# is truth matched:
-			# 	self.fill_hist(sel, 'DV_truth_matched', self._truth_match())
+			# 	# self.fill_hist(sel, 'DV_truth_matched', self._truth_match())
 
 			# 	# add proper lifetime
 			# 	truth_info = helpers.Truth()
 			# 	truth_info.get_truth_particles(self.tree)
 			# 	self.fill_hist(sel, 'properLifetime', truth_info.properLifetime)
+
+			# 	self.fill_hist(sel, 'truth_DV_mass', truth_info.DV_mass)
 
 			# 	if self.dv_type == "mumu":
 			# 		# Get the truth index (truth matching by charge)
@@ -1679,7 +1681,7 @@ class Analysis(object):
 
 
 class run2Analysis(Analysis):
-	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None,use_truth=False):
+	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None,use_truth=True):
 
 		Analysis.__init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override)
 		self.logger.info('Running  Full Run 2 Analysis cuts')
