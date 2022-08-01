@@ -435,7 +435,7 @@ class Truth:
 		self.W_pt = tree['dHNL_W_pt']
 		self.W_eta = tree['dHNL_W_pt']
 		self.W_phi = tree['dHNL_W_phi']
-		self.W_mass = tree['dHNL_W_mass']
+		self.W_mass = tree['dHNL_W_m']
 
 		self.DV_r = tree['N_decayvtx_R']
 		
