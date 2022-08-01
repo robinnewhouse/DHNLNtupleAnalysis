@@ -75,7 +75,7 @@ parser.add_argument('-a', '--analysis',
 					help='Name of the analysis you want to run. Default is the full run 2 139fb dHNL analysis')
 
 parser.add_argument('-s', '--saveNtuples',
-					default="mHNL",
+					default="DVtype",
 					type=str,
 					help='Name of cut after which you want to save the micro-ntuples. Default is the final SR selection called "mHNL".')
 
