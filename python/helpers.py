@@ -267,7 +267,8 @@ class MCEventWeight:
 		# Get the luminosity for the different mc campaigns
 		# lumi_tot = lumi['mc16a'] + lumi['mc16d'] + lumi['mc16e']
 		# #############################################################################
-		lumi = {'mc16a': 36.10416, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0}
+		lumi = {'mc16a': 36.10416, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0,
+		'mc20a': 36.10416, 'mc20d': 44.30740, 'mc20e': 58.45010}
 
 		if self.tree.is_data or self.tree.not_hnl_mc:  # Running on data non non-hnl MC
 			return 1 # mc event weight equals 1
@@ -894,6 +895,13 @@ class FileInfo:
 			self.mc_campaign = "mc16d"
 		if "r11891" in infile or "mc16e" in infile or "r10790" in infile:
 			self.mc_campaign = "mc16e"
+
+		if "mc20a" in infile:
+			self.mc_campaign = "mc20a"
+		if "mc20d" in infile:
+			self.mc_campaign = "mc20d"
+		if "mc20e" in infile:
+			self.mc_campaign = "mc20e"
 		logger.info("This mc campaign is: {}".format(self.mc_campaign))
 
 		# More flexibility for non-signal samples
