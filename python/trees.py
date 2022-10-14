@@ -8,6 +8,7 @@ if int(uproot.__version__.split('.')[0]) == 4:
 	import uproot3 as uproot
 	print('uproot version is now {}. '.format(uproot.__version__))
 import helpers
+import numpy as np
 
 
 class Tree:
@@ -58,6 +59,21 @@ class Tree:
 		# temporary. Switching from "outTree" to "nominal". Remove this when data ntuples are remade.
 		try: self.tree = self.file[tree_name]
 		except KeyError: self.tree = self.file["outTree"]
+
+		# get sum of event gen weights (by taking only their sign into account)
+
+		mcEventWeight = self.tree['mcEventWeight'].array()
+		self.sum_of_mcEventWeights = 0
+		self.negative_weights = False
+		for i in range(0, len(mcEventWeight)):
+			if mcEventWeight[i] > 0:
+				self.sum_of_mcEventWeights += 1
+			elif mcEventWeight[i] < 0:
+				self.sum_of_mcEventWeights -= 1
+				self.negative_weights = True
+		
+
+
 
 	def increment_event(self):
 		self.ievt += 1

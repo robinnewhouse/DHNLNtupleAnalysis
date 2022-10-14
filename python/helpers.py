@@ -296,7 +296,12 @@ class MCEventWeight:
 
 			# Compute the cross section for LNC or LNV decay process. Pythia8 samples have a 50% mix of LNC+ LNV of the number of LNC or LNV events
 			# Thus, the number of mc generated LNC or LNV events is equal to "all_entries / 2"
-			n_mc_events = self.tree.all_entries / 2
+
+			if self.tree.negative_weights:
+				n_mc_events = self.tree.sum_of_mcEventWeights / 2
+				logger.info(f'negative weights in mcEventWeights: all events: {self.tree.all_entries}, sum of event weights: {self.tree.sum_of_mcEventWeights}')
+			else:
+				n_mc_events = self.tree.all_entries / 2
 
 			# Compute MC event weight as "L * xsec / total num. of MC events"
 			weight = lumi[self.tree.mc_campaign] * hnl_xsec / n_mc_events
