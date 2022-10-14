@@ -1126,6 +1126,10 @@ class Analysis(object):
 			self.fill_hist(sel, 'event_is_LNC', self.MCEventType.isLNC)
 			self.fill_hist(sel, 'event_is_LNV', self.MCEventType.isLNV)
 			# ____________________________________________________________
+			# add mc event weight
+			self.fill_hist(sel, 'mcEventWeight', self.tree['mcEventWeight'])
+
+			# ____________________________________________________________
 			tracks = helpers.Tracks(self.tree)
 			tracks.get_tracks()
 

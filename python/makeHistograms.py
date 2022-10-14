@@ -7,7 +7,7 @@ import json
 import argparse
 
 # This blinding flag can be set to ensure you do not accidentally unblind when looking at data.
-blinded = False
+blinded = True
 
 class AppendActionCleanDefault(argparse._AppendAction):
 	def __init__(self, *args, **kwargs):
