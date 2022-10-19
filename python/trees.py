@@ -55,7 +55,7 @@ class Tree:
 		self.channel = channel
 		self.dsid = dsid
 		self.tree_name = tree_name
-		self.mc_ch_str = helpers.MCInfo(dsid).ch_str
+		self.mc_ch_str = helpers.FileInfo(file_name).file_ch
 		# temporary. Switching from "outTree" to "nominal". Remove this when data ntuples are remade.
 		try: self.tree = self.file[tree_name]
 		except KeyError: self.tree = self.file["outTree"]

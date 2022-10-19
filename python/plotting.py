@@ -223,7 +223,7 @@ def compare(hist_channels,
 		###################################################################################################	
 		else:
 			histogram = tfiles[nhist].Get(hist_path)
-			print hist_path
+			print(hist_path)
 			if not histogram:  # no histogram object. don't even try
 				print('cannot find {}. Exiting'.format(variable))
 				return
@@ -545,7 +545,7 @@ def compare(hist_channels,
 	# 	output_dir = os.path.join(os.path.abspath(output_dir), 'plots/')
 
 	output_dir = os.path.join(os.path.abspath(output_dir), 'plots/{}/'.format(vtx_alg))
-	print output_dir
+	print(output_dir)
 	if not os.path.exists(output_dir): os.mkdir(output_dir)
 	if not os.path.exists(output_dir+"eps_files/"): os.mkdir(output_dir+"eps_files/")
 	
@@ -597,7 +597,7 @@ def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_
 				else:
 					s[channel].append(cut_yield)
 	if len(b) == 0:
-		print "Please provide a background estimate, if you want to calculate the significance. Exiting."
+		print("Please provide a background estimate, if you want to calculate the significance. Exiting.")
 		return
 
 	g_sig = {}
@@ -609,7 +609,7 @@ def cut_significance(variable,vtx_alg,lumi,histograms,filenames,labels, x_min,x_
 		yvals = []
 
 		if len(b) != n_cuts: 
-			print "Different number of signal and bkg cuts were applied. Cannot calculate significance. Exiting."
+			print("Different number of signal and bkg cuts were applied. Cannot calculate significance. Exiting.")
 			return
 
 		for npoint in range(n_cuts):
