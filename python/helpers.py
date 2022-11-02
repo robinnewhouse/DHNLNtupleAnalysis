@@ -299,7 +299,7 @@ class MCEventWeight:
 
 			if self.tree.negative_weights:
 				n_mc_events = self.tree.sum_of_mcEventWeights / 2
-				logger.info(f'negative weights in mcEventWeights: all events: {self.tree.all_entries}, sum of event weights: {self.tree.sum_of_mcEventWeights}')
+				#logger.info(f'negative weights in mcEventWeights: all events: {self.tree.all_entries}, sum of event weights: {self.tree.sum_of_mcEventWeights}')
 			else:
 				n_mc_events = self.tree.all_entries / 2
 
@@ -910,7 +910,6 @@ class FileInfo:
 			self.mass = 20.0
 			self.mass_str = "20G"
 
-		logger.info("Now running on file {}".format(infile))
 		logger.info("This sample is type: {}, mass: {}, lifetime: {}".format(self.file_ch, self.mass_str, self.ctau_str, ))
 
 		# two rtags for different reconstruction of our signal samples
