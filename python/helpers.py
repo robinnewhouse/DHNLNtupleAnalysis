@@ -844,17 +844,17 @@ class FileInfo:
 		self.mass_str = ""
 		self.file_ch = ""
 
-		if "mumumu" in infile:
+		if "mumumu" or "uuu" in infile:
 			self.file_ch = "uuu"
-		elif "mumue" in infile:
+		elif "mumue" or "uue" in infile:
 			self.file_ch = "uue"
-		elif "muee" in infile:
+		elif "muee" or "uee" in infile:
 			self.file_ch = "uee"
 		elif "eee" in infile:
 			self.file_ch = "eee"
-		elif "eemu" in infile:
+		elif "eemu" or "eeu" in infile:
 			self.file_ch = "eeu"
-		elif "emumu" in infile:
+		elif "emumu" or "euu" in infile:
 			self.file_ch = "euu"
 		else:
 			logger.warning("No channel found. If running on HNL signal, please check your signal sample")
@@ -876,37 +876,37 @@ class FileInfo:
 			self.ctau = 1000.0
 			self.ctau_str = "1000mm"
 
-		if "HNL1_" in infile:
+		if "HNL1_" in infile or "_1GeV" in infile:
 			self.mass = 1.0
 			self.mass_str = "1G"
-		elif "HNL2_" in infile:
+		elif "HNL2_" in infile or "_2GeV" in infile:
 			self.mass = 2.0
 			self.mass_str = "2G"
-		elif "HNL3_" in infile:
+		elif "HNL3_" in infile or "_3GeV" in infile:
 			self.mass = 3.0
 			self.mass_str = "3G"
-		elif "HNL4_" in infile:
+		elif "HNL4_" in infile or "_4GeV" in infile:
 			self.mass = 4.0
 			self.mass_str = "4G"
-		elif "HNL5_" in infile:
+		elif "HNL5_" in infile or "_5GeV" in infile:
 			self.mass = 5.0
 			self.mass_str = "5G"
-		elif "HNL7p5_" in infile:
+		elif "HNL7p5_" in infile or "_7p5GeV" in infile:
 			self.mass = 7.5
 			self.mass_str = "7p5G"
-		elif "HNL10_" in infile:
+		elif "HNL10_" in infile or "_10GeV" in infile:
 			self.mass = 10.0
 			self.mass_str = "10G"
-		elif "HNL12p5_" in infile:
+		elif "HNL12p5_" in infile or "_12p5GeV" in infile:
 			self.mass = 12.5
 			self.mass_str = "12p5G"
-		elif "HNL15_" in infile:
+		elif "HNL15_" in infile or "_15GeV" in infile:
 			self.mass = 15.0
 			self.mass_str = "15G"
-		elif "HNL17p5_" in infile:
+		elif "HNL17p5_" in infile or "_17p5GeV" in infile:
 			self.mass = 17.5
 			self.mass_str = "17p5G"
-		elif "HNL20_" in infile:
+		elif "HNL20_" in infile or "_20GeV" in infile:
 			self.mass = 20.0
 			self.mass_str = "20G"
 
