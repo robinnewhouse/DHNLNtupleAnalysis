@@ -425,53 +425,53 @@ class Truth:
 
 
 	def get_truth_particles(self, tree):
-		N_child_Id = tree['N_child_Id']
-		N_child_pt = tree['N_child_pt']
-		N_child_eta = tree['N_child_eta']
-		N_child_phi = tree['N_child_phi']
-		N_child_m = tree['N_child_m']
+		# N_child_Id = tree['N_child_Id']
+		# N_child_pt = tree['N_child_pt']
+		# N_child_eta = tree['N_child_eta']
+		# N_child_phi = tree['N_child_phi']
+		# N_child_m = tree['N_child_m']
 
-		self.event_is_LNC = tree['event_is_LNC']
-		self.event_is_LNV = tree['event_is_LNV']
+		self.event_is_LNC = tree['truth_event_is_LNC']
+		self.event_is_LNV = tree['truth_event_is_LNV']
 
-		self.N_pt = tree['N_pt']
-		self.N_eta = tree['N_eta']
-		self.N_phi = tree['N_phi']
+		# self.N_pt = tree['N_pt']
+		# self.N_eta = tree['N_eta']
+		# self.N_phi = tree['N_phi']
 
-		self.W_pt = tree['dHNL_W_pt']
-		self.W_eta = tree['dHNL_W_pt']
-		self.W_phi = tree['dHNL_W_phi']
-		self.W_mass = tree['dHNL_W_m']
+		# self.W_pt = tree['dHNL_W_pt']
+		# self.W_eta = tree['dHNL_W_pt']
+		# self.W_phi = tree['dHNL_W_phi']
+		# self.W_mass = tree['dHNL_W_m']
 
-		self.DV_r = tree['N_decayvtx_R']
+		# self.DV_r = tree['N_decayvtx_R']
 		
 
 
 
-		# if HNL has three children:
-		if len(N_child_Id) == 3:
-			index = []
-			for child in range(0, 3):
-				if abs(N_child_Id[child]) in [11, 13]: # find electrons and muons TODO: if we want to look at tau samples, we need to add taus here
-					index.append(child)
+		# # if HNL has three children:
+		# if len(N_child_Id) == 3:
+		# 	index = []
+		# 	for child in range(0, 3):
+		# 		if abs(N_child_Id[child]) in [11, 13]: # find electrons and muons TODO: if we want to look at tau samples, we need to add taus here
+		# 			index.append(child)
 			
-			self.dv_track_1.SetPtEtaPhiM(
-				N_child_pt[index[0]],
-				N_child_eta[index[0]],
-				N_child_phi[index[0]],
-				N_child_m[index[0]]
-			)
+		# 	self.dv_track_1.SetPtEtaPhiM(
+		# 		N_child_pt[index[0]],
+		# 		N_child_eta[index[0]],
+		# 		N_child_phi[index[0]],
+		# 		N_child_m[index[0]]
+		# 	)
 
-			self.dv_track_2.SetPtEtaPhiM(
-				N_child_pt[index[1]],
-				N_child_eta[index[1]],
-				N_child_phi[index[1]],
-				N_child_m[index[1]]
-			)
+		# 	self.dv_track_2.SetPtEtaPhiM(
+		# 		N_child_pt[index[1]],
+		# 		N_child_eta[index[1]],
+		# 		N_child_phi[index[1]],
+		# 		N_child_m[index[1]]
+		# 	)
 
-			DV_vec = self.dv_track_1 + self.dv_track_2
+		# 	DV_vec = self.dv_track_1 + self.dv_track_2
 
-			self.DV_mass = DV_vec.M() # get displaced vertex mass
+		# 	self.DV_mass = DV_vec.M() # get displaced vertex mass
 			
 
 

@@ -400,7 +400,7 @@ class Alpha:
 		self.max_alpha = max_alpha
 		# compute alpha (3D angle between DV 3-momentum and rDV)
 		dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-		pv = ROOT.TVector3(tree['PV_x'], tree['PV_y'], tree['PV_z'])
+		pv = ROOT.TVector3(tree['truth_PV_x'], tree['truth_PV_y'], tree['truth_PV_z'])
 		decay_vector = dv - pv
 
 		dv_4vec = ROOT.TLorentzVector()
@@ -1080,7 +1080,7 @@ class Mhnl:
 		# Get 3 vectors for the location of the DV and PV
 		if not use_truth:
 			dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-			pv = ROOT.TVector3(tree['PV_x'], tree['PV_y'], tree['PV_z'])
+			pv = ROOT.TVector3(tree['truth_PV_x'], tree['truth_PV_y'], tree['truth_PV_z'])
 		else:
 			pv = truth_pv
 			dv = truth_dv
@@ -1250,9 +1250,9 @@ class Mhnl:
 class PV:
 	def __init__(self, tree):
 
-		self.pv_x = tree['PV_x']
-		self.pv_y = tree['PV_y']
-		self.pv_z = tree['PV_z']
+		self.pv_x = tree['truth_PV_x']
+		self.pv_y = tree['truth_PV_y']
+		self.pv_z = tree['truth_PV_z']
 
 	def passes(self):
 
@@ -1428,8 +1428,8 @@ class MCEventType:
 
 		use_truth = False #Audrey: Avoid all truth things for now
 		if not use_truth and not tree.is_data and not tree.not_hnl_mc:
-			self.isLNC = tree["event_is_LNC"] #isLNC and isLNV are usually defined with truth info -- Audrey: define here for now
-			self.isLNV = tree["event_is_LNV"]
+			self.isLNC = tree["truth_event_is_LNC"][0] if tree["truth_event_is_LNC"].size > 0 else False #isLNC and isLNV are usually defined with truth info -- Audrey: define here for now
+			self.isLNV = tree["truth_event_is_LNV"][0] if tree["truth_event_is_LNC"].size > 0 else False
 		if use_truth and not tree.is_data and not tree.not_hnl_mc:
 			truth_info = helpers.Truth()
 			truth_info.get_truth_particles(tree)

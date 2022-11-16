@@ -1267,7 +1267,7 @@ class Analysis(object):
 
 				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
 				dv = ROOT.TVector3(self.tree.dv('x'), self.tree.dv('y'), self.tree.dv('z'))
-				pv = ROOT.TVector3(self.tree['PV_x'], self.tree['PV_y'], self.tree['PV_z'])
+				pv = ROOT.TVector3(self.tree['truth_PV_x'], self.tree['truth_PV_y'], self.tree['truth_PV_z'])
 				decay_vector = dv - pv
 				pvec_0 = ROOT.TVector3(tracks.lepVec[0].Px(), tracks.lepVec[0].Py(), tracks.lepVec[0].Pz())
 				pvec_1 = ROOT.TVector3(tracks.lepVec[1].Px(), tracks.lepVec[1].Py(), tracks.lepVec[1].Pz())
@@ -1522,9 +1522,9 @@ class Analysis(object):
 			self.fill_hist(sel, 'DV_y', self.tree.dv('y'))
 			self.fill_hist(sel, 'DV_z', self.tree.dv('z'))
 			self.fill_hist(sel, 'DV_r', self.tree.dv('r'))
-			self.fill_hist(sel, 'PV_x', self.tree['PV_x'])
-			self.fill_hist(sel, 'PV_y', self.tree['PV_y'])
-			self.fill_hist(sel, 'PV_z', self.tree['PV_z'])
+			self.fill_hist(sel, 'PV_x', self.tree['truth_PV_x'])
+			self.fill_hist(sel, 'PV_y', self.tree['truth_PV_y'])
+			self.fill_hist(sel, 'PV_z', self.tree['truth_PV_z'])
 			self.fill_hist(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
 			self.fill_hist(sel, 'DV_mass', self.tree.dv('mass'))
 			self.fill_hist(sel, 'DV_pt', self.tree.dv('pt'))
@@ -1943,10 +1943,12 @@ class run2Analysis(Analysis):
 			if self._track_quality_cut():
 				if not self.passed_track_quality_cut:
 
-					if not self.do_CR and not self.tree.is_data:
-						# update event weight
-						for systematic in self.lepton_reco_sf.keys():
-							self.lepton_reco_sf[systematic] *= scale_factors.get_reco_scale_factor(self, systematic)
+					# comment out to run on bw99 sample 
+					
+					# if not self.do_CR and not self.tree.is_data:
+					# 	# update event weight
+					# 	for systematic in self.lepton_reco_sf.keys():
+					# 		self.lepton_reco_sf[systematic] *= scale_factors.get_reco_scale_factor(self, systematic)
 
 					if not self.dv_type == "ee": self._fill_cutflow(13)
 					else: self._fill_cutflow(13+1)
