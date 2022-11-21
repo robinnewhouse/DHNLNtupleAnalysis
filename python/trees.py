@@ -162,7 +162,7 @@ class Tree:
 	@property
 	def is_data(self):
 		"""Checks if this tree represents real data"""
-		return b'truthVtx_x' not in self.tree.keys()
+		return self.mc_campaign is None
 
 	@property
 	def ndv(self):

@@ -299,7 +299,7 @@ class MCEventWeight:
 
 			if self.tree.negative_weights:
 				n_mc_events = self.tree.sum_of_mcEventWeights / 2
-				logger.info(f'negative weights in mcEventWeights: all events: {self.tree.all_entries}, sum of event weights: {self.tree.sum_of_mcEventWeights}')
+				#logger.info(f'negative weights in mcEventWeights: all events: {self.tree.all_entries}, sum of event weights: {self.tree.sum_of_mcEventWeights}')
 			else:
 				n_mc_events = self.tree.all_entries / 2
 
@@ -369,109 +369,184 @@ class MCEventWeight:
 class Truth:
 	def __init__(self):
 
-		self.N_pt = -1
-		self.N_eta = -1
-		self.N_phi = -1
+		self.N_pt = -999
+		self.N_eta = -999
+		self.N_phi = -999
 
-		self.W_pt = -1
-		self.W_eta = -1
-		self.W_phi = -1
-		self.W_mass = -1
+		self.W_pt = -999
+		self.W_eta = -999
+		self.W_phi = -999
+		self.W_mass = -999
 
-		self.event_is_LNC = -1
-		self.event_is_LNV = -1
+		self.event_is_LNC = -999
+		self.event_is_LNV = -999
 
 		self.dv_track_1 = ROOT.TLorentzVector()
 		self.dv_track_2 = ROOT.TLorentzVector()
 
-		self.DV_mass = -1
-		self.DV_r = -1
+		self.DV_mass = -999
+		self.lll_mass = -999
+		self.DV_r = -999
+		self.DV_x = -999
+		self.DV_y = -999
+		self.DV_z = -999
+
+		self.PV_x = -999
+		self.PV_y = -999
+		self.PV_z = -999
 
 
 
 
-		self.HNL_vec = ROOT.TLorentzVector()
-		self.dNu_vec = ROOT.TLorentzVector()
-		self.trkVec = []
-		self.dLepVec = []
-		self.dLep_pdgID = []
-		self.dLepCharge = []
-		self.dEl = []
-		self.dEl_charge = []
-		self.dEl_d0 = []
-		self.dMu = []
-		self.dMu_charge = []
-		self.dMu_d0 = []
-		self.dTrk_d0 = []
-		self.truth_dvx = -1
-		self.truth_dvy = -1
-		self.truth_dvz = -1
-		self.truth_dv = ROOT.TLorentzVector()
-		self.truth_dvr = -1
-		self.truth_pvx = -1
-		self.truth_pvy = -1
-		self.truth_pvz = -1
-		self.truth_pv = ROOT.TLorentzVector()
-		self.W_vec = ROOT.TLorentzVector()
-		self.W_charge = -2
+		# self.HNL_vec = ROOT.TLorentzVector()
+		# self.dNu_vec = ROOT.TLorentzVector()
+		# self.trkVec = []
+		# self.dLepVec = []
+		# self.dLep_pdgID = []
+		# self.dLepCharge = []
+		# self.dEl = []
+		# self.dEl_charge = []
+		# self.dEl_d0 = []
+		# self.dMu = []
+		# self.dMu_charge = []
+		# self.dMu_d0 = []
+		# self.dTrk_d0 = []
+		# self.truth_dvx = -1
+		# self.truth_dvy = -1
+		# self.truth_dvz = -1
+		# self.truth_dv = ROOT.TLorentzVector()
+		# self.truth_dvr = -1
+		# self.truth_pvx = -1
+		# self.truth_pvy = -1
+		# self.truth_pvz = -1
+		# self.truth_pv = ROOT.TLorentzVector()
+		# self.W_vec = ROOT.TLorentzVector()
+		# self.W_charge = -2
 		self.plep_vec = ROOT.TLorentzVector()
-		self.plep_charge = -99
-		self.mhnl = -1
-		self.dvmass = -1
-		self.HNL_pdgID = 50
-		self.gamma = 1
-		self.beta = 1
-		self.properLifetime = -1
+		# self.plep_charge = -99
+		self.mhnl = -999
+		# self.dvmass = -1
+		# self.HNL_pdgID = 50
+		self.gamma = -999
+		self.beta = -999
+		self.properLifetime = -999
 
 
 	def get_truth_particles(self, tree):
-		N_child_Id = tree['N_child_Id']
-		N_child_pt = tree['N_child_pt']
-		N_child_eta = tree['N_child_eta']
-		N_child_phi = tree['N_child_phi']
-		N_child_m = tree['N_child_m']
+	    # most of the logic happens within the dHNLTruthAlgorithm in the dHNLAlgorithm
 
-		self.event_is_LNC = tree['event_is_LNC']
-		self.event_is_LNV = tree['event_is_LNV']
+		if tree['truth_W_found'][0]:
 
-		self.N_pt = tree['N_pt']
-		self.N_eta = tree['N_eta']
-		self.N_phi = tree['N_phi']
+			self.event_is_LNC = tree['truth_event_is_LNC'][0]
+			self.event_is_LNV = tree['truth_event_is_LNV'][0]
 
-		self.W_pt = tree['dHNL_W_pt']
-		self.W_eta = tree['dHNL_W_pt']
-		self.W_phi = tree['dHNL_W_phi']
-		self.W_mass = tree['dHNL_W_m']
+			self.N_pt = tree['truth_N_pt'][0]
+			self.N_phi = tree['truth_N_phi'][0]
+			self.N_eta = tree['truth_N_eta'][0]
 
-		self.DV_r = tree['N_decayvtx_R']
+			self.W_pt = tree['truth_W_pt'][0]
+			self.W_eta = tree['truth_W_eta'][0]
+			self.W_phi = tree['truth_W_phi'][0]
+			self.W_mass = tree['truth_W_m'][0]
+
+			self.dv_track_1.SetPtEtaPhiM(
+				tree['truth_displaced_lepton1_pt'][0],
+				tree['truth_displaced_lepton1_eta'][0],
+				tree['truth_displaced_lepton1_phi'][0],
+				tree['truth_displaced_lepton1_m'][0]
+			)
+
+			self.dv_track_2.SetPtEtaPhiM(
+				tree['truth_displaced_lepton2_pt'][0],
+				tree['truth_displaced_lepton2_eta'][0],
+				tree['truth_displaced_lepton2_phi'][0],
+				tree['truth_displaced_lepton2_m'][0]
+			)
+
+			# order dv tracks in pt
+			if self.dv_track_2.Pt() > self.dv_track_1.Pt():
+				temp = self.dv_track_1
+				self.dv_track_1 = self.dv_track_2
+				self.dv_track_2 = temp
+
+			self.DV_mass = tree['truth_displaced_vertex_mass'][0]
+			self.lll_mass = tree['truth_three_lepton_mass'][0]
+			self.DV_r = tree['truth_N_decayvtx_R'][0]
+
+			self.DV_x = tree['truth_N_decayvtx_x'][0]
+			self.DV_y = tree['truth_N_decayvtx_y'][0]
+			self.DV_z = tree['truth_N_decayvtx_z'][0]
+
+			self.PV_x = tree['truth_PV_x'][0]
+			self.PV_y = tree['truth_PV_y'][0]
+			self.PV_z = tree['truth_PV_z'][0]
+
+			self.plep_vec.SetPtEtaPhiM(
+				tree['truth_prompt_lepton_pt'][0],
+				tree['truth_prompt_lepton_eta'][0],
+				tree['truth_prompt_lepton_phi'][0],
+				tree['truth_prompt_lepton_m'][0]
+			)
+
+			self.gamma = tree['truth_N_gamma'][0]
+			self.beta = tree['truth_N_beta'][0]
+			self.properLifetime = tree['truth_N_lifetime_prop'][0]
+
+			
+			import selections
+			Mhnl = selections.Mhnl(
+				tree=tree, 
+				dv_type = None, 
+				plep=self.plep_vec, 
+				dMu=None, 
+				dEl=None, 
+				use_truth=True, 
+				use_tracks=True,
+				trks=[self.dv_track_1, self.dv_track_2],
+				truth_pv=ROOT.TVector3(self.PV_x, self.PV_y, self.PV_z),
+				truth_dv=ROOT.TVector3(self.DV_x, self.DV_y, self.DV_z))
+			self.mhnl = Mhnl.mhnl
+
+
+
+		# self.N_pt = tree['N_pt']
+		# self.N_eta = tree['N_eta']
+		# self.N_phi = tree['N_phi']
+
+		# self.W_pt = tree['dHNL_W_pt']
+		# self.W_eta = tree['dHNL_W_pt']
+		# self.W_phi = tree['dHNL_W_phi']
+		# self.W_mass = tree['dHNL_W_m']
+
+		# self.DV_r = tree['N_decayvtx_R']
 		
 
 
 
-		# if HNL has three children:
-		if len(N_child_Id) == 3:
-			index = []
-			for child in range(0, 3):
-				if abs(N_child_Id[child]) in [11, 13]: # find electrons and muons TODO: if we want to look at tau samples, we need to add taus here
-					index.append(child)
+		# # if HNL has three children:
+		# if len(N_child_Id) == 3:
+		# 	index = []
+		# 	for child in range(0, 3):
+		# 		if abs(N_child_Id[child]) in [11, 13]: # find electrons and muons TODO: if we want to look at tau samples, we need to add taus here
+		# 			index.append(child)
 			
-			self.dv_track_1.SetPtEtaPhiM(
-				N_child_pt[index[0]],
-				N_child_eta[index[0]],
-				N_child_phi[index[0]],
-				N_child_m[index[0]]
-			)
+		# 	self.dv_track_1.SetPtEtaPhiM(
+		# 		N_child_pt[index[0]],
+		# 		N_child_eta[index[0]],
+		# 		N_child_phi[index[0]],
+		# 		N_child_m[index[0]]
+		# 	)
 
-			self.dv_track_2.SetPtEtaPhiM(
-				N_child_pt[index[1]],
-				N_child_eta[index[1]],
-				N_child_phi[index[1]],
-				N_child_m[index[1]]
-			)
+		# 	self.dv_track_2.SetPtEtaPhiM(
+		# 		N_child_pt[index[1]],
+		# 		N_child_eta[index[1]],
+		# 		N_child_phi[index[1]],
+		# 		N_child_m[index[1]]
+		# 	)
 
-			DV_vec = self.dv_track_1 + self.dv_track_2
+		# 	DV_vec = self.dv_track_1 + self.dv_track_2
 
-			self.DV_mass = DV_vec.M() # get displaced vertex mass
+		# 	self.DV_mass = DV_vec.M() # get displaced vertex mass
 			
 
 
@@ -844,17 +919,17 @@ class FileInfo:
 		self.mass_str = ""
 		self.file_ch = ""
 
-		if "mumumu" in infile:
+		if "mumumu" or "uuu" in infile:
 			self.file_ch = "uuu"
-		elif "mumue" in infile:
+		elif "mumue" or "uue" in infile:
 			self.file_ch = "uue"
-		elif "muee" in infile:
+		elif "muee" or "uee" in infile:
 			self.file_ch = "uee"
 		elif "eee" in infile:
 			self.file_ch = "eee"
-		elif "eemu" in infile:
+		elif "eemu" or "eeu" in infile:
 			self.file_ch = "eeu"
-		elif "emumu" in infile:
+		elif "emumu" or "euu" in infile:
 			self.file_ch = "euu"
 		else:
 			logger.warning("No channel found. If running on HNL signal, please check your signal sample")
@@ -876,41 +951,40 @@ class FileInfo:
 			self.ctau = 1000.0
 			self.ctau_str = "1000mm"
 
-		if "HNL1_" in infile:
+		if "HNL1_" in infile or "_1GeV" in infile:
 			self.mass = 1.0
 			self.mass_str = "1G"
-		elif "HNL2_" in infile:
+		elif "HNL2_" in infile or "_2GeV" in infile:
 			self.mass = 2.0
 			self.mass_str = "2G"
-		elif "HNL3_" in infile:
+		elif "HNL3_" in infile or "_3GeV" in infile:
 			self.mass = 3.0
 			self.mass_str = "3G"
-		elif "HNL4_" in infile:
+		elif "HNL4_" in infile or "_4GeV" in infile:
 			self.mass = 4.0
 			self.mass_str = "4G"
-		elif "HNL5_" in infile:
+		elif "HNL5_" in infile or "_5GeV" in infile:
 			self.mass = 5.0
 			self.mass_str = "5G"
-		elif "HNL7p5_" in infile:
+		elif "HNL7p5_" in infile or "_7p5GeV" in infile:
 			self.mass = 7.5
 			self.mass_str = "7p5G"
-		elif "HNL10_" in infile:
+		elif "HNL10_" in infile or "_10GeV" in infile:
 			self.mass = 10.0
 			self.mass_str = "10G"
-		elif "HNL12p5_" in infile:
+		elif "HNL12p5_" in infile or "_12p5GeV" in infile:
 			self.mass = 12.5
 			self.mass_str = "12p5G"
-		elif "HNL15_" in infile:
+		elif "HNL15_" in infile or "_15GeV" in infile:
 			self.mass = 15.0
 			self.mass_str = "15G"
-		elif "HNL17p5_" in infile:
+		elif "HNL17p5_" in infile or "_17p5GeV" in infile:
 			self.mass = 17.5
 			self.mass_str = "17p5G"
-		elif "HNL20_" in infile:
+		elif "HNL20_" in infile or "_20GeV" in infile:
 			self.mass = 20.0
 			self.mass_str = "20G"
 
-		logger.info("Now running on file {}".format(infile))
 		logger.info("This sample is type: {}, mass: {}, lifetime: {}".format(self.file_ch, self.mass_str, self.ctau_str, ))
 
 		# two rtags for different reconstruction of our signal samples
