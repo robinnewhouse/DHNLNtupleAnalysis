@@ -927,106 +927,106 @@ class Analysis(object):
 		truth_info = helpers.Truth()
 		truth_info.get_truth_particles(self.tree)
 		
-		self.fill_ntuple(sel, 'event_type_MCweight', self.MCEventType.weight)  #if not weight_override else weight_override
-		self.fill_ntuple(sel, 'M2_spin_corr_MCweight', self.MCEventType.M2_spin_corr)  #if not weight_override else weight_override
-		self.fill_ntuple(sel, 'M2_nocorr_MCweight', self.MCEventType.M2_nocorr)  #if not weight_override else weight_override
-		self.fill_ntuple(sel, 'W_pt', truth_info.W_vec.Pt())
-		self.fill_ntuple(sel, 'W_eta', truth_info.W_vec.Eta())
-		self.fill_ntuple(sel, 'W_phi', truth_info.W_vec.Phi())
-		self.fill_ntuple(sel, 'W_mass', truth_info.W_vec.M())
-		self.fill_ntuple(sel, 'pt_hnl', truth_info.HNL_vec.Pt())
-		self.fill_ntuple(sel, 'eta_hnl', truth_info.HNL_vec.Eta())
-		self.fill_ntuple(sel, 'phi_hnl', truth_info.HNL_vec.Phi())
-		self.fill_ntuple(sel, 'mhnl', truth_info.HNL_vec.M())
-		self.fill_ntuple(sel, 'generated_mN', truth_info.mhnl)
+		# self.fill_ntuple(sel, 'event_type_MCweight', self.MCEventType.weight)  #if not weight_override else weight_override
+		# self.fill_ntuple(sel, 'M2_spin_corr_MCweight', self.MCEventType.M2_spin_corr)  #if not weight_override else weight_override
+		# self.fill_ntuple(sel, 'M2_nocorr_MCweight', self.MCEventType.M2_nocorr)  #if not weight_override else weight_override
+		self.fill_ntuple(sel, 'W_pt', truth_info.W_pt)
+		self.fill_ntuple(sel, 'W_eta', truth_info.W_eta)
+		self.fill_ntuple(sel, 'W_phi', truth_info.W_phi)
+		self.fill_ntuple(sel, 'W_mass', truth_info.W_mass)
+		self.fill_ntuple(sel, 'pt_hnl', truth_info.N_pt)
+		self.fill_ntuple(sel, 'eta_hnl', truth_info.N_eta)
+		self.fill_ntuple(sel, 'phi_hnl', truth_info.N_phi)
+		self.fill_ntuple(sel, 'mhnl', truth_info.mhnl)
+		# self.fill_ntuple(sel, 'generated_mN', truth_info.mhnl)
 		self.fill_ntuple(sel, 'DV_mass', truth_info.DV_mass)
-		self.fill_ntuple(sel, 'DV_r', truth_info.truth_dvr)
-		self.fill_ntuple(sel, 'DV_x', truth_info.truth_dvx)
-		self.fill_ntuple(sel, 'DV_y', truth_info.truth_dvy)
-		self.fill_ntuple(sel, 'DV_z', truth_info.truth_dvz)
+		self.fill_ntuple(sel, 'mlll', truth_info.lll_mass)
+		self.fill_ntuple(sel, 'DV_r', truth_info.DV_r)
+		self.fill_ntuple(sel, 'DV_x', truth_info.DV_x)
+		self.fill_ntuple(sel, 'DV_y', truth_info.DV_y)
+		self.fill_ntuple(sel, 'DV_z', truth_info.DV_z)
 		self.fill_ntuple(sel, 'prompt_lepton_pt', truth_info.plep_vec.Pt())
 		self.fill_ntuple(sel, 'prompt_lepton_eta', truth_info.plep_vec.Eta())
 		self.fill_ntuple(sel, 'prompt_lepton_phi', truth_info.plep_vec.Phi())
 		self.fill_ntuple(sel, 'prompt_lepton_mass', truth_info.plep_vec.M())
 		self.fill_ntuple(sel, 'properLifetime', truth_info.properLifetime)
-		if truth_info.W_charge == 1: 
-			self.fill_ntuple(sel, 'Wplus_HNLpt', truth_info.HNL_vec.Pt())
-			self.fill_ntuple(sel, 'Wplus_HNLeta', truth_info.HNL_vec.Eta())
-			self.fill_ntuple(sel, 'Wplus_HNLphi', truth_info.HNL_vec.Phi())
-			self.fill_ntuple(sel, 'Wplus_HNLE', truth_info.HNL_vec.E())
-		if truth_info.W_charge == -1: 
-			self.fill_ntuple(sel, 'Wminus_HNLpt', truth_info.HNL_vec.Pt())
-			self.fill_ntuple(sel, 'Wminus_HNLeta', truth_info.HNL_vec.Eta())
-			self.fill_ntuple(sel, 'Wminus_HNLphi', truth_info.HNL_vec.Phi())
-			self.fill_ntuple(sel, 'Wminus_HNLE', truth_info.HNL_vec.E())
-		if len(truth_info.trkVec) == 2: 
-			DV_4vec= truth_info.trkVec[1]+ truth_info.trkVec[0]
-			lep12 = truth_info.dLepVec[0] + truth_info.dLepVec[1] 
-			lep23 = truth_info.dLepVec[1] + truth_info.dLepVec[2] 
-			lep13 = truth_info.dLepVec[0] + truth_info.dLepVec[2] 
-			all_leptons = truth_info.plep_vec + truth_info.trkVec[0] + truth_info.trkVec[1]
-			self.fill_ntuple(sel, 'DV_mass', DV_4vec.M())
-			self.fill_ntuple(sel, 'mvis', all_leptons.M())
-			self.fill_ntuple(sel, 'm12', lep12.M())
-			self.fill_ntuple(sel, 'm23', lep23.M())
-			self.fill_ntuple(sel, 'm13', lep13.M())
-			self.fill_ntuple(sel, 'm12_sq', lep12.M()**2)
-			self.fill_ntuple(sel, 'm23_sq', lep23.M()**2)
-			self.fill_ntuple(sel, 'm13_sq', lep13.M()**2)
-			self.fill_ntuple(sel, 's12', self.MCEventType.s12) 
-			self.fill_ntuple(sel, 's13', self.MCEventType.s13) 
-			self.fill_ntuple(sel, 's14', self.MCEventType.s14) 
-			self.fill_ntuple(sel, 's23', self.MCEventType.s23) 
-			self.fill_ntuple(sel, 's24', self.MCEventType.s24) 
-			self.fill_ntuple(sel, 's34', self.MCEventType.s34) 
-			self.fill_ntuple(sel, 'lep1_trk_pt', self.MCEventType.p_2.Pt()) # topological ordered
-			self.fill_ntuple(sel, 'lep1_trk_eta', self.MCEventType.p_2.Eta())
-			self.fill_ntuple(sel, 'lep1_trk_phi', self.MCEventType.p_2.Phi())
-			self.fill_ntuple(sel, 'lep2_trk_pt', self.MCEventType.p_3.Pt())
-			self.fill_ntuple(sel, 'lep2_trk_eta', self.MCEventType.p_3.Eta())
-			self.fill_ntuple(sel, 'lep2_trk_phi', self.MCEventType.p_3.Phi())
-			self.fill_ntuple(sel, 'nu_trk_pt', self.MCEventType.p_4.Pt())
-			self.fill_ntuple(sel, 'nu_trk_eta', self.MCEventType.p_4.Eta())
-			self.fill_ntuple(sel, 'nu_trk_phi', self.MCEventType.p_4.Phi())
-			disp_lep = [self.MCEventType.p_2,self.MCEventType.p_3,self.MCEventType.p_4]
-			# pt order the displaced leptons
-			disp_lep.sort(key=lambda x: x.Pt(), reverse=True)
-			self.fill_ntuple(sel, 'dlep1_pt', disp_lep[0].Pt()) # pt ordered
-			self.fill_ntuple(sel, 'dlep1_eta', disp_lep[0].Eta())
-			self.fill_ntuple(sel, 'dlep1_phi', disp_lep[0].Phi())
-			self.fill_ntuple(sel, 'dlep2_pt', disp_lep[1].Pt())
-			self.fill_ntuple(sel, 'dlep2_eta', disp_lep[1].Eta())
-			self.fill_ntuple(sel, 'dlep2_phi', disp_lep[1].Phi())
-			self.fill_ntuple(sel, 'dlep3_pt', disp_lep[2].Pt())
-			self.fill_ntuple(sel, 'dlep3_eta', disp_lep[2].Eta())
-			self.fill_ntuple(sel, 'dlep3_phi', disp_lep[2].Phi())
+		# if truth_info.W_charge == 1: 
+		# 	self.fill_ntuple(sel, 'Wplus_HNLpt', truth_info.HNL_vec.Pt())
+		# 	self.fill_ntuple(sel, 'Wplus_HNLeta', truth_info.HNL_vec.Eta())
+		# 	self.fill_ntuple(sel, 'Wplus_HNLphi', truth_info.HNL_vec.Phi())
+		# 	self.fill_ntuple(sel, 'Wplus_HNLE', truth_info.HNL_vec.E())
+		# if truth_info.W_charge == -1: 
+		# 	self.fill_ntuple(sel, 'Wminus_HNLpt', truth_info.HNL_vec.Pt())
+		# 	self.fill_ntuple(sel, 'Wminus_HNLeta', truth_info.HNL_vec.Eta())
+		# 	self.fill_ntuple(sel, 'Wminus_HNLphi', truth_info.HNL_vec.Phi())
+		# 	self.fill_ntuple(sel, 'Wminus_HNLE', truth_info.HNL_vec.E())
+		# if len(truth_info.trkVec) == 2: 
+		# 	DV_4vec= truth_info.trkVec[1]+ truth_info.trkVec[0]
+		# 	lep12 = truth_info.dLepVec[0] + truth_info.dLepVec[1] 
+		# 	lep23 = truth_info.dLepVec[1] + truth_info.dLepVec[2] 
+		# 	lep13 = truth_info.dLepVec[0] + truth_info.dLepVec[2] 
+		# 	all_leptons = truth_info.plep_vec + truth_info.trkVec[0] + truth_info.trkVec[1]
+		# 	self.fill_ntuple(sel, 'DV_mass', DV_4vec.M())
+		# 	self.fill_ntuple(sel, 'm12', lep12.M())
+		# 	self.fill_ntuple(sel, 'm23', lep23.M())
+		# 	self.fill_ntuple(sel, 'm13', lep13.M())
+		# 	self.fill_ntuple(sel, 'm12_sq', lep12.M()**2)
+		# 	self.fill_ntuple(sel, 'm23_sq', lep23.M()**2)
+		# 	self.fill_ntuple(sel, 'm13_sq', lep13.M()**2)
+		# 	self.fill_ntuple(sel, 's12', self.MCEventType.s12) 
+		# 	self.fill_ntuple(sel, 's13', self.MCEventType.s13) 
+		# 	self.fill_ntuple(sel, 's14', self.MCEventType.s14) 
+		# 	self.fill_ntuple(sel, 's23', self.MCEventType.s23) 
+		# 	self.fill_ntuple(sel, 's24', self.MCEventType.s24) 
+		# 	self.fill_ntuple(sel, 's34', self.MCEventType.s34) 
+		# 	self.fill_ntuple(sel, 'lep1_trk_pt', self.MCEventType.p_2.Pt()) # topological ordered
+		# 	self.fill_ntuple(sel, 'lep1_trk_eta', self.MCEventType.p_2.Eta())
+		# 	self.fill_ntuple(sel, 'lep1_trk_phi', self.MCEventType.p_2.Phi())
+		# 	self.fill_ntuple(sel, 'lep2_trk_pt', self.MCEventType.p_3.Pt())
+		# 	self.fill_ntuple(sel, 'lep2_trk_eta', self.MCEventType.p_3.Eta())
+		# 	self.fill_ntuple(sel, 'lep2_trk_phi', self.MCEventType.p_3.Phi())
+		# 	self.fill_ntuple(sel, 'nu_trk_pt', self.MCEventType.p_4.Pt())
+		# 	self.fill_ntuple(sel, 'nu_trk_eta', self.MCEventType.p_4.Eta())
+		# 	self.fill_ntuple(sel, 'nu_trk_phi', self.MCEventType.p_4.Phi())
+		# 	disp_lep = [self.MCEventType.p_2,self.MCEventType.p_3,self.MCEventType.p_4]
+		# 	# pt order the displaced leptons
+		# 	disp_lep.sort(key=lambda x: x.Pt(), reverse=True)
+		# 	self.fill_ntuple(sel, 'dlep1_pt', disp_lep[0].Pt()) # pt ordered
+		# 	self.fill_ntuple(sel, 'dlep1_eta', disp_lep[0].Eta())
+		# 	self.fill_ntuple(sel, 'dlep1_phi', disp_lep[0].Phi())
+		# 	self.fill_ntuple(sel, 'dlep2_pt', disp_lep[1].Pt())
+		# 	self.fill_ntuple(sel, 'dlep2_eta', disp_lep[1].Eta())
+		# 	self.fill_ntuple(sel, 'dlep2_phi', disp_lep[1].Phi())
+		# 	self.fill_ntuple(sel, 'dlep3_pt', disp_lep[2].Pt())
+		# 	self.fill_ntuple(sel, 'dlep3_eta', disp_lep[2].Eta())
+		# 	self.fill_ntuple(sel, 'dlep3_phi', disp_lep[2].Phi())
 
-			if (abs(truth_info.dTrk_d0[0]) < 2 and abs(truth_info.dTrk_d0[1]) < 2):
-				self.fill_ntuple(sel, 'DV_d0_cut',1, fill_ntuple=False)
-			else:
-				self.fill_ntuple(sel, 'DV_d0_cut',0, fill_ntuple=False)
+		# 	if (abs(truth_info.dTrk_d0[0]) < 2 and abs(truth_info.dTrk_d0[1]) < 2):
+		# 		self.fill_ntuple(sel, 'DV_d0_cut',1, fill_ntuple=False)
+		# 	else:
+		# 		self.fill_ntuple(sel, 'DV_d0_cut',0, fill_ntuple=False)
 
-			n_el = len(truth_info.dEl)
-			n_mu = len(truth_info.dMu)
-			for iel in range(n_el):
-				self.fill_ntuple(sel, 'DV_El_{}_pt'.format(iel), truth_info.dEl[iel].Pt(), fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_El_{}_eta'.format(iel), truth_info.dEl[iel].Eta(), fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_El_{}_phi'.format(iel), truth_info.dEl[iel].Phi(), fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_El_{}_d0'.format(iel), truth_info.dEl_d0[iel], fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_El_{}_charge'.format(iel), truth_info.dEl_charge[iel], fill_ntuple=False)
+		# 	n_el = len(truth_info.dEl)
+		# 	n_mu = len(truth_info.dMu)
+		# 	for iel in range(n_el):
+		# 		self.fill_ntuple(sel, 'DV_El_{}_pt'.format(iel), truth_info.dEl[iel].Pt(), fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_El_{}_eta'.format(iel), truth_info.dEl[iel].Eta(), fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_El_{}_phi'.format(iel), truth_info.dEl[iel].Phi(), fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_El_{}_d0'.format(iel), truth_info.dEl_d0[iel], fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_El_{}_charge'.format(iel), truth_info.dEl_charge[iel], fill_ntuple=False)
 			
-			for imu in range(n_mu):
-				self.fill_ntuple(sel, 'DV_Mu_{}_pt'.format(imu), truth_info.dMu[imu].Pt(), fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_Mu_{}_eta'.format(imu), truth_info.dMu[imu].Eta(), fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_Mu_{}_phi'.format(imu), truth_info.dMu[imu].Phi(), fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_Mu_{}_d0'.format(imu), truth_info.dMu_d0[imu], fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_Ml_{}_charge'.format(imu), truth_info.dMu_charge[imu], fill_ntuple=False)
+		# 	for imu in range(n_mu):
+		# 		self.fill_ntuple(sel, 'DV_Mu_{}_pt'.format(imu), truth_info.dMu[imu].Pt(), fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_Mu_{}_eta'.format(imu), truth_info.dMu[imu].Eta(), fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_Mu_{}_phi'.format(imu), truth_info.dMu[imu].Phi(), fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_Mu_{}_d0'.format(imu), truth_info.dMu_d0[imu], fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_Ml_{}_charge'.format(imu), truth_info.dMu_charge[imu], fill_ntuple=False)
 
-			for itrk in range(2):
-				self.fill_ntuple(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False) # do the same here but also save charge for lepton truth matching later
-				self.fill_ntuple(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
-				self.fill_ntuple(sel, 'DV_trk_d0',truth_info.dTrk_d0[itrk], fill_ntuple=False)
+		# 	for itrk in range(2):
+		# 		self.fill_ntuple(sel, 'DV_trk_pt', truth_info.trkVec[itrk].Pt(), fill_ntuple=False) # do the same here but also save charge for lepton truth matching later
+		# 		self.fill_ntuple(sel, 'DV_trk_eta', truth_info.trkVec[itrk].Eta(), fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_trk_phi', truth_info.trkVec[itrk].Phi(), fill_ntuple=False)
+		# 		self.fill_ntuple(sel, 'DV_trk_d0',truth_info.dTrk_d0[itrk], fill_ntuple=False)
 
 		# Write values to ntuple. TTree already created and array already filled by fill_ntuple
 		if self.MCEventType.isLNC:

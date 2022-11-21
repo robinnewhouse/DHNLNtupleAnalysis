@@ -369,70 +369,139 @@ class MCEventWeight:
 class Truth:
 	def __init__(self):
 
-		self.N_pt = -1
-		self.N_eta = -1
-		self.N_phi = -1
+		self.N_pt = -999
+		self.N_eta = -999
+		self.N_phi = -999
 
-		self.W_pt = -1
-		self.W_eta = -1
-		self.W_phi = -1
-		self.W_mass = -1
+		self.W_pt = -999
+		self.W_eta = -999
+		self.W_phi = -999
+		self.W_mass = -999
 
-		self.event_is_LNC = -1
-		self.event_is_LNV = -1
+		self.event_is_LNC = -999
+		self.event_is_LNV = -999
 
 		self.dv_track_1 = ROOT.TLorentzVector()
 		self.dv_track_2 = ROOT.TLorentzVector()
 
-		self.DV_mass = -1
-		self.DV_r = -1
+		self.DV_mass = -999
+		self.lll_mass = -999
+		self.DV_r = -999
+		self.DV_x = -999
+		self.DV_y = -999
+		self.DV_z = -999
+
+		self.PV_x = -999
+		self.PV_y = -999
+		self.PV_z = -999
 
 
 
 
-		self.HNL_vec = ROOT.TLorentzVector()
-		self.dNu_vec = ROOT.TLorentzVector()
-		self.trkVec = []
-		self.dLepVec = []
-		self.dLep_pdgID = []
-		self.dLepCharge = []
-		self.dEl = []
-		self.dEl_charge = []
-		self.dEl_d0 = []
-		self.dMu = []
-		self.dMu_charge = []
-		self.dMu_d0 = []
-		self.dTrk_d0 = []
-		self.truth_dvx = -1
-		self.truth_dvy = -1
-		self.truth_dvz = -1
-		self.truth_dv = ROOT.TLorentzVector()
-		self.truth_dvr = -1
-		self.truth_pvx = -1
-		self.truth_pvy = -1
-		self.truth_pvz = -1
-		self.truth_pv = ROOT.TLorentzVector()
-		self.W_vec = ROOT.TLorentzVector()
-		self.W_charge = -2
+		# self.HNL_vec = ROOT.TLorentzVector()
+		# self.dNu_vec = ROOT.TLorentzVector()
+		# self.trkVec = []
+		# self.dLepVec = []
+		# self.dLep_pdgID = []
+		# self.dLepCharge = []
+		# self.dEl = []
+		# self.dEl_charge = []
+		# self.dEl_d0 = []
+		# self.dMu = []
+		# self.dMu_charge = []
+		# self.dMu_d0 = []
+		# self.dTrk_d0 = []
+		# self.truth_dvx = -1
+		# self.truth_dvy = -1
+		# self.truth_dvz = -1
+		# self.truth_dv = ROOT.TLorentzVector()
+		# self.truth_dvr = -1
+		# self.truth_pvx = -1
+		# self.truth_pvy = -1
+		# self.truth_pvz = -1
+		# self.truth_pv = ROOT.TLorentzVector()
+		# self.W_vec = ROOT.TLorentzVector()
+		# self.W_charge = -2
 		self.plep_vec = ROOT.TLorentzVector()
-		self.plep_charge = -99
-		self.mhnl = -1
-		self.dvmass = -1
-		self.HNL_pdgID = 50
-		self.gamma = 1
-		self.beta = 1
-		self.properLifetime = -1
+		# self.plep_charge = -99
+		self.mhnl = -999
+		# self.dvmass = -1
+		# self.HNL_pdgID = 50
+		self.gamma = -999
+		self.beta = -999
+		self.properLifetime = -999
 
 
 	def get_truth_particles(self, tree):
-		# N_child_Id = tree['N_child_Id']
-		# N_child_pt = tree['N_child_pt']
-		# N_child_eta = tree['N_child_eta']
-		# N_child_phi = tree['N_child_phi']
-		# N_child_m = tree['N_child_m']
+	    # most of the logic happens within the dHNLTruthAlgorithm in the dHNLAlgorithm
 
-		self.event_is_LNC = tree['truth_event_is_LNC']
-		self.event_is_LNV = tree['truth_event_is_LNV']
+		if tree['truth_W_found'][0]:
+
+			self.event_is_LNC = tree['truth_event_is_LNC'][0]
+			self.event_is_LNV = tree['truth_event_is_LNV'][0]
+
+			self.N_pt = tree['truth_N_pt'][0]
+			self.N_phi = tree['truth_N_phi'][0]
+			self.N_eta = tree['truth_N_eta'][0]
+
+			self.W_pt = tree['truth_W_pt'][0]
+			self.W_eta = tree['truth_W_eta'][0]
+			self.W_phi = tree['truth_W_phi'][0]
+			self.W_mass = tree['truth_W_m'][0]
+
+			self.dv_track_1.SetPtEtaPhiM(
+				tree['truth_displaced_lepton1_pt'][0],
+				tree['truth_displaced_lepton1_eta'][0],
+				tree['truth_displaced_lepton1_phi'][0],
+				tree['truth_displaced_lepton1_m'][0]
+			)
+
+			self.dv_track_2.SetPtEtaPhiM(
+				tree['truth_displaced_lepton2_pt'][0],
+				tree['truth_displaced_lepton2_eta'][0],
+				tree['truth_displaced_lepton2_phi'][0],
+				tree['truth_displaced_lepton2_m'][0]
+			)
+
+			self.DV_mass = tree['truth_displaced_vertex_mass'][0]
+			self.lll_mass = tree['truth_three_lepton_mass'][0]
+			self.DV_r = tree['truth_N_decayvtx_R'][0]
+
+			self.DV_x = tree['truth_N_decayvtx_x'][0]
+			self.DV_y = tree['truth_N_decayvtx_y'][0]
+			self.DV_z = tree['truth_N_decayvtx_z'][0]
+
+			self.PV_x = tree['truth_PV_x'][0]
+			self.PV_y = tree['truth_PV_y'][0]
+			self.PV_z = tree['truth_PV_z'][0]
+
+			self.plep_vec.SetPtEtaPhiM(
+				tree['truth_prompt_lepton_pt'][0],
+				tree['truth_prompt_lepton_eta'][0],
+				tree['truth_prompt_lepton_phi'][0],
+				tree['truth_prompt_lepton_m'][0]
+			)
+
+			self.gamma = tree['truth_N_gamma'][0]
+			self.beta = tree['truth_N_beta'][0]
+			self.properLifetime = tree['truth_N_lifetime_prop'][0]
+
+			
+			import selections
+			Mhnl = selections.Mhnl(
+				tree=tree, 
+				dv_type = None, 
+				plep=self.plep_vec, 
+				dMu=None, 
+				dEl=None, 
+				use_truth=True, 
+				use_tracks=True,
+				trks=[self.dv_track_1, self.dv_track_2],
+				truth_pv=ROOT.TVector3(self.PV_x, self.PV_y, self.PV_z),
+				truth_dv=ROOT.TVector3(self.DV_x, self.DV_y, self.DV_z))
+			self.mhnl = Mhnl.mhnl
+
+
 
 		# self.N_pt = tree['N_pt']
 		# self.N_eta = tree['N_eta']
