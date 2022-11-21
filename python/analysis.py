@@ -949,6 +949,19 @@ class Analysis(object):
 		self.fill_ntuple(sel, 'prompt_lepton_eta', truth_info.plep_vec.Eta())
 		self.fill_ntuple(sel, 'prompt_lepton_phi', truth_info.plep_vec.Phi())
 		self.fill_ntuple(sel, 'prompt_lepton_mass', truth_info.plep_vec.M())
+
+		self.fill_ntuple(sel, 'displaced_lepton1_pt', truth_info.dv_track_1.Pt())
+		self.fill_ntuple(sel, 'displaced_lepton1_eta', truth_info.dv_track_1.Eta())
+		self.fill_ntuple(sel, 'displaced_lepton1_phi', truth_info.dv_track_1.Phi())
+		self.fill_ntuple(sel, 'displaced_lepton1_mass', truth_info.dv_track_1.M())
+
+		self.fill_ntuple(sel, 'displaced_lepton2_pt', truth_info.dv_track_2.Pt())
+		self.fill_ntuple(sel, 'displaced_lepton2_eta', truth_info.dv_track_2.Eta())
+		self.fill_ntuple(sel, 'displaced_lepton2_phi', truth_info.dv_track_2.Phi())
+		self.fill_ntuple(sel, 'displaced_lepton2_mass', truth_info.dv_track_2.M())
+
+
+
 		self.fill_ntuple(sel, 'properLifetime', truth_info.properLifetime)
 		# if truth_info.W_charge == 1: 
 		# 	self.fill_ntuple(sel, 'Wplus_HNLpt', truth_info.HNL_vec.Pt())

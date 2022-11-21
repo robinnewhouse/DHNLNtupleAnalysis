@@ -463,6 +463,12 @@ class Truth:
 				tree['truth_displaced_lepton2_m'][0]
 			)
 
+			# order dv tracks in pt
+			if self.dv_track_2.Pt() > self.dv_track_1.Pt():
+				temp = self.dv_track_1
+				self.dv_track_1 = self.dv_track_2
+				self.dv_track_2 = temp
+
 			self.DV_mass = tree['truth_displaced_vertex_mass'][0]
 			self.lll_mass = tree['truth_three_lepton_mass'][0]
 			self.DV_r = tree['truth_N_decayvtx_R'][0]
