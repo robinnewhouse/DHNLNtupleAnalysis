@@ -229,7 +229,7 @@ class PromptLepton:
 		self.plep_index = -1
 
 		lepquality = ""
-		passPfilter = False
+		#passPfilter = False
 		if lepton == "muon":
 			if quality == "tight":  # tight muon is requested
 				lepquality = 'muon_isTight'
@@ -239,7 +239,7 @@ class PromptLepton:
 				lepquality = 'muon_isLoose'
 
 			nleps = len(tree['muon_pt'])
-			passPfilter = tree['muon_passesPromptCuts']
+			#passPfilter = tree['muon_passesPromptCuts']
 
 		if lepton == "electron":
 			if quality == "tight":  # tight electron is requested
@@ -250,7 +250,7 @@ class PromptLepton:
 				lepquality = 'el_LHLoose'
 
 			nleps = len(tree['el_pt'])
-			passPfilter = tree['el_passesPromptCuts']
+			#passPfilter = tree['el_passesPromptCuts']
 
 		# variable for the highest pt lepton				
 		self.highestpt_lep = ROOT.TLorentzVector(0, 0, 0, 0)
@@ -400,7 +400,7 @@ class Alpha:
 		self.max_alpha = max_alpha
 		# compute alpha (3D angle between DV 3-momentum and rDV)
 		dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-		pv = ROOT.TVector3(tree['vertex_x'], tree['vertex_y'], tree['vertex_z'])
+		pv = ROOT.TVector3(tree['truth_PV_x'], tree['truth_PV_y'], tree['truth_PV_z'])
 		decay_vector = dv - pv
 
 		dv_4vec = ROOT.TLorentzVector()
@@ -628,17 +628,18 @@ class TrackQuality:
 					elisTight = electrons.el_isTight[iel]
 					elisMedium = electrons.el_isMedium[iel]
 					elisLoose = electrons.el_isLoose[iel]
-					elisVeryLoose = electrons.el_isveryLoose[iel]
-					elisVeryVeryLoose = electrons.el_isveryveryLoose[iel]
-					elisVeryVeryLooseSi = electrons.el_isveryveryLooseSi[iel]
+					# Can't handle very/very very loose WPs yet
+					#elisVeryLoose = electrons.el_isveryLoose[iel]
+					#elisVeryVeryLoose = electrons.el_isveryveryLoose[iel]
+					#elisVeryVeryLooseSi = electrons.el_isveryveryLooseSi[iel]
 				else:  # get quality infomation from matching electrons
 					elindex = electrons.lepIndex[iel]
 					elisTight = self.tree['el_LHTight'][elindex]
 					elisMedium = self.tree['el_LHMedium'][elindex]
 					elisLoose = self.tree['el_LHLoose'][elindex]
-					elisVeryLoose = self.tree['el_isLHVeryLoose'][elindex]
-					elisVeryVeryLoose = self.tree['el_isLHVeryLoose_mod1'][elindex]
-					elisVeryVeryLooseSi = self.tree['el_isLHVeryLoose_modSi'][elindex]
+					#elisVeryLoose = self.tree['el_isLHVeryLoose'][elindex]
+					#elisVeryVeryLoose = self.tree['el_isLHVeryLoose_mod1'][elindex]
+					#elisVeryVeryLooseSi = self.tree['el_isLHVeryLoose_modSi'][elindex]
 
 				if elisTight == 1:
 					self.nel_tight = self.nel_tight + 1
@@ -646,12 +647,12 @@ class TrackQuality:
 					self.nel_medium = self.nel_medium + 1
 				if elisLoose == 1:
 					self.nel_loose = self.nel_loose + 1
-				if elisVeryLoose == 1:
-					self.nel_veryloose = self.nel_veryloose + 1
-				if elisVeryVeryLoose == 1:
-					self.nel_veryveryloose = self.nel_veryveryloose + 1
-				if elisVeryVeryLooseSi == 1:
-					self.nel_veryveryloosesi = self.nel_veryveryloosesi + 1
+				#if elisVeryLoose == 1:
+				#	self.nel_veryloose = self.nel_veryloose + 1
+				#if elisVeryVeryLoose == 1:
+				#	self.nel_veryveryloose = self.nel_veryveryloose + 1
+				#if elisVeryVeryLooseSi == 1:
+				#	self.nel_veryveryloosesi = self.nel_veryveryloosesi + 1
 
 			self.DV_2tight = self.nmu_tight == 2 or self.nel_tight == 2 or (self.nmu_tight == 1 and self.nel_tight == 1)
 			self.DV_2medium = self.nmu_medium == 2 or self.nel_medium == 2 or (self.nmu_medium == 1 and self.nel_medium == 1)
@@ -1079,7 +1080,7 @@ class Mhnl:
 		# Get 3 vectors for the location of the DV and PV
 		if not use_truth:
 			dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-			pv = ROOT.TVector3(tree['vertex_x'], tree['vertex_y'], tree['vertex_z'])
+			pv = ROOT.TVector3(tree['truth_PV_x'], tree['truth_PV_y'], tree['truth_PV_z'])
 		else:
 			pv = truth_pv
 			dv = truth_dv
@@ -1249,9 +1250,9 @@ class Mhnl:
 class PV:
 	def __init__(self, tree):
 
-		self.pv_x = tree['vertex_x']
-		self.pv_y = tree['vertex_y']
-		self.pv_z = tree['vertex_z']
+		self.pv_x = tree['truth_PV_x']
+		self.pv_y = tree['truth_PV_y']
+		self.pv_z = tree['truth_PV_z']
 
 	def passes(self):
 
@@ -1425,7 +1426,11 @@ class MCEventType:
 				+ 4 * s23**2 * sinW2**2
 			) / ( 48 * MN * GammaN * MW**4 * pW2 )	
 
-		if not tree.is_data and not tree.not_hnl_mc:
+		use_truth = False #Audrey: Avoid all truth things for now
+		if not use_truth and not tree.is_data and not tree.not_hnl_mc:
+			self.isLNC = tree["truth_event_is_LNC"][0] if tree["truth_event_is_LNC"].size > 0 else False #isLNC and isLNV are usually defined with truth info -- Audrey: define here for now
+			self.isLNV = tree["truth_event_is_LNV"][0] if tree["truth_event_is_LNC"].size > 0 else False
+		if use_truth and not tree.is_data and not tree.not_hnl_mc:
 			truth_info = helpers.Truth()
 			truth_info.get_truth_particles(tree)
 			pW2 = truth_info.W_vec.Mag2()

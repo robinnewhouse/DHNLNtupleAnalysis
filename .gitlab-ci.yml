@@ -37,25 +37,25 @@ run_py3:
     - cd test
     - mkdir -p output
     # run tests
-    - bash test_mc_uuu.sh
-    - bash test_mc_uue.sh
-    - bash test_mc_eeu.sh
-    - bash test_mc_eee.sh
-    - bash test_data.sh
+    # - bash test_mc_uuu.sh
+    # - bash test_mc_uue.sh
+    # - bash test_mc_eeu.sh
+    # - bash test_mc_eee.sh
+    # - bash test_data.sh
 
-# python 2 tests
-run_py2:
-  extends: 
-    - .run_test
-  script:
-    - source setup_py2.sh
-    - python --version
-    - cd test
-    - mkdir -p output
-    # run tests
-    - bash test_mc_uuu.sh
-    - bash test_mc_uue.sh
-    - bash test_mc_eeu.sh
-    - bash test_mc_eee.sh
-    - bash test_data.sh
+# # python 2 tests
+# run_py2:
+#   extends: 
+#     - .run_test
+#   script:
+#     - source setup_py2.sh
+#     - python --version
+#     - cd test
+#     - mkdir -p output
+#     # run tests
+#     - bash test_mc_uuu.sh
+#     - bash test_mc_uue.sh
+#     - bash test_mc_eeu.sh
+#     - bash test_mc_eee.sh
+#     - bash test_data.sh
 
