@@ -35,6 +35,9 @@ python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu
 ```
 One root file will be saved in DHNLNtupleAnalysis/output/ folder. 
 
+Make sure your input file name contains the channel, mass, lifetime and mc campaign. Like this:
+`MadGraph_uuu_10GeV_10mm_mc20e.root`.
+
 For this example, the code will save the file DHNLNtupleAnalysis/output/histograms_mc16x_uuu.root. To see a full list of channels see this [section](#configs). (The x will be either a,d or e depending on what nutple was given as an input).
 
 For a full list of configurable options for `makeHistograms.py` see this list of [options](#list-of-makehistogramspy-options).
