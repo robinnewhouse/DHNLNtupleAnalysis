@@ -38,13 +38,14 @@ class Analysis(object):
 		self.observables = observables.Observables()
 
 		self.jetVariables = {}
-		self.jetVariables['pt'] = ROOT.vector('float')
-		'''
-		self.jetVariables['eta'] = ROOT.vector('float')
-		self.jetVariables['phi'] = ROOT.vector('float')
-		self.jetVariables['e'] = ROOT.vector('float')
-		self.jetVariables['DL1d_score'] = ROOT.vector('float')
-		'''
+		self.jetVariables['pt'] = ROOT.std.vector('float')()
+		self.jetVariables['eta'] = ROOT.std.vector('float')()
+		self.jetVariables['phi'] = ROOT.std.vector('float')()
+		self.jetVariables['E'] = ROOT.std.vector('float')()
+		self.jetVariables['DL1dv00'] = ROOT.std.vector('float')()
+		self.jetVariables['DL1dv01'] = ROOT.std.vector('float')()
+		self.jetVariables['GN1'] = ROOT.std.vector('float')()
+		
 
 		self.events_with_trig_match_plep = 0
 		self.events_with_trig_match_dlep = 0
@@ -1678,11 +1679,29 @@ class Analysis(object):
 		for jet_index in range(len(self.tree['jet_pt'])):
 			print('GUGLEILMO jet_pt[{}] = {}'.format(jet_index,self.tree['jet_pt'][jet_index]))
 			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])
-		#Crasha qui con il push_back per qualche motivo
+			self.jetVariables['eta'].push_back(self.tree['jet_eta'][jet_index])
+			self.jetVariables['phi'].push_back(self.tree['jet_phi'][jet_index])
+			self.jetVariables['E'].push_back(self.tree['jet_E'][jet_index])
+			self.jetVariables['DL1dv00'].push_back(self.tree['jet_DL1dv00'][jet_index])
+			self.jetVariables['DL1dv01'].push_back(self.tree['jet_DL1dv01'][jet_index])
+			self.jetVariables['GN1'].push_back(self.tree['jet_GN1'][jet_index])
+		#No crasha anymore
    
 		self.fill_ntuple(sel, 'jet_pt', self.jetVariables['pt'])
+		self.fill_ntuple(sel, 'jet_eta', self.jetVariables['eta'])
+		self.fill_ntuple(sel, 'jet_phi', self.jetVariables['phi'])
+		self.fill_ntuple(sel, 'jet_E', self.jetVariables['E'])
+		self.fill_ntuple(sel, 'jet_DL1dv00', self.jetVariables['DL1dv00'])
+		self.fill_ntuple(sel, 'jet_DL1dv01', self.jetVariables['DL1dv01'])
+		self.fill_ntuple(sel, 'jet_GN1', self.jetVariables['GN1'])
 		self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 		self.jetVariables['pt'].clear()
+		self.jetVariables['eta'].clear()
+		self.jetVariables['phi'].clear()
+		self.jetVariables['E'].clear()
+		self.jetVariables['DL1dv00'].clear()
+		self.jetVariables['DL1dv01'].clear()
+		self.jetVariables['GN1'].clear()
 
 
 class run2Analysis(Analysis):
