@@ -6,8 +6,8 @@ import ROOT
 data_type = {'c': 'C', 'b': 'B', 'B': 'b', 'u': 'python unicode', 'h': 'I',
              'H': 'i', 'i': 'I', 'I': 'i', 'l': 'L', 'L': 'l', 'f': 'F', 'd': 'D',
              }
+vec_data_type = {'float': 'F', 'double': 'D', 'int': 'I'}
 NON_PHYSICAL = -999
-
 
 class Ntuples:
     def __init__(self, tree_name='ntuple', clone_tree=False, ttree=None, *args, **kwargs):
@@ -20,6 +20,7 @@ class Ntuples:
         micro_ntuples.fill() will write all current values to each root tree.
         """
         self.arrays = {}
+        self.vectors = {}
         if clone_tree: self.ttree = ttree
         else: self.ttree = ROOT.TTree(tree_name, 'Micro ntuples')
 
@@ -40,6 +41,8 @@ class Ntuples:
         # TODO test if this is necessary
         for key in self.arrays.keys():
             self.arrays[key][0] = NON_PHYSICAL
+        for key in self.vectors.keys():
+            self.vectors[key].clear()
 
     def add(self, name, dtype='d'):
         """
@@ -52,6 +55,16 @@ class Ntuples:
         self.arrays[name] = array(dtype, [0])
         self.ttree.Branch(name, self.arrays[name], "{}/{}".format(name, data_type[dtype]))
 
+    def addVector(self, name, elType='float'):
+        """
+        This function has the purpose of providing a method to store vector of int / float / doubles
+        in the code.
+        :param name: name for the branch
+        :param dtype: type of element of the vector
+        """
+        self.vectors[name] = ROOT.vector(elType)()
+        self.ttree.Branch(name, self.vectors[name])
+
     def __setitem__(self, key, value):
         """
         Primary setter function accessed using [] operator. Will create tree if one does not exist.
@@ -59,9 +72,19 @@ class Ntuples:
         :param value: Associated value.
         :return:
         """
-        if key not in self.arrays:  # if exists, update array value
-            self.add(key, 'd')  # if doesn't exist
-        self.arrays[key][0] = value
+        print('GUGLIELMO key : isinstance(value,ROOT.vector("float") - {} : {}'.format(key,isinstance(value,ROOT.vector("float"))))
+        
+        if not (isinstance(value, ROOT.vector("float")) or isinstance(value, ROOT.vector("int"))):
+            if key not in self.arrays:  # if exists, update array value
+                self.add(key, 'd')  # if doesn't exist
+            self.arrays[key][0] = value
+        else:
+            if key not in self.vectors:
+                self.addVector(key, 'float')
+            for i in range(value.size()):
+                print("GUGLIELMO :: self.vectors[key = {}] e' un vector {} e guardo l'elemento [i = {}] e il vector ha size: {}".format(key,isinstance(self.vectors[key],ROOT.vector('float')),i,self.vectors[key].size()))
+                self.vectors[key].push_back(value[i])
+
 
 
 if __name__ == '__main__':

@@ -267,6 +267,7 @@ for channel, configs in config_file.items():
 					tree.increment_dv()
 
 				tree.reset_dv()
+				ana.AddExtraVariables()
 				tree.increment_event()
 				ana.unlock()
 
