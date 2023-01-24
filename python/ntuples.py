@@ -72,7 +72,6 @@ class Ntuples:
         :param value: Associated value.
         :return:
         """
-        print('GUGLIELMO key : isinstance(value,ROOT.vector("float") - {} : {}'.format(key,isinstance(value,ROOT.vector("float"))))
         
         if not (isinstance(value, ROOT.vector("float")) or isinstance(value, ROOT.vector("int"))):
             if key not in self.arrays:  # if exists, update array value
@@ -82,7 +81,6 @@ class Ntuples:
             if key not in self.vectors:
                 self.addVector(key, 'float')
             for i in range(value.size()):
-                print("GUGLIELMO :: self.vectors[key = {}] e' un vector {} e guardo l'elemento [i = {}] e il vector ha size: {}".format(key,isinstance(self.vectors[key],ROOT.vector('float')),i,self.vectors[key].size()))
                 self.vectors[key].push_back(value[i])
 
 

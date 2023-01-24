@@ -771,6 +771,7 @@ class Tracks:
 						lep_pt = self.tree['muon_pt'][muon_index]
 						lep_eta = self.tree['muon_eta'][muon_index]
 						lep_phi = self.tree['muon_phi'][muon_index]
+						lep_isLRT = self.tree['muon_isLRT'][muon_index]
 						lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 				else:
 					self.lepIndex.append(-1)
@@ -792,7 +793,7 @@ class Tracks:
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 
-				self.muon_isLRT.append(self.tree['muon_isLRT'][muon_index])
+				self.muon_isLRT.append(lep_isLRT)
 			else:
 				continue
 
@@ -847,7 +848,8 @@ class Tracks:
 						lep_eta = self.tree['el_eta'][el_index]
 						lep_phi = self.tree['el_phi'][el_index]
 						lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
-
+# Sagar: Remove this comment once isLRT flag is fixed for electrons.
+#						lep_isLRT = self.tree['el_isLRT'][el_index]
 						self.lepIndex.append(el_index)
 				else:
 					self.lepIndex.append(-1)
@@ -871,7 +873,8 @@ class Tracks:
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
 
-				self.el_isLRT.append(self.tree['el_isLRT'][el_index])
+# Sagar: Remove this comment once isLRT flag is fixed for electrons.
+#				self.el_isLRT.append(lep_isLRT)
 			else:
 				continue
 

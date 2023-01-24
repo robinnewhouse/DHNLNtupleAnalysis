@@ -1366,6 +1366,8 @@ class Analysis(object):
 				self.fill_ntuple(sel, 'DV_mu_1_charge', muons.lepCharge[1])
 				self.fill_ntuple(sel, 'DV_mu_0_isElectron', 0)
 				self.fill_ntuple(sel, 'DV_mu_1_isElectron', 0)
+				self.fill_ntuple(sel, 'DV_mu_0_isLRT', muons.muon_isLRT[0])
+				self.fill_ntuple(sel, 'DV_mu_1_isLRT', muons.muon_isLRT[1])
 				self.fill_ntuple(sel, 'DV_mu_0_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[0]])
 				self.fill_ntuple(sel, 'DV_mu_1_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[1]])
 				self.fill_ntuple(sel, 'DV_mu_0_muon_isMedium', self.tree.get('muon_isMedium')[muons.lepIndex[0]])
@@ -1679,7 +1681,6 @@ class Analysis(object):
 		sel = 'DVtype'
 		#Qui devo scorrere come i muoni e storarmi le info
 		for jet_index in range(len(self.tree['jet_pt'])):
-			print('GUGLEILMO jet_pt[{}] = {}'.format(jet_index,self.tree['jet_pt'][jet_index]))
 			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])
 			self.jetVariables['eta'].push_back(self.tree['jet_eta'][jet_index])
 			self.jetVariables['phi'].push_back(self.tree['jet_phi'][jet_index])
