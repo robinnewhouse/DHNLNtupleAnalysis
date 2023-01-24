@@ -726,6 +726,8 @@ class Tracks:
 		self.el_isveryveryLoose = []
 		self.el_isveryveryLooseSi = []
 		self.el_isMedium = []
+		self.muon_isLRT = []
+		self.el_isLRT = []
 
 	def get_muons(self):
 		self.ntracks = self.tree.ntrk
@@ -789,6 +791,8 @@ class Tracks:
 
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
+
+				self.muon_isLRT.append(self.tree['muon_isLRT'][muon_index])
 			else:
 				continue
 
@@ -866,6 +870,8 @@ class Tracks:
 
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
+
+				self.el_isLRT.append(self.tree['el_isLRT'][el_index])
 			else:
 				continue
 

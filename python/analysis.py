@@ -885,6 +885,7 @@ class Analysis(object):
 			if self.tree['muon_isMedium'][imu] == 1: self.fill_ntuple(sel, 'muon_quality', 2)
 			if self.tree['muon_isLoose'][imu] == 1:  self.fill_ntuple(sel, 'muon_quality', 1)
 			else: self.fill_ntuple(sel, 'muon_quality', 0)
+			self.fill_ntuple(sel, 'muon_isLRT', self.tree['muon_isLRT'][imu])
 
 		for iel in range(len(self.tree['el_pt'])):
 			self.fill_ntuple(sel, 'el_pt', self.tree['el_pt'][iel])
@@ -894,6 +895,7 @@ class Analysis(object):
 			if self.tree['el_LHMedium'][iel] == 1: self.fill_ntuple(sel, 'el_quality', 2)
 			if self.tree['el_LHLoose'][iel] == 1:  self.fill_ntuple(sel, 'el_quality', 1)
 			else: self.fill_ntuple(sel, 'el_quality', 0)
+			self.fill_ntuple(sel, 'el_isLRT', self.tree['el_isLRT'][imu])
 
 	def _fill_all_dv_histos(self):
 		sel = 'all'	
