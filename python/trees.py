@@ -9,6 +9,7 @@ if int(uproot.__version__.split('.')[0]) == 4:
 	print('uproot version is now {}. '.format(uproot.__version__))
 import helpers
 import numpy as np
+import json
 
 
 class Tree:
@@ -66,8 +67,15 @@ class Tree:
 		mcEventWeight = self.tree['mcEventWeight'].array()
 		self.sum_of_mcEventWeights = self.metadata[3]
 		self.negative_weights = False
-#Sagar: Need to implement reading of the XS.
-		self.xsec = 0
+		self.xsecFile = '../data/other/bkgXsec.json'
+		if self.not_hnl_mc:
+			with open(self.xsecFile, 'r') as json_xsecConfig:
+				# load JSON file with xsec of bkg processes
+				self.xsecFile = json.load(json_xsecConfig)
+		#Sagar: Need to implement reading of the XS.
+		print("GUGLIELMO :: xsecFile content = ")
+		print(self.xsecFile)
+		self.xsec = -1
 
 	def increment_event(self):
 		self.ievt += 1

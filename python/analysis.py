@@ -1674,11 +1674,11 @@ class Analysis(object):
 		# storing systematic with standard ATLAS "1-sigma down" notation
 		self.fill_ntuple(sel, 'd0_extrapolation_1DOWN', d0_extrapolation_systematic, weight=1)
 
-	def AddExtraVariables(self):
+	def AddExtraVariables(self,sel):
 		"""
 		GUGLIELMO :: Function to add jet variables 
 		"""
-		sel = 'DVtype'
+		#sel = 'DVtype'
 		#Qui devo scorrere come i muoni e storarmi le info
 		for jet_index in range(len(self.tree['jet_pt'])):
 			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])

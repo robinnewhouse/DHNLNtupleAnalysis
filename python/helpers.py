@@ -269,9 +269,14 @@ class MCEventWeight:
 		# #############################################################################
 		lumi = {'mc16a': 36.10416, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0,
 		'mc20a': 36.10416, 'mc20d': 44.30740, 'mc20e': 58.45010}
-
+  
 		if self.tree.is_data or self.tree.not_hnl_mc:  # Running on data non non-hnl MC
-			return 1 # mc event weight equals 1
+			if self.tree.is_data: return 1
+			else:
+				#TODO:: here calculate the weight for MC, we need to access the DSID number from outTree branch called mcChannelNumber, and we just need to do it once at the beginning of the event loop
+				#From that we access the dictionary of the cross-sections in trees.py called xsecs, it should be self.tree.xsecs[dsid] and you should get the xsec
+				print("GUGLIELMO :: self.tree[mcChannelNumber] = {}".format(self.tree["mcChannelNumber"]))
+    
 		else:  # Running on an HNL signal file
 			# #############################################################################
 			# Get the cross sections for the different HNL models
