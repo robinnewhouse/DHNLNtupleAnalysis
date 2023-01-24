@@ -46,6 +46,7 @@ class Tree:
 		# Calculated class attributes
 		# Open and load uproot trees
 		self.file = uproot.open(file_name)
+		self.metadata = self.file["MetaData_EventCount"]
 		self.cutflow = self.file["cutflow"]
 		self.all_entries = self.cutflow[1]  # total entries in AOD
 		self.init_entries = self.cutflow[2]  # total entries in DAOD
@@ -63,17 +64,10 @@ class Tree:
 		# get sum of event gen weights (by taking only their sign into account)
 
 		mcEventWeight = self.tree['mcEventWeight'].array()
-		self.sum_of_mcEventWeights = 0
+		self.sum_of_mcEventWeights = self.metadata[3]
 		self.negative_weights = False
-		for i in range(0, len(mcEventWeight)):
-			if mcEventWeight[i] > 0:
-				self.sum_of_mcEventWeights += 1
-			elif mcEventWeight[i] < 0:
-				self.sum_of_mcEventWeights -= 1
-				self.negative_weights = True
-		
-
-
+#Sagar: Need to implement reading of the XS.
+		self.xsec = 0
 
 	def increment_event(self):
 		self.ievt += 1
