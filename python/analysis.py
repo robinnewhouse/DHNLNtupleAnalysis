@@ -15,17 +15,8 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	
-	jetVariables = {}
-	jetVariables['pt'] = ROOT.vector('float')
-	'''
-	jetVariables['eta'] = ROOT.vector('float')
-	jetVariables['phi'] = ROOT.vector('float')
-	jetVariables['e'] = ROOT.vector('float')
-	jetVariables['DL1d_score'] = ROOT.vector('float')
-	'''
-	
- 	def __init__(self, name, tree, vtx_container, selection_list, output_file, save_ntuples, weight_override=None):
+
+	def __init__(self, name, tree, vtx_container, selection_list, output_file, save_ntuples, weight_override=None):
 		# set up logger for self
 		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=helpers.logger_debug_level)
 		# set up logger for helper module
@@ -45,6 +36,15 @@ class Analysis(object):
 		self._locked = UNLOCKED
 		# create an instance of Observables to store histograms
 		self.observables = observables.Observables()
+
+		self.jetVariables = {}
+		self.jetVariables['pt'] = ROOT.vector('float')
+		'''
+		self.jetVariables['eta'] = ROOT.vector('float')
+		self.jetVariables['phi'] = ROOT.vector('float')
+		self.jetVariables['e'] = ROOT.vector('float')
+		self.jetVariables['DL1d_score'] = ROOT.vector('float')
+		'''
 
 		self.events_with_trig_match_plep = 0
 		self.events_with_trig_match_dlep = 0
@@ -1680,7 +1680,7 @@ class Analysis(object):
 			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])
 		#Crasha qui con il push_back per qualche motivo
    
-		self.fill_ntuple(sel, 'jet_pt', jetVariables['pt'])
+		self.fill_ntuple(sel, 'jet_pt', self.jetVariables['pt'])
 		self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
 		self.jetVariables['pt'].clear()
 
