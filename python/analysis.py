@@ -1684,7 +1684,8 @@ class Analysis(object):
 			self.jetVariables['E'].push_back(self.tree['jet_E'][jet_index])
 			self.jetVariables['DL1dv00'].push_back(self.tree['jet_DL1dv00'][jet_index])
 			self.jetVariables['DL1dv01'].push_back(self.tree['jet_DL1dv01'][jet_index])
-			self.jetVariables['GN1'].push_back(self.tree['jet_GN1'][jet_index])
+			if (self.tree['jet_GN1'][jet_index] < -999. ): self.jetVariables['GN1'].push_back(-999.)
+			else: self.jetVariables['GN1'].push_back(self.tree['jet_GN1'][jet_index])
 		#No crasha anymore
    
 		self.fill_ntuple(sel, 'jet_pt', self.jetVariables['pt'])
