@@ -228,7 +228,7 @@ class MCEventWeight:
 			self.x_prod = self.x_e
 			self.x_decay = self.x_mu
 
-		if not self.tree.is_data:
+		if not (self.tree.is_data or self.tree.not_hnl_mc):
 			# ######################################################################################################################################################
 			# Get branching ratios (BR). BR depend on the mass, decay mode and model
 			# BR json files contain a dictionaries of BR[mass][decay][model] for e_only, mu_only, NH and IH models.

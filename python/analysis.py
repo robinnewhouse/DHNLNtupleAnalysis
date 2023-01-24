@@ -15,7 +15,17 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
-	def __init__(self, name, tree, vtx_container, selection_list, output_file, save_ntuples, weight_override=None):
+	
+	jetVariables = {}
+	jetVariables['pt'] = ROOT.vector('float')
+	'''
+	jetVariables['eta'] = ROOT.vector('float')
+	jetVariables['phi'] = ROOT.vector('float')
+	jetVariables['e'] = ROOT.vector('float')
+	jetVariables['DL1d_score'] = ROOT.vector('float')
+	'''
+	
+ 	def __init__(self, name, tree, vtx_container, selection_list, output_file, save_ntuples, weight_override=None):
 		# set up logger for self
 		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=helpers.logger_debug_level)
 		# set up logger for helper module
@@ -361,6 +371,7 @@ class Analysis(object):
 				self.be_region = "RegionD"
 
 		self.check_input_consistency()
+
 
 	# Getter helper functions
 	def get_dv(self, key):
@@ -1658,6 +1669,20 @@ class Analysis(object):
 		# storing systematic with standard ATLAS "1-sigma down" notation
 		self.fill_ntuple(sel, 'd0_extrapolation_1DOWN', d0_extrapolation_systematic, weight=1)
 
+	def AddExtraVariables(self):
+		"""
+		GUGLIELMO :: Function to add jet variables 
+		"""
+		sel = 'DVtype'
+		#Qui devo scorrere come i muoni e storarmi le info
+		for jet_index in range(len(self.tree['jet_pt'])):
+			print('GUGLEILMO jet_pt[{}] = {}'.format(jet_index,self.tree['jet_pt'][jet_index]))
+			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])
+		#Crasha qui con il push_back per qualche motivo
+   
+		self.fill_ntuple(sel, 'jet_pt', jetVariables['pt'])
+		self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
+		self.jetVariables['pt'].clear()
 
 
 class run2Analysis(Analysis):
