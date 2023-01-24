@@ -1698,7 +1698,7 @@ class Analysis(object):
 		self.fill_ntuple(sel, 'jet_DL1dv00', self.jetVariables['DL1dv00'])
 		self.fill_ntuple(sel, 'jet_DL1dv01', self.jetVariables['DL1dv01'])
 		self.fill_ntuple(sel, 'jet_GN1', self.jetVariables['GN1'])
-		self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
+		self.micro_ntuples[sel].fill()
 		self.jetVariables['pt'].clear()
 		self.jetVariables['eta'].clear()
 		self.jetVariables['phi'].clear()

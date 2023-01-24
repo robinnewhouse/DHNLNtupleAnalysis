@@ -267,7 +267,8 @@ for channel, configs in config_file.items():
 					tree.increment_dv()
 
 				tree.reset_dv()
-				TODO_ADD_SELECTION_NAME = 'LNC_plus_LNV_DVtype'
+				TODO_ADD_SELECTION_NAME = 'LNC_plus_LNV_DVtype' #good for signal
+				TODO_ADD_SELECTION_NAME = 'DVtype'
 				#GUGLIELMO :: We need to fix this, we need to call the AddExtraVariables where the name of the selection is also there, bc in fillNtuple we say to which tree we need to write outputs
 				ana.AddExtraVariables(TODO_ADD_SELECTION_NAME)
 				tree.increment_event()

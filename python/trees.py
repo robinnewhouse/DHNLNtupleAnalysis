@@ -71,10 +71,10 @@ class Tree:
 		if self.not_hnl_mc:
 			with open(self.xsecFile, 'r') as json_xsecConfig:
 				# load JSON file with xsec of bkg processes
-				self.xsecFile = json.load(json_xsecConfig)
+				self.xsecs = json.load(json_xsecConfig)
 		#Sagar: Need to implement reading of the XS.
 		print("GUGLIELMO :: xsecFile content = ")
-		print(self.xsecFile)
+		print(self.xsecs)
 		self.xsec = -1
 
 	def increment_event(self):
