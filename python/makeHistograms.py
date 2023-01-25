@@ -99,6 +99,11 @@ parser.add_argument('--doSystematics',
 					default=False,
 					help='Run all systematics? False (default) will run only the nominal tree.')
 
+parser.add_argument('--DSID',
+					default=0,
+					type=int,
+					help='DSID of the MC sample being analyzed.')
+
 parent_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, parents=[parser])
 # subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
 
@@ -174,7 +179,7 @@ for channel, configs in config_file.items():
 		entries = args.nevents if args.nevents else None
 		# Create new Tree class using uproot
 		tree = trees.Tree(input_file, tree_name, entries, mc_campaign=file_info.mc_campaign, dsid=file_info.dsid, mass=file_info.mass,
-							channel=channel, ctau=file_info.ctau, not_hnl_mc=args.notHNLmc, skip_events=args.skipEvents)
+							channel=channel, ctau=file_info.ctau, is_bkg_mc=args.notHNLmc, skip_events=args.skipEvents, DSID=args.DSID)
 		# logger.info('Mass dependent BR: {}'.format(file_info.br))
 
 		# create one output file per channel in your config file
@@ -267,10 +272,6 @@ for channel, configs in config_file.items():
 					tree.increment_dv()
 
 				tree.reset_dv()
-				TODO_ADD_SELECTION_NAME = 'LNC_plus_LNV_DVtype' #good for signal
-				TODO_ADD_SELECTION_NAME = 'DVtype'
-				#GUGLIELMO :: We need to fix this, we need to call the AddExtraVariables where the name of the selection is also there, bc in fillNtuple we say to which tree we need to write outputs
-				ana.AddExtraVariables(TODO_ADD_SELECTION_NAME)
 				tree.increment_event()
 				ana.unlock()
 

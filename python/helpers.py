@@ -166,7 +166,7 @@ class ReadBRdat:
 
 
 class MCEventWeight:
-	def __init__(self, tree, mixing_type, dirac_limit=False, flip_e_and_mu=False, use_gronau=False):
+	def __init__(self, tree, mixing_type="", dirac_limit=False, flip_e_and_mu=False, use_gronau=False):
 		"""
 		Class use for computing MC event weights and HNL cross sections.
 		@parm tree: ntuple analysis tree
@@ -228,7 +228,7 @@ class MCEventWeight:
 			self.x_prod = self.x_e
 			self.x_decay = self.x_mu
 
-		if not (self.tree.is_data or self.tree.not_hnl_mc):
+		if not (self.tree.is_data or self.tree.is_bkg_mc):
 			# ######################################################################################################################################################
 			# Get branching ratios (BR). BR depend on the mass, decay mode and model
 			# BR json files contain a dictionaries of BR[mass][decay][model] for e_only, mu_only, NH and IH models.
@@ -255,13 +255,10 @@ class MCEventWeight:
 
 	def get_mc_event_weight(self):
 		"""
-		Calculates the MC event weight as luminosity x cross section / total number of MC events
+		Calculates the MC event weight as luminosity x cross section x event weight / sum of weights
 		Cross section is model dependent an therefore the mc event weight is also model dependent
 		@return: calculated weight.
 		"""
-		if self.tree.mass == -1 or self.tree.ctau == -1:  # MC weighting error
-			logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
-			return 1
 
 		# #############################################################################
 		# Get the luminosity for the different mc campaigns
@@ -269,50 +266,54 @@ class MCEventWeight:
 		# #############################################################################
 		lumi = {'mc16a': 36.10416, 'mc16d': 44.30740, 'mc16e': 58.45010, None: 1.0,
 		'mc20a': 36.10416, 'mc20d': 44.30740, 'mc20e': 58.45010}
-		if self.tree.is_data or self.tree.not_hnl_mc:  # Running on data non non-hnl MC
-			if self.tree.is_data: return 1
-			else:
-				#TODO:: this function is only called by things of the signal, we need to find the way to call it if we run over bkg in analysis.py around line 50
-				#TODO:: here calculate the weight for MC, we need to access the DSID number from outTree branch called mcChannelNumber, and we just need to do it once at the beginning of the event loop
-				#From that we access the dictionary of the cross-sections in trees.py called xsecs, it should be self.tree.xsecs[dsid] and you should get the xsec
-				print("GUGLIELMO :: self.tree[mcChannelNumber] = {}".format(self.tree["mcChannelNumber"]))
-    
-		else:  # Running on an HNL signal file
-			# #############################################################################
-			# Get the cross sections for the different HNL models
-			# #############################################################################
-			# One HNL Majorana model
-			one_hnl_majorana_hnl_xsec = self.hnl_xsec_generic_model(channel = self.channel,mass=self.tree.mass, ctau = self.tree.ctau,  
-																	x_e = self.x_e, x_mu = self.x_mu, x_tau = self.x_tau )  # in fb
-			# HNL Dirac models only have LNC decays. LNC rates are coherently enhanced by a factor of 2 compared to Majorana HNLs
-			xsec_one_hnl_dirac = one_hnl_majorana_hnl_xsec * 2
-			# Quasi-Dirac with "Majorana limit" model with 50/50 LNC/LNV decays has two Majorana particles mediating the process, enhances cross sections by a factor of 2 compared to on Majorana rates
-			xsec_quasi_dirac_pair_majorana_limit = one_hnl_majorana_hnl_xsec * 2
-			# Quasi-Dirac with "Dirac limit" model has only LNC decays and two Majorana particles mediating the process, enhances cross sections by a factor of 4 compared to on Majorana rates
-			# One factor of 2 is from the quasi-dirac pair and one factor of two becuase of the change in lifetime/ coupling
-			xsec_quasi_dirac_pair_dirac_limit = one_hnl_majorana_hnl_xsec * 4
-			if self.mixing_type == "NH" or self.mixing_type == "IH":
-				if self.dirac_limit: hnl_xsec = xsec_quasi_dirac_pair_dirac_limit
-				else: hnl_xsec = xsec_quasi_dirac_pair_majorana_limit
 
-			if self.mixing_type == "e_only" or self.mixing_type == "mu_only":
-				if self.dirac_limit: hnl_xsec = xsec_one_hnl_dirac
-				else: hnl_xsec = one_hnl_majorana_hnl_xsec
+		if self.tree.is_bkg_mc and not self.tree.is_data: # For background MC, get the cross-section from the JSON file.
+			bkg_xs_root_path = os.path.dirname(os.path.abspath(__file__)) + '/../data/other/'
+			xsec = ReadJsonFiles(bkg_xs_root_path + 'bkgXsec.json')[str(self.tree.mcChannelNumber)]["crossSection"]
+		elif not (self.tree.is_bkg_mc or self.tree.is_data): # For dHNL MC, calculate the cross section.
+			xsec = self.get_signal_xsec()
+		else: # For data, the cross section value doesn't matter and the 0 assignment is a fail safe.
+			xsec = 0
 
-			# Compute the cross section for LNC or LNV decay process. Pythia8 samples have a 50% mix of LNC+ LNV of the number of LNC or LNV events
-			# Thus, the number of mc generated LNC or LNV events is equal to "all_entries / 2"
+		sum_of_mcEventWeights = self.tree.sum_of_mcEventWeights
 
-			if self.tree.negative_weights:
-				n_mc_events = self.tree.sum_of_mcEventWeights / 2
-				#logger.info(f'negative weights in mcEventWeights: all events: {self.tree.all_entries}, sum of event weights: {self.tree.sum_of_mcEventWeights}')
-			else:
-				n_mc_events = self.tree.all_entries / 2
+		if self.tree.is_data: # Running on data
+			return 1
+		else:
+			return lumi[self.tree.mc_campaign] * xsec / sum_of_mcEventWeights
 
-			# Compute MC event weight as "L * xsec / total num. of MC events"
-			weight = lumi[self.tree.mc_campaign] * hnl_xsec / n_mc_events
-
-		return weight
 	
+	def get_signal_xsec(self):
+		if self.tree.mass == -1 or self.tree.ctau == -1:  # MC weighting error
+			logger.debug("Can't determine the mass and lifetime of signal sample. MC mass-lifetime weight will be set to 1!!")
+			return 1
+		# Running on an HNL signal file
+		# #############################################################################
+		# Get the cross sections for the different HNL models
+		# #############################################################################
+		# One HNL Majorana model
+		one_hnl_majorana_hnl_xsec = self.hnl_xsec_generic_model(channel = self.channel,mass=self.tree.mass, ctau = self.tree.ctau,  
+																x_e = self.x_e, x_mu = self.x_mu, x_tau = self.x_tau )  # in fb
+		# HNL Dirac models only have LNC decays. LNC rates are coherently enhanced by a factor of 2 compared to Majorana HNLs
+		xsec_one_hnl_dirac = one_hnl_majorana_hnl_xsec * 2
+		# Quasi-Dirac with "Majorana limit" model with 50/50 LNC/LNV decays has two Majorana particles mediating the process, enhances cross sections by a factor of 2 compared to on Majorana rates
+		xsec_quasi_dirac_pair_majorana_limit = one_hnl_majorana_hnl_xsec * 2
+		# Quasi-Dirac with "Dirac limit" model has only LNC decays and two Majorana particles mediating the process, enhances cross sections by a factor of 4 compared to on Majorana rates
+		# One factor of 2 is from the quasi-dirac pair and one factor of two becuase of the change in lifetime/ coupling
+		xsec_quasi_dirac_pair_dirac_limit = one_hnl_majorana_hnl_xsec * 4
+		if self.mixing_type == "NH" or self.mixing_type == "IH":
+			if self.dirac_limit: hnl_xsec = xsec_quasi_dirac_pair_dirac_limit
+			else: hnl_xsec = xsec_quasi_dirac_pair_majorana_limit
+
+		if self.mixing_type == "e_only" or self.mixing_type == "mu_only":
+			if self.dirac_limit: hnl_xsec = xsec_one_hnl_dirac
+			else: hnl_xsec = one_hnl_majorana_hnl_xsec
+
+		# Compute the cross section for LNC or LNV decay process. Pythia8 samples have a 50% mix of LNC+ LNV of the number of LNC or LNV events
+		# Thus, the number of mc generated LNC or LNV events is equal to "all_entries / 2"
+		# Sagar: instead of diving the denominator by 2, I am returning the numerator multiplied by 2.
+		return hnl_xsec * 2
+
 	def hnl_xsec_generic_model(self, channel, mass, ctau , x_e = 1, x_mu = 0, x_tau = 0, use_U2_input = True, majorana_particle = True ):
 		"""
 		Calculates the HNL cross section given a br, mass, ctau
