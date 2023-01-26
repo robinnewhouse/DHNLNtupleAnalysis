@@ -1123,6 +1123,9 @@ class Analysis(object):
 			# ____________________________________________________________
 			# add mc event weight
 			self.fill_ntuple(sel, 'mcEventWeight', self.tree['mcEventWeight'])
+			self.fill_ntuple(sel, 'runNumber',self.tree["runNumber"])
+			self.fill_ntuple(sel, 'mcChannelNumber',self.tree["mcChannelNumber"])
+			self.fill_ntuple(sel, 'eventNumber',self.tree['eventNumber'])
 			self.AddExtraVariables(sel)
 
 			# ____________________________________________________________
@@ -1681,7 +1684,7 @@ class Analysis(object):
 
 	def AddExtraVariables(self,sel):
 		"""
-		GUGLIELMO :: Function to add jet variables and other metadata.
+		GUGLIELMO :: Function to add jet variables, we might put a flag to not call it by default.
 		"""
 		for jet_index in range(len(self.tree['jet_pt'])):
 			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])

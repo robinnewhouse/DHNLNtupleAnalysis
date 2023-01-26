@@ -100,7 +100,7 @@ parser.add_argument('--doSystematics',
 					help='Run all systematics? False (default) will run only the nominal tree.')
 
 parser.add_argument('--DSID',
-					default=0,
+					default=-1,
 					type=int,
 					help='DSID of the MC sample being analyzed.')
 

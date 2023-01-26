@@ -10,11 +10,12 @@ if int(uproot.__version__.split('.')[0]) == 4:
 import helpers
 import numpy as np
 import json
+import sys
 
 
 class Tree:
 	def __init__(self, file_name, tree_name, max_entries, channel, skip_events=None, mc_campaign=None,
-				 dsid=None, mass=1.0, ctau=1.0, is_bkg_mc=False, fake_aod=False, DSID=0):
+				 dsid=None, mass=1.0, ctau=1.0, is_bkg_mc=False, fake_aod=False, DSID=-1):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -63,6 +64,10 @@ class Tree:
 		try: self.tree = self.file[tree_name]
 		except KeyError: self.tree = self.file["outTree"]
 		self.mcChannelNumber = DSID
+	
+		if self.is_bkg_mc and self.mcChannelNumber == -1:
+			self.logger.error("DSID not provided while running over background MC. Add --DSID XXXXXX to the command line.")
+			sys.exit(1)  # abort because of error
 
 	def increment_event(self):
 		self.ievt += 1
