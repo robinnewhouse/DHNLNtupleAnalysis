@@ -1124,6 +1124,9 @@ class Analysis(object):
 			# add mc event weight
 			self.fill_ntuple(sel, 'mcEventWeight', self.tree['mcEventWeight'])
 			self.fill_ntuple(sel, 'runNumber',self.tree["runNumber"])
+			if (self.tree["mcChannelNumber"] != self.tree.mcChannelNumber) and not self.tree.is_data and self.tree.is_bkg_mc:
+				self.logger.error("DSID {} put in config does not match DSID {} read from the ntuple. Please check your configuration.".format(self.tree.mcChannelNumber,self.tree["mcChannelNumber"]))
+				sys.exit(1)  # abort because of error
 			self.fill_ntuple(sel, 'mcChannelNumber',self.tree["mcChannelNumber"])
 			self.fill_ntuple(sel, 'eventNumber',self.tree['eventNumber'])
 			self.AddExtraVariables(sel)

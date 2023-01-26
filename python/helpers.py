@@ -270,8 +270,11 @@ class MCEventWeight:
 		if self.tree.is_bkg_mc and not self.tree.is_data: # For background MC, get the cross-section from the JSON file.
 			bkg_xs_root_path = os.path.dirname(os.path.abspath(__file__)) + '/../data/other/'
 			with open(bkg_xs_root_path + 'bkgXsec.json') as fp:
-				xsecFile = json.load(fp)		
-			xsec = xsecFile[str(self.tree.mcChannelNumber)]["crossSection"]
+				xsecFile = json.load(fp)
+			try: xsec = xsecFile[str(self.tree.mcChannelNumber)]["crossSection"]
+			except: 
+				self.tree.logger.error("DSID {} missing in cross-secion file, please add it to {}.".format(self.tree.mcChannelNumber,bkg_xs_root_path))
+				sys.exit(1)  # abort because of error
 		elif not (self.tree.is_bkg_mc or self.tree.is_data): # For dHNL MC, calculate the cross section.
 			xsec = self.get_signal_xsec()
 		else: # For data, the cross section value doesn't matter and the 0 assignment is a fail safe.
