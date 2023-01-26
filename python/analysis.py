@@ -886,6 +886,7 @@ class Analysis(object):
 			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
 		else:
 			self.CutFlow.Fill(nbin)
+			self.CutFlow_weighted.Fill(nbin, self.weight)
 
 	def _fill_leptons(self):
 		sel = 'all'
@@ -1875,7 +1876,11 @@ class run2Analysis(Analysis):
 			self.CutFlow_weighted_dirac_limit_nh = self.CutFlow.Clone()
 			self.CutFlow_weighted_dirac_limit_nh.SetName("CutFlow_weighted_dirac_limit_nh"+"_"+self.ch)
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_dirac_limit_nh'] = self.CutFlow_weighted_dirac_limit_nh
-
+		else:
+			# Weighted cutflow
+			self.CutFlow_weighted = self.CutFlow.Clone()
+			self.CutFlow_weighted.SetName("CutFlow_weighted"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted'] = self.CutFlow_weighted
 
 
 	def DVSelection(self,use_truth=False):
