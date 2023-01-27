@@ -598,7 +598,7 @@ class TrackQuality:
 			self.nel_tight = 0
 			self.nel_medium = 0
 			self.nel_loose = 0
-			self.nel_veryloose = 0
+			self.nel_verylooseNP = 0
 			self.nel_veryveryloose = 0
 			self.nel_veryveryloosesi = 0
 
@@ -615,6 +615,7 @@ class TrackQuality:
 					muisTight = self.tree['muon_isTight'][muindex]
 					muisMedium = self.tree['muon_isMedium'][muindex]
 					muisLoose = self.tree['muon_isLoose'][muindex]
+					muisLRT = self.tree['muon_isLRT'][muindex]
 				# check if Tight == 1 to in case safeFill was used and isTight == -1 (which is also not Tight!) -DT
 				if muisTight == 1:
 					self.nmu_tight = self.nmu_tight + 1
@@ -637,7 +638,7 @@ class TrackQuality:
 					elisTight = self.tree['el_LHTight'][elindex]
 					elisMedium = self.tree['el_LHMedium'][elindex]
 					elisLoose = self.tree['el_LHLoose'][elindex]
-					#elisVeryLoose = self.tree['el_isLHVeryLoose'][elindex]
+					elisVeryLooseNP = self.tree['el_isLHVeryLooseNoPix'][elindex]
 					#elisVeryVeryLoose = self.tree['el_isLHVeryLoose_mod1'][elindex]
 					#elisVeryVeryLooseSi = self.tree['el_isLHVeryLoose_modSi'][elindex]
 
@@ -647,8 +648,8 @@ class TrackQuality:
 					self.nel_medium = self.nel_medium + 1
 				if elisLoose == 1:
 					self.nel_loose = self.nel_loose + 1
-				#if elisVeryLoose == 1:
-				#	self.nel_veryloose = self.nel_veryloose + 1
+				if elisVeryLooseNP == 1:
+					self.nel_verylooseNP = self.nel_verylooseNP + 1
 				#if elisVeryVeryLoose == 1:
 				#	self.nel_veryveryloose = self.nel_veryveryloose + 1
 				#if elisVeryVeryLooseSi == 1:
