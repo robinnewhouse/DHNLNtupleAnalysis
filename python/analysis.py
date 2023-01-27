@@ -886,6 +886,7 @@ class Analysis(object):
 			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
 		else:
 			self.CutFlow.Fill(nbin)
+			self.CutFlow_weighted.Fill(nbin, self.weight)
 
 	def _fill_leptons(self):
 		sel = 'all'
@@ -1123,6 +1124,12 @@ class Analysis(object):
 			# ____________________________________________________________
 			# add mc event weight
 			self.fill_ntuple(sel, 'mcEventWeight', self.tree['mcEventWeight'])
+			self.fill_ntuple(sel, 'runNumber',self.tree["runNumber"])
+			if (self.tree["mcChannelNumber"] != self.tree.mcChannelNumber) and not self.tree.is_data and self.tree.is_bkg_mc:
+				self.logger.error("DSID {} put in config does not match DSID {} read from the ntuple. Please check your configuration.".format(self.tree.mcChannelNumber,self.tree["mcChannelNumber"]))
+				sys.exit(1)  # abort because of error
+			self.fill_ntuple(sel, 'mcChannelNumber',self.tree["mcChannelNumber"])
+			self.fill_ntuple(sel, 'eventNumber',self.tree['eventNumber'])
 			self.AddExtraVariables(sel)
 
 			# ____________________________________________________________
@@ -1681,7 +1688,7 @@ class Analysis(object):
 
 	def AddExtraVariables(self,sel):
 		"""
-		GUGLIELMO :: Function to add jet variables and other metadata.
+		GUGLIELMO :: Function to add jet variables, we might put a flag to not call it by default.
 		"""
 		for jet_index in range(len(self.tree['jet_pt'])):
 			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])
@@ -1869,7 +1876,11 @@ class run2Analysis(Analysis):
 			self.CutFlow_weighted_dirac_limit_nh = self.CutFlow.Clone()
 			self.CutFlow_weighted_dirac_limit_nh.SetName("CutFlow_weighted_dirac_limit_nh"+"_"+self.ch)
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_dirac_limit_nh'] = self.CutFlow_weighted_dirac_limit_nh
-
+		else:
+			# Weighted cutflow
+			self.CutFlow_weighted = self.CutFlow.Clone()
+			self.CutFlow_weighted.SetName("CutFlow_weighted"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted'] = self.CutFlow_weighted
 
 
 	def DVSelection(self,use_truth=False):
