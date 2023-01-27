@@ -235,6 +235,14 @@ class Analysis(object):
 			self.track_quality = '2-any'
 		elif '2-veryveryloose' in self.sel:
 			self.track_quality = '2-veryveryloose'
+		elif 'std_L_lrt_L' in self.sel:
+			self.track_quality = 'std_L_lrt_L'
+		elif 'std_L_lrt_M' in self.sel:
+			self.track_quality = 'std_L_lrt_M'
+		elif 'std_M_lrt_L' in self.sel:
+			self.track_quality = 'std_M_lrt_L'
+		elif 'std_M_lrt_M' in self.sel:
+			self.track_quality = 'std_M_lrt_M'
 		else:
 			if "CR" not in self.sel:
 				self.logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
@@ -586,7 +594,7 @@ class Analysis(object):
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
-		track_quality_sel = selections.TrackQuality(self.tree, quality=self.track_quality)
+		track_quality_sel = selections.BetterTrackQuality(self.tree, quality=self.track_quality)
 		return track_quality_sel.passes()
 
 	def _cosmic_veto_cut(self):
@@ -828,10 +836,10 @@ class Analysis(object):
 			# #####################################################################################
 			# Compute "model weight" as the product of mc event weight x spin corr weight
 			# #####################################################################################
-			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih * selections.MCEventType(self.tree, mixing_type = "IH").weight
-			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh * selections.MCEventType(self.tree, mixing_type = "NH").weight
-			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih * selections.MCEventType(self.tree, mixing_type = "IH").weight
-			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh * selections.MCEventType(self.tree, mixing_type = "NH").weight
+			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih #* selections.MCEventType(self.tree, mixing_type = "IH").weight
+			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh #* selections.MCEventType(self.tree, mixing_type = "NH").weight
+			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih #* selections.MCEventType(self.tree, mixing_type = "IH").weight
+			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh #* selections.MCEventType(self.tree, mixing_type = "NH").weight
 
 			# For uue and eeu channels, compute a second weight to reweight uue --> ueu  or eeu --> eue
 			if self.tree.channel == "uue" or self.tree.channel == "eeu":	
@@ -851,8 +859,8 @@ class Analysis(object):
 				self.model_weight_dirac_limit_ih = weight_dirac_limit_ih
 				self.model_weight_dirac_limit_nh = weight_dirac_limit_nh
 			# Single flavour mixing models 
-			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour * selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
-			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour * selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
+			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour #* selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
+			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour #* selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
 		else:
 			self.model_weight_one_dirac_hnl_single_flavour = self.weight_override
 			self.one_majorana_hnl_single_flavour = self.weight_override
@@ -866,27 +874,28 @@ class Analysis(object):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
 
 	def _fill_cutflow(self, nbin):
+		evt_weight = self.tree['mcEventWeight']
 		if not self.tree.is_data and not self.tree.is_bkg_mc:
 			# store weighted cutflow with nominal scale factors
 			scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin) # raw counts (only LNC events)
-				self.CutFlow_LNC_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
-				self.CutFlow_weighted_one_hnl_dirac.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor)
+				self.CutFlow_LNC_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
+				self.CutFlow_weighted_one_hnl_dirac.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor* evt_weight)
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.Fill(nbin) # raw counts (only LNV events)
-				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
+				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor* evt_weight)
 
 			self.CutFlow.Fill(nbin) # raw counts (all events)
 			# Models that count both LNC and LNV events!
-			self.CutFlow_weighted_majorana_limit_ih.Fill(nbin, self.model_weight_majorana_limit_ih * scale_factor)
-			self.CutFlow_weighted_majorana_limit_nh.Fill(nbin, self.model_weight_majorana_limit_nh * scale_factor)
-			self.CutFlow_weighted_dirac_limit_ih.Fill(nbin, self.model_weight_dirac_limit_ih * scale_factor)
-			self.CutFlow_weighted_dirac_limit_nh.Fill(nbin, self.model_weight_dirac_limit_nh * scale_factor)
-			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
+			self.CutFlow_weighted_majorana_limit_ih.Fill(nbin, self.model_weight_majorana_limit_ih * scale_factor * evt_weight)
+			self.CutFlow_weighted_majorana_limit_nh.Fill(nbin, self.model_weight_majorana_limit_nh * scale_factor * evt_weight)
+			self.CutFlow_weighted_dirac_limit_ih.Fill(nbin, self.model_weight_dirac_limit_ih * scale_factor * evt_weight)
+			self.CutFlow_weighted_dirac_limit_nh.Fill(nbin, self.model_weight_dirac_limit_nh * scale_factor * evt_weight)
+			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
 		else:
 			self.CutFlow.Fill(nbin)
-			self.CutFlow_weighted.Fill(nbin, self.weight)
+			self.CutFlow_weighted.Fill(nbin, self.weight * evt_weight)
 
 	def _fill_leptons(self):
 		sel = 'all'
@@ -1618,15 +1627,13 @@ class Analysis(object):
 			self.fill_ntuple(sel, 'DV_tight_loose', trk_quality.DV_tight_loose)
 			self.fill_ntuple(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
 			self.fill_ntuple(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
-            # Can't handle veryloose or veryveryloose WP yet
-			#self.fill_ntuple(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
-			#self.fill_ntuple(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
-			#self.fill_ntuple(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
-			#self.fill_ntuple(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
-			#self.fill_ntuple(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
-			#self.fill_ntuple(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
-			#self.fill_ntuple(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
-			#self.fill_ntuple(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
+
+			better_trk_quality = selections.BetterTrackQuality(self.tree)
+
+			self.fill_ntuple(sel, 'DV_std_L_lrt_L', better_trk_quality.DV_SlLl)
+			self.fill_ntuple(sel, 'DV_std_L_lrt_M', better_trk_quality.DV_SlLm)
+			self.fill_ntuple(sel, 'DV_std_M_lrt_L', better_trk_quality.DV_SmLl)
+			self.fill_ntuple(sel, 'DV_std_M_lrt_M', better_trk_quality.DV_SmLm)
 
 			# ____________________________________________________________
 			# Trigger matching requirement

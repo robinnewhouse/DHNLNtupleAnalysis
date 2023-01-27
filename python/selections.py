@@ -664,9 +664,9 @@ class TrackQuality:
 			self.DV_tight_medium = (self.nmu_tight == 1 and self.nel_medium == 1) or (self.nel_tight == 1 and self.nmu_medium == 1) or (self.nmu_tight >= 1 and self.nmu_medium == 2)
 			self.DV_tight_loose = (self.nmu_tight == 1 and self.nel_loose == 1) or (self.nel_tight == 1 and self.nmu_loose == 1) or (self.nmu_tight >= 1 and self.nmu_loose == 2)
 			self.DV_medium_loose = (self.nmu_medium == 1 and self.nel_loose == 1) or (self.nel_medium == 1 and self.nmu_loose == 1) or (self.nmu_medium >= 1 and self.nmu_loose == 2)
-			self.DV_tight_veryloose = self.nmu_tight == 1 and self.nel_veryloose == 1
-			self.DV_medium_veryloose = self.nmu_medium == 1 and self.nel_veryloose == 1
-			self.DV_loose_veryloose = self.nmu_loose == 1 and self.nel_veryloose == 1
+			self.DV_tight_veryloose = self.nmu_tight == 1 and self.nel_verylooseNP == 1
+			self.DV_medium_veryloose = self.nmu_medium == 1 and self.nel_verylooseNP == 1
+			self.DV_loose_veryloose = self.nmu_loose == 1 and self.nel_verylooseNP == 1
 			self.DV_tight_veryveryloose = self.nmu_tight == 1 and self.nel_veryveryloose == 1
 			self.DV_medium_veryveryloose = self.nmu_medium == 1 and self.nel_veryveryloose == 1
 			self.DV_loose_veryveryloose = self.nmu_loose == 1 and self.nel_veryveryloose == 1
@@ -729,6 +729,60 @@ class TrackQuality:
 
 		if self.quality == "2-any":
 			return self.DV_2any
+
+class BetterTrackQuality:
+	def __init__(self, tree, decaymode="leptonic", quality="std_L_lrt_L"):
+
+		self.tree = tree
+		self.decaymode = decaymode
+		self.quality = quality
+		if self.decaymode == "leptonic":
+			muons = helpers.Tracks(self.tree)
+			muons.get_muons()
+
+			electrons = helpers.Tracks(self.tree)
+			electrons.get_electrons()
+
+			self.nmu_std_medium = 0
+			self.nmu_lrt_medium = 0
+			self.nmu_std_loose = 0
+			self.nmu_lrt_loose = 0
+
+			self.ndvmu = len(muons.lepVec)
+
+			for imu in range(self.ndvmu):
+				muindex = muons.lepIndex[imu]
+				muisMedium = self.tree['muon_isMedium'][muindex]
+				muisLoose = self.tree['muon_isLoose'][muindex]
+				muisLRT = self.tree['muon_isLRT'][muindex]
+				if muisLRT == 1:
+					if muisMedium == 1:
+						self.nmu_lrt_medium += 1
+					if muisLoose == 1:
+						self.nmu_lrt_loose += 1
+				else:
+					if muisMedium == 1:
+						self.nmu_std_medium += 1
+					if muisLoose == 1:
+						self.nmu_std_loose += 1
+
+			self.DV_SlLl = self.nmu_std_loose == 2 or (self.nmu_std_loose == 1 and self.nmu_lrt_loose == 1) or self.nmu_lrt_loose == 2
+			self.DV_SlLm = self.nmu_std_loose == 2 or (self.nmu_std_loose == 1 and self.nmu_lrt_medium == 1) or self.nmu_lrt_medium == 2
+			self.DV_SmLl = self.nmu_std_medium == 2 or (self.nmu_std_medium == 1 and self.nmu_lrt_loose == 1) or self.nmu_lrt_loose == 2
+			self.DV_SmLm = self.nmu_std_medium == 2 or (self.nmu_std_medium == 1 and self.nmu_lrt_medium == 1) or self.nmu_lrt_medium == 2
+
+	def passes(self):
+		if self.quality == "std_L_lrt_L":
+			return self.DV_SlLl
+
+		if self.quality == "std_L_lrt_M":
+			return self.DV_SlLm
+
+		if self.quality == "std_M_lrt_L":
+			return self.DV_SmLl
+
+		if self.quality == "std_M_lrt_M":
+			return self.DV_SmLm
 
 
 class CosmicVeto:
