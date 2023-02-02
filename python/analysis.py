@@ -45,7 +45,6 @@ class Analysis(object):
 		self.jetVariables['DL1dv00'] = ROOT.std.vector('float')()
 		self.jetVariables['DL1dv01'] = ROOT.std.vector('float')()
 		self.jetVariables['GN1'] = ROOT.std.vector('float')()
-		self.triggerWeight = -999.
 
 		self.events_with_trig_match_plep = 0
 		self.events_with_trig_match_dlep = 0
@@ -875,16 +874,16 @@ class Analysis(object):
 
 	def _fill_cutflow(self, nbin):
 		evt_weight = self.tree['mcEventWeight']
+		scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
 		if not self.tree.is_data and not self.tree.is_bkg_mc:
 			# store weighted cutflow with nominal scale factors
-			scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin) # raw counts (only LNC events)
 				self.CutFlow_LNC_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
-				self.CutFlow_weighted_one_hnl_dirac.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor* evt_weight)
+				self.CutFlow_weighted_one_hnl_dirac.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor * evt_weight)
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.Fill(nbin) # raw counts (only LNV events)
-				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor* evt_weight)
+				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
 
 			self.CutFlow.Fill(nbin) # raw counts (all events)
 			# Models that count both LNC and LNV events!
@@ -895,7 +894,7 @@ class Analysis(object):
 			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
 		else:
 			self.CutFlow.Fill(nbin)
-			self.CutFlow_weighted.Fill(nbin, self.weight * evt_weight)
+			self.CutFlow_weighted.Fill(nbin, self.weight * scale_factor * evt_weight)
 
 	def _fill_leptons(self):
 		sel = 'all'
