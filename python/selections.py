@@ -730,7 +730,7 @@ class TrackQuality:
 		if self.quality == "2-any":
 			return self.DV_2any
 
-class BetterTrackQuality:
+class LRTTrackQuality:
 	def __init__(self, tree, decaymode="leptonic", quality="std_L_lrt_L"):
 
 		self.tree = tree

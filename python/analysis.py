@@ -53,7 +53,7 @@ class Analysis(object):
 
 		# Calculate MC event weights as "L * xsec / num. MC events" (One number per file)
 		# Single flavour mixing weights
-		self.weight = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour").get_mc_event_weight()
+		self.weight = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour", dirac_limit = True).get_mc_event_weight()
 		self.mc_event_weight_one_dirac_hnl_single_flavour = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour", dirac_limit = True).get_mc_event_weight()
 		self.mc_event_weight_one_majorana_hnl_single_flavour = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour").get_mc_event_weight()
 		# Quasi-dirac pair "Majorana limit" with IH or NH mixing
@@ -594,7 +594,7 @@ class Analysis(object):
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
-		track_quality_sel = selections.BetterTrackQuality(self.tree, quality=self.track_quality)
+		track_quality_sel = selections.LRTTrackQuality(self.tree, quality=self.track_quality)
 		return track_quality_sel.passes()
 
 	def _cosmic_veto_cut(self):
@@ -836,17 +836,17 @@ class Analysis(object):
 			# #####################################################################################
 			# Compute "model weight" as the product of mc event weight x spin corr weight
 			# #####################################################################################
-			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih #* selections.MCEventType(self.tree, mixing_type = "IH").weight
-			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh #* selections.MCEventType(self.tree, mixing_type = "NH").weight
-			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih #* selections.MCEventType(self.tree, mixing_type = "IH").weight
-			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh #* selections.MCEventType(self.tree, mixing_type = "NH").weight
+			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih 
+			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh 
+			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih
+			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh 
 
 			# For uue and eeu channels, compute a second weight to reweight uue --> ueu  or eeu --> eue
 			if self.tree.channel == "uue" or self.tree.channel == "eeu":	
-				weight_majorana_limit_ih_2 = self.mc_event_weight_majorana_limit_ih_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "IH",flip_e_and_mu = True).weight
-				weight_majorana_limit_nh_2 = self.mc_event_weight_majorana_limit_nh_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "NH",flip_e_and_mu = True).weight
-				weight_dirac_limit_ih_2 = self.mc_event_weight_dirac_limit_ih_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "IH",flip_e_and_mu = True).weight
-				weight_dirac_limit_nh_2 = self.mc_event_weight_dirac_limit_nh_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "NH",flip_e_and_mu = True).weight
+				weight_majorana_limit_ih_2 = self.mc_event_weight_majorana_limit_ih_flip_e_and_mu 
+				weight_majorana_limit_nh_2 = self.mc_event_weight_majorana_limit_nh_flip_e_and_mu
+				weight_dirac_limit_ih_2 = self.mc_event_weight_dirac_limit_ih_flip_e_and_mu 
+				weight_dirac_limit_nh_2 = self.mc_event_weight_dirac_limit_nh_flip_e_and_mu
 				# Total weight is the sum of the two channels for models 
 				self.model_weight_majorana_limit_ih = weight_majorana_limit_ih + weight_majorana_limit_ih_2
 				self.model_weight_majorana_limit_nh = weight_majorana_limit_nh + weight_majorana_limit_nh_2
@@ -859,8 +859,8 @@ class Analysis(object):
 				self.model_weight_dirac_limit_ih = weight_dirac_limit_ih
 				self.model_weight_dirac_limit_nh = weight_dirac_limit_nh
 			# Single flavour mixing models 
-			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour #* selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
-			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour #* selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
+			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour
+			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour
 		else:
 			self.model_weight_one_dirac_hnl_single_flavour = self.weight_override
 			self.one_majorana_hnl_single_flavour = self.weight_override
@@ -1628,12 +1628,12 @@ class Analysis(object):
 			self.fill_ntuple(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
 			self.fill_ntuple(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
 
-			better_trk_quality = selections.BetterTrackQuality(self.tree)
+			lrt_trk_quality = selections.LRTTrackQuality(self.tree)
 
-			self.fill_ntuple(sel, 'DV_std_L_lrt_L', better_trk_quality.DV_SlLl)
-			self.fill_ntuple(sel, 'DV_std_L_lrt_M', better_trk_quality.DV_SlLm)
-			self.fill_ntuple(sel, 'DV_std_M_lrt_L', better_trk_quality.DV_SmLl)
-			self.fill_ntuple(sel, 'DV_std_M_lrt_M', better_trk_quality.DV_SmLm)
+			self.fill_ntuple(sel, 'DV_std_L_lrt_L', lrt_trk_quality.DV_SlLl)
+			self.fill_ntuple(sel, 'DV_std_L_lrt_M', lrt_trk_quality.DV_SlLm)
+			self.fill_ntuple(sel, 'DV_std_M_lrt_L', lrt_trk_quality.DV_SmLl)
+			self.fill_ntuple(sel, 'DV_std_M_lrt_M', lrt_trk_quality.DV_SmLm)
 
 			# ____________________________________________________________
 			# Trigger matching requirement

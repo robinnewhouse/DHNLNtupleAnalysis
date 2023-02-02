@@ -314,7 +314,7 @@ class MCEventWeight:
 			if self.dirac_limit: hnl_xsec = xsec_one_hnl_dirac
 			else: hnl_xsec = one_hnl_majorana_hnl_xsec
 
-		# Compute the cross section for LNC or LNV decay process. Pythia8 samples have a 50% mix of LNC+ LNV of the number of LNC or LNV events
+		# Compute the cross section for LNC or LNV decay process. MadGraph samples have a 50% mix of LNC+ LNV of the number of LNC or LNV events
 		# Thus, the number of mc generated LNC or LNV events is equal to "all_entries / 2"
 		# Sagar: instead of diving the denominator by 2, I am returning the numerator multiplied by 2.
 		return hnl_xsec * 2
