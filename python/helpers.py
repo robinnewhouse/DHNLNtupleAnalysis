@@ -315,8 +315,8 @@ class MCEventWeight:
 			else: hnl_xsec = one_hnl_majorana_hnl_xsec
 
 		# Compute the cross section for LNC or LNV decay process. MadGraph samples have a 50% mix of LNC+ LNV of the number of LNC or LNV events
-		# Thus, the number of mc generated LNC or LNV events is equal to "all_entries / 2"
-		# Sagar: instead of diving the denominator by 2, I am returning the numerator multiplied by 2.
+		# Thus, the number of mc generated LNC or LNV events is equal to "available_entries / 2"
+		# To account for this mix, the calulated cross-section should be enhanced by a factor of two for the individual channels.
 		return hnl_xsec * 2
 
 	def hnl_xsec_generic_model(self, channel, mass, ctau , x_e = 1, x_mu = 0, x_tau = 0, use_U2_input = True, majorana_particle = True ):
