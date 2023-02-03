@@ -1694,7 +1694,7 @@ class Analysis(object):
 
 	def AddExtraVariables(self,sel):
 		"""
-		GUGLIELMO :: Function to add jet variables, we might put a flag to not call it by default.
+		This is a function intended to add jet variables, but can be used to add other vectors as well.
 		"""
 		for jet_index in range(len(self.tree['jet_pt'])):
 			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])
@@ -1714,14 +1714,6 @@ class Analysis(object):
 		self.fill_ntuple(sel, 'jet_DL1dv01', self.jetVariables['DL1dv01'])
 		self.fill_ntuple(sel, 'jet_GN1', self.jetVariables['GN1'])
 	
-#		if self.MCEventType.isLNC: 
-#			self.micro_ntuples["LNC_"+sel].fill()
-#			self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
-#		elif self.MCEventType.isLNV: 
-#			self.micro_ntuples["LNV_"+sel].fill()
-#			self.micro_ntuples["LNC_plus_LNV_"+sel].fill()
-#		else: self.micro_ntuples[sel].fill()
-		
 		self.jetVariables['pt'].clear()
 		self.jetVariables['eta'].clear()
 		self.jetVariables['phi'].clear()
