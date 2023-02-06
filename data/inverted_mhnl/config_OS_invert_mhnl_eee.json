@@ -1,9 +1,6 @@
 {
     "eee":{
-                
-                "vtx_containers" : ["VSI_LeptonsMod"],
-                "selections":["alltriggers","pelectron","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "ee","2-veryveryloose","cosmicveto", "inverted_mhnl","DVmass", "lep_pt", "matveto" ]
-    
-             }
-    }
-    
+            "vtx_containers" :  ["LeptonsMod_LRTR3_1p0"],
+            "selections":["alltriggers","pelectron","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "ee","2-veryveryloose","cosmicveto", "inverted_mhnl","DVmass", "lep_pt", "matveto" ]
+            }
+}

@@ -919,17 +919,17 @@ class FileInfo:
 		self.mass_str = ""
 		self.file_ch = ""
 
-		if "mumumu" or "uuu" in infile:
+		if "uuu" in infile or "mumumu" in infile:
 			self.file_ch = "uuu"
-		elif "mumue" or "uue" in infile:
+		elif "uue" in infile or "mumue" in infile:
 			self.file_ch = "uue"
-		elif "muee" or "uee" in infile:
+		elif "uee" in infile or "muee" in infile:
 			self.file_ch = "uee"
 		elif "eee" in infile:
 			self.file_ch = "eee"
-		elif "eemu" or "eeu" in infile:
+		elif "eeu" in infile or "eemu" in infile:
 			self.file_ch = "eeu"
-		elif "emumu" or "euu" in infile:
+		elif "euu" in infile or "emumu" in infile:
 			self.file_ch = "euu"
 		else:
 			logger.warning("No channel found. If running on HNL signal, please check your signal sample")
