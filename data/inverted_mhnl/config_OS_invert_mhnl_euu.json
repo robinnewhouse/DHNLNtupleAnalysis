@@ -1,8 +1,6 @@
 {
     "euu":{
-             "vtx_containers" :  ["VSI_LeptonsMod"],
-             "selections":["alltriggers","pelectron","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-medium","cosmicveto", "inverted_mhnl","DVmass", "lep_pt"]
-    
-             }
-    }
-    
+        "vtx_containers" :  ["LeptonsMod_LRTR3_1p0"],
+        "selections":["alltriggers","pelectron","medium_plep", "4-filter", "nDV", "fidvol","2track","OS", "mumu","2-medium","cosmicveto", "inverted_mhnl","DVmass", "lep_pt"]
+            }
+}
