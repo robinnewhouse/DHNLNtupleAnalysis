@@ -755,7 +755,7 @@ class LRTTrackQuality:
 				muindex = muons.lepIndex[imu]
 				muisMedium = self.tree['muon_isMedium'][muindex]
 				muisLoose = self.tree['muon_isLoose'][muindex]
-				muisLRT = self.tree['muon_isLRT'][muindex]
+				muisLRT = helpers.charToInt(self.tree['muon_isLRT'][muindex])
 				if muisLRT == 1:
 					if muisMedium == 1:
 						self.nmu_lrt_medium += 1
