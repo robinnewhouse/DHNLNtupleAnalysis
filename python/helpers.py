@@ -719,7 +719,7 @@ def get_lepton_index(tree, itrk, lepton_type):
 		# lepton_index = np.where(tree['el_index'] == tree.dv('trk_electronIndex')[itrk])
 	if len(lepton_index) > 0:
 		if tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]] - tree.dv('trk_phi')[itrk] > 0.02:
-			logger.error("Lepton and track phi to not match. Check index counting. phi_lep: {}, phi_track: {}".format(
+			logger.warning("Lepton and track phi to not match. Check index counting. phi_lep: {}, phi_track: {}".format(
 				tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]], tree.dv('trk_phi')[itrk]))
 		return lepton_index[0]
 	else:

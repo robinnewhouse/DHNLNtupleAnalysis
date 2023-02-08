@@ -1484,8 +1484,8 @@ class MCEventType:
 
 		use_truth = False #Audrey: Avoid all truth things for now
 		if not use_truth and not tree.is_data and not tree.is_bkg_mc:
-			self.isLNC = tree["truth_event_is_LNC"][0] if tree["truth_event_is_LNC"].size > 0 else False #isLNC and isLNV are usually defined with truth info -- Audrey: define here for now
-			self.isLNV = tree["truth_event_is_LNV"][0] if tree["truth_event_is_LNC"].size > 0 else False
+			self.isLNC = tree["truth_event_is_LNC"][0] if len(tree["truth_event_is_LNC"]) > 0 else False #isLNC and isLNV are usually defined with truth info -- Audrey: define here for now
+			self.isLNV = tree["truth_event_is_LNV"][0] if len(tree["truth_event_is_LNC"]) > 0 else False
 		if use_truth and not tree.is_data and not tree.is_bkg_mc:
 			truth_info = helpers.Truth()
 			truth_info.get_truth_particles(tree)
