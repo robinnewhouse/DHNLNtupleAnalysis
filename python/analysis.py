@@ -15,6 +15,7 @@ FILL_LOCKED = 2
 
 
 class Analysis(object):
+
 	def __init__(self, name, tree, vtx_container, selection_list, output_file, save_ntuples, weight_override=None):
 		# set up logger for self
 		self.logger = helpers.getLogger('dHNLAnalysis.analysis', level=helpers.logger_debug_level)
@@ -36,11 +37,22 @@ class Analysis(object):
 		# create an instance of Observables to store histograms
 		self.observables = observables.Observables()
 
+		self.jetVariables = {}
+		self.jetVariables['pt'] = ROOT.std.vector('float')()
+		self.jetVariables['eta'] = ROOT.std.vector('float')()
+		self.jetVariables['phi'] = ROOT.std.vector('float')()
+		self.jetVariables['E'] = ROOT.std.vector('float')()
+		self.jetVariables['DL1dv00'] = ROOT.std.vector('float')()
+		self.jetVariables['DL1dv01'] = ROOT.std.vector('float')()
+		self.jetVariables['GN1'] = ROOT.std.vector('float')()
+
 		self.events_with_trig_match_plep = 0
 		self.events_with_trig_match_dlep = 0
 		self.events_with_trig_match_both_pdlep =0
 
-		# Calculate MC event weights as "L * xsec / num. MC events" (One number per file)
+		# Calculate MC event weights as "L * xsec / sum of weights" (One number per file)
+		# lumi_xsec_weight should only be used for backgrounds since the cross-section for SM processes is given by PMG. 
+		self.lumi_xsec_weight = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour", dirac_limit = True).get_mc_event_weight()
 		# Single flavour mixing weights
 		self.mc_event_weight_one_dirac_hnl_single_flavour = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour", dirac_limit = True).get_mc_event_weight()
 		self.mc_event_weight_one_majorana_hnl_single_flavour = helpers.MCEventWeight(self.tree, mixing_type ="single-flavour").get_mc_event_weight()
@@ -223,6 +235,14 @@ class Analysis(object):
 			self.track_quality = '2-any'
 		elif '2-veryveryloose' in self.sel:
 			self.track_quality = '2-veryveryloose'
+		elif 'std_L_lrt_L' in self.sel:
+			self.track_quality = 'std_L_lrt_L'
+		elif 'std_L_lrt_M' in self.sel:
+			self.track_quality = 'std_L_lrt_M'
+		elif 'std_M_lrt_L' in self.sel:
+			self.track_quality = 'std_M_lrt_L'
+		elif 'std_M_lrt_M' in self.sel:
+			self.track_quality = 'std_M_lrt_M'
 		else:
 			if "CR" not in self.sel:
 				self.logger.warn('You did not specify a DV track quality for this channel. Skipping DV track quality selection.')
@@ -361,6 +381,7 @@ class Analysis(object):
 				self.be_region = "RegionD"
 
 		self.check_input_consistency()
+
 
 	# Getter helper functions
 	def get_dv(self, key):
@@ -573,7 +594,7 @@ class Analysis(object):
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
-		track_quality_sel = selections.TrackQuality(self.tree, quality=self.track_quality)
+		track_quality_sel = selections.LRTTrackQuality(self.tree, quality=self.track_quality)
 		return track_quality_sel.passes()
 
 	def _cosmic_veto_cut(self):
@@ -721,7 +742,7 @@ class Analysis(object):
 		#if not self.tree.fake_aod:
 		#	self._fill_leptons()
 
-		if use_truth and not self.tree.is_data and not self.tree.not_hnl_mc:
+		if use_truth and not self.tree.is_data and not self.tree.is_bkg_mc:
 			self._fill_truth_histos(sel='truth_all')
 
 		self._fill_cutflow(0)
@@ -794,7 +815,7 @@ class Analysis(object):
 
 		# If you've made it here, preselection is passed
 		self.passed_preselection_cuts = True
-		#if use_truth and not self.tree.is_data and not self.tree.not_hnl_mc:
+		#if use_truth and not self.tree.is_data and not self.tree.is_bkg_mc:
 		#	self._fill_truth_histos(sel='truth/presel')
 
 	def calculate_event_weight(self):
@@ -815,17 +836,17 @@ class Analysis(object):
 			# #####################################################################################
 			# Compute "model weight" as the product of mc event weight x spin corr weight
 			# #####################################################################################
-			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih * selections.MCEventType(self.tree, mixing_type = "IH").weight
-			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh * selections.MCEventType(self.tree, mixing_type = "NH").weight
-			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih * selections.MCEventType(self.tree, mixing_type = "IH").weight
-			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh * selections.MCEventType(self.tree, mixing_type = "NH").weight
+			weight_majorana_limit_ih = self.mc_event_weight_majorana_limit_ih 
+			weight_majorana_limit_nh = self.mc_event_weight_majorana_limit_nh 
+			weight_dirac_limit_ih = self.mc_event_weight_dirac_limit_ih
+			weight_dirac_limit_nh = self.mc_event_weight_dirac_limit_nh 
 
 			# For uue and eeu channels, compute a second weight to reweight uue --> ueu  or eeu --> eue
 			if self.tree.channel == "uue" or self.tree.channel == "eeu":	
-				weight_majorana_limit_ih_2 = self.mc_event_weight_majorana_limit_ih_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "IH",flip_e_and_mu = True).weight
-				weight_majorana_limit_nh_2 = self.mc_event_weight_majorana_limit_nh_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "NH",flip_e_and_mu = True).weight
-				weight_dirac_limit_ih_2 = self.mc_event_weight_dirac_limit_ih_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "IH",flip_e_and_mu = True).weight
-				weight_dirac_limit_nh_2 = self.mc_event_weight_dirac_limit_nh_flip_e_and_mu * selections.MCEventType(self.tree, mixing_type = "NH",flip_e_and_mu = True).weight
+				weight_majorana_limit_ih_2 = self.mc_event_weight_majorana_limit_ih_flip_e_and_mu 
+				weight_majorana_limit_nh_2 = self.mc_event_weight_majorana_limit_nh_flip_e_and_mu
+				weight_dirac_limit_ih_2 = self.mc_event_weight_dirac_limit_ih_flip_e_and_mu 
+				weight_dirac_limit_nh_2 = self.mc_event_weight_dirac_limit_nh_flip_e_and_mu
 				# Total weight is the sum of the two channels for models 
 				self.model_weight_majorana_limit_ih = weight_majorana_limit_ih + weight_majorana_limit_ih_2
 				self.model_weight_majorana_limit_nh = weight_majorana_limit_nh + weight_majorana_limit_nh_2
@@ -838,8 +859,8 @@ class Analysis(object):
 				self.model_weight_dirac_limit_ih = weight_dirac_limit_ih
 				self.model_weight_dirac_limit_nh = weight_dirac_limit_nh
 			# Single flavour mixing models 
-			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour * selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
-			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour * selections.MCEventType(self.tree, mixing_type = "single-flavour").weight
+			self.model_weight_one_dirac_hnl_single_flavour = self.mc_event_weight_one_dirac_hnl_single_flavour
+			self.model_weight_one_majorana_hnl_single_flavour = self.mc_event_weight_one_majorana_hnl_single_flavour
 		else:
 			self.model_weight_one_dirac_hnl_single_flavour = self.weight_override
 			self.one_majorana_hnl_single_flavour = self.weight_override
@@ -853,26 +874,28 @@ class Analysis(object):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
 
 	def _fill_cutflow(self, nbin):
-		if not self.tree.is_data and not self.tree.not_hnl_mc:
+		evt_weight = self.tree['mcEventWeight']
+		scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
+		if not self.tree.is_data and not self.tree.is_bkg_mc:
 			# store weighted cutflow with nominal scale factors
-			scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
 			if self.MCEventType.isLNC:
 				self.CutFlow_LNC.Fill(nbin) # raw counts (only LNC events)
-				self.CutFlow_LNC_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
-				self.CutFlow_weighted_one_hnl_dirac.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor)
+				self.CutFlow_LNC_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
+				self.CutFlow_weighted_one_hnl_dirac.Fill(nbin, self.model_weight_one_dirac_hnl_single_flavour * scale_factor * evt_weight)
 			if self.MCEventType.isLNV:
 				self.CutFlow_LNV.Fill(nbin) # raw counts (only LNV events)
-				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
+				self.CutFlow_LNV_weighted.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
 
 			self.CutFlow.Fill(nbin) # raw counts (all events)
 			# Models that count both LNC and LNV events!
-			self.CutFlow_weighted_majorana_limit_ih.Fill(nbin, self.model_weight_majorana_limit_ih * scale_factor)
-			self.CutFlow_weighted_majorana_limit_nh.Fill(nbin, self.model_weight_majorana_limit_nh * scale_factor)
-			self.CutFlow_weighted_dirac_limit_ih.Fill(nbin, self.model_weight_dirac_limit_ih * scale_factor)
-			self.CutFlow_weighted_dirac_limit_nh.Fill(nbin, self.model_weight_dirac_limit_nh * scale_factor)
-			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor)
+			self.CutFlow_weighted_majorana_limit_ih.Fill(nbin, self.model_weight_majorana_limit_ih * scale_factor * evt_weight)
+			self.CutFlow_weighted_majorana_limit_nh.Fill(nbin, self.model_weight_majorana_limit_nh * scale_factor * evt_weight)
+			self.CutFlow_weighted_dirac_limit_ih.Fill(nbin, self.model_weight_dirac_limit_ih * scale_factor * evt_weight)
+			self.CutFlow_weighted_dirac_limit_nh.Fill(nbin, self.model_weight_dirac_limit_nh * scale_factor * evt_weight)
+			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
 		else:
 			self.CutFlow.Fill(nbin)
+			self.CutFlow_weighted.Fill(nbin, self.lumi_xsec_weight * scale_factor * evt_weight)
 
 	def _fill_leptons(self):
 		sel = 'all'
@@ -885,6 +908,7 @@ class Analysis(object):
 			if self.tree['muon_isMedium'][imu] == 1: self.fill_ntuple(sel, 'muon_quality', 2)
 			if self.tree['muon_isLoose'][imu] == 1:  self.fill_ntuple(sel, 'muon_quality', 1)
 			else: self.fill_ntuple(sel, 'muon_quality', 0)
+			self.fill_ntuple(sel, 'muon_isLRT', self.tree['muon_isLRT'][imu])
 
 		for iel in range(len(self.tree['el_pt'])):
 			self.fill_ntuple(sel, 'el_pt', self.tree['el_pt'][iel])
@@ -894,6 +918,7 @@ class Analysis(object):
 			if self.tree['el_LHMedium'][iel] == 1: self.fill_ntuple(sel, 'el_quality', 2)
 			if self.tree['el_LHLoose'][iel] == 1:  self.fill_ntuple(sel, 'el_quality', 1)
 			else: self.fill_ntuple(sel, 'el_quality', 0)
+			self.fill_ntuple(sel, 'el_isLRT', self.tree['el_isLRT'][imu])
 
 	def _fill_all_dv_histos(self):
 		sel = 'all'	
@@ -1082,14 +1107,17 @@ class Analysis(object):
 			self._fill_systematic_branches(sel)
 			# ____________________________________________________________
 			# Fill mc weights for the different HNL models
+			# Generic weight to be used for MC bkg
+			evt_weight = self.tree['mcEventWeight']
+			self.fill_ntuple(sel, 'bkg_mc_weight', self.lumi_xsec_weight * evt_weight)
 			# Weights for LNC + LNV decays
-			self.fill_ntuple(sel, 'model_weight_one_majorana_hnl_LNCplusLNV_single_flavour_mixing', self.model_weight_one_majorana_hnl_single_flavour)
-			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing', self.model_weight_majorana_limit_ih)
-			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing', self.model_weight_majorana_limit_nh)
+			self.fill_ntuple(sel, 'model_weight_one_majorana_hnl_LNCplusLNV_single_flavour_mixing', self.model_weight_one_majorana_hnl_single_flavour * evt_weight)
+			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing', self.model_weight_majorana_limit_ih * evt_weight)
+			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing', self.model_weight_majorana_limit_nh * evt_weight)
 			# LNC only weights
-			self.fill_ntuple(sel, 'model_weight_one_dirac_hnl_LNC_single_flavour_mixing', self.model_weight_one_dirac_hnl_single_flavour)
-			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNC_ih_mixing', self.model_weight_dirac_limit_ih)
-			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNC_nh_mixing', self.model_weight_dirac_limit_nh)
+			self.fill_ntuple(sel, 'model_weight_one_dirac_hnl_LNC_single_flavour_mixing', self.model_weight_one_dirac_hnl_single_flavour * evt_weight)
+			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNC_ih_mixing', self.model_weight_dirac_limit_ih * evt_weight)
+			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNC_nh_mixing', self.model_weight_dirac_limit_nh * evt_weight)
 			# ____________________________________________________________
 			# Fill HNL cross sections for different models
 			one_majorana_hnl_single_flavour_xsec = helpers.MCEventWeight(self.tree, mixing_type="single-flavour").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
@@ -1105,6 +1133,13 @@ class Analysis(object):
 			# ____________________________________________________________
 			# add mc event weight
 			self.fill_ntuple(sel, 'mcEventWeight', self.tree['mcEventWeight'])
+			self.fill_ntuple(sel, 'runNumber',self.tree["runNumber"])
+			if (self.tree["mcChannelNumber"] != self.tree.mcChannelNumber) and not self.tree.is_data and self.tree.is_bkg_mc:
+				self.logger.error("DSID {} put in config does not match DSID {} read from the ntuple. Please check your configuration.".format(self.tree.mcChannelNumber,self.tree["mcChannelNumber"]))
+				sys.exit(1)  # abort because of error
+			self.fill_ntuple(sel, 'mcChannelNumber',self.tree["mcChannelNumber"])
+			self.fill_ntuple(sel, 'eventNumber',self.tree['eventNumber'])
+			self.AddExtraVariables(sel)
 
 			# ____________________________________________________________
 			tracks = helpers.Tracks(self.tree)
@@ -1352,6 +1387,8 @@ class Analysis(object):
 				self.fill_ntuple(sel, 'DV_mu_1_charge', muons.lepCharge[1])
 				self.fill_ntuple(sel, 'DV_mu_0_isElectron', 0)
 				self.fill_ntuple(sel, 'DV_mu_1_isElectron', 0)
+				self.fill_ntuple(sel, 'DV_mu_0_isLRT', muons.muon_isLRT[0])
+				self.fill_ntuple(sel, 'DV_mu_1_isLRT', muons.muon_isLRT[1])
 				self.fill_ntuple(sel, 'DV_mu_0_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[0]])
 				self.fill_ntuple(sel, 'DV_mu_1_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[1]])
 				self.fill_ntuple(sel, 'DV_mu_0_muon_isMedium', self.tree.get('muon_isMedium')[muons.lepIndex[0]])
@@ -1535,7 +1572,7 @@ class Analysis(object):
 
 			# 	if self.dv_type == "mumu":
 			# 		# Get the truth index (truth matching by charge)
-			# 		if not self.tree.not_hnl_mc and 'tt' not in self.tree.mc_ch_str:
+			# 		if not self.tree.is_bkg_mc and 'tt' not in self.tree.mc_ch_str:
 			# 			if self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[0]: trk_0_truth_index = 0
 			# 			elif self.tree.dv('trk_charge')[0] == truth_info.dMu_charge[1]: trk_0_truth_index = 1
 			# 			else: raise Exception("Can't truth match lepton by charge. Something is strange.")
@@ -1553,12 +1590,12 @@ class Analysis(object):
 
 			# 	if self.dv_type == "emu":
 			# 		# truth d0 # it looks like these are already matched so track0 is always the muon. Could that be?
-			# 		if not self.tree.not_hnl_mc and 'tt' not in self.tree.mc_ch_str:
+			# 		if not self.tree.is_bkg_mc and 'tt' not in self.tree.mc_ch_str:
 			# 			self.fill_ntuple(sel, 'DV_trk_0_d0_truth', truth_info.dMu_d0[0])
 			# 			self.fill_ntuple(sel, 'DV_trk_1_d0_truth', truth_info.dEl_d0[0])
 
 			# 	if self.dv_type == "ee":
-			# 		if not self.tree.not_hnl_mc and 'tt' not in self.tree.mc_ch_str:
+			# 		if not self.tree.is_bkg_mc and 'tt' not in self.tree.mc_ch_str:
 			# 			# Get the truth index (truth matching by charge)
 			# 			if self.tree.dv('trk_charge')[0] == truth_info.dEl_charge[0]: trk_0_truth_index = 0
 			# 			elif self.tree.dv('trk_charge')[0] == truth_info.dEl_charge[1]: trk_0_truth_index = 1
@@ -1590,15 +1627,13 @@ class Analysis(object):
 			self.fill_ntuple(sel, 'DV_tight_loose', trk_quality.DV_tight_loose)
 			self.fill_ntuple(sel, 'DV_tight_medium', trk_quality.DV_tight_medium)
 			self.fill_ntuple(sel, 'DV_medium_loose', trk_quality.DV_medium_loose)
-            # Can't handle veryloose or veryveryloose WP yet
-			#self.fill_ntuple(sel, 'DV_tight_veryloose', trk_quality.DV_tight_veryloose)
-			#self.fill_ntuple(sel, 'DV_medium_veryloose', trk_quality.DV_medium_veryloose)
-			#self.fill_ntuple(sel, 'DV_loose_veryloose', trk_quality.DV_loose_veryloose)
-			#self.fill_ntuple(sel, 'DV_tight_veryveryloose', trk_quality.DV_tight_veryveryloose)
-			#self.fill_ntuple(sel, 'DV_medium_veryveryloose', trk_quality.DV_medium_veryveryloose)
-			#self.fill_ntuple(sel, 'DV_loose_veryveryloose', trk_quality.DV_loose_veryveryloose)
-			#self.fill_ntuple(sel, 'DV_2veryveryloose', trk_quality.DV_2veryveryloose)
-			#self.fill_ntuple(sel, 'DV_1veryveryloose', trk_quality.DV_1veryveryloose)
+
+			lrt_trk_quality = selections.LRTTrackQuality(self.tree)
+
+			self.fill_ntuple(sel, 'DV_std_L_lrt_L', lrt_trk_quality.DV_SlLl)
+			self.fill_ntuple(sel, 'DV_std_L_lrt_M', lrt_trk_quality.DV_SlLm)
+			self.fill_ntuple(sel, 'DV_std_M_lrt_L', lrt_trk_quality.DV_SmLl)
+			self.fill_ntuple(sel, 'DV_std_M_lrt_M', lrt_trk_quality.DV_SmLm)
 
 			# ____________________________________________________________
 			# Trigger matching requirement
@@ -1658,6 +1693,35 @@ class Analysis(object):
 		# storing systematic with standard ATLAS "1-sigma down" notation
 		self.fill_ntuple(sel, 'd0_extrapolation_1DOWN', d0_extrapolation_systematic, weight=1)
 
+	def AddExtraVariables(self,sel):
+		"""
+		This is a function intended to add jet variables, but can be used to add other vectors as well.
+		"""
+		for jet_index in range(len(self.tree['jet_pt'])):
+			self.jetVariables['pt'].push_back(self.tree['jet_pt'][jet_index])
+			self.jetVariables['eta'].push_back(self.tree['jet_eta'][jet_index])
+			self.jetVariables['phi'].push_back(self.tree['jet_phi'][jet_index])
+			self.jetVariables['E'].push_back(self.tree['jet_E'][jet_index])
+			self.jetVariables['DL1dv00'].push_back(self.tree['jet_DL1dv00'][jet_index])
+			self.jetVariables['DL1dv01'].push_back(self.tree['jet_DL1dv01'][jet_index])
+			if (self.tree['jet_GN1'][jet_index] < -999. ): self.jetVariables['GN1'].push_back(-999.)
+			else: self.jetVariables['GN1'].push_back(self.tree['jet_GN1'][jet_index])
+   
+		self.fill_ntuple(sel, 'jet_pt', self.jetVariables['pt'])
+		self.fill_ntuple(sel, 'jet_eta', self.jetVariables['eta'])
+		self.fill_ntuple(sel, 'jet_phi', self.jetVariables['phi'])
+		self.fill_ntuple(sel, 'jet_E', self.jetVariables['E'])
+		self.fill_ntuple(sel, 'jet_DL1dv00', self.jetVariables['DL1dv00'])
+		self.fill_ntuple(sel, 'jet_DL1dv01', self.jetVariables['DL1dv01'])
+		self.fill_ntuple(sel, 'jet_GN1', self.jetVariables['GN1'])
+	
+		self.jetVariables['pt'].clear()
+		self.jetVariables['eta'].clear()
+		self.jetVariables['phi'].clear()
+		self.jetVariables['E'].clear()
+		self.jetVariables['DL1dv00'].clear()
+		self.jetVariables['DL1dv01'].clear()
+		self.jetVariables['GN1'].clear()
 
 
 class run2Analysis(Analysis):
@@ -1758,7 +1822,7 @@ class run2Analysis(Analysis):
 
 
 		# Store LNC and LNV cutflows in the observables collection
-		if not self.tree.is_data and not self.tree.not_hnl_mc:
+		if not self.tree.is_data and not self.tree.is_bkg_mc:
 			# #########################################################################################################
 			# Raw cutflows
 			# #########################################################################################################
@@ -1811,7 +1875,11 @@ class run2Analysis(Analysis):
 			self.CutFlow_weighted_dirac_limit_nh = self.CutFlow.Clone()
 			self.CutFlow_weighted_dirac_limit_nh.SetName("CutFlow_weighted_dirac_limit_nh"+"_"+self.ch)
 			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted_dirac_limit_nh'] = self.CutFlow_weighted_dirac_limit_nh
-
+		else:
+			# Weighted cutflow
+			self.CutFlow_weighted = self.CutFlow.Clone()
+			self.CutFlow_weighted.SetName("CutFlow_weighted"+"_"+self.ch)
+			self.observables.histogram_dict[self.cutflow_dir+'CutFlow_weighted'] = self.CutFlow_weighted
 
 
 	def DVSelection(self,use_truth=False):
@@ -2030,13 +2098,12 @@ class run2Analysis(Analysis):
 				return
 
 		# Fill histos of truth-matched DVs
-		if use_truth and not self.tree.is_data and not self.tree.not_hnl_mc:
+		if use_truth and not self.tree.is_data and not self.tree.is_bkg_mc:
 			if self._truth_match():
 				if not self.dv_type == "ee": self._fill_cutflow(20)
 				else: self._fill_cutflow(20+1)
 				if self.save_ntuples == "match":
 					self._fill_selected_dv_histos(self.save_ntuples)
-
 
 class BEAnalysis(Analysis):
 	def __init__(self, name, tree, vtx_container, selections, output_file, save_ntuples, weight_override=None):
