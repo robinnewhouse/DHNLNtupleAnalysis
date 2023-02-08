@@ -48,7 +48,7 @@ class Analysis(object):
 
 		self.events_with_trig_match_plep = 0
 		self.events_with_trig_match_dlep = 0
-		self.events_with_trig_match_both_pdlep =0
+		self.events_with_trig_match_both_pdlep = 0
 
 		# Calculate MC event weights as "L * xsec / sum of weights" (One number per file)
 		# lumi_xsec_weight should only be used for backgrounds since the cross-section for SM processes is given by PMG. 
@@ -419,8 +419,12 @@ class Analysis(object):
 				self.micro_ntuples[prefix] = ntuples.Ntuples('ntuples_{}_{}'.format(prefix, self.ch))
 			# The name of the ntuple
 			if not full_name:
-				full_name = ntuple_name
-			self.micro_ntuples[prefix][full_name] = variable
+				full_name = ntuple_name		
+			try: 
+				self.micro_ntuples[prefix][full_name] = variable
+			except: 
+				print ("failed to fill var: '{0}': saw value '{1}' (of type {2})".format(full_name, variable,type(variable)))
+				raise
 
 	def check_input_consistency(self):
 		if self.do_trilepton_mass_cut or self.do_HNL_mass_cut or self.do_HNL_pt_cut:
@@ -908,7 +912,7 @@ class Analysis(object):
 			if self.tree['muon_isMedium'][imu] == 1: self.fill_ntuple(sel, 'muon_quality', 2)
 			if self.tree['muon_isLoose'][imu] == 1:  self.fill_ntuple(sel, 'muon_quality', 1)
 			else: self.fill_ntuple(sel, 'muon_quality', 0)
-			self.fill_ntuple(sel, 'muon_isLRT', self.tree['muon_isLRT'][imu])
+			self.fill_ntuple(sel, 'muon_isLRT', helpers.charToInt(self.tree['muon_isLRT'][imu]))
 
 		for iel in range(len(self.tree['el_pt'])):
 			self.fill_ntuple(sel, 'el_pt', self.tree['el_pt'][iel])
@@ -918,7 +922,7 @@ class Analysis(object):
 			if self.tree['el_LHMedium'][iel] == 1: self.fill_ntuple(sel, 'el_quality', 2)
 			if self.tree['el_LHLoose'][iel] == 1:  self.fill_ntuple(sel, 'el_quality', 1)
 			else: self.fill_ntuple(sel, 'el_quality', 0)
-			self.fill_ntuple(sel, 'el_isLRT', self.tree['el_isLRT'][imu])
+			self.fill_ntuple(sel, 'el_isLRT', helpers.charToInt(self.tree['el_isLRT'][imu]))
 
 	def _fill_all_dv_histos(self):
 		sel = 'all'	
@@ -1277,7 +1281,7 @@ class Analysis(object):
 
 				# calculate momentum parallel and perpendicular to the decay vector = DV-PV
 				dv = ROOT.TVector3(self.tree.dv('x'), self.tree.dv('y'), self.tree.dv('z'))
-				pv = ROOT.TVector3(self.tree['truth_PV_x'], self.tree['truth_PV_y'], self.tree['truth_PV_z'])
+				pv = ROOT.TVector3(self.tree['truth_PV_x'][0], self.tree['truth_PV_y'][0], self.tree['truth_PV_z'][0])
 				decay_vector = dv - pv
 				pvec_0 = ROOT.TVector3(tracks.lepVec[0].Px(), tracks.lepVec[0].Py(), tracks.lepVec[0].Pz())
 				pvec_1 = ROOT.TVector3(tracks.lepVec[1].Px(), tracks.lepVec[1].Py(), tracks.lepVec[1].Pz())
@@ -1301,8 +1305,8 @@ class Analysis(object):
 					self.fill_ntuple(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[1])
 					self.fill_ntuple(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[1])
 					self.fill_ntuple(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[1])
-					self.fill_ntuple(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[1])
-					self.fill_ntuple(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[1])
+					self.fill_ntuple(sel, 'DV_trk_0_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[1]))
+					self.fill_ntuple(sel, 'DV_trk_0_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[1]))
 					self.fill_ntuple(sel, 'DV_trk_0_mom_parall', mom_parall_1)
 					self.fill_ntuple(sel, 'DV_trk_0_mom_perp', mom_perp_1)
 					self.fill_ntuple(sel, 'DV_trk_0_mom_mag', pvec_1_mag)
@@ -1315,8 +1319,8 @@ class Analysis(object):
 					self.fill_ntuple(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[0])
 					self.fill_ntuple(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[0])
 					self.fill_ntuple(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[0])
-					self.fill_ntuple(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[0])
-					self.fill_ntuple(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[0])
+					self.fill_ntuple(sel, 'DV_trk_1_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[0]))
+					self.fill_ntuple(sel, 'DV_trk_1_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[0]))
 					self.fill_ntuple(sel, 'DV_trk_1_mom_parall', mom_parall_0)
 					self.fill_ntuple(sel, 'DV_trk_1_mom_perp', mom_perp_0)
 					self.fill_ntuple(sel, 'DV_trk_1_mom_mag', pvec_0_mag)
@@ -1329,8 +1333,8 @@ class Analysis(object):
 					self.fill_ntuple(sel, 'DV_trk_0_z0', self.tree.dv('trk_z0')[0])
 					self.fill_ntuple(sel, 'DV_trk_0_charge', self.tree.dv('trk_charge')[0])
 					self.fill_ntuple(sel, 'DV_trk_0_chi2', self.tree.dv('trk_chi2')[0])
-					self.fill_ntuple(sel, 'DV_trk_0_isSelected', self.tree.dv('trk_isSelected')[0])
-					self.fill_ntuple(sel, 'DV_trk_0_isAssociated', self.tree.dv('trk_isAssociated')[0])
+					self.fill_ntuple(sel, 'DV_trk_0_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[0]))
+					self.fill_ntuple(sel, 'DV_trk_0_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[0]))
 					self.fill_ntuple(sel, 'DV_trk_0_mom_parall', mom_parall_0)
 					self.fill_ntuple(sel, 'DV_trk_0_mom_perp', mom_perp_0)
 					self.fill_ntuple(sel, 'DV_trk_0_mom_mag', pvec_0_mag)
@@ -1343,8 +1347,8 @@ class Analysis(object):
 					self.fill_ntuple(sel, 'DV_trk_1_z0', self.tree.dv('trk_z0')[1])
 					self.fill_ntuple(sel, 'DV_trk_1_charge', self.tree.dv('trk_charge')[1])
 					self.fill_ntuple(sel, 'DV_trk_1_chi2', self.tree.dv('trk_chi2')[1])
-					self.fill_ntuple(sel, 'DV_trk_1_isSelected', self.tree.dv('trk_isSelected')[1])
-					self.fill_ntuple(sel, 'DV_trk_1_isAssociated', self.tree.dv('trk_isAssociated')[1])
+					self.fill_ntuple(sel, 'DV_trk_1_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[1]))
+					self.fill_ntuple(sel, 'DV_trk_1_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[1]))
 					self.fill_ntuple(sel, 'DV_trk_1_mom_parall', mom_parall_1)
 					self.fill_ntuple(sel, 'DV_trk_1_mom_perp', mom_perp_1)
 					self.fill_ntuple(sel, 'DV_trk_1_mom_mag', pvec_1_mag)
@@ -1387,8 +1391,8 @@ class Analysis(object):
 				self.fill_ntuple(sel, 'DV_mu_1_charge', muons.lepCharge[1])
 				self.fill_ntuple(sel, 'DV_mu_0_isElectron', 0)
 				self.fill_ntuple(sel, 'DV_mu_1_isElectron', 0)
-				self.fill_ntuple(sel, 'DV_mu_0_isLRT', muons.muon_isLRT[0])
-				self.fill_ntuple(sel, 'DV_mu_1_isLRT', muons.muon_isLRT[1])
+				self.fill_ntuple(sel, 'DV_mu_0_isLRT', helpers.charToInt(muons.muon_isLRT[0]))
+				self.fill_ntuple(sel, 'DV_mu_1_isLRT', helpers.charToInt(muons.muon_isLRT[1]))
 				self.fill_ntuple(sel, 'DV_mu_0_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[0]])
 				self.fill_ntuple(sel, 'DV_mu_1_muon_isLoose', self.tree.get('muon_isLoose')[muons.lepIndex[1]])
 				self.fill_ntuple(sel, 'DV_mu_0_muon_isMedium', self.tree.get('muon_isMedium')[muons.lepIndex[0]])
@@ -1514,13 +1518,13 @@ class Analysis(object):
 				self.fill_ntuple(sel, 'DV_trk_absz0', abs(self.tree.dv('trk_z0')[i]))
 				self.fill_ntuple(sel, 'DV_trk_charge', self.tree.dv('trk_charge')[i])
 				self.fill_ntuple(sel, 'DV_trk_chi2', self.tree.dv('trk_chi2')[i])
-				# self.fill_ntuple(sel, 'DV_trk_isLRT', self.tree.dv('trk_isLRT')[i])
-				self.fill_ntuple(sel, 'DV_trk_isSelected', self.tree.dv('trk_isSelected')[i])
-				self.fill_ntuple(sel, 'DV_trk_isAssociated', self.tree.dv('trk_isAssociated')[i])
-				self.fill_ntuple(sel, 'DV_trk_nPixelHits', self.tree.dv('trk_nPixelHits')[i])
-				self.fill_ntuple(sel, 'DV_trk_nSCTHits', self.tree.dv('trk_nSCTHits')[i])
+				# self.fill_ntuple(sel, 'DV_trk_isLRT',  helpers.charToInt(self.tree.dv('trk_isLRT')[i]))
+				self.fill_ntuple(sel, 'DV_trk_isSelected',  helpers.charToInt(self.tree.dv('trk_isSelected')[i]))
+				self.fill_ntuple(sel, 'DV_trk_isAssociated',  helpers.charToInt(self.tree.dv('trk_isAssociated')[i]))
+				self.fill_ntuple(sel, 'DV_trk_nPixelHits', helpers.charToInt(self.tree.dv('trk_nPixelHits')[i]))
+				self.fill_ntuple(sel, 'DV_trk_nSCTHits', helpers.charToInt(self.tree.dv('trk_nSCTHits')[i]))
 				# self.fill_ntuple(sel, 'DV_trk_nSCTHoles', self.tree.dv('trk_nSCTHoles')[i])
-				self.fill_ntuple(sel, 'DV_trk_nSiHits', self.tree.dv('trk_nSCTHits')[i] + self.tree.dv('trk_nPixelHits')[i])
+				self.fill_ntuple(sel, 'DV_trk_nSiHits', helpers.charToInt(self.tree.dv('trk_nSCTHits')[i]) + helpers.charToInt(self.tree.dv('trk_nPixelHits')[i]))
 				# self.fill_ntuple(sel, 'DV_trk_dTheta', self.tree.dv('trk_dTheta')[i])
 				self.fill_ntuple(sel, 'DV_trk_chi2_toSV'.format(i), self.tree.dv('trk_chi2_toSV')[i])
 				self.fill_ntuple(sel, 'DV_trk_d0_wrtSV'.format(i), self.tree.dv('trk_d0_wrtSV')[i])
@@ -1534,9 +1538,9 @@ class Analysis(object):
 			self.fill_ntuple(sel, 'DV_y', self.tree.dv('y'))
 			self.fill_ntuple(sel, 'DV_z', self.tree.dv('z'))
 			self.fill_ntuple(sel, 'DV_r', self.tree.dv('r'))
-			self.fill_ntuple(sel, 'PV_x', self.tree['truth_PV_x'])
-			self.fill_ntuple(sel, 'PV_y', self.tree['truth_PV_y'])
-			self.fill_ntuple(sel, 'PV_z', self.tree['truth_PV_z'])
+			self.fill_ntuple(sel, 'PV_x', self.tree['truth_PV_x'][0])
+			self.fill_ntuple(sel, 'PV_y', self.tree['truth_PV_y'][0])
+			self.fill_ntuple(sel, 'PV_z', self.tree['truth_PV_z'][0])
 			self.fill_ntuple(sel, 'DV_distFromPV', self.tree.dv('distFromPV'))
 			self.fill_ntuple(sel, 'DV_mass', self.tree.dv('mass'))
 			self.fill_ntuple(sel, 'DV_pt', self.tree.dv('pt'))
@@ -1567,8 +1571,6 @@ class Analysis(object):
 			# 	truth_info = helpers.Truth()
 			# 	truth_info.get_truth_particles(self.tree)
 			# 	self.fill_ntuple(sel, 'properLifetime', truth_info.properLifetime)
-
-			# 	self.fill_ntuple(sel, 'truth_DV_mass', truth_info.DV_mass)
 
 			# 	if self.dv_type == "mumu":
 			# 		# Get the truth index (truth matching by charge)
@@ -2304,7 +2306,7 @@ class KShort(Analysis):
 
 
 	def _fill_selected_dv_histos(self, sel, do_lock=True):
-		if not self.tree.is_data and not self.tree.not_hnl_mc:
+		if not self.tree.is_data and not self.tree.is_bkg_mc:
 			if self.MCEventType.isLNC: 
 				sel =  sel + "_LNC" 
 			if self.MCEventType.isLNV:

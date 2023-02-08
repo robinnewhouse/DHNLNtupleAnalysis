@@ -11,14 +11,35 @@ that was developed for the displaced heavy neutral lepton (DHNL) analysis. For i
 ## Getting Started
 
 To clone the project: 
-
 ```
 setupATLAS
 lsetup git
-git clone ssh://git@gitlab.cern.ch:7999/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git
+git clone --recursive  https://:@gitlab.cern.ch:8443/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git source
 ```
 
-The analysis code uses the package `uproot` to load root files. For more details see [uproot documentation](https://pypi.org/project/uproot/). To setup python to include the `uproot` package on lxplus do the following: 
+There are two ways of setting up the I/O, depending on your preference for the I/O backend 
+
+### Using NTupleAnalysisUtils (faster)  
+
+The analysis code uses the package `NTupleAnalysisUtils` to load root files. For more details see [NTupleAnalysisUtils documentation](https://gitlab.cern.ch/Atlas-Inner-Tracking/NtupleAnalysisUtils_tutorial). To setup to run, use a recent release 22 analysis release, for example: 
+
+To set up the environment (from scratch): 
+```
+mkdir build; cd build; asetup AnalysisBase,master,latest ; cd - 
+```
+
+To build the C++ backend (only needed the first time or when changing NtupleAnalysisUtils): 
+```
+cd build; 
+cmake ../source; 
+make ; 
+source x*/setup.sh
+```
+This will make NTupleAnalysisUtils available, while the python scripts in this package will only need the python and ROOT versions that come with the release.
+
+### Using uproot (historical default)
+
+The analysis code historically uses the package `uproot` to load root files. This is the default. For more details see [uproot documentation](https://pypi.org/project/uproot/). To setup python to include the `uproot` package on lxplus do the following: 
 
 ```
 source /cvmfs/sft.cern.ch/lcg/views/LCG_96c_LS/x86_64-centos7-gcc8-opt/setup.sh
@@ -31,7 +52,7 @@ If you are running on a local cluster the complier version might change (i.e. gc
 To make histograms from DHNL ntuples for a specific channel (eg. uuu) do the following: 
 ```
 cd python 
-python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu.json
+python makeHistograms.py -i path_to_dHNLntuple --config ../data/mc/config_mc_uuu.json [[--useNTAU ]]
 ```
 One root file will be saved in DHNLNtupleAnalysis/output/ folder. 
 

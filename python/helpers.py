@@ -42,6 +42,20 @@ def get_debug_level(level):
 		debug_level = logging.ERROR
 	return debug_level
 
+# Sanitize branch contents passed from ROOT as Char 
+# (mainly Si hit counts) which are mis-interpreted
+# as strings in python. This converts to the intended
+# integer type. 
+def charToInt(value): 
+	if type(value)==str: 
+		try: 
+			return ord(value)
+		except:
+			try: 
+				return int(value)
+			except:
+				print ("out of ideas for '{0}'".format(value))
+	return value
 
 class ReadJsonFiles:
 	def __init__(self, filename):
@@ -697,15 +711,17 @@ def get_lepton_index(tree, itrk, lepton_type):
 	"""
 	lepton_index = None
 	if lepton_type == 'muon':
-		lepton_index = np.where(tree['muon_index'] == tree.dv('trk_muonIndex')[itrk])
+		# lepton_index = np.where(tree['muon_index'] == tree.dv('trk_muonIndex')[itrk])
+		lepton_index = [  muix for muix in range (tree['nmuon']) if tree['muon_index'][muix] == tree.dv('trk_muonIndex')[itrk]  ]
+
 	if lepton_type == 'electron':
-		lepton_index = np.where(tree['el_index'] == tree.dv('trk_electronIndex')[itrk])
-	if len(lepton_index[0]) > 0:
-		if tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0][0]] - tree.dv('trk_phi')[itrk] > 0.02:
-			logger.warning("Lepton and track phi to not match. Check index counting. phi_lep: {}, phi_track: {}".format(
-				tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0][0]], tree.dv('trk_phi')[itrk]))
-			return None
-		return lepton_index[0][0]
+		lepton_index = [  elix for elix in range (tree['nel']) if tree['el_index'][elix] == tree.dv('trk_electronIndex')[itrk]  ]
+		# lepton_index = np.where(tree['el_index'] == tree.dv('trk_electronIndex')[itrk])
+	if len(lepton_index) > 0:
+		if tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]] - tree.dv('trk_phi')[itrk] > 0.02:
+			logger.error("Lepton and track phi to not match. Check index counting. phi_lep: {}, phi_track: {}".format(
+				tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]], tree.dv('trk_phi')[itrk]))
+		return lepton_index[0]
 	else:
 		return None
 
@@ -742,7 +758,6 @@ class Tracks:
 
 	def get_muons(self):
 		self.ntracks = self.tree.ntrk
-		# print "number of tracks: ", self.ntracks
 		for itrk in range(self.ntracks):
 			lepVec = ROOT.TLorentzVector()
 			std_lepVec = ROOT.TLorentzVector()
@@ -782,7 +797,7 @@ class Tracks:
 						lep_pt = self.tree['muon_pt'][muon_index]
 						lep_eta = self.tree['muon_eta'][muon_index]
 						lep_phi = self.tree['muon_phi'][muon_index]
-						lep_isLRT = self.tree['muon_isLRT'][muon_index]
+						lep_isLRT = charToInt(self.tree['muon_isLRT'][muon_index])
 						lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
 				else:
 					self.lepIndex.append(-1)

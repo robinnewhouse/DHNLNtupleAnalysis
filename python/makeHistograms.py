@@ -3,6 +3,7 @@ import os, sys
 import helpers
 import analysis
 import trees
+# import NTAUtrees as trees
 import json
 import argparse
 
@@ -99,6 +100,12 @@ parser.add_argument('--doSystematics',
 					default=False,
 					help='Run all systematics? False (default) will run only the nominal tree.')
 
+parser.add_argument('--useNTAU',
+					dest="useNTAU",
+					action="store_true",
+					default=False,
+					help='Use NTupleAnalysisUtils for I/O.')
+
 parser.add_argument('--DSID',
 					default=-1,
 					type=int,
@@ -177,9 +184,14 @@ for channel, configs in config_file.items():
 		file_info = helpers.FileInfo(input_file, channel)
 		# Try to load only the number of entries of you need
 		entries = args.nevents if args.nevents else None
+		if args.useNTAU: 
+			from trees import ntauTree as treeType 
+		else: 
+			from trees import uprootTree as treeType
+
 		# Create new Tree class using uproot
-		tree = trees.Tree(input_file, tree_name, entries, mc_campaign=file_info.mc_campaign, dsid=file_info.dsid, mass=file_info.mass,
-							channel=channel, ctau=file_info.ctau, is_bkg_mc=args.notHNLmc, skip_events=args.skipEvents, DSID=args.DSID)
+		tree = treeType(input_file, tree_name, entries, mc_campaign=file_info.mc_campaign, dsid=file_info.dsid, mass=file_info.mass,
+							channel=channel, ctau=file_info.ctau, is_bkg_mc=args.notHNLmc, skip_events=args.skipEvents, DSID_forced=args.DSID)
 		# logger.info('Mass dependent BR: {}'.format(file_info.br))
 
 		# create one output file per channel in your config file
