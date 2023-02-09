@@ -400,7 +400,7 @@ class Alpha:
 		self.max_alpha = max_alpha
 		# compute alpha (3D angle between DV 3-momentum and rDV)
 		dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-		pv = ROOT.TVector3(tree['truth_PV_x'], tree['truth_PV_y'], tree['truth_PV_z'])
+		pv = ROOT.TVector3(tree['truth_PV_x'][0], tree['truth_PV_y'][0], tree['truth_PV_z'][0])
 		decay_vector = dv - pv
 
 		dv_4vec = ROOT.TLorentzVector()
@@ -502,6 +502,7 @@ class DVType:
 
 			self.electrons = helpers.Electrons(self.tree)
 			self.nel = len(self.electrons.lepVec)
+			# print("nmu = {0}, nel = {1}".format(self.nmu,self.nel))
 
 	def passes(self):
 		combined = 0
@@ -615,7 +616,7 @@ class TrackQuality:
 					muisTight = self.tree['muon_isTight'][muindex]
 					muisMedium = self.tree['muon_isMedium'][muindex]
 					muisLoose = self.tree['muon_isLoose'][muindex]
-					muisLRT = self.tree['muon_isLRT'][muindex]
+					muisLRT = helpers.charToInt(self.tree['muon_isLRT'][muindex])
 				# check if Tight == 1 to in case safeFill was used and isTight == -1 (which is also not Tight!) -DT
 				if muisTight == 1:
 					self.nmu_tight = self.nmu_tight + 1
@@ -754,7 +755,7 @@ class LRTTrackQuality:
 				muindex = muons.lepIndex[imu]
 				muisMedium = self.tree['muon_isMedium'][muindex]
 				muisLoose = self.tree['muon_isLoose'][muindex]
-				muisLRT = self.tree['muon_isLRT'][muindex]
+				muisLRT = helpers.charToInt(self.tree['muon_isLRT'][muindex])
 				if muisLRT == 1:
 					if muisMedium == 1:
 						self.nmu_lrt_medium += 1
@@ -1135,7 +1136,7 @@ class Mhnl:
 		# Get 3 vectors for the location of the DV and PV
 		if not use_truth:
 			dv = ROOT.TVector3(tree.dv('x'), tree.dv('y'), tree.dv('z'))
-			pv = ROOT.TVector3(tree['truth_PV_x'], tree['truth_PV_y'], tree['truth_PV_z'])
+			pv = ROOT.TVector3(tree['truth_PV_x'][0], tree['truth_PV_y'][0], tree['truth_PV_z'][0])
 		else:
 			pv = truth_pv
 			dv = truth_dv
@@ -1305,9 +1306,9 @@ class Mhnl:
 class PV:
 	def __init__(self, tree):
 
-		self.pv_x = tree['truth_PV_x']
-		self.pv_y = tree['truth_PV_y']
-		self.pv_z = tree['truth_PV_z']
+		self.pv_x = tree['truth_PV_x'][0]
+		self.pv_y = tree['truth_PV_y'][0]
+		self.pv_z = tree['truth_PV_z'][0]
 
 	def passes(self):
 
@@ -1483,8 +1484,8 @@ class MCEventType:
 
 		use_truth = False #Audrey: Avoid all truth things for now
 		if not use_truth and not tree.is_data and not tree.is_bkg_mc:
-			self.isLNC = tree["truth_event_is_LNC"][0] if tree["truth_event_is_LNC"].size > 0 else False #isLNC and isLNV are usually defined with truth info -- Audrey: define here for now
-			self.isLNV = tree["truth_event_is_LNV"][0] if tree["truth_event_is_LNC"].size > 0 else False
+			self.isLNC = tree["truth_event_is_LNC"][0] if len(tree["truth_event_is_LNC"]) > 0 else False #isLNC and isLNV are usually defined with truth info -- Audrey: define here for now
+			self.isLNV = tree["truth_event_is_LNV"][0] if len(tree["truth_event_is_LNC"]) > 0 else False
 		if use_truth and not tree.is_data and not tree.is_bkg_mc:
 			truth_info = helpers.Truth()
 			truth_info.get_truth_particles(tree)
