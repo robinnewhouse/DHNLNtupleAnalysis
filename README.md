@@ -25,7 +25,7 @@ The analysis code uses the package `NTupleAnalysisUtils` to load root files. For
 
 To set up the environment (from scratch): 
 ```
-mkdir build; cd build; asetup AnalysisBase,master,latest ; cd - 
+mkdir build; cd build; asetup AnalysisBase,22.0.105 ; cd - 
 ```
 
 To build the C++ backend (only needed the first time or when changing NtupleAnalysisUtils): 
@@ -36,6 +36,8 @@ make ;
 source x*/setup.sh
 ```
 This will make NTupleAnalysisUtils available, while the python scripts in this package will only need the python and ROOT versions that come with the release.
+
+NB: The python release that comes with AnalysisBase doesn't support uproot3. Do not try to configure both uproot and AnalysisBase/NTAU at the same time. The releases will clash and nothing will run.
 
 ### Using uproot (historical default)
 
