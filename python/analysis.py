@@ -878,7 +878,7 @@ class Analysis(object):
 		raise NotImplementedError("Please implement this method in your own Analysis subclass")
 
 	def _fill_cutflow(self, nbin):
-		evt_weight = self.tree['mcEventWeight']
+		if not self.tree.is_data: evt_weight = self.tree['mcEventWeight']
 		scale_factor = self.lepton_reco_sf['nominal'] * self.lepton_trig_sf['nominal'] * self.tree['weight_pileup']
 		if not self.tree.is_data and not self.tree.is_bkg_mc:
 			# store weighted cutflow with nominal scale factors
@@ -899,7 +899,7 @@ class Analysis(object):
 			self.CutFlow_weighted_one_hnl_majorana.Fill(nbin, self.model_weight_one_majorana_hnl_single_flavour * scale_factor * evt_weight)
 		else:
 			self.CutFlow.Fill(nbin)
-			self.CutFlow_weighted.Fill(nbin, self.lumi_xsec_weight * scale_factor * evt_weight)
+			if not self.tree.is_data: self.CutFlow_weighted.Fill(nbin, self.lumi_xsec_weight * scale_factor * evt_weight)
 
 	def _fill_leptons(self):
 		sel = 'all'
