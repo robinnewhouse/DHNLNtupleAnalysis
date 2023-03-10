@@ -14,7 +14,7 @@ To clone the project:
 ```
 setupATLAS
 lsetup git
-git clone --recursive  https://:@gitlab.cern.ch:8443/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git source
+git clone --recursive  https://@gitlab.cern.ch:8443/atlas-phys/exot/ueh/EXOT-2017-19/DHNLNtupleAnalysis.git
 ```
 
 There are two ways of setting up the I/O, depending on your preference for the I/O backend 
@@ -25,14 +25,14 @@ The analysis code uses the package `NTupleAnalysisUtils` to load root files. For
 
 To set up the environment (from scratch): 
 ```
-mkdir build; cd build; asetup AnalysisBase,22.0.105 ; cd - 
+mkdir build; cd build; asetup AnalysisBase,master,latest
 ```
 
 To build the C++ backend (only needed the first time or when changing NtupleAnalysisUtils): 
 ```
 cd build; 
-cmake ../source; 
-make ; 
+cmake ..; 
+make; 
 source x*/setup.sh
 ```
 This will make NTupleAnalysisUtils available, while the python scripts in this package will only need the python and ROOT versions that come with the release.

@@ -1110,38 +1110,41 @@ class Analysis(object):
 			#if self.save_ntuples == sel:
 			self._fill_systematic_branches(sel)
 			# ____________________________________________________________
-			# Fill mc weights for the different HNL models
-			# Generic weight to be used for MC bkg
-			evt_weight = self.tree['mcEventWeight']
-			self.fill_ntuple(sel, 'bkg_mc_weight', self.lumi_xsec_weight * evt_weight)
-			# Weights for LNC + LNV decays
-			self.fill_ntuple(sel, 'model_weight_one_majorana_hnl_LNCplusLNV_single_flavour_mixing', self.model_weight_one_majorana_hnl_single_flavour * evt_weight)
-			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing', self.model_weight_majorana_limit_ih * evt_weight)
-			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing', self.model_weight_majorana_limit_nh * evt_weight)
-			# LNC only weights
-			self.fill_ntuple(sel, 'model_weight_one_dirac_hnl_LNC_single_flavour_mixing', self.model_weight_one_dirac_hnl_single_flavour * evt_weight)
-			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNC_ih_mixing', self.model_weight_dirac_limit_ih * evt_weight)
-			self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNC_nh_mixing', self.model_weight_dirac_limit_nh * evt_weight)
-			# ____________________________________________________________
-			# Fill HNL cross sections for different models
-			one_majorana_hnl_single_flavour_xsec = helpers.MCEventWeight(self.tree, mixing_type="single-flavour").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
-			ih_xsec = helpers.MCEventWeight(self.tree, mixing_type="IH").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
-			nh_xsec = helpers.MCEventWeight(self.tree, mixing_type="NH").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
-			self.fill_ntuple(sel, 'LNC_xsec_one_majorana_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec)
-			self.fill_ntuple(sel, 'LNC_xsec_one_dirac_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec * 2)
-			self.fill_ntuple(sel, 'NH_xsec', nh_xsec * 2)
-			self.fill_ntuple(sel, 'IH_xsec', ih_xsec * 4)
-			# ____________________________________________________________
-			self.fill_ntuple(sel, 'event_is_LNC', self.MCEventType.isLNC)
-			self.fill_ntuple(sel, 'event_is_LNV', self.MCEventType.isLNV)
-			# ____________________________________________________________
-			# add mc event weight
-			self.fill_ntuple(sel, 'mcEventWeight', self.tree['mcEventWeight'])
+			if not self.tree.is_data:
+				# Fill mc weights for the different HNL models
+				# Generic weight to be used for MC bkg
+				evt_weight = self.tree['mcEventWeight']
+				self.fill_ntuple(sel, 'bkg_mc_weight', self.lumi_xsec_weight * evt_weight)
+				# Weights for LNC + LNV decays
+				self.fill_ntuple(sel, 'model_weight_one_majorana_hnl_LNCplusLNV_single_flavour_mixing', self.model_weight_one_majorana_hnl_single_flavour * evt_weight)
+				self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_ih_mixing', self.model_weight_majorana_limit_ih * evt_weight)
+				self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNCplusLNV_nh_mixing', self.model_weight_majorana_limit_nh * evt_weight)
+				# LNC only weights
+				self.fill_ntuple(sel, 'model_weight_one_dirac_hnl_LNC_single_flavour_mixing', self.model_weight_one_dirac_hnl_single_flavour * evt_weight)
+				self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNC_ih_mixing', self.model_weight_dirac_limit_ih * evt_weight)
+				self.fill_ntuple(sel, 'model_weight_quasi_dirac_pair_LNC_nh_mixing', self.model_weight_dirac_limit_nh * evt_weight)
+				# ____________________________________________________________
+				# Fill HNL cross sections for different models
+				one_majorana_hnl_single_flavour_xsec = helpers.MCEventWeight(self.tree, mixing_type="single-flavour").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
+				ih_xsec = helpers.MCEventWeight(self.tree, mixing_type="IH").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
+				nh_xsec = helpers.MCEventWeight(self.tree, mixing_type="NH").hnl_xsec_generic_model(channel=self.tree.channel, mass=self.tree.mass, ctau=self.tree.ctau)
+				self.fill_ntuple(sel, 'LNC_xsec_one_majorana_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec)
+				self.fill_ntuple(sel, 'LNC_xsec_one_dirac_hnl_single_flavour', one_majorana_hnl_single_flavour_xsec * 2)
+				self.fill_ntuple(sel, 'NH_xsec', nh_xsec * 2)
+				self.fill_ntuple(sel, 'IH_xsec', ih_xsec * 4)
+				# ____________________________________________________________
+				self.fill_ntuple(sel, 'event_is_LNC', self.MCEventType.isLNC)
+				self.fill_ntuple(sel, 'event_is_LNV', self.MCEventType.isLNV)
+				# ____________________________________________________________
+				# add mc event weight
+				self.fill_ntuple(sel, 'mcEventWeight', self.tree['mcEventWeight'])
+				self.fill_ntuple(sel, 'mcChannelNumber',self.tree["mcChannelNumber"])
+				if (self.tree["mcChannelNumber"] != self.tree.mcChannelNumber) and not self.tree.is_data and self.tree.is_bkg_mc:
+					self.logger.error("DSID {} put in config does not match DSID {} read from the ntuple. Please check your configuration.".format(self.tree.mcChannelNumber,self.tree["mcChannelNumber"]))
+					sys.exit(1)  # abort because of error
 			self.fill_ntuple(sel, 'runNumber',self.tree["runNumber"])
-			if (self.tree["mcChannelNumber"] != self.tree.mcChannelNumber) and not self.tree.is_data and self.tree.is_bkg_mc:
-				self.logger.error("DSID {} put in config does not match DSID {} read from the ntuple. Please check your configuration.".format(self.tree.mcChannelNumber,self.tree["mcChannelNumber"]))
-				sys.exit(1)  # abort because of error
-			self.fill_ntuple(sel, 'mcChannelNumber',self.tree["mcChannelNumber"])
+			
+			
 			self.fill_ntuple(sel, 'eventNumber',self.tree['eventNumber'])
 			self.AddExtraVariables(sel)
 
