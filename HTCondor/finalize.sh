@@ -1,4 +1,4 @@
-DirForSubs=/nfs/dust/atlas/user/appelt/R22/data_SS_2018_uuu_VSI_Lep_Mod
+DirForSubs=/nfs/dust/atlas/user/appelt/R22/data_SS_2018_eee_VSI_Lep_Mod_2
 outputName=data_SS_2018.root
 
 

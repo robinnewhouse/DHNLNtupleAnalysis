@@ -718,8 +718,8 @@ def get_lepton_index(tree, itrk, lepton_type):
 		lepton_index = [  elix for elix in range (tree['nel']) if tree['el_index'][elix] == tree.dv('trk_electronIndex')[itrk]  ]
 		# lepton_index = np.where(tree['el_index'] == tree.dv('trk_electronIndex')[itrk])
 	if len(lepton_index) > 0:
-		if tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]] - tree.dv('trk_phi')[itrk] > 0.02:
-			logger.warning("Lepton and track phi to not match. Check index counting. phi_lep: {}, phi_track: {}".format(
+		if tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]] - tree.dv('trk_phi')[itrk] > 0.5:
+			logger.warning("Lepton and track phi do not match. Check index counting. phi_lep: {}, phi_track: {}".format(
 				tree['muon_phi' if lepton_type == 'muon' else 'el_phi'][lepton_index[0]], tree.dv('trk_phi')[itrk]))
 		return lepton_index[0]
 	else:
@@ -768,11 +768,12 @@ class Tracks:
 					if len(self.tree['muon_index']) > 0 and not self.tree.fake_aod:
 						muon_index = get_lepton_index(self.tree, itrk, 'muon')
 						if muon_index is None: continue
-					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
-					# If track is NOT matched to a loose muon --> no muon match!
-					if not pass_muon_loose == 1:
-						# skip tracks matched to muons with no quality!
-						continue
+						pass_muon_loose = self.tree['muon_isLoose'][muon_index]
+						# If track is NOT matched to a loose muon --> no muon match!
+						if not pass_muon_loose == 1:
+							# skip tracks matched to muons with no quality!
+							continue
+					else: continue 
 
 				# find position of muon in the muon container that is matched to the sec vtx track
 				# (works for calibrated and uncalibrated containers)
@@ -799,8 +800,10 @@ class Tracks:
 						lep_phi = self.tree['muon_phi'][muon_index]
 						lep_isLRT = charToInt(self.tree['muon_isLRT'][muon_index])
 						lepmatched_lepVec.SetPtEtaPhiM(lep_pt, lep_eta, lep_phi, M)
+					else:
+						continue
 				else:
-					self.lepIndex.append(-1)
+					continue
 
 				if self.tree.fake_aod:
 					self.muonType.append(self.tree.dv('trk_muonType')[itrk]) # add muon type to the track class if running on fakeAODs
@@ -811,14 +814,12 @@ class Tracks:
 				self.pt.append(pt)
 				self.eta.append(eta)
 				self.phi.append(phi)
-
 				self.lepVec.append(lepVec)
 				self.lepmatched_lepVec.append(lepmatched_lepVec)
 				self.std_lepVec.append(std_lepVec)
 
 				self.lepCharge.append(self.tree.dv('trk_charge')[itrk])
 				self.lepisAssoc.append(self.tree.dv('trk_isAssociated')[itrk])
-
 				self.muon_isLRT.append(lep_isLRT)
 			else:
 				continue
@@ -834,22 +835,23 @@ class Tracks:
 				# Check if track is also matched to a muon!
 				if self.tree.dv('trk_muonIndex')[itrk] >= 0:
 					# get the muon and electron indicies
-					if len(self.tree['muon_index']) > 0 and not self.tree.fake_aod:
-						muon_index = get_lepton_index(self.tree, itrk, 'muon')
-						if muon_index is None: continue
 					if len(self.tree['el_index']) > 0:
 						el_index = get_lepton_index(self.tree, itrk, 'electron')
 						if el_index is None: continue
-					pass_muon_loose = self.tree['muon_isLoose'][muon_index]
-					# pass_electron_vvl = self.tree['el_isLHVeryLoose_mod1'][el_index] (TODO: fix this (Christian), incl l662..)
-					# If track is matched to a loose muon --> no electron match!
-					if pass_muon_loose == 1:
-						# skip tracks matched to loose muons
-						continue
-					# else if track is NOT vvl electron --> no electron match!
-					# elif not pass_electron_vvl == 1:
-					# 	# skip track with no electron quality!
-					# 	continue
+					if len(self.tree['muon_index']) > 0 and not self.tree.fake_aod:
+						muon_index = get_lepton_index(self.tree, itrk, 'muon')
+						if muon_index is None: continue
+						pass_muon_loose = self.tree['muon_isLoose'][muon_index]
+						# pass_electron_vvl = self.tree['el_isLHVeryLoose_mod1'][el_index] (TODO: fix this (Christian), incl l662..)
+						# If track is matched to a loose muon --> no electron match!
+						if pass_muon_loose == 1:
+							# skip tracks matched to loose muons
+							continue
+						# else if track is NOT vvl electron --> no electron match!
+						# elif not pass_electron_vvl == 1:
+						# 	# skip track with no electron quality!
+						# 	continue
+					
 
 				# Default: use track quantities wrt SV
 				pt = self.tree.dv('trk_pt_wrtSV')[itrk]
@@ -877,8 +879,10 @@ class Tracks:
 # Sagar: Remove this comment once isLRT flag is fixed for electrons.
 #						lep_isLRT = self.tree['el_isLRT'][el_index]
 						self.lepIndex.append(el_index)
+					else:
+						continue
 				else:
-					self.lepIndex.append(-1)
+					continue
 
 				if self.tree.fake_aod:
 					self.el_isTight.append(self.tree.dv('trk_isTight')[itrk])  # add muon quality info

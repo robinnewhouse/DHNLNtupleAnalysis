@@ -639,7 +639,7 @@ class TrackQuality:
 					elisTight = self.tree['el_LHTight'][elindex]
 					elisMedium = self.tree['el_LHMedium'][elindex]
 					elisLoose = self.tree['el_LHLoose'][elindex]
-					elisVeryLooseNP = self.tree['el_isLHVeryLooseNoPix'][elindex]
+					# elisVeryLooseNP = self.tree['el_isLHVeryLooseNoPix'][elindex]
 					#elisVeryVeryLoose = self.tree['el_isLHVeryLoose_mod1'][elindex]
 					#elisVeryVeryLooseSi = self.tree['el_isLHVeryLoose_modSi'][elindex]
 
@@ -649,8 +649,8 @@ class TrackQuality:
 					self.nel_medium = self.nel_medium + 1
 				if elisLoose == 1:
 					self.nel_loose = self.nel_loose + 1
-				if elisVeryLooseNP == 1:
-					self.nel_verylooseNP = self.nel_verylooseNP + 1
+				# if elisVeryLooseNP == 1:
+				# 	self.nel_verylooseNP = self.nel_verylooseNP + 1
 				#if elisVeryVeryLoose == 1:
 				#	self.nel_veryveryloose = self.nel_veryveryloose + 1
 				#if elisVeryVeryLooseSi == 1:

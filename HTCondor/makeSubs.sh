@@ -9,7 +9,7 @@
 dataDirectory=/nfs/dust/atlas/user/appelt/R22/data/2018/user.cappelt.data18_13TeV.periodAllYear.physics_Main.PhysCont.DAOD_LLP1.grp18_v01_p5332_tree.root
 
 # define directory for submission files and output ntuples, logs (will be created)
-DirForSubs=/nfs/dust/atlas/user/appelt/R22/data_SS_2018_uuu_VSI_Lep_Mod
+DirForSubs=/nfs/dust/atlas/user/appelt/R22/data_SS_2018_uuu_VSI_Lep_Mod_2
 
 # directory of NTupleAnalysis, change makeHistorgrams.py configuration in line 40 (output in line 42 has to be renamed as well)
 realPWD=/nfs/dust/atlas/user/appelt/R22
