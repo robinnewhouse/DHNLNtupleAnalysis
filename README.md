@@ -25,14 +25,14 @@ The analysis code uses the package `NTupleAnalysisUtils` to load root files. For
 
 To set up the environment (from scratch): 
 ```
-mkdir build; cd build; asetup AnalysisBase,master,latest
+mkdir build; cd build; asetup AnalysisBase,22.0.105 ; cd - 
 ```
 
 To build the C++ backend (only needed the first time or when changing NtupleAnalysisUtils): 
 ```
 cd build; 
-cmake ..; 
-make; 
+cmake ../source; 
+make ; 
 source x*/setup.sh
 ```
 This will make NTupleAnalysisUtils available, while the python scripts in this package will only need the python and ROOT versions that come with the release.

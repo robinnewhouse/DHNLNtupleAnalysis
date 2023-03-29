@@ -7,7 +7,7 @@ import sys
 class Tree(object):
 	
 	def __init__(self, file_name, tree_name, max_entries, channel, skip_events=None, mc_campaign=None,
-				 dsid = None, mass=1.0, ctau=1.0, is_bkg_mc=False, fake_aod=False, DSID_forced=-1):
+				 dsid = None, mass=1.0, ctau=1.0, is_bkg_mc=False, fake_aod=False, DSID_forced=-1, is_data_forced=False):
 		"""
 		Tree is the primary class that stores all information about the variables in a loaded ntuple
 		and the information about the indices of the current event (ievt) and displaced vertex (idv).
@@ -36,6 +36,7 @@ class Tree(object):
 		self.mass = mass
 		self.ctau = ctau
 		self.mc_campaign = mc_campaign
+		self.is_data_forced = is_data_forced
 		self.arrays = {}
 
 		self.vtx_container = ""
@@ -43,7 +44,7 @@ class Tree(object):
 		self.fake_aod = fake_aod
 		self.channel = channel
 
-		if(dsid == None): self.mcChannelNumber = DSID_forced
+		if(DSID_forced != -1): self.mcChannelNumber = DSID_forced
 		else: self.mcChannelNumber = dsid
 		self.tree_name = tree_name
 		self.all_entries = -1
@@ -205,6 +206,7 @@ class ntauTree (Tree, object):
 	@property
 	def is_data(self):
 		"""Checks if this tree represents real data"""
+		if(self.is_data_forced): return True
 		return self.mc_campaign is None
 
 class uprootTree (Tree, object):
@@ -248,4 +250,5 @@ class uprootTree (Tree, object):
 	@property
 	def is_data(self):
 		"""Checks if this tree represents real data"""
+		if(self.is_data_forced): return True
 		return self.mc_campaign is None

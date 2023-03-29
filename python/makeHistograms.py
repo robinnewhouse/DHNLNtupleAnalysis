@@ -85,10 +85,25 @@ parser.add_argument('-d', '--debug',
 					type=str,
 					help='debug level. Default is INFO. Options include are CRITICAL, ERROR, WARNING, INFO, DEBUG ')
 
-parser.add_argument('--notHNLmc',
+parser.add_argument('--data',
+					action="store_true",
+					default=False,
+					help='Running on a data file.')
+
+parser.add_argument('--hnlMC',
+					action="store_true",
+					default=False,
+					help='Running on an HNL MC.')
+
+parser.add_argument('--bkgMC',
 					action="store_true",
 					default=False,
 					help='Not running on HNL mc. Default: False. Useful for running on mc that is not HNL mc. Turn HNL specific truth info storing off.')
+
+parser.add_argument('--mc_campaign',
+					type=str,
+					default='',
+					help='The mc_campaign of the MC you are running on.')
 
 parser.add_argument('--skipEvents',
 					default=None,
@@ -115,6 +130,22 @@ parent_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefault
 # subparsers = parent_parser.add_subparsers(title = 'SL/FH ttbar resonances anaylsis', dest = 'analysis')
 
 args = parent_parser.parse_args()
+
+if (args.hnlMC and args.bkgMC):
+	print("You have set both --hnlMC and --bkgMC. Incompatible and confusing flags. Please fix.")
+	exit(1)
+
+if ((args.hnlMC or args.bkgMC) and args.data):
+	print("You have set both --MC and --data. Incompatible and confusing flags. Please fix.")
+	exit(1)
+
+if (args.mc_campaign!='' and args.data):
+	print("You have overloaded the campaign but also have a --data flag. Campaign only works for MC inputs. Please fix.")
+	exit(1)
+
+if(not args.bkgMC and not args.data and not args.hnlMC):
+	logger.warning("You haven't chosen what type of input file this is, so the check is defaulting to an HNL MC.")
+	args.hnlMC = True
 
 # helpers.initialise_binds()
 
@@ -189,9 +220,19 @@ for channel, configs in config_file.items():
 		else: 
 			from trees import uprootTree as treeType
 
+		if(not file_info.mc_campaign or file_info.mc_campaign==''):
+			if(args.mc_campaign!=''): 
+				mc_campaign = args.mc_campaign
+			else:
+				if(args.hnlMC or args.bkgMC):
+					logger.error("You haven't provided a campaign but you want to run on MC. Please fix.")
+					exit(1)
+		else:
+			mc_campaign = file_info.mc_campaign
+
 		# Create new Tree class using uproot
-		tree = treeType(input_file, tree_name, entries, mc_campaign=file_info.mc_campaign, dsid=file_info.dsid, mass=file_info.mass,
-							channel=channel, ctau=file_info.ctau, is_bkg_mc=args.notHNLmc, skip_events=args.skipEvents, DSID_forced=args.DSID)
+		tree = treeType(input_file, tree_name, entries, mc_campaign=mc_campaign, dsid=file_info.dsid, mass=file_info.mass,
+							channel=channel, ctau=file_info.ctau, is_bkg_mc=args.bkgMC, skip_events=args.skipEvents, DSID_forced=args.DSID, is_data_forced=args.data)
 		# logger.info('Mass dependent BR: {}'.format(file_info.br))
 
 		# create one output file per channel in your config file
