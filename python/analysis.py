@@ -598,7 +598,10 @@ class Analysis(object):
 		return dv_sel.passes()
 
 	def _track_quality_cut(self):
-		track_quality_sel = selections.LRTTrackQuality(self.tree, quality=self.track_quality)
+		if self.tree.channel in ['uuu', 'SS_uu']: #Christian: apply Sagars new class only for muons
+			track_quality_sel = selections.LRTTrackQuality(self.tree, quality=self.track_quality)
+		else: # Christian: keep 'old' track quality class working until LRT quality is fixed for electrons
+			track_quality_sel = selections.TrackQuality(self.tree, quality=self.track_quality)
 		return track_quality_sel.passes()
 
 	def _cosmic_veto_cut(self):
